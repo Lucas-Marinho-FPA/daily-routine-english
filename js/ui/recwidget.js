@@ -7,7 +7,7 @@ import { putRecording, getRecording, backend } from '../store/db.js';
 import { recordRecording } from '../engine/progress.js';
 
 /**
- * opts: { targetId, reference: [{key,text}], expectedWords, referenceSec, maxMs, onRecorded(blob, analysis) }
+ * opts: { targetId, reference: [{key,text}], expectedWords, referenceSec, maxMs, onStart(), onRecorded(blob, analysis) }
  */
 export function recWidget(App, opts) {
   const { targetId, reference = [], expectedWords = 0, referenceSec = 0, maxMs = 180000 } = opts;
@@ -40,6 +40,7 @@ export function recWidget(App, opts) {
     clear(recBtn).append(icon('stop'));
     meter.classList.remove('hidden');
     startedAt = Date.now();
+    if (opts.onStart) { try { opts.onStart(); } catch (e) { /* o feedback opcional nunca bloqueia a gravação */ } }
     timer = setInterval(() => { time.textContent = `Gravando… ${Math.round((Date.now() - startedAt) / 1000)}s · toque para parar`; }, 250);
     session.stopped.then(onStopped);
   }

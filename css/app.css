@@ -251,3 +251,21 @@ canvas.wave { width: 100%; height: 56px; display: block; background: var(--surfa
 .kv > :nth-child(odd) { color: var(--muted); }
 .kv > :nth-child(even) { text-align: right; overflow-wrap: anywhere; }
 .provisional { border: 1px dashed var(--warn); }
+
+/* ---------- feedback inline palavra por palavra ---------- */
+.target-text { white-space: normal; overflow-wrap: break-word; word-break: normal; line-height: 1.9; }
+.target-text .w { border-radius: 4px; padding: 0 1px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.w-good, .w-needs_practice, .w-uncertain { cursor: pointer; }
+.w-good { background: var(--ok-soft); box-shadow: inset 0 -2px 0 var(--ok); }
+.w-needs_practice { background: var(--warn-soft); text-decoration: underline wavy var(--warn); text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.w-uncertain { background: color-mix(in srgb, var(--muted) 14%, transparent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--muted) 55%, transparent); color: var(--ink); }
+.w-sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.w-legend { margin: 2px 0 6px; line-height: 2; }
+.w-legend .w { padding: 1px 4px; }
+.word-detail { margin: 6px 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.w-chip-good { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.w-chip-needs_practice { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.w-chip-uncertain { color: var(--muted); }
+.score-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px; margin-top: 6px; }
+.score-details summary { cursor: pointer; color: var(--muted); }
+.score-details ul { margin: 4px 0; padding-left: 18px; }

@@ -2,8 +2,10 @@
 import { h, icon, clear, toast } from './dom.js';
 import * as player from '../audio/player.js';
 import * as asr from '../audio/asr.js';
-import { wordTokens, lcsAlign } from '../engine/text.js';
+import { wordTokens } from '../engine/text.js';
 import { recWidget } from './recwidget.js';
+import { inlineWords, legend, scoreLine } from './inlinewords.js';
+import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
 import { speakerButton, sessionHref } from './common.js';
 
 let labTab = 'sentences';
@@ -68,7 +70,7 @@ function renderTarget(App, params) {
     title = `Frase · ${s.routine}`; en = [s.en]; pt = s.pt; clips = [{ key: s.au, text: s.en }]; targetId = `sent:${s.id}`;
   } else if (params.block) {
     const b = content.blocks[params.block];
-    title = `${b.routine} · bloco ${b.index}`; en = b.sentences.map((sid) => content.sentences[sid].en); pt = b.pt;
+    title = `${b.routine} · bloco ${b.index}`; en = [b.en]; pt = b.pt; // o bloco é um parágrafo corrido
     clips = b.sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en })); targetId = `block:${b.id}`;
   } else if (params.routine) {
     const r = content.routines.find((x) => x.id === params.routine);
@@ -95,6 +97,18 @@ function renderTarget(App, params) {
   const view = App.layout(title, { back });
   if (extra) view.append(extra);
 
+  // texto-alvo com feedback inline (mesmo fluxo de leitura; cores só depois de uma avaliação)
+  const iw = en.length ? inlineWords(en) : null;
+  const legendEl = legend();
+  legendEl.classList.add('hidden');
+  const scoreBox = h('div', {});
+  const statusLine = h('div', { class: 'tiny muted' });
+  const showEvaluation = (evaluation, score) => {
+    iw.apply(evaluation);
+    legendEl.classList.remove('hidden');
+    statusLine.textContent = evaluation.note || '';
+    clear(scoreBox).append(scoreLine(score));
+  };
   if (en.length) {
     let showPt = false;
     const textBox = h('div', { class: 'card', style: { marginTop: '10px' } });
@@ -102,7 +116,8 @@ function renderTarget(App, params) {
       clear(textBox).append(
         h('div', { class: 'row nowrap' }, h('div', { class: 'small muted', style: { flex: 1 }, text: params.q ? 'Resposta-modelo' : 'Texto' }),
           h('button', { class: 'btn small', onclick: () => { showPt = !showPt; draw(); } }, showPt ? 'Ocultar PT' : 'Ver PT')),
-        ...en.map((p) => h('p', { class: 'para', text: p })), showPt && pt ? h('p', { class: 'para-pt', style: { whiteSpace: 'pre-line' }, text: pt }) : null);
+        iw.el, legendEl, statusLine, iw.detail, scoreBox,
+        showPt && pt ? h('p', { class: 'para-pt', style: { whiteSpace: 'pre-line' }, text: pt }) : null);
     };
     draw();
     const rates = [0.75, 1, 1.25];
@@ -119,18 +134,54 @@ function renderTarget(App, params) {
   const referenceSec = clips.reduce((n, c) => n + (durations[c.key] || 0), 0);
   const expectedWords = en.join(' ').split(/\s+/).filter(Boolean).length;
   view.append(h('h2', { text: 'Sua gravação' }));
-  const w = recWidget(App, { targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 300000 : 120000 });
+  // avaliação automática só quando o aluno está LENDO o texto (frase, bloco, rotina); perguntas são respondidas livremente
+  const reading = !!iw && !params.q;
+  const asrEligible = expectedWords <= 60;
+  let listener = null;
+  // o aluno já confirmou antes que o reconhecimento existe: consulta de novo automaticamente
+  const autoStatus = state.settings.asrKnown === 'available' && !asr.cachedStatus() ? asr.status() : null;
+  const w = recWidget(App, {
+    targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 300000 : 120000,
+    onStart: () => {
+      if (!reading) return;
+      iw.reset(); legendEl.classList.add('hidden'); clear(scoreBox); statusLine.textContent = '';
+      listener = asrEligible && asr.cachedStatus() === 'available' ? asr.listen({ lang: 'en-GB' }) : null;
+    },
+    onRecorded: async (blob, analysis) => {
+      if (!reading) return;
+      statusLine.textContent = 'Analisando…';
+      const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
+      const res = listener ? await listener.stop() : null;
+      let evaluation = evaluateWords(iw.text, res, { insufficient });
+      if (!res && !insufficient) {
+        const why = !asrEligible ? 'Texto longo: avaliação por palavra só para trechos de até 60 palavras (grave um bloco).'
+          : listener ? 'O reconhecimento não conseguiu rodar junto com a gravação neste aparelho. Use “Verificar palavras”.'
+          : asr.cachedStatus() ? 'Reconhecimento de fala no aparelho indisponível: palavras não avaliadas.'
+          : 'Para avaliar palavra por palavra, toque em “Ver se está disponível” abaixo (uma vez).';
+        evaluation = { ...evaluation, note: why };
+      }
+      listener = null;
+      showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
+    },
+  });
   view.append(w.el);
 
   // reconhecimento no aparelho (opcional)
   if (en.length && expectedWords <= 60) {
     const asrBox = h('div', { class: 'card flat', style: { marginTop: '12px' } });
     view.append(asrBox);
+    const onLive = (res) => {
+      const evaluation = evaluateWords(iw.text, res);
+      showEvaluation(evaluation, scoreAttempt({ evaluation, analysis: null, expectedWords, recorded: false }));
+    };
     const known = asr.cachedStatus();
-    if (known) drawAsr(App, asrBox, known, en.join(' '));
-    else {
-      asrBox.append(h('p', { class: 'small muted', text: 'Verificação de palavras por reconhecimento de fala no próprio aparelho (opcional).' }),
-        h('button', { class: 'btn small', onclick: async (e) => { e.currentTarget.disabled = true; drawAsr(App, asrBox, await asr.status(), en.join(' ')); } }, icon('target'), 'Ver se está disponível'));
+    if (known) drawAsr(App, asrBox, known, onLive, !!params.q);
+    else if (autoStatus) {
+      asrBox.append(h('p', { class: 'small muted', text: 'Verificando o reconhecimento no aparelho…' }));
+      autoStatus.then((st) => { state.settings.asrKnown = st; drawAsr(App, asrBox, st, onLive, !!params.q); });
+    } else {
+      asrBox.append(h('p', { class: 'small muted', text: 'Avaliação palavra por palavra usa o reconhecimento de fala no próprio aparelho (opcional, nada é enviado).' }),
+        h('button', { class: 'btn small', onclick: async (e) => { e.currentTarget.disabled = true; const st = await asr.status(); state.settings.asrKnown = st; App.save(); drawAsr(App, asrBox, st, onLive, !!params.q); } }, icon('target'), 'Ver se está disponível'));
     }
   }
 
@@ -164,35 +215,30 @@ function relevantTips(content, text) {
   return Object.values(content.items).filter((it) => (it.ipa || it.tip) && wordTokens(it.en).every((t) => tokens.has(t))).slice(0, 6);
 }
 
-function drawAsr(App, box, st, expected) {
+function drawAsr(App, box, st, onLive, isQuestion) {
   clear(box);
   if (st === 'available') {
     const out = h('div', {});
-    const btn = h('button', { class: 'btn' }, icon('target'), 'Verificar palavras (no aparelho)');
+    const btn = h('button', { class: 'btn' }, icon('target'), isQuestion ? 'Verificar palavras (lendo o modelo)' : 'Verificar palavras (sem gravar)');
     btn.onclick = async () => {
       player.stopAll();
       btn.disabled = true;
       clear(out).append(h('p', { class: 'small', text: '🎙️ Fale agora…' }));
       try {
         const res = await asr.recognise({ lang: 'en-GB' });
-        const exp = wordTokens(expected), got = wordTokens(res.text);
-        const pairs = lcsAlign(exp, got);
-        const hit = new Set(pairs.map(([i]) => i));
-        const pct = Math.round((hit.size / Math.max(1, exp.length)) * 100);
-        const low = res.confidence > 0 && res.confidence < 0.5;
-        clear(out).append(
-          h('p', { class: 'small' }, h('b', { text: `Palavras reconhecidas: ${hit.size} de ${exp.length} (${pct}%)` }), low ? ' — confiança baixa: resultado inconclusivo, tente de novo.' : ''),
-          h('p', { class: 'en' }, ...exp.map((w, i) => [i ? ' ' : '', h('span', { class: hit.has(i) ? 'word-ok' : 'word-miss', text: w })])),
-          h('p', { class: 'tiny muted', text: `Ouvido: “${res.text}”. Isto mede se o reconhecedor entendeu as palavras (inteligibilidade aproximada), não a qualidade da pronúncia. Sotaque não é erro.` }));
+        onLive(res);
+        clear(out).append(h('p', { class: 'tiny muted', text: `Ouvido: “${res.text}”. As cores no texto mostram se cada palavra foi reconhecida (inteligibilidade aproximada), não a qualidade dos sons. Sotaque não é erro.` }));
       } catch (e) {
         clear(out).append(h('p', { class: 'small', text: `Inconclusivo: ${e.message}. Tente de novo.` }));
       }
       btn.disabled = false;
     };
-    box.append(h('div', { class: 'small muted', style: { marginBottom: '8px' }, text: 'Reconhecimento de fala no aparelho disponível (sem enviar áudio).' }), btn, out);
+    box.append(h('div', { class: 'small muted', style: { marginBottom: '8px' }, text: isQuestion
+      ? 'Reconhecimento no aparelho disponível. Para comparar com o modelo, leia a resposta-modelo em voz alta.'
+      : 'Reconhecimento no aparelho disponível: ao gravar, as palavras são avaliadas automaticamente (nada é enviado).' }), btn, out);
   } else if (st === 'downloadable' || st === 'downloading') {
     const btn = h('button', { class: 'btn small' }, icon('download'), 'Baixar reconhecimento offline (uma vez)');
-    btn.onclick = async () => { btn.disabled = true; const ok = await asr.install(); toast(ok ? 'Modelo instalado.' : 'Não foi possível instalar agora.'); drawAsr(App, box, await asr.status(), expected); };
+    btn.onclick = async () => { btn.disabled = true; const ok = await asr.install(); toast(ok ? 'Modelo instalado.' : 'Não foi possível instalar agora.'); const st2 = await asr.status(); App.state.settings.asrKnown = st2; drawAsr(App, box, st2, onLive, isQuestion); };
     box.append(h('p', { class: 'small', text: 'O Chrome pode baixar um modelo de reconhecimento que roda no aparelho. Requer internet só para o download; depois funciona offline.' }), btn);
   } else {
     box.append(h('p', { class: 'small muted', text: 'Reconhecimento de fala no aparelho não está disponível neste navegador. Use a gravação, a comparação A/B e a autoavaliação abaixo. (O reconhecimento online do Chrome não é usado, porque enviaria sua voz para fora do aparelho.)' }));

@@ -236,6 +236,17 @@
     }
     return null;
   }
+  function fnv1a(str) {
+    let h2 = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h2 ^= str.charCodeAt(i);
+      h2 = Math.imul(h2, 16777619) >>> 0;
+    }
+    return h2.toString(16).padStart(8, "0");
+  }
+  function audioKey(text) {
+    return fnv1a(String(text).replace(/\s+/g, " ").trim());
+  }
   function levenshtein(a, b) {
     if (a === b) return 0;
     const m = a.length, n = b.length;
@@ -2075,6 +2086,12 @@
       clear(recBtn).append(icon("stop"));
       meter.classList.remove("hidden");
       startedAt = Date.now();
+      if (opts.onStart) {
+        try {
+          opts.onStart();
+        } catch (e) {
+        }
+      }
       timer = setInterval(() => {
         time.textContent = `Gravando\u2026 ${Math.round((Date.now() - startedAt) / 1e3)}s \xB7 toque para parar`;
       }, 250);
@@ -2549,7 +2566,7 @@
         };
         area.append(kind("Monte a frase em ingl\xEAs"), h("p", { style: { fontSize: "1.1rem" }, text: sentence.pt }), answer, h("div", { style: { height: "10px" } }), pool);
         draw();
-        const listen = h("button", { class: "btn", onclick: () => {
+        const listen2 = h("button", { class: "btn", onclick: () => {
           hintUsed = true;
           play({ key: sentence.au, text: sentence.en });
         } }, icon("speaker"), "Ouvir");
@@ -2567,7 +2584,7 @@
           autoplay({ key: sentence.au, text: sentence.en });
           actions(continueBtn());
         };
-        actions(listen, verify);
+        actions(listen2, verify);
       },
       write(ex) {
         const { sentence } = ex;
@@ -2990,6 +3007,297 @@
       }
     });
   }
+  function listen({ lang = "en-GB" } = {}) {
+    const finals = [];
+    let ended = false, failed = null, resolveEnd;
+    const endP = new Promise((r) => {
+      resolveEnd = r;
+    });
+    let rec = null;
+    try {
+      if (!SR) throw new Error("indispon\xEDvel");
+      rec = new SR();
+      if (!("processLocally" in rec)) throw new Error("sem modo local");
+      rec.processLocally = true;
+      rec.lang = lang;
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.onresult = (e) => {
+        for (let i = e.resultIndex || 0; i < e.results.length; i++) {
+          const r = e.results[i];
+          if (r.isFinal === false) continue;
+          finals[i] = { text: r[0].transcript, confidence: r[0].confidence };
+        }
+      };
+      rec.onerror = (e) => {
+        failed = e.error || "erro";
+      };
+      rec.onend = () => {
+        ended = true;
+        resolveEnd();
+      };
+      rec.start();
+    } catch (e) {
+      failed = e.message;
+      ended = true;
+      resolveEnd();
+    }
+    return {
+      async stop() {
+        if (!ended && rec) {
+          try {
+            rec.stop();
+          } catch (e) {
+          }
+        }
+        await Promise.race([endP, new Promise((r) => setTimeout(r, 4e3))]);
+        const parts = finals.filter(Boolean);
+        if (!parts.length) return failed ? null : { text: "", confidence: 0 };
+        const conf = parts.map((x) => x.confidence).filter((c) => typeof c === "number" && c > 0);
+        return { text: parts.map((x) => x.text).join(" "), confidence: conf.length ? conf.reduce((a, b) => a + b, 0) / conf.length : 0 };
+      },
+      failed: () => failed
+    };
+  }
+
+  // app/js/engine/wordfeedback.js
+  var SCORE_WEIGHTS = [
+    { id: "intelligibility", label: "Pron\xFAncia e inteligibilidade", weight: 0.6 },
+    { id: "fluency", label: "Ritmo e fluidez", weight: 0.2 },
+    { id: "prosody", label: "Acentua\xE7\xE3o e entona\xE7\xE3o", weight: 0.15 },
+    { id: "duration", label: "Dura\xE7\xE3o e naturalidade", weight: 0.05 }
+  ];
+  var MIN_CONFIDENCE = 0.5;
+  var WEAK = /* @__PURE__ */ new Set(["a", "an", "the", "and", "to", "of", "at", "in", "on", "for", "or", "as", "by", "is", "am", "are", "it", "my", "i", "so", "but", "with", "from", "up", "do"]);
+  var NUM = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50 };
+  var AME = { analyze: "analyse", analyzes: "analyses", analyzing: "analysing", practice: "practise", practices: "practises", finalize: "finalise", organize: "organise", neighborhood: "neighbourhood" };
+  function segment(text) {
+    const segs = [];
+    let pos = 0, w = 0;
+    for (const s of tokenSpans(text)) {
+      if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
+      const norm = wordTokens(s.text).join(" ");
+      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm) });
+      pos = s.end;
+    }
+    if (pos < text.length) segs.push({ text: text.slice(pos) });
+    return segs;
+  }
+  var wordsOf = (text) => segment(text).filter((s) => s.w !== void 0);
+  function forms(t) {
+    const out = /* @__PURE__ */ new Set([t]);
+    if (AME[t]) out.add(AME[t]);
+    if (t in NUM) out.add(String(NUM[t]));
+    const m = /^(\d{1,2}):(\d\d)$/.exec(t);
+    if (m) {
+      out.add(String(+m[1]));
+      if (m[2] !== "00") out.add(m[2].replace(/^0/, ""));
+    }
+    if (/^\d+$/.test(t)) {
+      for (const [k, v] of Object.entries(NUM)) if (String(v) === t) out.add(k);
+    }
+    if (t === "am" || t === "pm") {
+      out.add(t[0]);
+      out.add(t + ".");
+    }
+    if (t.endsWith("'s")) out.add(t.slice(0, -2));
+    return out;
+  }
+  function tokenEq(target, heard) {
+    if (target === heard) return true;
+    const a = forms(target), b = forms(heard);
+    for (const x of a) if (b.has(x)) return true;
+    return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1;
+  }
+  function heardTokens(transcript) {
+    return wordTokens(String(transcript || "")).flatMap((t) => {
+      const m = /^(\d{1,2})(am|pm)$/.exec(t);
+      return m ? [m[1], m[2]] : [t];
+    });
+  }
+  function evaluateWords(text, asr, opts = {}) {
+    const words = wordsOf(text);
+    const all = (state, reason, note) => ({ words: words.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
+    if (opts.insufficient) return all("uncertain", "Grava\xE7\xE3o insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.", "Quase n\xE3o captei voz: nada foi avaliado.");
+    if (!asr) return all("uncertain", "N\xE3o foi poss\xEDvel avaliar esta palavra: o reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel. Compare com a refer\xEAncia (A/B).", "Avalia\xE7\xE3o por palavra indispon\xEDvel neste aparelho.");
+    const heard = heardTokens(asr.text);
+    if (!heard.length) return all("uncertain", "Nenhuma fala foi reconhecida. Tente gravar novamente.", "O reconhecimento n\xE3o captou fala: resultado inconclusivo.");
+    if (typeof asr.confidence === "number" && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
+      return all("uncertain", "O reconhecimento teve confian\xE7a baixa nesta grava\xE7\xE3o; n\xE3o d\xE1 para avaliar a palavra com seguran\xE7a. Tente de novo.", "Confian\xE7a baixa do reconhecimento: resultado inconclusivo.");
+    }
+    const target = words.map((x) => x.norm);
+    const pairs = lcsAlign(target, heard, tokenEq);
+    const matchT = new Map(pairs.map(([i, j]) => [i, j]));
+    const anchors = [[-1, -1], ...pairs, [target.length, heard.length]];
+    const gapHeard = /* @__PURE__ */ new Map();
+    for (let k = 0; k < anchors.length - 1; k++) {
+      const [ti, hj] = anchors[k], [tn, hn] = anchors[k + 1];
+      const tGap = [];
+      for (let i = ti + 1; i < tn; i++) tGap.push(i);
+      const hGap = heard.slice(hj + 1, hn);
+      tGap.forEach((i, idx) => gapHeard.set(i, tGap.length === hGap.length ? [hGap[idx]] : hGap));
+    }
+    const out = words.map((x, i) => {
+      if (matchT.has(i)) return { w: x.w, text: x.text, state: "good", reason: "Reconhecida como esperado. Isso indica que a palavra foi entendida (intelig\xEDvel); n\xE3o \xE9 uma an\xE1lise fon\xE9tica dos sons." };
+      const near = (gapHeard.get(i) || []).filter(Boolean);
+      if (x.weak) return { w: x.w, text: x.text, state: "uncertain", reason: "Palavra curta e \xE1tona: o reconhecedor costuma omiti-la mesmo quando \xE9 dita. N\xE3o foi avaliada." };
+      if (near.length) {
+        return {
+          w: x.w,
+          text: x.text,
+          state: "needs_practice",
+          heard: near.join(" "),
+          reason: `N\xE3o foi reconhecida como esperado: o reconhecedor ouviu \u201C${near.join(" ")}\u201D. Ou\xE7a a refer\xEAncia e repita esta palavra. (O sistema n\xE3o identifica qual som diferiu.)`
+        };
+      }
+      return { w: x.w, text: x.text, state: "needs_practice", reason: "N\xE3o foi reconhecida: a palavra pode ter sido omitida ou dita de forma pouco clara. Ou\xE7a a refer\xEAncia e repita. (O sistema n\xE3o identifica qual som diferiu.)" };
+    });
+    return { words: out, evaluated: true, note: "" };
+  }
+  function scoreAttempt({ evaluation, analysis, expectedWords = 0, recorded = true }) {
+    const dims = SCORE_WEIGHTS.map((d) => ({ ...d, score: null, note: "" }));
+    const get = (id) => dims.find((d) => d.id === id);
+    const insufficient = recorded && (!analysis || analysis.silent || analysis.speechSec < 0.4);
+    if (evaluation && evaluation.evaluated) {
+      const judged = evaluation.words.filter((x) => x.state === "good" || x.state === "needs_practice");
+      if (judged.length >= 2) get("intelligibility").score = Math.round(judged.filter((x) => x.state === "good").length / judged.length * 100);
+      else get("intelligibility").note = "Poucas palavras avali\xE1veis.";
+    } else get("intelligibility").note = evaluation && evaluation.note ? evaluation.note : "Sem reconhecimento de fala no aparelho.";
+    if (analysis && !insufficient && analysis.speechSec >= 1) {
+      const words = Math.max(1, expectedWords);
+      let s = 100 - Math.max(0, analysis.longPauses - (words > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words / 5)) * 5;
+      get("fluency").score = Math.max(30, Math.min(100, Math.round(s)));
+    } else get("fluency").note = "Grava\xE7\xE3o curta ou sem voz suficiente.";
+    get("prosody").note = "N\xE3o avaliado: o app n\xE3o tem um analisador de acento e entona\xE7\xE3o.";
+    const p = analysis && analysis.paceVsReference;
+    const plausible = analysis && !(analysis.wpm && (analysis.wpm > 260 || analysis.wpm < 40));
+    if (!insufficient && p && plausible) get("duration").score = p > 2.4 ? 60 : p > 1.8 ? 80 : p < 0.6 ? 60 : p < 0.75 ? 80 : 100;
+    else get("duration").note = analysis ? "Sem dura\xE7\xE3o de refer\xEAncia confi\xE1vel." : "Sem grava\xE7\xE3o: dura\xE7\xE3o n\xE3o medida.";
+    const available = dims.filter((d) => d.score !== null);
+    const hasCore = get("intelligibility").score !== null;
+    if (insufficient || !hasCore) {
+      return {
+        overall: null,
+        dims,
+        partial: true,
+        message: insufficient ? "Grava\xE7\xE3o insuficiente: sem nota. Tente novamente." : "Nota geral indispon\xEDvel: falta a medida de inteligibilidade (reconhecimento de fala no aparelho)."
+      };
+    }
+    const wsum = available.reduce((n, d) => n + d.weight, 0);
+    const overall = Math.round(available.reduce((n, d) => n + d.score * d.weight, 0) / wsum);
+    return {
+      overall,
+      dims,
+      partial: available.length < dims.length,
+      message: `Nota estimada com ${available.map((d) => d.label.toLowerCase()).join(", ")}. ${dims.filter((d) => d.score === null).map((d) => d.label).join(", ")}: n\xE3o avaliado.`
+    };
+  }
+
+  // app/js/ui/inlinewords.js
+  var LABEL = { good: "Reconhecida como esperado", needs_practice: "Precisa de pr\xE1tica", uncertain: "N\xE3o avaliada / inconclusiva" };
+  function inlineWords(paragraphs) {
+    const text = paragraphs.join("\n\n");
+    const wordEls = [];
+    const detail = h("div", { class: "word-detail hidden", role: "status", "aria-live": "polite" });
+    let results = null;
+    let selected = null;
+    const paras = paragraphs.map((p) => {
+      const el = h("p", { class: "para target-text", lang: "en" });
+      for (const seg of segment(p)) {
+        if (seg.w === void 0) {
+          el.append(document.createTextNode(seg.text));
+          continue;
+        }
+        const span = h("span", { class: "w", text: seg.text });
+        span.dataset.i = String(wordEls.length);
+        span.addEventListener("click", () => select(Number(span.dataset.i)));
+        span.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            select(Number(span.dataset.i));
+          }
+        });
+        wordEls.push(span);
+        el.append(span);
+      }
+      return el;
+    });
+    function select(i) {
+      if (!results) return;
+      const r = results[i];
+      if (selected !== null && wordEls[selected]) wordEls[selected].classList.remove("w-sel");
+      selected = i;
+      wordEls[i].classList.add("w-sel");
+      const word = wordEls[i].textContent;
+      clear(detail).append(
+        h(
+          "div",
+          { class: "row nowrap" },
+          h("b", { class: "en", text: word }),
+          h("span", { class: `chip w-chip-${r.state}`, text: LABEL[r.state] || r.state }),
+          h("span", { class: "spacer" }),
+          h("button", { class: "btn small", type: "button", onclick: () => play({ key: audioKey(word.replace(/[.,!?;:]+$/, "")), text: word }) }, "Ouvir")
+        ),
+        h("div", { class: "small", style: { marginTop: "4px" }, text: r.reason })
+      );
+      detail.classList.remove("hidden");
+    }
+    function apply(evaluation) {
+      results = evaluation.words.map((x) => ({ state: x.state, reason: x.reason }));
+      wordEls.forEach((el, i) => {
+        const st = results[i] ? results[i].state : "uncertain";
+        el.className = `w w-${st}`;
+        el.dataset.state = st;
+        el.setAttribute("role", "button");
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("aria-label", `${el.textContent}: ${LABEL[st] || st}`);
+      });
+      detail.classList.add("hidden");
+      selected = null;
+    }
+    function reset() {
+      results = null;
+      selected = null;
+      wordEls.forEach((el) => {
+        el.className = "w";
+        delete el.dataset.state;
+        el.removeAttribute("role");
+        el.removeAttribute("tabindex");
+        el.removeAttribute("aria-label");
+      });
+      detail.classList.add("hidden");
+    }
+    return { el: h("div", { class: "target-wrap" }, ...paras), detail, text, apply, reset, wordEls };
+  }
+  function legend() {
+    return h(
+      "div",
+      { class: "w-legend tiny muted" },
+      h("span", { class: "w w-good", text: "reconhecida" }),
+      " ",
+      h("span", { class: "w w-needs_practice", text: "praticar" }),
+      " ",
+      h("span", { class: "w w-uncertain", text: "n\xE3o avaliada" }),
+      " \xB7 toque numa palavra para ver o motivo"
+    );
+  }
+  function scoreLine(score) {
+    const head = score.overall === null ? h("span", { class: "chip", text: "Sem nota geral" }) : h("span", { class: "chip accent", text: `Nota estimada ${score.overall}/100${score.partial ? " \xB7 parcial" : ""}` });
+    const det = h(
+      "details",
+      { class: "score-details tiny" },
+      h("summary", { text: score.message }),
+      h("ul", {}, score.dims.map((d) => h(
+        "li",
+        {},
+        `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
+        d.score === null ? h("i", { text: `n\xE3o avaliado \u2014 ${d.note}` }) : h("b", { text: `${d.score}/100` })
+      ))),
+      h("div", { text: "Pesos iniciais (hip\xF3teses, n\xE3o validados cientificamente). A nota n\xE3o mede \u201Cperfei\xE7\xE3o\u201D e uma grava\xE7\xE3o ruim n\xE3o gera nota baixa: gera resultado inconclusivo." })
+    );
+    return h("div", { class: "score-line" }, head, det);
+  }
 
   // app/js/ui/lab.js
   var labTab = "sentences";
@@ -3067,7 +3375,7 @@
     } else if (params.block) {
       const b = content.blocks[params.block];
       title = `${b.routine} \xB7 bloco ${b.index}`;
-      en = b.sentences.map((sid) => content.sentences[sid].en);
+      en = [b.en];
       pt = b.pt;
       clips = b.sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en }));
       targetId = `block:${b.id}`;
@@ -3107,6 +3415,17 @@
     }
     const view = App2.layout(title, { back });
     if (extra) view.append(extra);
+    const iw = en.length ? inlineWords(en) : null;
+    const legendEl = legend();
+    legendEl.classList.add("hidden");
+    const scoreBox = h("div", {});
+    const statusLine = h("div", { class: "tiny muted" });
+    const showEvaluation = (evaluation, score) => {
+      iw.apply(evaluation);
+      legendEl.classList.remove("hidden");
+      statusLine.textContent = evaluation.note || "";
+      clear(scoreBox).append(scoreLine(score));
+    };
     if (en.length) {
       let showPt = false;
       const textBox = h("div", { class: "card", style: { marginTop: "10px" } });
@@ -3121,7 +3440,11 @@
               draw();
             } }, showPt ? "Ocultar PT" : "Ver PT")
           ),
-          ...en.map((p) => h("p", { class: "para", text: p })),
+          iw.el,
+          legendEl,
+          statusLine,
+          iw.detail,
+          scoreBox,
           showPt && pt ? h("p", { class: "para-pt", style: { whiteSpace: "pre-line" }, text: pt }) : null
         );
       };
@@ -3146,19 +3469,63 @@
     const referenceSec = clips.reduce((n, c) => n + (durations[c.key] || 0), 0);
     const expectedWords = en.join(" ").split(/\s+/).filter(Boolean).length;
     view.append(h("h2", { text: "Sua grava\xE7\xE3o" }));
-    const w = recWidget(App2, { targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 3e5 : 12e4 });
+    const reading = !!iw && !params.q;
+    const asrEligible = expectedWords <= 60;
+    let listener = null;
+    const autoStatus = state.settings.asrKnown === "available" && !cachedStatus() ? status() : null;
+    const w = recWidget(App2, {
+      targetId,
+      reference: clips,
+      expectedWords,
+      referenceSec,
+      maxMs: params.routine ? 3e5 : 12e4,
+      onStart: () => {
+        if (!reading) return;
+        iw.reset();
+        legendEl.classList.add("hidden");
+        clear(scoreBox);
+        statusLine.textContent = "";
+        listener = asrEligible && cachedStatus() === "available" ? listen({ lang: "en-GB" }) : null;
+      },
+      onRecorded: async (blob, analysis) => {
+        if (!reading) return;
+        statusLine.textContent = "Analisando\u2026";
+        const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
+        const res = listener ? await listener.stop() : null;
+        let evaluation = evaluateWords(iw.text, res, { insufficient });
+        if (!res && !insufficient) {
+          const why = !asrEligible ? "Texto longo: avalia\xE7\xE3o por palavra s\xF3 para trechos de at\xE9 60 palavras (grave um bloco)." : listener ? "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho. Use \u201CVerificar palavras\u201D." : cachedStatus() ? "Reconhecimento de fala no aparelho indispon\xEDvel: palavras n\xE3o avaliadas." : "Para avaliar palavra por palavra, toque em \u201CVer se est\xE1 dispon\xEDvel\u201D abaixo (uma vez).";
+          evaluation = { ...evaluation, note: why };
+        }
+        listener = null;
+        showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
+      }
+    });
     view.append(w.el);
     if (en.length && expectedWords <= 60) {
       const asrBox = h("div", { class: "card flat", style: { marginTop: "12px" } });
       view.append(asrBox);
+      const onLive = (res) => {
+        const evaluation = evaluateWords(iw.text, res);
+        showEvaluation(evaluation, scoreAttempt({ evaluation, analysis: null, expectedWords, recorded: false }));
+      };
       const known = cachedStatus();
-      if (known) drawAsr(App2, asrBox, known, en.join(" "));
-      else {
+      if (known) drawAsr(App2, asrBox, known, onLive, !!params.q);
+      else if (autoStatus) {
+        asrBox.append(h("p", { class: "small muted", text: "Verificando o reconhecimento no aparelho\u2026" }));
+        autoStatus.then((st) => {
+          state.settings.asrKnown = st;
+          drawAsr(App2, asrBox, st, onLive, !!params.q);
+        });
+      } else {
         asrBox.append(
-          h("p", { class: "small muted", text: "Verifica\xE7\xE3o de palavras por reconhecimento de fala no pr\xF3prio aparelho (opcional)." }),
+          h("p", { class: "small muted", text: "Avalia\xE7\xE3o palavra por palavra usa o reconhecimento de fala no pr\xF3prio aparelho (opcional, nada \xE9 enviado)." }),
           h("button", { class: "btn small", onclick: async (e) => {
             e.currentTarget.disabled = true;
-            drawAsr(App2, asrBox, await status(), en.join(" "));
+            const st = await status();
+            state.settings.asrKnown = st;
+            App2.save();
+            drawAsr(App2, asrBox, st, onLive, !!params.q);
           } }, icon("target"), "Ver se est\xE1 dispon\xEDvel")
         );
       }
@@ -3198,40 +3565,34 @@
     const tokens = new Set(wordTokens(text));
     return Object.values(content.items).filter((it) => (it.ipa || it.tip) && wordTokens(it.en).every((t) => tokens.has(t))).slice(0, 6);
   }
-  function drawAsr(App2, box2, st, expected) {
+  function drawAsr(App2, box2, st, onLive, isQuestion) {
     clear(box2);
     if (st === "available") {
       const out = h("div", {});
-      const btn = h("button", { class: "btn" }, icon("target"), "Verificar palavras (no aparelho)");
+      const btn = h("button", { class: "btn" }, icon("target"), isQuestion ? "Verificar palavras (lendo o modelo)" : "Verificar palavras (sem gravar)");
       btn.onclick = async () => {
         stopAll();
         btn.disabled = true;
         clear(out).append(h("p", { class: "small", text: "\u{1F399}\uFE0F Fale agora\u2026" }));
         try {
           const res = await recognise({ lang: "en-GB" });
-          const exp = wordTokens(expected), got = wordTokens(res.text);
-          const pairs = lcsAlign(exp, got);
-          const hit = new Set(pairs.map(([i]) => i));
-          const pct = Math.round(hit.size / Math.max(1, exp.length) * 100);
-          const low = res.confidence > 0 && res.confidence < 0.5;
-          clear(out).append(
-            h("p", { class: "small" }, h("b", { text: `Palavras reconhecidas: ${hit.size} de ${exp.length} (${pct}%)` }), low ? " \u2014 confian\xE7a baixa: resultado inconclusivo, tente de novo." : ""),
-            h("p", { class: "en" }, ...exp.map((w, i) => [i ? " " : "", h("span", { class: hit.has(i) ? "word-ok" : "word-miss", text: w })])),
-            h("p", { class: "tiny muted", text: `Ouvido: \u201C${res.text}\u201D. Isto mede se o reconhecedor entendeu as palavras (inteligibilidade aproximada), n\xE3o a qualidade da pron\xFAncia. Sotaque n\xE3o \xE9 erro.` })
-          );
+          onLive(res);
+          clear(out).append(h("p", { class: "tiny muted", text: `Ouvido: \u201C${res.text}\u201D. As cores no texto mostram se cada palavra foi reconhecida (inteligibilidade aproximada), n\xE3o a qualidade dos sons. Sotaque n\xE3o \xE9 erro.` }));
         } catch (e) {
           clear(out).append(h("p", { class: "small", text: `Inconclusivo: ${e.message}. Tente de novo.` }));
         }
         btn.disabled = false;
       };
-      box2.append(h("div", { class: "small muted", style: { marginBottom: "8px" }, text: "Reconhecimento de fala no aparelho dispon\xEDvel (sem enviar \xE1udio)." }), btn, out);
+      box2.append(h("div", { class: "small muted", style: { marginBottom: "8px" }, text: isQuestion ? "Reconhecimento no aparelho dispon\xEDvel. Para comparar com o modelo, leia a resposta-modelo em voz alta." : "Reconhecimento no aparelho dispon\xEDvel: ao gravar, as palavras s\xE3o avaliadas automaticamente (nada \xE9 enviado)." }), btn, out);
     } else if (st === "downloadable" || st === "downloading") {
       const btn = h("button", { class: "btn small" }, icon("download"), "Baixar reconhecimento offline (uma vez)");
       btn.onclick = async () => {
         btn.disabled = true;
         const ok = await install();
         toast(ok ? "Modelo instalado." : "N\xE3o foi poss\xEDvel instalar agora.");
-        drawAsr(App2, box2, await status(), expected);
+        const st2 = await status();
+        App2.state.settings.asrKnown = st2;
+        drawAsr(App2, box2, st2, onLive, isQuestion);
       };
       box2.append(h("p", { class: "small", text: "O Chrome pode baixar um modelo de reconhecimento que roda no aparelho. Requer internet s\xF3 para o download; depois funciona offline." }), btn);
     } else {
