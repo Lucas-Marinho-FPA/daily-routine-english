@@ -4,6 +4,7 @@ import { createChecker } from './engine/checker.js';
 import { dayNumber } from './engine/scheduler.js';
 import * as db from './store/db.js';
 import * as player from './audio/player.js';
+import * as localasr from './audio/localasr.js';
 import { renderHome } from './ui/home.js';
 import { renderExplore, renderRoutine, renderContext, renderCategory } from './ui/explore.js';
 import { renderSession } from './ui/session.js';
@@ -34,6 +35,7 @@ const App = {
     player.configure({ audioSource: s.audioSource, voiceURI: s.voiceURI, rate: s.rate });
   },
 };
+App.asr = { local: localasr }; // diagnóstico (usado pelos testes automatizados)
 globalThis.DRG_APP = App; // usado pelos testes automatizados
 
 const TABS = [

@@ -2,6 +2,7 @@
 import { h, icon, clear, toast, confirmSheet, fmtDate } from './dom.js';
 import * as player from '../audio/player.js';
 import * as asr from '../audio/asr.js';
+import * as localasr from '../audio/localasr.js';
 import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
 import { freshState } from '../engine/progress.js';
@@ -39,13 +40,18 @@ export function renderSettings(App) {
   player.diagnose().then((d) => {
     clear(voiceSel).append(h('option', { value: '', text: 'Automática (en-GB local preferida)' }), ...d.englishVoices.map((v) => h('option', { value: v.uri, selected: v.uri === s.voiceURI, text: `${v.name} (${v.lang}${v.local ? '' : ', online'})` })));
     voiceSel.onchange = () => set('voiceURI', voiceSel.value);
-    Promise.resolve(asr.cachedStatus() || 'não verificado').then((a) => {
+    // o modo local do Chrome não é consultado aqui (só no Speaking Lab, a pedido): ver lab.js/detectEngine
+    Promise.all([asr.cachedStatus() || 'não verificado', localasr.status()]).then(([a, local]) => {
       recorder.permissionState().then((mic) => {
         clear(diag).append(
           h('span', { text: 'Áudios embutidos' }), h('span', { text: `${d.embedded} (${d.embeddedVoice || '—'})` }),
           h('span', { text: 'Vozes inglesas do sistema' }), h('span', { text: `${d.englishVoices.length} (${d.englishVoices.filter((v) => /GB/i.test(v.lang)).length} en-GB)` }),
           h('span', { text: 'Gravação' }), h('span', { text: recorder.supported() ? `disponível · microfone: ${{ granted: 'permitido', denied: 'bloqueado', prompt: 'perguntará' }[mic] || mic}` : 'indisponível' }),
-          h('span', { text: 'Reconhecimento no aparelho' }), h('span', { text: { available: 'disponível', downloadable: 'pode ser baixado', downloading: 'baixando', unavailable: 'indisponível', unsupported: 'não suportado' }[a] || `${a} (verifique no Speaking Lab)` }));
+          h('span', { text: 'Reconhecimento local do Chrome' }), h('span', { text: { available: 'disponível', downloadable: 'pode ser baixado', downloading: 'baixando', unavailable: 'indisponível neste navegador', unsupported: 'não suportado neste navegador' }[a] || a }),
+          h('span', { text: 'Reconhecimento local (modelo do app)' }), h('span', {},
+            { installed: `instalado (${localasr.sizeLabel()}) `, 'not-installed': 'não baixado (opcional, no Speaking Lab)', unsupported: `indisponível: ${localasr.unsupportedReason()}` }[local],
+            local === 'installed' ? h('button', { class: 'btn small', onclick: async (e) => { e.currentTarget.disabled = true; await localasr.remove(); toast('Modelo de reconhecimento removido.'); App.go(location.hash); } }, 'Remover') : null),
+          h('span', { text: 'Reconhecimento online' }), h('span', { text: 'nunca usado (enviaria sua voz para fora do aparelho)' }));
       });
     });
   });

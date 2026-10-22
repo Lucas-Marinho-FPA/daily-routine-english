@@ -61,7 +61,7 @@ export function openItem(App, item) {
       h('div', { class: 'tiny muted', text: x.src === 'new' ? 'Exemplo novo (não está no Word)' : `Fonte: ${x.src}` })))) : null,
     item.v.length ? h('p', { class: 'small' }, h('b', { text: 'Também aceito: ' }), item.v.join(' · ')) : null,
   );
-  sheet(body, { label: item.en });
+  sheet(body, { label: item.en, onClose: () => player.stopAll() }); // fechar a folha para o áudio que ela iniciou
 }
 
 export function focusTitle(App, focus) {

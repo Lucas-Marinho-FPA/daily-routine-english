@@ -1,5 +1,14 @@
 // Daily Routine English Game — bundle gerado por tools/build-app.mjs a partir de app/js (fonte legível).
 (() => {
+  var __defProp = Object.defineProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+
+  // <define:__ASR_MANIFEST__>
+  var define_ASR_MANIFEST_default = { version: "29bd825a1682", files: [{ path: "asr/worker.js", size: 746941 }, { path: "asr/ort-wasm-simd-threaded.mjs", size: 20856 }, { path: "asr/ort-wasm-simd-threaded.wasm", size: 11210254 }, { path: "asr/tiny/quantized/encoder_model.onnx", size: 7937661 }, { path: "asr/tiny/quantized/decoder_model_merged.onnx", size: 20243286 }] };
+
   // app/js/ui/dom.js
   function h(tag, props = {}, ...children) {
     const el = document.createElement(tag);
@@ -614,11 +623,11 @@
       if (!cards[wrt] && box(cards, ord) >= 2) out.push({ k: wrt, unit: "sent", id: s.id, skill: "wrt" });
     }
     for (const b of Object.values(content.blocks).filter((b2) => inFocus.blocks.has(b2.id))) {
-      const seq = cardKey("block", b.id, "seq");
+      const seq2 = cardKey("block", b.id, "seq");
       const allOrd = b.sentences.every((sid) => cards[cardKey("sent", sid, "ord")] && cards[cardKey("sent", sid, "ord")].reps > 0);
-      if (!cards[seq] && b.sentences.length > 1 && allOrd) out.push({ k: seq, unit: "block", id: b.id, skill: "seq" });
+      if (!cards[seq2] && b.sentences.length > 1 && allOrd) out.push({ k: seq2, unit: "block", id: b.id, skill: "seq" });
       const tell = cardKey("block", b.id, "tell");
-      const seqOk = b.sentences.length > 1 ? !!cards[seq] && cards[seq].reps > 0 : allOrd;
+      const seqOk = b.sentences.length > 1 ? !!cards[seq2] && cards[seq2].reps > 0 : allOrd;
       if (!cards[tell] && seqOk) out.push({ k: tell, unit: "block", id: b.id, skill: "tell" });
     }
     for (const r of content.routines.filter((r2) => inFocus.routines.has(r2.id))) {
@@ -1139,6 +1148,7 @@
   var files = () => globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.files || {};
   var settings = { audioSource: "embedded", voiceURI: "", rate: 1 };
   var current = null;
+  var gen = 0;
   var voices = [];
   var listeners = /* @__PURE__ */ new Set();
   function configure(s) {
@@ -1169,12 +1179,23 @@
     return en.find((v) => v.voiceURI === settings.voiceURI) || en.find((v) => /GB/i.test(v.lang) && v.localService) || en.find((v) => /GB/i.test(v.lang)) || en[0] || null;
   }
   function stop() {
+    gen++;
     if (current) {
-      current.cancel();
+      const c = current;
       current = null;
+      c.cancel();
     }
     if ("speechSynthesis" in globalThis) speechSynthesis.cancel();
     emit({ playing: false });
+  }
+  var generation = () => gen;
+  function release(a) {
+    try {
+      a.pause();
+      a.removeAttribute("src");
+      a.load();
+    } catch (e) {
+    }
   }
   function playFile(key, rate) {
     return new Promise((resolve) => {
@@ -1188,10 +1209,18 @@
           resolve({ ok, reason });
         }
       };
-      a.onended = () => finish(true);
-      a.onerror = () => finish(false, "arquivo");
-      current = { audio: a, cancel: () => {
-        a.pause();
+      a.onended = () => {
+        if (current && current.audio === a) current = null;
+        release(a);
+        finish(true);
+      };
+      a.onerror = () => {
+        if (current && current.audio === a) current = null;
+        finish(false, "arquivo");
+      };
+      current = { kind: "file", audio: a, cancel: () => {
+        a.onended = a.onerror = null;
+        release(a);
         finish(true, "cancel");
       } };
       a.play().catch((e) => finish(false, e.name));
@@ -1209,6 +1238,7 @@
       u.rate = rate;
       let settled = false;
       const finish = (ok, reason) => {
+        if (current && current.u === u) current = null;
         if (!settled) {
           settled = true;
           resolve({ ok, reason });
@@ -1216,12 +1246,13 @@
       };
       u.onend = () => finish(true);
       u.onerror = (e) => finish(e.error === "interrupted" || e.error === "canceled", e.error);
-      current = { cancel: () => finish(true, "cancel") };
+      current = { kind: "speech", u, cancel: () => finish(true, "cancel") };
       speechSynthesis.speak(u);
     });
   }
   async function play(clip, { rate } = {}) {
     stop();
+    const my = gen;
     const r = rate || settings.rate || 1;
     emit({ playing: true, clip });
     let res = { ok: false };
@@ -1232,8 +1263,10 @@
         return { ok: true, via: "embedded" };
       }
     }
+    if (my !== gen) return { ok: false, reason: "cancel" };
     if (clip.text) {
       if (!voices.length) await loadVoices();
+      if (my !== gen) return { ok: false, reason: "cancel" };
       res = await speak(clip.text, r);
       if (res.ok) {
         emit({ playing: false });
@@ -1267,6 +1300,49 @@
     seqId++;
     stop();
   }
+  function playSoon(clip, ms = 250, opts) {
+    const my = gen;
+    const t = setTimeout(() => {
+      if (my === gen) play(clip, opts);
+    }, ms);
+    return () => clearTimeout(t);
+  }
+  function playElement(audio, { restart = false } = {}) {
+    stopAll();
+    if (restart || audio.ended) audio.currentTime = 0;
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (ok, reason) => {
+        if (settled) return;
+        settled = true;
+        audio.removeEventListener("ended", onEnded);
+        audio.removeEventListener("pause", onPause);
+        if (current && current.audio === audio) {
+          current = null;
+          emit({ playing: false });
+        }
+        resolve({ ok, reason });
+      };
+      const onEnded = () => finish(true, "ended");
+      const onPause = () => finish(true, "pause");
+      audio.addEventListener("ended", onEnded);
+      audio.addEventListener("pause", onPause);
+      current = { kind: "element", audio, cancel: () => {
+        finish(true, "cancel");
+        audio.pause();
+        try {
+          audio.currentTime = 0;
+        } catch (e) {
+        }
+      } };
+      emit({ playing: true, element: audio });
+      audio.play().catch((e) => finish(false, e.name));
+    });
+  }
+  function releaseElement(audio) {
+    if (current && current.audio === audio) stop();
+    release(audio);
+  }
   async function diagnose() {
     await loadVoices();
     const en = englishVoices();
@@ -1276,6 +1352,149 @@
       systemTts: "speechSynthesis" in globalThis,
       englishVoices: en.map((v) => ({ uri: v.voiceURI, name: v.name, lang: v.lang, local: v.localService }))
     };
+  }
+
+  // app/js/audio/localasr.js
+  var localasr_exports = {};
+  __export(localasr_exports, {
+    MAX_SECONDS: () => MAX_SECONDS,
+    install: () => install,
+    release: () => release2,
+    remove: () => remove,
+    sizeLabel: () => sizeLabel,
+    status: () => status,
+    toPcm16k: () => toPcm16k,
+    totalBytes: () => totalBytes,
+    transcribe: () => transcribe,
+    unsupportedReason: () => unsupportedReason
+  });
+  var MANIFEST = typeof define_ASR_MANIFEST_default !== "undefined" ? define_ASR_MANIFEST_default : null;
+  var PREFIX = "asr-local-";
+  var cacheName = () => PREFIX + MANIFEST.version;
+  var MAX_SECONDS = 30;
+  var totalBytes = () => MANIFEST ? MANIFEST.files.reduce((n, f) => n + f.size, 0) : 0;
+  var sizeLabel = () => `${Math.round(totalBytes() / 1048576)} MB`;
+  function unsupportedReason() {
+    if (!MANIFEST) return "pacote de reconhecimento ausente nesta vers\xE3o";
+    if (!/^https?:$/.test(globalThis.location ? location.protocol : "")) return "precisa abrir o app pelo endere\xE7o (n\xE3o como arquivo)";
+    if (!("caches" in globalThis)) return "armazenamento offline (Cache) indispon\xEDvel";
+    if (typeof Worker === "undefined" || typeof WebAssembly === "undefined") return "WebAssembly/Worker indispon\xEDvel";
+    if (typeof OfflineAudioContext === "undefined" && typeof webkitOfflineAudioContext === "undefined") return "decodifica\xE7\xE3o de \xE1udio indispon\xEDvel";
+    return "";
+  }
+  async function status() {
+    if (unsupportedReason()) return "unsupported";
+    try {
+      if (!await caches.has(cacheName())) return "not-installed";
+      const cache = await caches.open(cacheName());
+      for (const f of MANIFEST.files) if (!await cache.match(new URL(f.path, location.href).href)) return "not-installed";
+      return "installed";
+    } catch (e) {
+      return "not-installed";
+    }
+  }
+  async function install({ onProgress } = {}) {
+    const why = unsupportedReason();
+    if (why) throw new Error(why);
+    const cache = await caches.open(cacheName());
+    const total = totalBytes();
+    let done = 0;
+    for (const f of MANIFEST.files) {
+      const url = new URL(f.path, location.href).href;
+      if (await cache.match(url)) {
+        done += f.size;
+        onProgress && onProgress(done / total);
+        continue;
+      }
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`falha ao baixar ${f.path} (${res.status})`);
+      const reader = res.body.getReader();
+      const parts = [];
+      for (; ; ) {
+        const { done: end, value } = await reader.read();
+        if (end) break;
+        parts.push(value);
+        done += value.byteLength;
+        onProgress && onProgress(Math.min(1, done / total));
+      }
+      const type = res.headers.get("Content-Type") || "application/octet-stream";
+      await cache.put(url, new Response(new Blob(parts, { type }), { headers: { "Content-Type": type } }));
+    }
+    for (const k of await caches.keys()) if (k.startsWith(PREFIX) && k !== cacheName()) await caches.delete(k);
+    return true;
+  }
+  async function remove() {
+    release2();
+    for (const k of await caches.keys()) if (k.startsWith(PREFIX)) await caches.delete(k);
+  }
+  var worker = null;
+  var seq = 0;
+  var pending2 = /* @__PURE__ */ new Map();
+  function getWorker() {
+    if (worker) return worker;
+    worker = new Worker(new URL("asr/worker.js", location.href).href, { type: "module" });
+    worker.onmessage = (e) => {
+      const p = pending2.get(e.data.id);
+      if (!p) return;
+      pending2.delete(e.data.id);
+      clearTimeout(p.timer);
+      if (e.data.ok) p.resolve(e.data);
+      else p.reject(new Error(e.data.error || "falha no reconhecimento"));
+    };
+    worker.onerror = (e) => {
+      e.preventDefault && e.preventDefault();
+      failAll(new Error("o reconhecimento local n\xE3o p\xF4de ser iniciado"));
+      release2();
+    };
+    return worker;
+  }
+  function failAll(err) {
+    for (const [, p] of pending2) {
+      clearTimeout(p.timer);
+      p.reject(err);
+    }
+    pending2.clear();
+  }
+  function call(msg, transfer, timeoutMs) {
+    const w = getWorker();
+    const id = ++seq;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pending2.delete(id);
+        reject(new Error("tempo esgotado"));
+        release2();
+      }, timeoutMs);
+      pending2.set(id, { resolve, reject, timer });
+      w.postMessage({ ...msg, id }, transfer || []);
+    });
+  }
+  function release2() {
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    failAll(new Error("cancelado"));
+  }
+  async function toPcm16k(blob) {
+    const Ctx = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
+    const data = await blob.arrayBuffer();
+    const probe = new Ctx(1, 1, 16e3);
+    const decoded = await probe.decodeAudioData(data);
+    const n = decoded.length;
+    if (decoded.numberOfChannels === 1) return decoded.getChannelData(0).slice();
+    const out = new Float32Array(n);
+    for (let c = 0; c < decoded.numberOfChannels; c++) {
+      const ch = decoded.getChannelData(c);
+      for (let i = 0; i < n; i++) out[i] += ch[i] / decoded.numberOfChannels;
+    }
+    return out;
+  }
+  async function transcribe(blob) {
+    const pcm = await toPcm16k(blob);
+    const secs = pcm.length / 16e3;
+    if (secs > MAX_SECONDS) throw new Error(`grava\xE7\xE3o longa demais para o reconhecimento local (m\xE1x. ${MAX_SECONDS} s)`);
+    const res = await call({ type: "transcribe", pcm }, [pcm.buffer], 6e4 + secs * 4e3);
+    return { text: res.text, confidence: 0, engine: "local-model", ms: res.ms };
   }
 
   // app/js/engine/exercises.js
@@ -1489,7 +1708,7 @@
       ))) : null,
       item.v.length ? h("p", { class: "small" }, h("b", { text: "Tamb\xE9m aceito: " }), item.v.join(" \xB7 ")) : null
     );
-    sheet(body, { label: item.en });
+    sheet(body, { label: item.en, onClose: () => stopAll() });
   }
   function focusTitle(App2, focus) {
     if (focus.routine && !focus.mode) {
@@ -2055,7 +2274,7 @@
   // app/js/ui/recwidget.js
   function recWidget(App2, opts) {
     const { targetId, reference = [], expectedWords = 0, referenceSec = 0, maxMs = 18e4 } = opts;
-    let session = null, blob = null, url = null, startedAt = 0, timer = null;
+    let session = null, blob = null, url = null, startedAt = 0, timer = null, destroyed = false;
     const recBtn = h("button", { class: "rec-btn", "aria-label": "Gravar" }, icon("mic"));
     const time = h("div", { class: "small muted", text: "Toque para gravar" });
     const meterFill = h("i");
@@ -2064,6 +2283,19 @@
     const canvas = h("canvas", { class: "wave", width: 600, height: 56, "aria-hidden": "true" });
     const metrics = h("div", { class: "small" });
     const audioEl = h("audio", { preload: "auto" });
+    const mineBtn = h("button", { class: "btn small", type: "button", "data-role": "mine" });
+    const drawMine = () => {
+      const playing = !audioEl.paused && !audioEl.ended;
+      clear(mineBtn).append(icon(playing ? "pause" : "play"), playing ? "Pausar minha voz" : "Minha voz");
+      mineBtn.setAttribute("aria-pressed", String(playing));
+    };
+    const MEDIA_EVENTS = ["play", "playing", "pause", "ended", "emptied"];
+    MEDIA_EVENTS.forEach((ev) => audioEl.addEventListener(ev, drawMine));
+    drawMine();
+    mineBtn.addEventListener("click", () => {
+      if (!audioEl.paused && !audioEl.ended) audioEl.pause();
+      else if (audioEl.src) playElement(audioEl);
+    });
     const el = h(
       "div",
       { class: "card flat" },
@@ -2103,16 +2335,27 @@
     async function onStopped(res) {
       clearInterval(timer);
       session = null;
+      if (destroyed) {
+        if (targetId && backend === "indexeddb") {
+          try {
+            await putRecording(targetId, res.blob, { ms: res.ms });
+          } catch (e) {
+          }
+        }
+        return;
+      }
       recBtn.classList.remove("on");
       recBtn.setAttribute("aria-label", "Gravar novamente");
       clear(recBtn).append(icon("mic"));
       meter.classList.add("hidden");
       blob = res.blob;
+      releaseElement(audioEl);
       if (url) URL.revokeObjectURL(url);
       url = URL.createObjectURL(blob);
       audioEl.src = url;
       time.textContent = `Grava\xE7\xE3o de ${String(Math.round(res.ms / 100) / 10).replace(".", ",")} s \xB7 toque no microfone para regravar`;
       const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
+      if (destroyed) return;
       drawWave(canvas, analysis ? analysis.envelope : []);
       const d = describe(analysis, { expectedWords });
       clear(metrics).append(
@@ -2137,11 +2380,7 @@
         h(
           "div",
           { class: "row" },
-          h("button", { class: "btn small", onclick: () => {
-            stopAll();
-            audioEl.currentTime = 0;
-            audioEl.play();
-          } }, icon("play"), "Minha voz"),
+          mineBtn,
           reference.length ? h("button", { class: "btn small", onclick: () => playRef() }, icon("speaker"), "Refer\xEAncia") : null,
           reference.length ? h("button", { class: "btn small", onclick: () => ab() }, icon("ab"), "Comparar A/B") : null
         ),
@@ -2153,30 +2392,40 @@
     async function ab() {
       stopAll();
       const done = await playSequence(reference);
-      if (!done) return;
+      if (!done || destroyed) return;
+      const g = generation();
       await new Promise((r) => setTimeout(r, 400));
-      audioEl.currentTime = 0;
-      audioEl.play();
+      if (destroyed || g !== generation()) return;
+      playElement(audioEl, { restart: true });
     }
     if (targetId) {
       getRecording(targetId).then((rec) => {
-        if (!rec || blob) return;
+        if (!rec || blob || destroyed) return;
         blob = rec.blob;
         url = URL.createObjectURL(blob);
         audioEl.src = url;
         time.textContent = `\xDAltima grava\xE7\xE3o salva (${new Date(rec.at).toLocaleDateString("pt-BR")}) \xB7 toque para gravar de novo`;
         analyseBlob(blob, { expectedWords, referenceSec }).then((a) => {
+          if (destroyed) return;
           drawWave(canvas, a ? a.envelope : []);
           clear(metrics).append(...describe(a, { expectedWords }).lines.map((l) => h("div", { text: "\u2022 " + l })));
           showAfter();
         });
       });
     }
-    return { el, stop: stop2, getBlob: () => blob, destroy: () => {
+    function destroy() {
+      if (destroyed) return;
+      destroyed = true;
       if (session) session.cancel();
-      if (url) URL.revokeObjectURL(url);
       clearInterval(timer);
-    } };
+      releaseElement(audioEl);
+      MEDIA_EVENTS.forEach((ev) => audioEl.removeEventListener(ev, drawMine));
+      if (url) {
+        URL.revokeObjectURL(url);
+        url = null;
+      }
+    }
+    return { el, stop: stop2, getBlob: () => blob, isRecording: () => !!session, destroy, audioEl };
   }
   function drawWave(canvas, env) {
     const g = canvas.getContext("2d");
@@ -2326,7 +2575,7 @@
       return b;
     };
     const autoplay = (clip) => {
-      if (state.settings.autoplay) setTimeout(() => play(clip), 250);
+      if (state.settings.autoplay) playSoon(clip, 250);
     };
     const nextReviewText = (k) => {
       const c = state.cards[k];
@@ -2933,7 +3182,7 @@
   var SR = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
   var memo = null;
   var cachedStatus = () => memo;
-  async function status(lang = "en-GB") {
+  async function status2(lang = "en-GB") {
     memo = await queryStatus(lang);
     return memo;
   }
@@ -2947,7 +3196,7 @@
     }
     return "unsupported";
   }
-  async function install(lang = "en-GB") {
+  async function install2(lang = "en-GB") {
     if (!SR) return false;
     try {
       if (typeof SR.install === "function") return await SR.install({ langs: [lang], processLocally: true });
@@ -3078,7 +3327,9 @@
     for (const s of tokenSpans(text)) {
       if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
       const norm = wordTokens(s.text).join(" ");
-      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm) });
+      const before = text.slice(0, s.start).trimEnd();
+      const proper = /^[A-Z][a-z]/.test(s.text) && before !== "" && !/[.!?:]$/.test(before);
+      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm), proper });
       pos = s.end;
     }
     if (pos < text.length) segs.push({ text: text.slice(pos) });
@@ -3088,6 +3339,9 @@
   function forms(t) {
     const out = /* @__PURE__ */ new Set([t]);
     if (AME[t]) out.add(AME[t]);
+    if (/iz(e|ed|es|ing|ation)$/.test(t)) out.add(t.replace(/iz(e|ed|es|ing|ation)$/, "is$1"));
+    const hm = /^(\d{1,2})(\d\d)$/.exec(t);
+    if (hm && +hm[2] < 60) out.add(`${hm[1]}:${hm[2]}`).add(hm[1]);
     if (t in NUM) out.add(String(NUM[t]));
     const m = /^(\d{1,2}):(\d\d)$/.exec(t);
     if (m) {
@@ -3104,29 +3358,62 @@
     if (t.endsWith("'s")) out.add(t.slice(0, -2));
     return out;
   }
+  function inflected(target, heard) {
+    if (target.length < 3 || !heard.startsWith(target)) return false;
+    const rest = heard.slice(target.length);
+    return ["s", "es", "d", "ed", target.slice(-1) + "ed"].includes(rest);
+  }
   function tokenEq(target, heard) {
     if (target === heard) return true;
     const a = forms(target), b = forms(heard);
-    for (const x of a) if (b.has(x)) return true;
+    for (const x of a) for (const y of b) if (x === y || inflected(x, y)) return true;
     return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1;
   }
   function heardTokens(transcript) {
-    return wordTokens(String(transcript || "")).flatMap((t) => {
-      const m = /^(\d{1,2})(am|pm)$/.exec(t);
-      return m ? [m[1], m[2]] : [t];
-    });
+    const out = [];
+    for (const t of wordTokens(String(transcript || ""))) {
+      const m = /^(\d{1,4}(?::\d\d)?)(am|pm|a|p)$/.exec(t);
+      if (m) out.push(m[1], m[2].length === 1 ? m[2] + "m" : m[2]);
+      else if (t === "m" && (out[out.length - 1] === "am" || out[out.length - 1] === "pm")) continue;
+      else out.push(t);
+    }
+    return out;
+  }
+  function degenerate(heard, expected) {
+    let run = 1;
+    for (let j = 1; j < heard.length; j++) {
+      run = heard[j] === heard[j - 1] ? run + 1 : 1;
+      if (run >= 4) return true;
+    }
+    return heard.length > Math.max(8, expected * 1.8);
+  }
+  function matchCompounds(target, heard) {
+    const joined = /* @__PURE__ */ new Map();
+    for (let i = 0; i < target.length - 1; i++) joined.set(target[i] + target[i + 1], [target[i], target[i + 1]]);
+    const tset = new Set(target);
+    const out = [];
+    for (let j = 0; j < heard.length; j++) {
+      const h2 = heard[j], pair = j + 1 < heard.length ? h2 + heard[j + 1] : null;
+      if (!tset.has(h2) && joined.has(h2)) out.push(...joined.get(h2));
+      else if (pair && tset.has(pair) && !(tset.has(h2) && tset.has(heard[j + 1]))) {
+        out.push(pair);
+        j++;
+      } else out.push(h2);
+    }
+    return out;
   }
   function evaluateWords(text, asr, opts = {}) {
     const words = wordsOf(text);
     const all = (state, reason, note) => ({ words: words.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
     if (opts.insufficient) return all("uncertain", "Grava\xE7\xE3o insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.", "Quase n\xE3o captei voz: nada foi avaliado.");
     if (!asr) return all("uncertain", "N\xE3o foi poss\xEDvel avaliar esta palavra: o reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel. Compare com a refer\xEAncia (A/B).", "Avalia\xE7\xE3o por palavra indispon\xEDvel neste aparelho.");
-    const heard = heardTokens(asr.text);
+    const target = words.map((x) => x.norm);
+    const heard = matchCompounds(target, heardTokens(asr.text));
     if (!heard.length) return all("uncertain", "Nenhuma fala foi reconhecida. Tente gravar novamente.", "O reconhecimento n\xE3o captou fala: resultado inconclusivo.");
+    if (degenerate(heard, words.length)) return all("uncertain", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido); n\xE3o d\xE1 para avaliar a palavra. Tente gravar de novo.", "Transcri\xE7\xE3o n\xE3o confi\xE1vel (repeti\xE7\xF5es): resultado inconclusivo.");
     if (typeof asr.confidence === "number" && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
       return all("uncertain", "O reconhecimento teve confian\xE7a baixa nesta grava\xE7\xE3o; n\xE3o d\xE1 para avaliar a palavra com seguran\xE7a. Tente de novo.", "Confian\xE7a baixa do reconhecimento: resultado inconclusivo.");
     }
-    const target = words.map((x) => x.norm);
     const pairs = lcsAlign(target, heard, tokenEq);
     const matchT = new Map(pairs.map(([i, j]) => [i, j]));
     const anchors = [[-1, -1], ...pairs, [target.length, heard.length]];
@@ -3142,6 +3429,7 @@
       if (matchT.has(i)) return { w: x.w, text: x.text, state: "good", reason: "Reconhecida como esperado. Isso indica que a palavra foi entendida (intelig\xEDvel); n\xE3o \xE9 uma an\xE1lise fon\xE9tica dos sons." };
       const near = (gapHeard.get(i) || []).filter(Boolean);
       if (x.weak) return { w: x.w, text: x.text, state: "uncertain", reason: "Palavra curta e \xE1tona: o reconhecedor costuma omiti-la mesmo quando \xE9 dita. N\xE3o foi avaliada." };
+      if (x.proper) return { w: x.w, text: x.text, state: "uncertain", reason: "Nome pr\xF3prio: o reconhecedor pode n\xE3o conhec\xEA-lo e escrev\xEA-lo de outro jeito. N\xE3o foi avaliado." };
       if (near.length) {
         return {
           w: x.w,
@@ -3471,8 +3759,34 @@
     view.append(h("h2", { text: "Sua grava\xE7\xE3o" }));
     const reading = !!iw && !params.q;
     const asrEligible = expectedWords <= 60;
+    let engine = null, engineInfo = null;
     let listener = null;
-    const autoStatus = state.settings.asrKnown === "available" && !cachedStatus() ? status() : null;
+    let attempt = 0;
+    let alive = true;
+    const missingNote = () => !engineInfo ? "Verificando o reconhecimento de fala no aparelho\u2026" : engineInfo.local === "not-installed" ? "Avalia\xE7\xE3o por palavra desligada: baixe o reconhecimento local abaixo (opcional)." : "Reconhecimento de fala no aparelho indispon\xEDvel: palavras n\xE3o avaliadas.";
+    async function evaluateRecording(blob, analysis, { fromListener = false } = {}) {
+      const my = ++attempt;
+      const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
+      let res = null, why = "";
+      if (fromListener) {
+        res = await listener.stop();
+        listener = null;
+        if (!res) why = "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho. Use \u201CVerificar palavras\u201D.";
+      } else if (!asrEligible) why = "Texto longo: avalia\xE7\xE3o por palavra s\xF3 para trechos de at\xE9 60 palavras (grave um bloco).";
+      else if (engine === "model" && !insufficient) {
+        statusLine.textContent = "Reconhecendo a grava\xE7\xE3o no aparelho\u2026 (alguns segundos)";
+        try {
+          res = await transcribe(blob);
+        } catch (e) {
+          why = `Reconhecimento local sem resultado (${e.message}): nada foi avaliado.`;
+        }
+      } else if (!engine) why = missingNote();
+      if (!alive || my !== attempt) return;
+      let evaluation = evaluateWords(iw.text, res, { insufficient });
+      if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
+      showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
+      if (res && evaluation.evaluated) statusLine.textContent = `Ouvido pelo reconhecimento local: \u201C${res.text}\u201D. Sotaque n\xE3o \xE9 erro: as cores indicam se cada palavra foi reconhecida, n\xE3o a qualidade dos sons.`;
+    }
     const w = recWidget(App2, {
       targetId,
       reference: clips,
@@ -3480,55 +3794,45 @@
       referenceSec,
       maxMs: params.routine ? 3e5 : 12e4,
       onStart: () => {
+        attempt++;
         if (!reading) return;
         iw.reset();
         legendEl.classList.add("hidden");
         clear(scoreBox);
         statusLine.textContent = "";
-        listener = asrEligible && cachedStatus() === "available" ? listen({ lang: "en-GB" }) : null;
+        listener = asrEligible && engine === "webspeech" ? listen({ lang: "en-GB" }) : null;
       },
-      onRecorded: async (blob, analysis) => {
-        if (!reading) return;
-        statusLine.textContent = "Analisando\u2026";
-        const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
-        const res = listener ? await listener.stop() : null;
-        let evaluation = evaluateWords(iw.text, res, { insufficient });
-        if (!res && !insufficient) {
-          const why = !asrEligible ? "Texto longo: avalia\xE7\xE3o por palavra s\xF3 para trechos de at\xE9 60 palavras (grave um bloco)." : listener ? "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho. Use \u201CVerificar palavras\u201D." : cachedStatus() ? "Reconhecimento de fala no aparelho indispon\xEDvel: palavras n\xE3o avaliadas." : "Para avaliar palavra por palavra, toque em \u201CVer se est\xE1 dispon\xEDvel\u201D abaixo (uma vez).";
-          evaluation = { ...evaluation, note: why };
-        }
-        listener = null;
-        showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
+      onRecorded: (blob, analysis) => {
+        if (reading) evaluateRecording(blob, analysis, { fromListener: !!listener });
       }
     });
     view.append(w.el);
-    if (en.length && expectedWords <= 60) {
-      const asrBox = h("div", { class: "card flat", style: { marginTop: "12px" } });
+    if (en.length && asrEligible) {
+      const asrBox = h("div", { class: "card flat", style: { marginTop: "12px" } }, h("p", { class: "small muted", text: "Verificando o reconhecimento de fala no aparelho\u2026" }));
       view.append(asrBox);
       const onLive = (res) => {
         const evaluation = evaluateWords(iw.text, res);
         showEvaluation(evaluation, scoreAttempt({ evaluation, analysis: null, expectedWords, recorded: false }));
       };
-      const known = cachedStatus();
-      if (known) drawAsr(App2, asrBox, known, onLive, !!params.q);
-      else if (autoStatus) {
-        asrBox.append(h("p", { class: "small muted", text: "Verificando o reconhecimento no aparelho\u2026" }));
-        autoStatus.then((st) => {
-          state.settings.asrKnown = st;
-          drawAsr(App2, asrBox, st, onLive, !!params.q);
-        });
-      } else {
-        asrBox.append(
-          h("p", { class: "small muted", text: "Avalia\xE7\xE3o palavra por palavra usa o reconhecimento de fala no pr\xF3prio aparelho (opcional, nada \xE9 enviado)." }),
-          h("button", { class: "btn small", onclick: async (e) => {
-            e.currentTarget.disabled = true;
-            const st = await status();
-            state.settings.asrKnown = st;
-            App2.save();
-            drawAsr(App2, asrBox, st, onLive, !!params.q);
-          } }, icon("target"), "Ver se est\xE1 dispon\xEDvel")
-        );
-      }
+      const evalLast = async () => {
+        const blob = w.getBlob();
+        if (!blob) return toast("Grave primeiro.");
+        iw.reset();
+        clear(scoreBox);
+        const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
+        if (alive) evaluateRecording(blob, analysis);
+      };
+      const refresh = async (ask = false) => {
+        engineInfo = await detectEngine({ ask, known: state.settings.asrKnown });
+        if (!alive) return;
+        engine = engineInfo.engine;
+        if (engineInfo.webspeech && engineInfo.webspeech !== state.settings.asrKnown) {
+          state.settings.asrKnown = engineInfo.webspeech;
+          App2.save();
+        }
+        drawAsr(App2, asrBox, engineInfo, { onLive, isQuestion: !!params.q, evalLast, refresh, hasBlob: () => !!w.getBlob() });
+      };
+      refresh();
     }
     if (en.length && expectedWords <= 60) {
       const words = [...new Set(en.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
@@ -3559,15 +3863,40 @@
         )
       ))));
     }
-    return () => w.destroy();
+    return () => {
+      alive = false;
+      attempt++;
+      if (listener) {
+        listener.stop();
+        listener = null;
+      }
+      release2();
+      w.destroy();
+    };
   }
   function relevantTips(content, text) {
     const tokens = new Set(wordTokens(text));
     return Object.values(content.items).filter((it) => (it.ipa || it.tip) && wordTokens(it.en).every((t) => tokens.has(t))).slice(0, 6);
   }
-  function drawAsr(App2, box2, st, onLive, isQuestion) {
+  async function detectEngine({ ask = false, known = null } = {}) {
+    const local = await status();
+    const webspeech = cachedStatus() || (ask || known === "available" ? await status2("en-GB") : null);
+    return { engine: local === "installed" ? "model" : webspeech === "available" ? "webspeech" : null, local, webspeech, why: unsupportedReason() };
+  }
+  function drawAsr(App2, box2, info, { onLive, isQuestion, evalLast, refresh, hasBlob }) {
     clear(box2);
-    if (st === "available") {
+    if (info.engine === "model") {
+      box2.append(
+        h("p", { class: "small", text: isQuestion ? "Reconhecimento local instalado. Para comparar com o modelo, grave lendo a resposta-modelo e toque em \u201CAvaliar minha grava\xE7\xE3o\u201D." : "Reconhecimento de fala local instalado: depois de cada grava\xE7\xE3o, as palavras s\xE3o avaliadas no pr\xF3prio aparelho (nada \xE9 enviado)." }),
+        h("button", { class: "btn small", onclick: (e) => {
+          if (!hasBlob()) return toast("Grave primeiro.");
+          evalLast();
+          e.currentTarget.blur();
+        } }, icon("target"), "Avaliar minha grava\xE7\xE3o")
+      );
+      return;
+    }
+    if (info.engine === "webspeech") {
       const out = h("div", {});
       const btn = h("button", { class: "btn" }, icon("target"), isQuestion ? "Verificar palavras (lendo o modelo)" : "Verificar palavras (sem gravar)");
       btn.onclick = async () => {
@@ -3584,19 +3913,51 @@
         btn.disabled = false;
       };
       box2.append(h("div", { class: "small muted", style: { marginBottom: "8px" }, text: isQuestion ? "Reconhecimento no aparelho dispon\xEDvel. Para comparar com o modelo, leia a resposta-modelo em voz alta." : "Reconhecimento no aparelho dispon\xEDvel: ao gravar, as palavras s\xE3o avaliadas automaticamente (nada \xE9 enviado)." }), btn, out);
-    } else if (st === "downloadable" || st === "downloading") {
-      const btn = h("button", { class: "btn small" }, icon("download"), "Baixar reconhecimento offline (uma vez)");
+      return;
+    }
+    box2.append(h("p", { class: "small", text: info.webspeech ? "Este navegador n\xE3o oferece reconhecimento de fala no aparelho (o Chrome para Android s\xF3 tem o modo online, que enviaria sua voz a servidores externos e por isso n\xE3o \xE9 usado). Gravar, ouvir, comparar A/B e a autoavalia\xE7\xE3o continuam funcionando." : "Avalia\xE7\xE3o palavra por palavra usa reconhecimento de fala no pr\xF3prio aparelho (opcional, nada \xE9 enviado). O Chrome para Android n\xE3o tem esse modo; o modo online dele enviaria sua voz para fora e nunca \xE9 usado. Gravar, ouvir, comparar A/B e a autoavalia\xE7\xE3o funcionam sem ele." }));
+    if (info.local === "not-installed") {
+      const bar2 = h("div", { class: "bar hidden", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100 }, h("i", { style: { width: "0%" } }));
+      const msg = h("p", { class: "tiny muted" });
+      const btn = h("button", { class: "btn small" }, icon("download"), `Baixar reconhecimento local (${sizeLabel()}, uma vez)`);
       btn.onclick = async () => {
         btn.disabled = true;
-        const ok = await install();
-        toast(ok ? "Modelo instalado." : "N\xE3o foi poss\xEDvel instalar agora.");
-        const st2 = await status();
-        App2.state.settings.asrKnown = st2;
-        drawAsr(App2, box2, st2, onLive, isQuestion);
+        bar2.classList.remove("hidden");
+        msg.textContent = "Baixando do endere\xE7o do pr\xF3prio app\u2026";
+        try {
+          await install({ onProgress: (f) => {
+            bar2.firstChild.style.width = `${Math.round(f * 100)}%`;
+            bar2.setAttribute("aria-valuenow", String(Math.round(f * 100)));
+          } });
+          toast("Reconhecimento local instalado. Funciona offline.");
+          await refresh();
+          if (hasBlob()) evalLast();
+        } catch (e) {
+          msg.textContent = `N\xE3o foi poss\xEDvel baixar agora (${e.message}). Tente com internet; o que j\xE1 baixou \xE9 aproveitado.`;
+          btn.disabled = false;
+        }
       };
-      box2.append(h("p", { class: "small", text: "O Chrome pode baixar um modelo de reconhecimento que roda no aparelho. Requer internet s\xF3 para o download; depois funciona offline." }), btn);
-    } else {
-      box2.append(h("p", { class: "small muted", text: "Reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel neste navegador. Use a grava\xE7\xE3o, a compara\xE7\xE3o A/B e a autoavalia\xE7\xE3o abaixo. (O reconhecimento online do Chrome n\xE3o \xE9 usado, porque enviaria sua voz para fora do aparelho.)" }));
+      box2.append(h("p", { class: "small muted", text: `Opcional: um modelo de reconhecimento (Moonshine, c\xF3digo aberto) que roda no pr\xF3prio celular. S\xE3o ${sizeLabel()} baixados uma vez do mesmo endere\xE7o do app; depois funciona offline. Sua voz nunca sai do aparelho. \xC9 um modelo pequeno: \xE0s vezes erra palavras, e sem certeza a palavra fica cinza (n\xE3o avaliada).` }), btn, bar2, msg);
+    } else if (info.webspeech === "downloadable" || info.webspeech === "downloading") {
+      const btn = h("button", { class: "btn small" }, icon("download"), "Baixar reconhecimento offline do Chrome (uma vez)");
+      btn.onclick = async () => {
+        btn.disabled = true;
+        const ok = await install2();
+        toast(ok ? "Modelo instalado." : "N\xE3o foi poss\xEDvel instalar agora.");
+        refresh();
+      };
+      box2.append(btn);
+    } else if (info.why) {
+      box2.append(h("p", { class: "tiny muted", text: `Reconhecimento local indispon\xEDvel aqui: ${info.why}.` }));
+    }
+    if (!info.webspeech) {
+      box2.append(
+        h("button", { class: "btn small ghost", onclick: (e) => {
+          e.currentTarget.disabled = true;
+          refresh(true);
+        } }, icon("target"), "Ver se est\xE1 dispon\xEDvel"),
+        h("span", { class: "tiny muted", text: " (reconhecimento do pr\xF3prio Chrome, no aparelho)" })
+      );
     }
   }
 
@@ -3804,7 +4165,7 @@
     diagnose().then((d) => {
       clear(voiceSel).append(h("option", { value: "", text: "Autom\xE1tica (en-GB local preferida)" }), ...d.englishVoices.map((v) => h("option", { value: v.uri, selected: v.uri === s.voiceURI, text: `${v.name} (${v.lang}${v.local ? "" : ", online"})` })));
       voiceSel.onchange = () => set("voiceURI", voiceSel.value);
-      Promise.resolve(cachedStatus() || "n\xE3o verificado").then((a) => {
+      Promise.all([cachedStatus() || "n\xE3o verificado", status()]).then(([a, local]) => {
         permissionState().then((mic) => {
           clear(diag).append(
             h("span", { text: "\xC1udios embutidos" }),
@@ -3813,8 +4174,22 @@
             h("span", { text: `${d.englishVoices.length} (${d.englishVoices.filter((v) => /GB/i.test(v.lang)).length} en-GB)` }),
             h("span", { text: "Grava\xE7\xE3o" }),
             h("span", { text: supported() ? `dispon\xEDvel \xB7 microfone: ${{ granted: "permitido", denied: "bloqueado", prompt: "perguntar\xE1" }[mic] || mic}` : "indispon\xEDvel" }),
-            h("span", { text: "Reconhecimento no aparelho" }),
-            h("span", { text: { available: "dispon\xEDvel", downloadable: "pode ser baixado", downloading: "baixando", unavailable: "indispon\xEDvel", unsupported: "n\xE3o suportado" }[a] || `${a} (verifique no Speaking Lab)` })
+            h("span", { text: "Reconhecimento local do Chrome" }),
+            h("span", { text: { available: "dispon\xEDvel", downloadable: "pode ser baixado", downloading: "baixando", unavailable: "indispon\xEDvel neste navegador", unsupported: "n\xE3o suportado neste navegador" }[a] || a }),
+            h("span", { text: "Reconhecimento local (modelo do app)" }),
+            h(
+              "span",
+              {},
+              { installed: `instalado (${sizeLabel()}) `, "not-installed": "n\xE3o baixado (opcional, no Speaking Lab)", unsupported: `indispon\xEDvel: ${unsupportedReason()}` }[local],
+              local === "installed" ? h("button", { class: "btn small", onclick: async (e) => {
+                e.currentTarget.disabled = true;
+                await remove();
+                toast("Modelo de reconhecimento removido.");
+                App2.go(location.hash);
+              } }, "Remover") : null
+            ),
+            h("span", { text: "Reconhecimento online" }),
+            h("span", { text: "nunca usado (enviaria sua voz para fora do aparelho)" })
           );
         });
       });
@@ -4002,6 +4377,7 @@
       configure({ audioSource: s.audioSource, voiceURI: s.voiceURI, rate: s.rate });
     }
   };
+  App.asr = { local: localasr_exports };
   globalThis.DRG_APP = App;
   var TABS = [
     { hash: "#/", label: "In\xEDcio", icon: "home", match: (r) => r === "" },

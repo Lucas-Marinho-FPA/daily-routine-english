@@ -124,7 +124,7 @@ export function renderSession(App, { params }) {
     setTimeout(() => b.focus({ preventScroll: true }), 50);
     return b;
   };
-  const autoplay = (clip) => { if (state.settings.autoplay) setTimeout(() => player.play(clip), 250); };
+  const autoplay = (clip) => { if (state.settings.autoplay) player.playSoon(clip, 250); }; // cancelado se o exercício mudar antes
   const nextReviewText = (k) => {
     const c = state.cards[k];
     if (!c) return '';

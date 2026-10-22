@@ -37,7 +37,10 @@ export function segment(text) {
   for (const s of tokenSpans(text)) {
     if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
     const norm = wordTokens(s.text).join(' ');
-    segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm) });
+    // nome próprio (maiúscula no meio da frase, ex.: "Uber"): o reconhecedor pode não conhecê-lo
+    const before = text.slice(0, s.start).trimEnd();
+    const proper = /^[A-Z][a-z]/.test(s.text) && before !== '' && !/[.!?:]$/.test(before);
+    segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm), proper });
     pos = s.end;
   }
   if (pos < text.length) segs.push({ text: text.slice(pos) });
@@ -50,6 +53,9 @@ export const wordsOf = (text) => segment(text).filter((s) => s.w !== undefined);
 function forms(t) {
   const out = new Set([t]);
   if (AME[t]) out.add(AME[t]);
+  if (/iz(e|ed|es|ing|ation)$/.test(t)) out.add(t.replace(/iz(e|ed|es|ing|ation)$/, 'is$1')); // finalized → finalised
+  const hm = /^(\d{1,2})(\d\d)$/.exec(t); // "900", "830": hora escrita sem dois-pontos
+  if (hm && +hm[2] < 60) out.add(`${hm[1]}:${hm[2]}`).add(hm[1]);
   if (t in NUM) out.add(String(NUM[t]));
   const m = /^(\d{1,2}):(\d\d)$/.exec(t);
   if (m) { out.add(String(+m[1])); if (m[2] !== '00') out.add(m[2].replace(/^0/, '')); }
@@ -59,20 +65,59 @@ function forms(t) {
   return out;
 }
 
+/** Flexão regular (walk → walked/walks, stop → stopped): o radical foi entendido; não é erro de pronúncia. */
+function inflected(target, heard) {
+  if (target.length < 3 || !heard.startsWith(target)) return false;
+  const rest = heard.slice(target.length);
+  return ['s', 'es', 'd', 'ed', target.slice(-1) + 'ed'].includes(rest);
+}
+
 function tokenEq(target, heard) {
   if (target === heard) return true;
   const a = forms(target), b = forms(heard);
-  for (const x of a) if (b.has(x)) return true;
+  for (const x of a) for (const y of b) if (x === y || inflected(x, y)) return true;
   // pequeno desvio de grafia na transcrição (ex.: "cafeteria"/"cafetaria") só em palavras longas
   return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1;
 }
 
-/** Tokens ouvidos: separa horas ditas como "5:00" e expande "a.m." etc. */
+/** Tokens ouvidos: separa horas coladas ("6pm", "8:30pm", "6p m") e expande "a.m." etc. */
 function heardTokens(transcript) {
-  return wordTokens(String(transcript || '')).flatMap((t) => {
-    const m = /^(\d{1,2})(am|pm)$/.exec(t);
-    return m ? [m[1], m[2]] : [t];
-  });
+  const out = [];
+  for (const t of wordTokens(String(transcript || ''))) {
+    const m = /^(\d{1,4}(?::\d\d)?)(am|pm|a|p)$/.exec(t);
+    if (m) out.push(m[1], m[2].length === 1 ? m[2] + 'm' : m[2]);
+    else if (t === 'm' && (out[out.length - 1] === 'am' || out[out.length - 1] === 'pm')) continue; // "6p. M."
+    else out.push(t);
+  }
+  return out;
+}
+
+/**
+ * Transcrição degenerada: modelos de reconhecimento às vezes entram em laço ("0, 0, 0, 0…")
+ * ou produzem muito mais palavras do que o texto tem. Nesses casos nada é avaliado.
+ */
+export function degenerate(heard, expected) {
+  let run = 1;
+  for (let j = 1; j < heard.length; j++) { run = heard[j] === heard[j - 1] ? run + 1 : 1; if (run >= 4) return true; }
+  return heard.length > Math.max(8, expected * 1.8);
+}
+
+/**
+ * Compostos escritos de outro jeito na transcrição ("lunch box" ↔ "lunchbox", "audiobook" ↔ "audio book",
+ * "I deal" ↔ "ideal"): ajusta os tokens ouvidos à divisão do texto-alvo antes do alinhamento.
+ */
+function matchCompounds(target, heard) {
+  const joined = new Map(); // "lunchbox" -> ['lunch', 'box']
+  for (let i = 0; i < target.length - 1; i++) joined.set(target[i] + target[i + 1], [target[i], target[i + 1]]);
+  const tset = new Set(target);
+  const out = [];
+  for (let j = 0; j < heard.length; j++) {
+    const h = heard[j], pair = j + 1 < heard.length ? h + heard[j + 1] : null;
+    if (!tset.has(h) && joined.has(h)) out.push(...joined.get(h));
+    else if (pair && tset.has(pair) && !(tset.has(h) && tset.has(heard[j + 1]))) { out.push(pair); j++; }
+    else out.push(h);
+  }
+  return out;
 }
 
 /**
@@ -87,13 +132,14 @@ export function evaluateWords(text, asr, opts = {}) {
   const all = (state, reason, note) => ({ words: words.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
   if (opts.insufficient) return all('uncertain', 'Gravação insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.', 'Quase não captei voz: nada foi avaliado.');
   if (!asr) return all('uncertain', 'Não foi possível avaliar esta palavra: o reconhecimento de fala no aparelho não está disponível. Compare com a referência (A/B).', 'Avaliação por palavra indisponível neste aparelho.');
-  const heard = heardTokens(asr.text);
+  const target = words.map((x) => x.norm);
+  const heard = matchCompounds(target, heardTokens(asr.text));
   if (!heard.length) return all('uncertain', 'Nenhuma fala foi reconhecida. Tente gravar novamente.', 'O reconhecimento não captou fala: resultado inconclusivo.');
+  if (degenerate(heard, words.length)) return all('uncertain', 'A transcrição saiu corrompida (repetições sem sentido); não dá para avaliar a palavra. Tente gravar de novo.', 'Transcrição não confiável (repetições): resultado inconclusivo.');
   if (typeof asr.confidence === 'number' && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
     return all('uncertain', 'O reconhecimento teve confiança baixa nesta gravação; não dá para avaliar a palavra com segurança. Tente de novo.', 'Confiança baixa do reconhecimento: resultado inconclusivo.');
   }
 
-  const target = words.map((x) => x.norm);
   const pairs = lcsAlign(target, heard, tokenEq);
   const matchT = new Map(pairs.map(([i, j]) => [i, j]));
   // para cada palavra não casada, procura o que foi ouvido no mesmo intervalo entre âncoras
@@ -110,6 +156,7 @@ export function evaluateWords(text, asr, opts = {}) {
     if (matchT.has(i)) return { w: x.w, text: x.text, state: 'good', reason: 'Reconhecida como esperado. Isso indica que a palavra foi entendida (inteligível); não é uma análise fonética dos sons.' };
     const near = (gapHeard.get(i) || []).filter(Boolean);
     if (x.weak) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Palavra curta e átona: o reconhecedor costuma omiti-la mesmo quando é dita. Não foi avaliada.' };
+    if (x.proper) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Nome próprio: o reconhecedor pode não conhecê-lo e escrevê-lo de outro jeito. Não foi avaliado.' };
     if (near.length) {
       return { w: x.w, text: x.text, state: 'needs_practice', heard: near.join(' '),
         reason: `Não foi reconhecida como esperado: o reconhecedor ouviu “${near.join(' ')}”. Ouça a referência e repita esta palavra. (O sistema não identifica qual som diferiu.)` };
