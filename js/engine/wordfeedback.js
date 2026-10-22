@@ -49,6 +49,18 @@ export function segment(text) {
 
 export const wordsOf = (text) => segment(text).filter((s) => s.w !== undefined);
 
+/**
+ * Texto do áudio isolado de uma palavra (gerado offline com a mesma voz britânica das frases):
+ * sem pontuação final; minúsculas, exceto nomes próprios, "I" e siglas. Usado no build e no app.
+ */
+export function wordAudioText(seg) {
+  const t = seg.text.replace(/[’]/g, "'").replace(/[.,!?;:]+$/, '');
+  return seg.proper || t === 'I' || /^[A-Z]{2,}/.test(t) ? t : t.toLowerCase();
+}
+
+/** Palavras que podem entrar na lista de prática (palavras de conteúdo, não átonas). */
+export const practiceCandidates = (text) => wordsOf(text).filter((s) => !s.weak);
+
 /** Formas equivalentes de um token (número por extenso ↔ dígitos, hora → hora cheia, AmE → BrE). */
 function forms(t) {
   const out = new Set([t]);

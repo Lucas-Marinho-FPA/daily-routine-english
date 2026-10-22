@@ -101,6 +101,35 @@ export function recordRecording(state, targetId, meta, today = dayNumber()) {
   return { xp, events: checkAchievements(state, today) };
 }
 
+/** Exclui a gravação de UM exercício do registro (o áudio é apagado em store/db.js). XP e histórico do dia ficam. */
+export function forgetRecording(state, targetId) {
+  delete state.recordingsMeta[targetId];
+  state.updatedAt = Date.now();
+}
+
+/**
+ * Atualiza a lista de revisão (“palavras marcadas”, usada em Revisar) a partir de uma tentativa conclusiva:
+ * palavras a praticar entram automaticamente; uma palavra que entrou automaticamente só sai depois de
+ * ser reconhecida em 2 tentativas seguidas (uma transcrição favorável isolada não prova a pronúncia).
+ * Palavras marcadas à mão pelo aluno nunca são removidas aqui. Tentativas inconclusivas não mexem em nada.
+ * attempt = resultado de engine/practice.js#analyseAttempt
+ */
+export function updatePracticeWords(state, targetId, attempt) {
+  if (!attempt || !attempt.conclusive) return;
+  const dw = state.difficultWords = state.difficultWords || {};
+  for (const x of attempt.list) {
+    const cur = dw[x.key];
+    dw[x.key] = { ...(cur || {}), at: Date.now(), from: (cur && cur.from) || targetId, auto: cur ? !!cur.auto : true, misses: ((cur && cur.misses) || 0) + 1, okStreak: 0 };
+  }
+  for (const k of attempt.goodKeys) {
+    const cur = dw[k];
+    if (!cur || !cur.auto) continue;
+    cur.okStreak = (cur.okStreak || 0) + 1;
+    if (cur.okStreak >= 2) delete dw[k];
+  }
+  state.updatedAt = Date.now();
+}
+
 /**
  * Sequência de dias: conta dias com estudo (sessão concluída ou 5+ exercícios).
  * Folga: um dia sem estudo a cada 7 não quebra a sequência. O dia de hoje ainda sem estudo não conta como falta.

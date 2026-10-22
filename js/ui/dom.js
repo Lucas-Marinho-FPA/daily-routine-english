@@ -56,6 +56,8 @@ const PATHS = {
   upload: 'M12 21V9M7 14l5-5 5 5M5 3h14',
   target: 'M12 12m-9 0a9 9 0 1018 0 9 9 0 10-18 0M12 12m-5 0a5 5 0 1010 0 5 5 0 10-10 0M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0',
   timer: 'M12 8v5l3 2M9 2h6M12 22a8 8 0 100-16 8 8 0 000 16z',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  slow: 'M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z',
 };
 
 export function icon(name, extra = '') {

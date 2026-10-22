@@ -17,12 +17,16 @@ const getModel = () => (model = model || new MoonshineModel('tiny', 'quantized')
 self.onmessage = async (e) => {
   const { id, type, pcm } = e.data || {};
   try {
-    if (type === 'load') {
+    if (type === 'load' || type === 'transcribe') {
       const t0 = performance.now();
-      await getModel().loadModel();
-      self.postMessage({ id, ok: true, ms: Math.round(performance.now() - t0) });
-    } else if (type === 'transcribe') {
-      await getModel().loadModel();
+      try { await getModel().loadModel(); } catch (err) {
+        model = null; // permite nova tentativa de carga
+        self.postMessage({ id, ok: false, stage: 'load', error: (err && err.message) || String(err) });
+        return;
+      }
+      if (type === 'load') { self.postMessage({ id, ok: true, ms: Math.round(performance.now() - t0) }); return; }
+    }
+    if (type === 'transcribe') {
       const t0 = performance.now();
       const text = await model.generate(pcm);
       self.postMessage({ id, ok: true, text: String(text || '').trim(), ms: Math.round(performance.now() - t0) });

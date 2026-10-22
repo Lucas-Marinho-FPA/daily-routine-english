@@ -1,12 +1,15 @@
 // Texto-alvo com feedback inline: a frase continua corrida; cada palavra é um <span> no mesmo fluxo.
 // Antes da avaliação não há nenhuma marcação. Depois, a cor vem com um indicador não cromático
 // (sublinhado diferente) e um toque na palavra mostra a explicação em texto.
-import { h, clear } from './dom.js';
-import { segment } from '../engine/wordfeedback.js';
+import { h, icon, clear } from './dom.js';
+import { segment, wordAudioText } from '../engine/wordfeedback.js';
 import * as player from '../audio/player.js';
 import { audioKey } from '../engine/text.js';
 
 const LABEL = { good: 'Reconhecida como esperado', needs_practice: 'Precisa de prática', uncertain: 'Não avaliada / inconclusiva' };
+
+/** Toca o áudio isolado de uma palavra (voz britânica embutida; sem ele, a voz do sistema). */
+export const playWord = (audioText, opts) => player.play({ key: audioKey(audioText), text: audioText }, opts);
 
 /**
  * paragraphs: string[] (cada parágrafo original vira um <p>; as palavras ficam no fluxo do parágrafo)
@@ -25,6 +28,7 @@ export function inlineWords(paragraphs) {
       if (seg.w === undefined) { el.append(document.createTextNode(seg.text)); continue; }
       const span = h('span', { class: 'w', text: seg.text });
       span.dataset.i = String(wordEls.length);
+      span.dataset.audio = wordAudioText(seg);
       span.addEventListener('click', () => select(Number(span.dataset.i)));
       span.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(Number(span.dataset.i)); } });
       wordEls.push(span);
@@ -34,7 +38,7 @@ export function inlineWords(paragraphs) {
   });
 
   function select(i) {
-    if (!results) return; // antes da avaliação, tocar na palavra não faz nada
+    if (!results) { playWord(wordEls[i].dataset.audio); return; } // antes da avaliação: só ouvir a palavra
     const r = results[i];
     if (selected !== null && wordEls[selected]) wordEls[selected].classList.remove('w-sel');
     selected = i;
@@ -44,7 +48,7 @@ export function inlineWords(paragraphs) {
       h('div', { class: 'row nowrap' },
         h('b', { class: 'en', text: word }), h('span', { class: `chip w-chip-${r.state}`, text: LABEL[r.state] || r.state }),
         h('span', { class: 'spacer' }),
-        h('button', { class: 'btn small', type: 'button', onclick: () => player.play({ key: audioKey(word.replace(/[.,!?;:]+$/, '')), text: word }) }, 'Ouvir')),
+        h('button', { class: 'btn small', type: 'button', onclick: () => playWord(wordEls[i].dataset.audio) }, icon('speaker'), 'Ouvir')),
       h('div', { class: 'small', style: { marginTop: '4px' }, text: r.reason }));
     detail.classList.remove('hidden');
   }
@@ -70,27 +74,39 @@ export function inlineWords(paragraphs) {
     detail.classList.add('hidden');
   }
 
-  return { el: h('div', { class: 'target-wrap' }, ...paras), detail, text, apply, reset, wordEls };
+  /** Destaca uma palavra (prática em andamento); i = null remove o destaque. */
+  function focus(i) {
+    wordEls.forEach((el, k) => el.classList.toggle('w-focus', k === i));
+  }
+
+  return { el: h('div', { class: 'target-wrap' }, ...paras), detail, text, apply, reset, focus, wordEls };
 }
 
-/** Legenda compacta numa linha (cor + forma do sublinhado + texto). */
+/** Legenda compacta: três indicadores (ponto colorido + rótulo curto; a cor nunca é a única informação). */
 export function legend() {
-  return h('div', { class: 'w-legend tiny muted' },
-    h('span', { class: 'w w-good', text: 'reconhecida' }), ' ',
-    h('span', { class: 'w w-needs_practice', text: 'praticar' }), ' ',
-    h('span', { class: 'w w-uncertain', text: 'não avaliada' }),
-    ' · toque numa palavra para ver o motivo');
+  const item = (st, label) => h('span', { class: 'lg', role: 'listitem' }, h('i', { class: `dot dot-${st}`, 'aria-hidden': 'true' }), label);
+  return h('div', { class: 'w-legend', role: 'list', 'aria-label': 'Legenda das cores' },
+    item('good', 'Reconhecida'), item('needs_practice', 'Praticar'), item('uncertain', 'Não avaliada'));
 }
 
-/** Nota geral compacta (uma linha + detalhes recolhidos). */
-export function scoreLine(score) {
+/**
+ * Resumo da tentativa: nota estimada (só quando a lógica de wordfeedback tem evidência) + frase de orientação.
+ * Os detalhes (dimensões, pesos, transcrição) ficam em scoreDetails, recolhidos.
+ */
+export function scoreLine(score, summary) {
   const head = score.overall === null
-    ? h('span', { class: 'chip', text: 'Sem nota geral' })
-    : h('span', { class: 'chip accent', text: `Nota estimada ${score.overall}/100${score.partial ? ' · parcial' : ''}` });
-  const det = h('details', { class: 'score-details tiny' },
-    h('summary', { text: score.message }),
-    h('ul', {}, score.dims.map((d) => h('li', {}, `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
-      d.score === null ? h('i', { text: `não avaliado — ${d.note}` }) : h('b', { text: `${d.score}/100` })))),
-    h('div', { text: 'Pesos iniciais (hipóteses, não validados cientificamente). A nota não mede “perfeição” e uma gravação ruim não gera nota baixa: gera resultado inconclusivo.' }));
-  return h('div', { class: 'score-line' }, head, det);
+    ? h('div', { class: 'score-head' }, h('span', { class: 'chip', text: 'Sem nota geral' }))
+    : h('div', { class: 'score-head' }, h('b', { class: 'score-num', text: `${score.overall}/100` }), h('span', { class: 'score-tag', text: score.partial ? 'Avaliação parcial' : 'Avaliação' }));
+  return h('div', { class: 'score-line' }, head, summary ? h('p', { class: 'score-summary', text: summary }) : null);
+}
+
+/** “Ver o que o app ouviu”: transcrição, motivo e dimensões da nota — recolhido, para consulta. */
+export function scoreDetails(score, { heard = null, engine = null, note = '' } = {}) {
+  return h('details', { class: 'more fb-details' },
+    h('summary', { text: 'Ver o que o app ouviu' }),
+    heard !== null ? h('p', { class: 'small' }, h('span', { class: 'muted', text: 'Transcrição: ' }), h('span', { class: 'en', text: heard ? `“${heard}”` : '(nada reconhecido)' })) : h('p', { class: 'small muted', text: 'Nenhuma transcrição nesta tentativa.' }),
+    note ? h('p', { class: 'small muted', text: note }) : null,
+    score ? h('ul', { class: 'small dims' }, score.dims.map((d) => h('li', {}, `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
+      d.score === null ? h('i', { text: `não avaliado — ${d.note}` }) : h('b', { text: `${d.score}/100` })))) : null,
+    h('p', { class: 'tiny muted', text: `${engine === 'model' ? 'Reconhecimento local (Moonshine), no aparelho.' : engine === 'webspeech' ? 'Reconhecimento do Chrome, no aparelho.' : ''} As cores indicam se cada palavra foi reconhecida, não qual som foi dito; sotaque não é erro. Pesos da nota: hipóteses iniciais, não validadas.` }));
 }

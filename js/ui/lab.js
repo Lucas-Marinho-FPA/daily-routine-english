@@ -1,13 +1,15 @@
 // Speaking Lab: ouvir a referência, gravar, comparar A/B, métricas de ritmo e (se houver) reconhecimento local.
-import { h, icon, clear, toast } from './dom.js';
+import { h, icon, clear } from './dom.js';
 import * as player from '../audio/player.js';
 import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
 import { wordTokens } from '../engine/text.js';
 import { recWidget } from './recwidget.js';
-import { analyseBlob } from '../audio/analysis.js';
-import { inlineWords, legend, scoreLine } from './inlinewords.js';
+import { inlineWords, legend, scoreLine, scoreDetails, playWord } from './inlinewords.js';
 import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
+import { analyseAttempt, practiceSummary, practiceReason, latestGate } from '../engine/practice.js';
+import { updatePracticeWords } from '../engine/progress.js';
+import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
 import { speakerButton, sessionHref } from './common.js';
 
 let labTab = 'sentences';
@@ -18,7 +20,16 @@ export function renderLab(App, { params }) {
   if (params.routine) labRoutine = params.routine;
   const { content, state } = App;
   const view = App.layout('Speaking Lab');
-  view.append(h('p', { class: 'small muted', text: 'Ouça, grave sua voz e compare. As métricas medem ritmo e pausas; a pronúncia dos sons você avalia comparando com a referência.' }));
+  view.append(h('p', { class: 'small muted', text: 'Escolha uma frase, ouça, grave e pratique as palavras que o app sinalizar.' }));
+  // primeira entrada: convite para instalar o reconhecimento local (não baixa nada sem o toque do aluno)
+  const setupSlot = h('div', {});
+  view.append(setupSlot);
+  if (state.settings.asrPrompt !== 'later') {
+    localasr.status().then((st) => {
+      if (st !== 'not-installed' || !setupSlot.isConnected) return;
+      setupSlot.append(asrSetupCard(App, { onInstalled: () => { setTimeout(() => clear(setupSlot), 2500); }, onLater: () => clear(setupSlot) }));
+    });
+  }
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Tipo de prática' });
   const filter = h('div', { class: 'chips scroll', style: { margin: '12px 0' } });
   const body = h('div', {});
@@ -99,119 +110,234 @@ function renderTarget(App, params) {
   const view = App.layout(title, { back });
   if (extra) view.append(extra);
 
-  // texto-alvo com feedback inline (mesmo fluxo de leitura; cores só depois de uma avaliação)
-  const iw = en.length ? inlineWords(en) : null;
-  const legendEl = legend();
-  legendEl.classList.add('hidden');
-  const scoreBox = h('div', {});
-  const statusLine = h('div', { class: 'tiny muted' });
-  const showEvaluation = (evaluation, score) => {
-    iw.apply(evaluation);
-    legendEl.classList.remove('hidden');
-    statusLine.textContent = evaluation.note || '';
-    clear(scoreBox).append(scoreLine(score));
-  };
-  if (en.length) {
-    let showPt = false;
-    const textBox = h('div', { class: 'card', style: { marginTop: '10px' } });
-    const draw = () => {
-      clear(textBox).append(
-        h('div', { class: 'row nowrap' }, h('div', { class: 'small muted', style: { flex: 1 }, text: params.q ? 'Resposta-modelo' : 'Texto' }),
-          h('button', { class: 'btn small', onclick: () => { showPt = !showPt; draw(); } }, showPt ? 'Ocultar PT' : 'Ver PT')),
-        iw.el, legendEl, statusLine, iw.detail, scoreBox,
-        showPt && pt ? h('p', { class: 'para-pt', style: { whiteSpace: 'pre-line' }, text: pt }) : null);
-    };
-    draw();
-    const rates = [0.75, 1, 1.25];
-    let rate = state.settings.rate || 1;
-    const rateRow = h('div', { class: 'chips' });
-    const drawRates = () => clear(rateRow).append(...rates.map((r) => h('button', { class: 'chip', 'aria-pressed': String(r === rate), onclick: () => { rate = r; drawRates(); } }, `${r}×`)));
-    drawRates();
-    view.append(textBox, h('div', { class: 'row', style: { marginTop: '10px' } },
-      h('button', { class: 'btn primary', onclick: () => player.playSequence(clips, { rate }) }, icon('speaker'), 'Ouvir referência'),
-      h('button', { class: 'btn', onclick: () => player.stopAll() }, icon('stop'), 'Parar'), rateRow));
-  }
-
   const durations = (globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.files) || {};
   const referenceSec = clips.reduce((n, c) => n + (durations[c.key] || 0), 0);
   const expectedWords = en.join(' ').split(/\s+/).filter(Boolean).length;
-  view.append(h('h2', { text: 'Sua gravação' }));
   // avaliação automática só quando o aluno está LENDO o texto (frase, bloco, rotina); perguntas são respondidas livremente
+  const iw = en.length ? inlineWords(en) : null;
   const reading = !!iw && !params.q;
   const asrEligible = expectedWords <= 60;
-  // motor de reconhecimento (sempre no aparelho): 'model' = modelo local baixado; 'webspeech' = modo local do Chrome
-  let engine = null, engineInfo = null;
-  let listener = null;
-  let attempt = 0; // cada nova gravação/avaliação invalida resultados ainda em andamento
-  let alive = true;
-  const missingNote = () => (!engineInfo ? 'Verificando o reconhecimento de fala no aparelho…'
-    : engineInfo.local === 'not-installed' ? 'Avaliação por palavra desligada: baixe o reconhecimento local abaixo (opcional).'
-    : 'Reconhecimento de fala no aparelho indisponível: palavras não avaliadas.');
+  let rate = state.settings.rate || 1;
 
-  /** Avalia uma gravação já feita (o reconhecimento roda DEPOIS da gravação, sobre o áudio gravado). */
-  async function evaluateRecording(blob, analysis, { fromListener = false } = {}) {
-    const my = ++attempt;
+  // ---------- 1. frase (foco da tela) + ouvir ----------
+  const legendEl = legend();
+  legendEl.classList.add('hidden');
+  if (en.length) {
+    let showPt = false;
+    const ptBox = h('div', {});
+    const ptBtn = h('button', { class: 'btn small ghost', type: 'button', 'aria-pressed': 'false' }, 'Ver PT');
+    ptBtn.onclick = () => {
+      showPt = !showPt;
+      ptBtn.textContent = showPt ? 'Ocultar PT' : 'Ver PT';
+      ptBtn.setAttribute('aria-pressed', String(showPt));
+      clear(ptBox).append(showPt && pt ? h('p', { class: 'para-pt', style: { whiteSpace: 'pre-line' }, text: pt }) : null);
+    };
+    const rateSeg = h('div', { class: 'seg rate-seg', role: 'group', 'aria-label': 'Velocidade da referência' });
+    const drawRates = () => clear(rateSeg).append(...[0.75, 1, 1.25].map((r) => h('button', { type: 'button', 'aria-pressed': String(r === rate), onclick: () => { rate = r; drawRates(); } }, `${String(r).replace('.', ',')}×`)));
+    drawRates();
+    view.append(h('section', { class: 'card phrase-card' },
+      h('div', { class: 'phrase-top' }, h('span', { class: 'eyebrow', text: params.q ? 'Resposta-modelo' : 'Leia em voz alta' }), ptBtn),
+      iw.el, legendEl, iw.detail, ptBox,
+      h('div', { class: 'listen-row' },
+        h('button', { class: 'btn primary', type: 'button', onclick: () => player.playSequence(clips, { rate }) }, icon('speaker'), 'Ouvir referência'),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Parar', onclick: () => player.stopAll() }, icon('stop')),
+        rateSeg)));
+  }
+
+  // ---------- 2. gravação + 3. feedback automático ----------
+  const fbBox = h('section', { class: 'fb hidden', 'aria-live': 'polite', 'data-role': 'feedback' });
+  // motor de reconhecimento (sempre no aparelho): 'model' = modelo local baixado; 'webspeech' = modo local do Chrome
+  let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
+  const gate = latestGate(); // só a tentativa mais recente pode mostrar resultado
+  let practiceSel = null;
+
+  const resetFeedback = () => {
+    gate.invalidate();
+    if (localasr.busy()) localasr.release(); // cancela a análise anterior (o worker recomeça na próxima)
+    if (iw) { iw.reset(); iw.focus(null); }
+    legendEl.classList.add('hidden');
+    practiceSel = null;
+    clear(fbBox);
+    fbBox.classList.add('hidden');
+    fbBox.dataset.state = 'idle';
+  };
+  const showFb = (stateName, ...children) => {
+    clear(fbBox).append(...children);
+    fbBox.dataset.state = stateName;
+    fbBox.classList.toggle('hidden', !children.filter(Boolean).length);
+  };
+
+  /** Analisa uma gravação concluída (o reconhecimento roda DEPOIS da gravação, sobre o áudio gravado). */
+  async function analyse(blob, analysis, { listenerRes, saved = null } = {}) {
+    if (!reading) return;
+    const ticket = gate.next();
+    lastBlob = blob; lastAnalysis = analysis;
     const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
     let res = null, why = '';
-    if (fromListener) {
-      res = await listener.stop();
-      listener = null;
-      if (!res) why = 'O reconhecimento não conseguiu rodar junto com a gravação neste aparelho. Use “Verificar palavras”.';
-    } else if (!asrEligible) why = 'Texto longo: avaliação por palavra só para trechos de até 60 palavras (grave um bloco).';
-    else if (engine === 'model' && !insufficient) {
-      statusLine.textContent = 'Reconhecendo a gravação no aparelho… (alguns segundos)';
-      try { res = await localasr.transcribe(blob); } catch (e) { why = `Reconhecimento local sem resultado (${e.message}): nada foi avaliado.`; }
-    } else if (!engine) why = missingNote();
-    if (!alive || my !== attempt) return; // a tela mudou ou já há uma gravação mais nova
+    if (saved) res = saved; // resultado já calculado para esta gravação (guardado com ela)
+    else if (!asrEligible) why = 'Texto longo: a análise por palavra vale para trechos de até 60 palavras. Grave um bloco por vez.';
+    else if (insufficient) why = '';
+    else if (listenerRes !== undefined) { res = listenerRes; if (!res) why = 'O reconhecimento não conseguiu rodar junto com a gravação neste aparelho.'; }
+    else if (engine === 'model') {
+      showFb('analysing', h('div', { class: 'fb-analysing', role: 'status' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Analisando sua gravação…'));
+      try { res = await localasr.transcribe(blob); } catch (e) {
+        if (!alive || !gate.isCurrent(ticket) || e.code === 'cancelled') return;
+        return showError(e, blob, analysis);
+      }
+    } else if (!engine) { drawUnavailable(); }
+    if (!alive || !gate.isCurrent(ticket)) return; // a tela mudou ou já há uma gravação mais nova
+
     let evaluation = evaluateWords(iw.text, res, { insufficient });
     if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
-    showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
-    if (res && evaluation.evaluated) statusLine.textContent = `Ouvido pelo reconhecimento local: “${res.text}”. Sotaque não é erro: as cores indicam se cada palavra foi reconhecida, não a qualidade dos sons.`;
+    const score = scoreAttempt({ evaluation, analysis, expectedWords });
+    const attempt = analyseAttempt(evaluation, iw.text);
+    iw.apply(evaluation);
+    legendEl.classList.remove('hidden');
+    if (!engine && !res) return; // sem reconhecimento: palavras cinza + aviso de indisponibilidade (já desenhado)
+    if (attempt.conclusive) {
+      if (!saved) { updatePracticeWords(state, targetId, attempt); App.save(); }
+      showResult(score, attempt, res);
+    } else {
+      showFb('inconclusive',
+        scoreLine(score, inconclusiveHint(evaluation, insufficient)),
+        h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
+        scoreDetails(score, { heard: res ? res.text : null, engine, note: evaluation.note }));
+    }
+    if (res && !saved && engine === 'model') w.updateMeta(blob, { result: { text: res.text, at: Date.now() } });
+  }
+
+  const inconclusiveHint = (evaluation, insufficient) => (insufficient
+    ? 'Quase não captei voz nesta gravação. Grave de novo, num lugar silencioso e mais perto do microfone.'
+    : `${evaluation.note || 'Não deu para avaliar esta tentativa.'} Grave novamente.`);
+
+  function showResult(score, attempt, res) {
+    const list = attempt.list;
+    const chips = h('div', { class: 'practice-chips', role: 'list' });
+    const panel = h('div', { class: 'practice-panel hidden', 'aria-live': 'polite' });
+    const select = (x, btn) => {
+      practiceSel = x.key;
+      chips.querySelectorAll('.pchip').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      iw.focus(x.w);
+      playWord(x.audioText);
+      const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(c.text));
+      clear(panel).append(
+        h('div', { class: 'pp-head' }, h('b', { class: 'en', text: x.text }), h('span', { class: 'small muted', text: ` · ${practiceReason(x)}` })),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn small', type: 'button', onclick: () => playWord(x.audioText) }, icon('speaker'), 'Ouvir'),
+          h('button', { class: 'btn small', type: 'button', onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon('slow'), 'Devagar'),
+          h('button', { class: 'btn small', type: 'button', onclick: () => player.playSequence(sentenceClips.length ? sentenceClips : clips, { rate }) }, icon('play'), 'Na frase')),
+        h('p', { class: 'small muted', text: 'Ouça, repita a palavra em voz alta algumas vezes e grave a frase de novo.' }),
+        h('button', { class: 'btn primary block', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar a frase de novo'));
+      panel.classList.remove('hidden');
+    };
+    for (const x of list) {
+      const btn = h('button', { class: 'pchip', type: 'button', role: 'listitem', 'aria-pressed': 'false', 'aria-label': `Praticar “${x.text}”: ${practiceReason(x)}` },
+        h('span', { class: 'en', text: x.text }), icon('speaker'));
+      btn.onclick = () => select(x, btn);
+      chips.append(btn);
+    }
+    showFb('result',
+      scoreLine(score, practiceSummary(list)),
+      list.length ? h('div', { class: 'practice', 'data-role': 'practice', 'aria-label': 'Vamos praticar' }, chips, h('div', { class: 'tiny muted practice-hint', text: 'Toque numa palavra para ouvir e praticar.' }), panel)
+        : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
+      list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
+      scoreDetails(score, { heard: res ? res.text : null, engine, note: '' }));
+  }
+
+  function showError(e, blob, analysis) {
+    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.` }[e.code] || 'A análise falhou nesta gravação.';
+    const actions = h('div', { class: 'row fb-actions' });
+    const help = h('div', { class: 'small' });
+    if (e.code === 'decode' || e.code === 'too-long') actions.append(h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente'));
+    else actions.append(h('button', { class: 'btn small primary', type: 'button', onclick: () => analyse(blob, analysis) }, icon('refresh'), 'Tentar de novo'));
+    if (e.code === 'load') {
+      actions.append(h('button', { class: 'btn small', type: 'button', onclick: async (ev) => {
+        ev.currentTarget.disabled = true;
+        const v = await localasr.verify();
+        if (v.ok) { help.textContent = 'Os arquivos do reconhecimento estão íntegros. Tente de novo; se continuar falhando, feche e reabra o app.'; return; }
+        clear(help).append(h('p', { text: `Arquivos do reconhecimento incompletos (${[...v.missing, ...v.damaged].length}). É preciso baixá-los de novo (precisa de internet).` }),
+          h('button', { class: 'btn small primary', type: 'button', onclick: async () => { const ok = await runInstall(help); if (ok) analyse(blob, analysis); } }, icon('download'), 'Baixar de novo'));
+      } }, icon('target'), 'Verificar instalação'));
+    }
+    showFb('error', h('div', { class: 'fb-error', role: 'alert' }, h('b', { text: msg }), ' ', h('span', { class: 'muted', text: 'Nenhuma nota foi gerada. Sua gravação continua salva.' })), actions, help,
+      h('details', { class: 'more' }, h('summary', { text: 'Detalhes técnicos' }), h('p', { class: 'tiny muted', text: `${e.code || 'erro'}: ${e.message}` })));
+  }
+
+  function rerecord() {
+    w.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    w.start();
+  }
+
+  /** Sem reconhecimento: convite para instalar (uma vez), linha compacta depois de “Agora não”, ou motivo. */
+  function drawUnavailable() {
+    if (!reading || !asrEligible || !engineInfo) return;
+    const installed = () => { refresh().then(() => { if (lastBlob) analyse(lastBlob, lastAnalysis); }); };
+    if (engineInfo.local === 'not-installed' && state.settings.asrPrompt !== 'later') {
+      return showFb('setup', asrSetupCard(App, { onInstalled: installed, onLater: () => drawUnavailable() }));
+    }
+    const parts = [];
+    if (engineInfo.local === 'not-installed') parts.push(asrOffNotice(App, { onInstalled: installed }));
+    else if (engineInfo.why) parts.push(h('p', { class: 'small muted', text: `Análise automática indisponível aqui: ${engineInfo.why}.` }));
+    if (!engineInfo.webspeech && !isAndroid()) {
+      // Chrome de computador pode ter reconhecimento no aparelho; a consulta só acontece com este toque
+      parts.push(h('button', { class: 'link-btn', type: 'button', onclick: (e) => { e.currentTarget.disabled = true; refresh(true); } }, 'Ver se está disponível (reconhecimento do Chrome)'));
+    }
+    showFb('unavailable', ...parts);
   }
 
   const w = recWidget(App, {
     targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 300000 : 120000,
     onStart: () => {
-      attempt++;
+      resetFeedback();
       if (!reading) return;
-      iw.reset(); legendEl.classList.add('hidden'); clear(scoreBox); statusLine.textContent = '';
       listener = asrEligible && engine === 'webspeech' ? asr.listen({ lang: 'en-GB' }) : null;
     },
-    onRecorded: (blob, analysis) => { if (reading) evaluateRecording(blob, analysis, { fromListener: !!listener }); },
+    onRecorded: async (blob, analysis) => {
+      if (!reading) return;
+      if (listener) { const l = listener; listener = null; analyse(blob, analysis, { listenerRes: await l.stop() }); } else analyse(blob, analysis);
+    },
+    onLoaded: (rec) => {
+      // gravação salva: mostra o resultado guardado com ela; sem resultado, analisa (uma vez) se houver reconhecimento local
+      savedPending = rec;
+      if (engineInfo) processSaved();
+    },
+    onDeleted: () => { resetFeedback(); lastBlob = null; if (!engine) drawUnavailable(); },
   });
-  view.append(w.el);
+  view.append(w.el, fbBox);
 
-  // reconhecimento no aparelho (opcional)
-  if (en.length && asrEligible) {
-    const asrBox = h('div', { class: 'card flat', style: { marginTop: '12px' } }, h('p', { class: 'small muted', text: 'Verificando o reconhecimento de fala no aparelho…' }));
-    view.append(asrBox);
-    const onLive = (res) => {
-      const evaluation = evaluateWords(iw.text, res);
-      showEvaluation(evaluation, scoreAttempt({ evaluation, analysis: null, expectedWords, recorded: false }));
-    };
-    const evalLast = async () => {
-      const blob = w.getBlob();
-      if (!blob) return toast('Grave primeiro.');
-      iw.reset(); clear(scoreBox);
-      const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
-      if (alive) evaluateRecording(blob, analysis);
-    };
-    const refresh = async (ask = false) => {
-      engineInfo = await detectEngine({ ask, known: state.settings.asrKnown });
-      if (!alive) return;
-      engine = engineInfo.engine;
-      if (engineInfo.webspeech && engineInfo.webspeech !== state.settings.asrKnown) { state.settings.asrKnown = engineInfo.webspeech; App.save(); }
-      drawAsr(App, asrBox, engineInfo, { onLive, isQuestion: !!params.q, evalLast, refresh, hasBlob: () => !!w.getBlob() });
-    };
-    refresh();
+  function processSaved() {
+    const rec = savedPending;
+    savedPending = null;
+    if (!rec || !reading || !alive) return;
+    const meta = rec.meta || {};
+    if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0 } });
+    else if (engine === 'model' && asrEligible) analyse(rec.blob, meta.analysis);
+    else { lastBlob = rec.blob; lastAnalysis = meta.analysis; }
   }
-  // palavras difíceis
-  if (en.length && expectedWords <= 60) {
+
+  const refresh = async (ask = false) => {
+    engineInfo = await detectEngine({ ask, known: state.settings.asrKnown });
+    if (!alive) return;
+    engine = engineInfo.engine;
+    if (engineInfo.webspeech && engineInfo.webspeech !== state.settings.asrKnown) { state.settings.asrKnown = engineInfo.webspeech; App.save(); }
+    if (!engine) drawUnavailable();
+    else if (fbBox.dataset.state === 'setup' || fbBox.dataset.state === 'unavailable') resetFeedback();
+    drawManual();
+    if (savedPending) processSaved();
+  };
+  if (reading) refresh();
+
+  // ---------- autoavaliação manual: só quando não há análise automática ----------
+  const manualBox = h('div', {});
+  view.append(manualBox);
+  function drawManual() {
+    clear(manualBox);
+    if (!en.length || !asrEligible || engine) return;
     const words = [...new Set(en.join(' ').split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, '')).filter((w2) => w2.length > 2))];
     state.difficultWords = state.difficultWords || {};
     const picks = h('div', {}, ...words.map((wd) => {
       const key = wd.toLowerCase();
-      const b = h('button', { class: 'word-pick', 'aria-pressed': String(!!state.difficultWords[key]) }, wd);
+      const b = h('button', { class: 'word-pick', type: 'button', 'aria-pressed': String(!!state.difficultWords[key]) }, wd);
       b.onclick = () => {
         if (state.difficultWords[key]) delete state.difficultWords[key]; else state.difficultWords[key] = { at: Date.now(), from: targetId };
         b.setAttribute('aria-pressed', String(!!state.difficultWords[key]));
@@ -219,16 +345,23 @@ function renderTarget(App, params) {
       };
       return b;
     }));
-    view.append(h('h2', { text: 'Autoavaliação' }), h('p', { class: 'small muted', text: 'Compare A/B e marque as palavras que soaram diferentes da referência. Elas aparecem em “Revisar”.' }), picks);
+    manualBox.append(h('details', { class: 'more card flat manual' }, h('summary', { text: 'Marcar palavras difíceis (sem análise automática)' }),
+      h('p', { class: 'small muted', text: 'Compare A/B e marque as palavras que soaram diferentes. Elas aparecem em “Revisar”.' }), picks));
   }
+  if (!reading && en.length) drawManual();
+
+  // ---------- dicas de pronúncia (recolhidas) ----------
   const tips = relevantTips(content, en.join(' '));
   if (tips.length) {
-    view.append(h('h2', { text: 'Dicas de pronúncia' }), h('ul', { class: 'list card' }, tips.map((it) => h('li', {},
-      h('div', { class: 'list-btn' }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: `${it.en}  ${it.ipa || ''}` }), h('div', { class: 'small muted', text: it.tip || '' })),
-        speakerButton({ key: it.au, text: it.en }, { cls: 'icon-btn ghost' }))))));
+    view.append(h('details', { class: 'more card flat tips' }, h('summary', { text: `Dicas de pronúncia (${tips.length})` }),
+      h('ul', { class: 'list' }, tips.map((it) => h('li', {},
+        h('div', { class: 'list-btn' }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: `${it.en}  ${it.ipa || ''}` }), h('div', { class: 'small muted', text: it.tip || '' })),
+          speakerButton({ key: it.au, text: it.en }, { cls: 'icon-btn ghost' })))))));
   }
-  return () => { alive = false; attempt++; if (listener) { listener.stop(); listener = null; } localasr.release(); w.destroy(); };
+  return () => { alive = false; gate.invalidate(); if (listener) { listener.stop(); listener = null; } localasr.release(); w.destroy(); };
 }
+
+const isAndroid = () => /Android/i.test(navigator.userAgent || '');
 
 function relevantTips(content, text) {
   const tokens = new Set(wordTokens(text));
@@ -244,71 +377,4 @@ export async function detectEngine({ ask = false, known = null } = {}) {
   const local = await localasr.status();
   const webspeech = asr.cachedStatus() || (ask || known === 'available' ? await asr.status('en-GB') : null);
   return { engine: local === 'installed' ? 'model' : webspeech === 'available' ? 'webspeech' : null, local, webspeech, why: localasr.unsupportedReason() };
-}
-
-function drawAsr(App, box, info, { onLive, isQuestion, evalLast, refresh, hasBlob }) {
-  clear(box);
-  if (info.engine === 'model') {
-    box.append(h('p', { class: 'small', text: isQuestion
-      ? 'Reconhecimento local instalado. Para comparar com o modelo, grave lendo a resposta-modelo e toque em “Avaliar minha gravação”.'
-      : 'Reconhecimento de fala local instalado: depois de cada gravação, as palavras são avaliadas no próprio aparelho (nada é enviado).' }),
-    h('button', { class: 'btn small', onclick: (e) => { if (!hasBlob()) return toast('Grave primeiro.'); evalLast(); e.currentTarget.blur(); } }, icon('target'), 'Avaliar minha gravação'));
-    return;
-  }
-  if (info.engine === 'webspeech') {
-    const out = h('div', {});
-    const btn = h('button', { class: 'btn' }, icon('target'), isQuestion ? 'Verificar palavras (lendo o modelo)' : 'Verificar palavras (sem gravar)');
-    btn.onclick = async () => {
-      player.stopAll();
-      btn.disabled = true;
-      clear(out).append(h('p', { class: 'small', text: '🎙️ Fale agora…' }));
-      try {
-        const res = await asr.recognise({ lang: 'en-GB' });
-        onLive(res);
-        clear(out).append(h('p', { class: 'tiny muted', text: `Ouvido: “${res.text}”. As cores no texto mostram se cada palavra foi reconhecida (inteligibilidade aproximada), não a qualidade dos sons. Sotaque não é erro.` }));
-      } catch (e) {
-        clear(out).append(h('p', { class: 'small', text: `Inconclusivo: ${e.message}. Tente de novo.` }));
-      }
-      btn.disabled = false;
-    };
-    box.append(h('div', { class: 'small muted', style: { marginBottom: '8px' }, text: isQuestion
-      ? 'Reconhecimento no aparelho disponível. Para comparar com o modelo, leia a resposta-modelo em voz alta.'
-      : 'Reconhecimento no aparelho disponível: ao gravar, as palavras são avaliadas automaticamente (nada é enviado).' }), btn, out);
-    return;
-  }
-  // sem reconhecimento: explica o motivo e oferece o modelo local (se o aparelho suporta)
-  box.append(h('p', { class: 'small', text: info.webspeech
-    ? 'Este navegador não oferece reconhecimento de fala no aparelho (o Chrome para Android só tem o modo online, que enviaria sua voz a servidores externos e por isso não é usado). Gravar, ouvir, comparar A/B e a autoavaliação continuam funcionando.'
-    : 'Avaliação palavra por palavra usa reconhecimento de fala no próprio aparelho (opcional, nada é enviado). O Chrome para Android não tem esse modo; o modo online dele enviaria sua voz para fora e nunca é usado. Gravar, ouvir, comparar A/B e a autoavaliação funcionam sem ele.' }));
-  if (info.local === 'not-installed') {
-    const bar = h('div', { class: 'bar hidden', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100 }, h('i', { style: { width: '0%' } }));
-    const msg = h('p', { class: 'tiny muted' });
-    const btn = h('button', { class: 'btn small' }, icon('download'), `Baixar reconhecimento local (${localasr.sizeLabel()}, uma vez)`);
-    btn.onclick = async () => {
-      btn.disabled = true;
-      bar.classList.remove('hidden');
-      msg.textContent = 'Baixando do endereço do próprio app…';
-      try {
-        await localasr.install({ onProgress: (f) => { bar.firstChild.style.width = `${Math.round(f * 100)}%`; bar.setAttribute('aria-valuenow', String(Math.round(f * 100))); } });
-        toast('Reconhecimento local instalado. Funciona offline.');
-        await refresh();
-        if (hasBlob()) evalLast();
-      } catch (e) {
-        msg.textContent = `Não foi possível baixar agora (${e.message}). Tente com internet; o que já baixou é aproveitado.`;
-        btn.disabled = false;
-      }
-    };
-    box.append(h('p', { class: 'small muted', text: `Opcional: um modelo de reconhecimento (Moonshine, código aberto) que roda no próprio celular. São ${localasr.sizeLabel()} baixados uma vez do mesmo endereço do app; depois funciona offline. Sua voz nunca sai do aparelho. É um modelo pequeno: às vezes erra palavras, e sem certeza a palavra fica cinza (não avaliada).` }), btn, bar, msg);
-  } else if (info.webspeech === 'downloadable' || info.webspeech === 'downloading') {
-    const btn = h('button', { class: 'btn small' }, icon('download'), 'Baixar reconhecimento offline do Chrome (uma vez)');
-    btn.onclick = async () => { btn.disabled = true; const ok = await asr.install(); toast(ok ? 'Modelo instalado.' : 'Não foi possível instalar agora.'); refresh(); };
-    box.append(btn);
-  } else if (info.why) {
-    box.append(h('p', { class: 'tiny muted', text: `Reconhecimento local indisponível aqui: ${info.why}.` }));
-  }
-  if (!info.webspeech) {
-    // navegadores de computador podem ter o modo local do Chrome; a consulta só acontece com este toque
-    box.append(h('button', { class: 'btn small ghost', onclick: (e) => { e.currentTarget.disabled = true; refresh(true); } }, icon('target'), 'Ver se está disponível'),
-      h('span', { class: 'tiny muted', text: ' (reconhecimento do próprio Chrome, no aparelho)' }));
-  }
 }

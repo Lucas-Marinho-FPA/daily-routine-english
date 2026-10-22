@@ -7,7 +7,7 @@
   };
 
   // <define:__ASR_MANIFEST__>
-  var define_ASR_MANIFEST_default = { version: "29bd825a1682", files: [{ path: "asr/worker.js", size: 746941 }, { path: "asr/ort-wasm-simd-threaded.mjs", size: 20856 }, { path: "asr/ort-wasm-simd-threaded.wasm", size: 11210254 }, { path: "asr/tiny/quantized/encoder_model.onnx", size: 7937661 }, { path: "asr/tiny/quantized/decoder_model_merged.onnx", size: 20243286 }] };
+  var define_ASR_MANIFEST_default = { version: "5ec6dd843fca", files: [{ path: "asr/worker.js", size: 747168, sha: "a3f0df6dbb127d67" }, { path: "asr/ort-wasm-simd-threaded.mjs", size: 20856, sha: "30dd851d9c006229" }, { path: "asr/ort-wasm-simd-threaded.wasm", size: 11210254, sha: "71aef04959c5c1b6" }, { path: "asr/tiny/quantized/encoder_model.onnx", size: 7937661, sha: "c6fc4b7bc5af75c0" }, { path: "asr/tiny/quantized/decoder_model_merged.onnx", size: 20243286, sha: "eed87831c3a61035" }] };
 
   // app/js/ui/dom.js
   function h(tag, props = {}, ...children) {
@@ -64,7 +64,9 @@
     download: "M12 3v12M7 10l5 5 5-5M5 21h14",
     upload: "M12 21V9M7 14l5-5 5 5M5 3h14",
     target: "M12 12m-9 0a9 9 0 1018 0 9 9 0 10-18 0M12 12m-5 0a5 5 0 1010 0 5 5 0 10-10 0M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0",
-    timer: "M12 8v5l3 2M9 2h6M12 22a8 8 0 100-16 8 8 0 000 16z"
+    timer: "M12 8v5l3 2M9 2h6M12 22a8 8 0 100-16 8 8 0 000 16z",
+    trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+    slow: "M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z"
   };
   function icon(name, extra = "") {
     const ns = "http://www.w3.org/2000/svg";
@@ -879,6 +881,25 @@
     state.updatedAt = Date.now();
     return { xp, events: checkAchievements(state, today) };
   }
+  function forgetRecording(state, targetId) {
+    delete state.recordingsMeta[targetId];
+    state.updatedAt = Date.now();
+  }
+  function updatePracticeWords(state, targetId, attempt) {
+    if (!attempt || !attempt.conclusive) return;
+    const dw = state.difficultWords = state.difficultWords || {};
+    for (const x of attempt.list) {
+      const cur = dw[x.key];
+      dw[x.key] = { ...cur || {}, at: Date.now(), from: cur && cur.from || targetId, auto: cur ? !!cur.auto : true, misses: (cur && cur.misses || 0) + 1, okStreak: 0 };
+    }
+    for (const k of attempt.goodKeys) {
+      const cur = dw[k];
+      if (!cur || !cur.auto) continue;
+      cur.okStreak = (cur.okStreak || 0) + 1;
+      if (cur.okStreak >= 2) delete dw[k];
+    }
+    state.updatedAt = Date.now();
+  }
   function streak(state, today = dayNumber()) {
     const active = (n2) => !!state.days[n2] && (state.days[n2].sessions > 0 || state.days[n2].ex >= 5);
     let n = active(today) ? today : today - 1;
@@ -1108,6 +1129,14 @@
       return await tx("recordings", "readonly", (s) => reqP(s.get(id)));
     } catch (e) {
       return null;
+    }
+  }
+  async function deleteRecording(id) {
+    try {
+      await tx("recordings", "readwrite", (s) => {
+        s.delete(id);
+      });
+    } catch (e) {
     }
   }
   async function recordingsUsage() {
@@ -1358,6 +1387,8 @@
   var localasr_exports = {};
   __export(localasr_exports, {
     MAX_SECONDS: () => MAX_SECONDS,
+    busy: () => busy,
+    downloadBytes: () => downloadBytes,
     install: () => install,
     release: () => release2,
     remove: () => remove,
@@ -1366,14 +1397,17 @@
     toPcm16k: () => toPcm16k,
     totalBytes: () => totalBytes,
     transcribe: () => transcribe,
-    unsupportedReason: () => unsupportedReason
+    unsupportedReason: () => unsupportedReason,
+    verify: () => verify
   });
   var MANIFEST = typeof define_ASR_MANIFEST_default !== "undefined" ? define_ASR_MANIFEST_default : null;
   var PREFIX = "asr-local-";
   var cacheName = () => PREFIX + MANIFEST.version;
   var MAX_SECONDS = 30;
   var totalBytes = () => MANIFEST ? MANIFEST.files.reduce((n, f) => n + f.size, 0) : 0;
-  var sizeLabel = () => `${Math.round(totalBytes() / 1048576)} MB`;
+  var missingBytes = null;
+  var downloadBytes = () => missingBytes === null ? totalBytes() : missingBytes;
+  var sizeLabel = () => `${Math.max(1, Math.round(downloadBytes() / 1048576))} MB`;
   function unsupportedReason() {
     if (!MANIFEST) return "pacote de reconhecimento ausente nesta vers\xE3o";
     if (!/^https?:$/.test(globalThis.location ? location.protocol : "")) return "precisa abrir o app pelo endere\xE7o (n\xE3o como arquivo)";
@@ -1385,28 +1419,75 @@
   async function status() {
     if (unsupportedReason()) return "unsupported";
     try {
-      if (!await caches.has(cacheName())) return "not-installed";
       const cache = await caches.open(cacheName());
-      for (const f of MANIFEST.files) if (!await cache.match(new URL(f.path, location.href).href)) return "not-installed";
+      let missing = 0;
+      for (const f of MANIFEST.files) {
+        const url = new URL(f.path, location.href).href;
+        if (await cache.match(url)) continue;
+        if (await migrate2(cache, f, url)) continue;
+        missing += f.size;
+      }
+      missingBytes = missing;
+      if (missing) return "not-installed";
+      await dropOldCaches();
       return "installed";
     } catch (e) {
       return "not-installed";
     }
   }
+  async function migrate2(cache, f, url) {
+    for (const k of await caches.keys()) {
+      if (!k.startsWith(PREFIX) || k === cacheName()) continue;
+      const old = await caches.open(k);
+      const hit = await old.match(url);
+      if (!hit) continue;
+      const sha = hit.headers.get("X-DRG-Sha");
+      if (sha ? sha !== f.sha : await cachedSize(hit.clone()) !== f.size) continue;
+      const body = await hit.blob();
+      await cache.put(url, new Response(body, { headers: { "Content-Type": hit.headers.get("Content-Type") || "application/octet-stream", "X-DRG-Size": String(body.size), "X-DRG-Sha": f.sha } }));
+      return true;
+    }
+    return false;
+  }
+  async function dropOldCaches() {
+    for (const k of await caches.keys()) if (k.startsWith(PREFIX) && k !== cacheName()) await caches.delete(k);
+  }
+  async function cachedSize(hit) {
+    const h2 = hit.headers.get("X-DRG-Size");
+    return h2 ? Number(h2) : (await hit.blob()).size;
+  }
+  async function verify() {
+    if (unsupportedReason()) return { ok: false, missing: [], damaged: [], unsupported: true };
+    const cache = await caches.open(cacheName());
+    const missing = [], damaged = [];
+    for (const f of MANIFEST.files) {
+      const hit = await cache.match(new URL(f.path, location.href).href);
+      if (!hit) missing.push(f.path);
+      else if (await cachedSize(hit) !== f.size) damaged.push(f.path);
+    }
+    return { ok: !missing.length && !damaged.length, missing, damaged };
+  }
   async function install({ onProgress } = {}) {
     const why = unsupportedReason();
     if (why) throw new Error(why);
+    release2();
     const cache = await caches.open(cacheName());
-    const total = totalBytes();
-    let done = 0;
+    const todo = [];
     for (const f of MANIFEST.files) {
       const url = new URL(f.path, location.href).href;
-      if (await cache.match(url)) {
-        done += f.size;
-        onProgress && onProgress(done / total);
-        continue;
-      }
-      const res = await fetch(url, { cache: "no-store" });
+      const hit = await cache.match(url);
+      if (hit && await cachedSize(hit) === f.size) continue;
+      if (hit) await cache.delete(url);
+      if (await migrate2(cache, f, url)) continue;
+      todo.push(f);
+    }
+    const total = todo.reduce((n, f) => n + f.size, 0) || 1;
+    let done = 0;
+    const report = () => onProgress && onProgress(Math.min(1, done / total), done, total);
+    report();
+    for (const f of todo) {
+      const url = new URL(f.path, location.href).href;
+      const res = await fetch(url, { cache: "no-store", headers: { "X-DRG-Download": "1" } });
       if (!res.ok) throw new Error(`falha ao baixar ${f.path} (${res.status})`);
       const reader = res.body.getReader();
       const parts = [];
@@ -1415,12 +1496,15 @@
         if (end) break;
         parts.push(value);
         done += value.byteLength;
-        onProgress && onProgress(Math.min(1, done / total));
+        report();
       }
       const type = res.headers.get("Content-Type") || "application/octet-stream";
-      await cache.put(url, new Response(new Blob(parts, { type }), { headers: { "Content-Type": type } }));
+      const body = new Blob(parts, { type });
+      if (body.size !== f.size) throw new Error(`arquivo incompleto: ${f.path}`);
+      await cache.put(url, new Response(body, { headers: { "Content-Type": type, "X-DRG-Size": String(body.size), "X-DRG-Sha": f.sha } }));
     }
-    for (const k of await caches.keys()) if (k.startsWith(PREFIX) && k !== cacheName()) await caches.delete(k);
+    missingBytes = 0;
+    await dropOldCaches();
     return true;
   }
   async function remove() {
@@ -1432,21 +1516,30 @@
   var pending2 = /* @__PURE__ */ new Map();
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker(new URL("asr/worker.js", location.href).href, { type: "module" });
+    try {
+      worker = new Worker(new URL("asr/worker.js", location.href).href, { type: "module" });
+    } catch (e) {
+      throw asrError(`o reconhecimento local n\xE3o p\xF4de ser iniciado (${e.message})`, "load");
+    }
     worker.onmessage = (e) => {
       const p = pending2.get(e.data.id);
       if (!p) return;
       pending2.delete(e.data.id);
       clearTimeout(p.timer);
       if (e.data.ok) p.resolve(e.data);
-      else p.reject(new Error(e.data.error || "falha no reconhecimento"));
+      else p.reject(asrError(e.data.error || "falha no reconhecimento", e.data.stage === "load" ? "load" : "run"));
     };
     worker.onerror = (e) => {
       e.preventDefault && e.preventDefault();
-      failAll(new Error("o reconhecimento local n\xE3o p\xF4de ser iniciado"));
+      failAll(asrError("o reconhecimento local n\xE3o p\xF4de ser iniciado", "load"));
       release2();
     };
     return worker;
+  }
+  function asrError(message, code) {
+    const e = new Error(message);
+    e.code = code;
+    return e;
   }
   function failAll(err) {
     for (const [, p] of pending2) {
@@ -1461,19 +1554,20 @@
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         pending2.delete(id);
-        reject(new Error("tempo esgotado"));
+        reject(asrError("tempo esgotado", "timeout"));
         release2();
       }, timeoutMs);
       pending2.set(id, { resolve, reject, timer });
       w.postMessage({ ...msg, id }, transfer || []);
     });
   }
+  var busy = () => pending2.size > 0;
   function release2() {
     if (worker) {
       worker.terminate();
       worker = null;
     }
-    failAll(new Error("cancelado"));
+    failAll(asrError("cancelado", "cancelled"));
   }
   async function toPcm16k(blob) {
     const Ctx = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
@@ -1490,9 +1584,14 @@
     return out;
   }
   async function transcribe(blob) {
-    const pcm = await toPcm16k(blob);
+    let pcm;
+    try {
+      pcm = await toPcm16k(blob);
+    } catch (e) {
+      throw asrError("n\xE3o foi poss\xEDvel ler o \xE1udio gravado", "decode");
+    }
     const secs = pcm.length / 16e3;
-    if (secs > MAX_SECONDS) throw new Error(`grava\xE7\xE3o longa demais para o reconhecimento local (m\xE1x. ${MAX_SECONDS} s)`);
+    if (secs > MAX_SECONDS) throw asrError(`grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s)`, "too-long");
     const res = await call({ type: "transcribe", pcm }, [pcm.buffer], 6e4 + secs * 4e3);
     return { text: res.text, confidence: 0, engine: "local-model", ms: res.ms };
   }
@@ -2272,15 +2371,18 @@
   }
 
   // app/js/ui/recwidget.js
+  var fmtSec = (ms) => String(Math.round(ms / 100) / 10).replace(".", ",");
+  var clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   function recWidget(App2, opts) {
     const { targetId, reference = [], expectedWords = 0, referenceSec = 0, maxMs = 18e4 } = opts;
-    let session = null, blob = null, url = null, startedAt = 0, timer = null, destroyed = false;
-    const recBtn = h("button", { class: "rec-btn", "aria-label": "Gravar" }, icon("mic"));
-    const time = h("div", { class: "small muted", text: "Toque para gravar" });
+    let session = null, blob = null, meta = null, url = null, startedAt = 0, timer = null, destroyed = false;
+    const recBtn = h("button", { class: "rec-btn", type: "button", "aria-label": "Gravar minha voz" }, icon("mic"));
+    const title = h("div", { class: "rec-title", text: "Gravar minha voz" });
+    const time = h("div", { class: "small muted", text: "Toque no microfone para come\xE7ar" });
     const meterFill = h("i");
     const meter = h("div", { class: "meter hidden", "aria-hidden": "true" }, meterFill);
-    const after = h("div", { class: "stack hidden", style: { marginTop: "12px" } });
-    const canvas = h("canvas", { class: "wave", width: 600, height: 56, "aria-hidden": "true" });
+    const after = h("div", { class: "rec-after hidden" });
+    const canvas = h("canvas", { class: "wave", width: 600, height: 48, "aria-hidden": "true" });
     const metrics = h("div", { class: "small" });
     const audioEl = h("audio", { preload: "auto" });
     const mineBtn = h("button", { class: "btn small", type: "button", "data-role": "mine" });
@@ -2298,12 +2400,17 @@
     });
     const el = h(
       "div",
-      { class: "card flat" },
-      h("div", { class: "row nowrap" }, recBtn, h("div", { style: { flex: 1, minWidth: 0 } }, time, meter)),
+      { class: "card rec-panel" },
+      h("div", { class: "rec-main" }, recBtn, h("div", { class: "rec-info" }, title, time, meter)),
       after
     );
     recBtn.addEventListener("click", () => session ? stop2() : start2());
+    const setIdle = (hasRec) => {
+      title.textContent = hasRec ? "Gravar novamente" : "Gravar minha voz";
+      recBtn.setAttribute("aria-label", hasRec ? "Gravar novamente" : "Gravar minha voz");
+    };
     async function start2() {
+      if (session || destroyed) return;
       stopAll();
       try {
         session = await start({ maxMs, onLevel: (v) => {
@@ -2317,7 +2424,10 @@
       recBtn.setAttribute("aria-label", "Parar grava\xE7\xE3o");
       clear(recBtn).append(icon("stop"));
       meter.classList.remove("hidden");
+      el.classList.add("recording");
       startedAt = Date.now();
+      title.textContent = "Gravando\u2026 0:00";
+      time.textContent = "Toque no bot\xE3o para parar";
       if (opts.onStart) {
         try {
           opts.onStart();
@@ -2325,7 +2435,7 @@
         }
       }
       timer = setInterval(() => {
-        time.textContent = `Gravando\u2026 ${Math.round((Date.now() - startedAt) / 1e3)}s \xB7 toque para parar`;
+        title.textContent = `Gravando\u2026 ${clock(Math.round((Date.now() - startedAt) / 1e3))}`;
       }, 250);
       session.stopped.then(onStopped);
     }
@@ -2345,27 +2455,27 @@
         return;
       }
       recBtn.classList.remove("on");
-      recBtn.setAttribute("aria-label", "Gravar novamente");
+      el.classList.remove("recording");
       clear(recBtn).append(icon("mic"));
       meter.classList.add("hidden");
+      setIdle(true);
       blob = res.blob;
+      meta = { ms: res.ms };
       releaseElement(audioEl);
       if (url) URL.revokeObjectURL(url);
       url = URL.createObjectURL(blob);
       audioEl.src = url;
-      time.textContent = `Grava\xE7\xE3o de ${String(Math.round(res.ms / 100) / 10).replace(".", ",")} s \xB7 toque no microfone para regravar`;
+      time.textContent = `Grava\xE7\xE3o de ${fmtSec(res.ms)} s`;
+      const mine = blob;
       const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
-      if (destroyed) return;
+      if (destroyed || mine !== blob) return;
       drawWave(canvas, analysis ? analysis.envelope : []);
-      const d = describe(analysis, { expectedWords });
-      clear(metrics).append(
-        ...d.lines.map((l) => h("div", { text: "\u2022 " + l })),
-        h("div", { class: "tiny muted", style: { marginTop: "4px" }, text: "M\xE9tricas de ritmo e pausas medidas no aparelho. N\xE3o avaliam a pron\xFAncia dos sons." })
-      );
+      showMetrics(analysis);
       showAfter();
+      meta = { ...meta, analysis: analysis && { ...analysis, envelope: void 0 } };
       if (targetId) {
         try {
-          if (backend === "indexeddb") await putRecording(targetId, blob, { ms: res.ms, analysis: analysis && { ...analysis, envelope: void 0 } });
+          if (backend === "indexeddb") await putRecording(targetId, blob, meta);
         } catch (e) {
         }
         const r = recordRecording(App2.state, targetId, { ms: res.ms });
@@ -2374,17 +2484,28 @@
       }
       opts.onRecorded && opts.onRecorded(blob, analysis);
     }
+    function showMetrics(analysis) {
+      clear(metrics).append(
+        ...describe(analysis, { expectedWords }).lines.map((l) => h("div", { text: "\u2022 " + l })),
+        h("div", { class: "tiny muted", style: { marginTop: "4px" }, text: "Medido no aparelho. N\xE3o avalia a pron\xFAncia dos sons." })
+      );
+    }
     function showAfter() {
       clear(after).append(
         canvas,
         h(
           "div",
-          { class: "row" },
+          { class: "row rec-actions" },
           mineBtn,
-          reference.length ? h("button", { class: "btn small", onclick: () => playRef() }, icon("speaker"), "Refer\xEAncia") : null,
-          reference.length ? h("button", { class: "btn small", onclick: () => ab() }, icon("ab"), "Comparar A/B") : null
+          reference.length ? h("button", { class: "btn small", type: "button", onclick: () => playRef() }, icon("speaker"), "Refer\xEAncia") : null,
+          reference.length ? h("button", { class: "btn small", type: "button", onclick: () => ab() }, icon("ab"), "Comparar A/B") : null
         ),
-        metrics
+        h(
+          "div",
+          { class: "rec-secondary" },
+          h("details", { class: "more" }, h("summary", { text: "Ritmo e pausas" }), metrics),
+          targetId ? h("button", { class: "link-btn danger", type: "button", onclick: () => askDelete() }, icon("trash"), "Excluir grava\xE7\xE3o") : null
+        )
       );
       after.classList.remove("hidden");
     }
@@ -2398,19 +2519,55 @@
       if (destroyed || g !== generation()) return;
       playElement(audioEl, { restart: true });
     }
+    async function askDelete() {
+      if (session || !blob) return;
+      const ok = await confirmSheet("Excluir esta grava\xE7\xE3o?", "S\xF3 a grava\xE7\xE3o deste exerc\xEDcio ser\xE1 apagada. Suas outras grava\xE7\xF5es e seu progresso continuam.", { ok: "Excluir", danger: true });
+      if (!ok || destroyed) return;
+      await remove2();
+    }
+    async function remove2() {
+      releaseElement(audioEl);
+      if (url) {
+        URL.revokeObjectURL(url);
+        url = null;
+      }
+      blob = null;
+      meta = null;
+      if (targetId) {
+        await deleteRecording(targetId);
+        forgetRecording(App2.state, targetId);
+        App2.save();
+      }
+      after.classList.add("hidden");
+      clear(after);
+      setIdle(false);
+      time.textContent = "Grava\xE7\xE3o exclu\xEDda \xB7 toque no microfone para gravar";
+      opts.onDeleted && opts.onDeleted();
+    }
+    async function updateMeta(forBlob, patch) {
+      if (destroyed || !targetId || forBlob !== blob) return;
+      meta = { ...meta || {}, ...patch };
+      try {
+        if (backend === "indexeddb") await putRecording(targetId, blob, meta);
+      } catch (e) {
+      }
+    }
     if (targetId) {
       getRecording(targetId).then((rec) => {
-        if (!rec || blob || destroyed) return;
+        if (!rec || blob || destroyed || session) return;
         blob = rec.blob;
+        meta = rec.meta || null;
         url = URL.createObjectURL(blob);
         audioEl.src = url;
-        time.textContent = `\xDAltima grava\xE7\xE3o salva (${new Date(rec.at).toLocaleDateString("pt-BR")}) \xB7 toque para gravar de novo`;
+        setIdle(true);
+        time.textContent = `\xDAltima grava\xE7\xE3o salva (${new Date(rec.at).toLocaleDateString("pt-BR")})`;
+        showAfter();
         analyseBlob(blob, { expectedWords, referenceSec }).then((a) => {
-          if (destroyed) return;
+          if (destroyed || rec.blob !== blob) return;
           drawWave(canvas, a ? a.envelope : []);
-          clear(metrics).append(...describe(a, { expectedWords }).lines.map((l) => h("div", { text: "\u2022 " + l })));
-          showAfter();
+          showMetrics(a);
         });
+        opts.onLoaded && opts.onLoaded(rec);
       });
     }
     function destroy() {
@@ -2425,7 +2582,7 @@
         url = null;
       }
     }
-    return { el, stop: stop2, getBlob: () => blob, isRecording: () => !!session, destroy, audioEl };
+    return { el, start: start2, stop: stop2, getBlob: () => blob, getMeta: () => meta, updateMeta, isRecording: () => !!session, remove: remove2, destroy, audioEl };
   }
   function drawWave(canvas, env) {
     const g = canvas.getContext("2d");
@@ -2739,13 +2896,13 @@
           input,
           hintEl
         );
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         const hintBtn = h("button", { class: "btn", "aria-label": "Dica" }, icon("bulb"), "Dica");
         input.addEventListener("input", () => {
-          verify.disabled = !input.value.trim();
+          verify2.disabled = !input.value.trim();
         });
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && input.value.trim()) verify.click();
+          if (e.key === "Enter" && input.value.trim()) verify2.click();
         });
         hintBtn.onclick = () => {
           level = Math.min(2, level + 1);
@@ -2753,7 +2910,7 @@
           if (level >= 2) hintBtn.disabled = true;
           input.focus();
         };
-        verify.onclick = () => {
+        verify2.onclick = () => {
           input.disabled = true;
           gradeText(ex.entry, input.value, ex.targets, { hintUsed: level > 0, model: item.en, au: item.au, pt: item.pt, example: item.ex[0], tip: item.tip });
         };
@@ -2762,7 +2919,7 @@
           input.disabled = true;
           gradeText(ex.entry, "", ex.targets, { model: item.en, au: item.au, pt: item.pt, example: item.ex[0], tip: item.tip });
         };
-        actions(giveUp, hintBtn, verify);
+        actions(giveUp, hintBtn, verify2);
         setTimeout(() => input.focus(), 80);
       },
       cloze(ex) {
@@ -2774,14 +2931,14 @@
           h("p", { class: "cloze" }, ex.before, input, ex.after),
           h("p", { class: "small muted" }, "Dica de sentido: ", h("b", { text: item.pt }))
         );
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         input.addEventListener("input", () => {
-          verify.disabled = !input.value.trim();
+          verify2.disabled = !input.value.trim();
         });
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && input.value.trim()) verify.click();
+          if (e.key === "Enter" && input.value.trim()) verify2.click();
         });
-        verify.onclick = () => {
+        verify2.onclick = () => {
           input.disabled = true;
           gradeText(ex.entry, input.value, ex.targets, { model: sentence.en, au: sentence.au, pt: null, tip: item.tip });
         };
@@ -2790,7 +2947,7 @@
           input.disabled = true;
           gradeText(ex.entry, "", ex.targets, { model: sentence.en, au: sentence.au });
         };
-        actions(giveUp, verify);
+        actions(giveUp, verify2);
         setTimeout(() => input.focus(), 80);
       },
       order(ex) {
@@ -2799,7 +2956,7 @@
         const answer = h("div", { class: "tiles answer", "aria-label": "Sua frase" });
         const pool = h("div", { class: "tiles", "aria-label": "Pe\xE7as dispon\xEDveis" });
         let hintUsed = false;
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         const draw = () => {
           clear(answer).append(...built.map((i, pos) => h("button", { class: "tile", onclick: () => {
             built.splice(pos, 1);
@@ -2811,7 +2968,7 @@
               draw();
             }
           } }, p)));
-          verify.disabled = built.length !== ex.shuffled.length;
+          verify2.disabled = built.length !== ex.shuffled.length;
         };
         area.append(kind("Monte a frase em ingl\xEAs"), h("p", { style: { fontSize: "1.1rem" }, text: sentence.pt }), answer, h("div", { style: { height: "10px" } }), pool);
         draw();
@@ -2819,7 +2976,7 @@
           hintUsed = true;
           play({ key: sentence.au, text: sentence.en });
         } }, icon("speaker"), "Ouvir");
-        verify.onclick = () => {
+        verify2.onclick = () => {
           const attempt = built.map((i) => ex.shuffled[i]).join(" ");
           const ok = attempt === ex.pieces.join(" ");
           const res = { cls: ok ? "correct" : "meaning", notes: ok ? [] : ["A ordem est\xE1 diferente do modelo."] };
@@ -2833,7 +2990,7 @@
           autoplay({ key: sentence.au, text: sentence.en });
           actions(continueBtn());
         };
-        actions(listen2, verify);
+        actions(listen2, verify2);
       },
       write(ex) {
         const { sentence } = ex;
@@ -2841,10 +2998,10 @@
         const input = h("textarea", { class: "field en", rows: 3, autocomplete: "off", autocapitalize: "sentences", spellcheck: "false", "aria-label": "Sua frase em ingl\xEAs", placeholder: "Escreva em ingl\xEAs" });
         const hints = h("div", { class: "small", style: { marginTop: "8px" } });
         area.append(kind("Escreva em ingl\xEAs"), h("p", { style: { fontSize: "1.15rem" }, text: sentence.pt }), input, hints);
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         const hintBtn = h("button", { class: "btn" }, icon("bulb"), "Dica");
         input.addEventListener("input", () => {
-          verify.disabled = !input.value.trim();
+          verify2.disabled = !input.value.trim();
         });
         hintBtn.onclick = () => {
           level++;
@@ -2854,7 +3011,7 @@
             hintBtn.disabled = true;
           }
         };
-        verify.onclick = () => {
+        verify2.onclick = () => {
           input.disabled = true;
           gradeText(ex.entry, input.value, ex.targets, { hintUsed: level > 0, model: sentence.en, au: sentence.au });
         };
@@ -2863,13 +3020,13 @@
           input.disabled = true;
           gradeText(ex.entry, "", ex.targets, { model: sentence.en, au: sentence.au });
         };
-        actions(giveUp, hintBtn, verify);
+        actions(giveUp, hintBtn, verify2);
         setTimeout(() => input.focus(), 80);
       },
       seq(ex) {
         const picked = [];
         const list = h("div", {});
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         const draw = () => {
           clear(list).append(...ex.shuffled.map((s) => {
             const pos = picked.indexOf(s.id);
@@ -2884,12 +3041,12 @@
               h("span", { text: s.en })
             );
           }));
-          verify.disabled = picked.length !== ex.shuffled.length;
+          verify2.disabled = picked.length !== ex.shuffled.length;
         };
         const routine = content.routines.find((r) => r.id === ex.block.routine);
         area.append(kind("Ordene as frases do bloco"), h("p", { class: "small muted", text: `${routine.id} \xB7 ${routine.pt} \xB7 bloco ${ex.block.index}. Toque na ordem em que acontecem.` }), list);
         draw();
-        verify.onclick = () => {
+        verify2.onclick = () => {
           const ok = picked.every((id, i) => id === ex.sentences[i].id);
           const res = { cls: ok ? "correct" : "meaning", notes: ok ? [] : ["Veja a ordem cronol\xF3gica abaixo."] };
           const r = finish(ex.entry, ok ? "good" : "bad", { cls: res.cls });
@@ -2900,7 +3057,7 @@
           area.append(feedback(res, { model: ok ? null : ex.sentences.map((s, i) => `${i + 1}. ${s.en}`).join("\n"), k: ex.entry.k }));
           actions(continueBtn());
         };
-        actions(verify);
+        actions(verify2);
       },
       tell(ex) {
         renderProduce(ex, "block");
@@ -2921,14 +3078,14 @@
           h("p", { class: "pt", text: v.pt }),
           input
         );
-        const verify = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
+        const verify2 = h("button", { class: "btn primary lg", disabled: true }, "Verificar");
         input.addEventListener("input", () => {
-          verify.disabled = !input.value.trim();
+          verify2.disabled = !input.value.trim();
         });
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && input.value.trim()) verify.click();
+          if (e.key === "Enter" && input.value.trim()) verify2.click();
         });
-        verify.onclick = () => {
+        verify2.onclick = () => {
           input.disabled = true;
           gradeText(ex.entry, input.value.replace(/^\s*he\s+/i, ""), ex.targets, {
             model: v.third,
@@ -2937,7 +3094,7 @@
             tip: "Na 3\xAA pessoa (he, she, it, my wife, the laptop) o verbo ganha -s/-es: goes, does, watches, studies, has."
           });
         };
-        actions(verify);
+        actions(verify2);
         setTimeout(() => input.focus(), 80);
       }
     };
@@ -3196,66 +3353,6 @@
     }
     return "unsupported";
   }
-  async function install2(lang = "en-GB") {
-    if (!SR) return false;
-    try {
-      if (typeof SR.install === "function") return await SR.install({ langs: [lang], processLocally: true });
-      if (typeof SR.installOnDevice === "function") return await SR.installOnDevice(lang);
-    } catch (e) {
-      return false;
-    }
-    return false;
-  }
-  function recognise({ lang = "en-GB", timeoutMs = 15e3 } = {}) {
-    return new Promise((resolve, reject) => {
-      if (!SR) return reject(new Error("Reconhecimento indispon\xEDvel"));
-      const rec = new SR();
-      if (!("processLocally" in rec)) return reject(new Error("Este navegador n\xE3o oferece reconhecimento no aparelho"));
-      rec.processLocally = true;
-      rec.lang = lang;
-      rec.interimResults = false;
-      rec.maxAlternatives = 3;
-      let done = false;
-      const timer = setTimeout(() => {
-        if (!done) {
-          done = true;
-          try {
-            rec.abort();
-          } catch (e) {
-          }
-          reject(new Error("Tempo esgotado"));
-        }
-      }, timeoutMs);
-      rec.onresult = (e) => {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        const alts = [...e.results[0]].map((a) => ({ text: a.transcript, confidence: a.confidence }));
-        resolve({ text: alts[0].text, confidence: alts[0].confidence, alternatives: alts });
-      };
-      rec.onerror = (e) => {
-        if (!done) {
-          done = true;
-          clearTimeout(timer);
-          reject(new Error(e.error === "no-speech" ? "N\xE3o ouvi nada" : e.error));
-        }
-      };
-      rec.onend = () => {
-        if (!done) {
-          done = true;
-          clearTimeout(timer);
-          reject(new Error("Sem resultado"));
-        }
-      };
-      try {
-        rec.start();
-      } catch (e) {
-        done = true;
-        clearTimeout(timer);
-        reject(e);
-      }
-    });
-  }
   function listen({ lang = "en-GB" } = {}) {
     const finals = [];
     let ended = false, failed = null, resolveEnd;
@@ -3336,6 +3433,10 @@
     return segs;
   }
   var wordsOf = (text) => segment(text).filter((s) => s.w !== void 0);
+  function wordAudioText(seg) {
+    const t = seg.text.replace(/[’]/g, "'").replace(/[.,!?;:]+$/, "");
+    return seg.proper || t === "I" || /^[A-Z]{2,}/.test(t) ? t : t.toLowerCase();
+  }
   function forms(t) {
     const out = /* @__PURE__ */ new Set([t]);
     if (AME[t]) out.add(AME[t]);
@@ -3484,6 +3585,7 @@
 
   // app/js/ui/inlinewords.js
   var LABEL = { good: "Reconhecida como esperado", needs_practice: "Precisa de pr\xE1tica", uncertain: "N\xE3o avaliada / inconclusiva" };
+  var playWord = (audioText, opts) => play({ key: audioKey(audioText), text: audioText }, opts);
   function inlineWords(paragraphs) {
     const text = paragraphs.join("\n\n");
     const wordEls = [];
@@ -3499,6 +3601,7 @@
         }
         const span = h("span", { class: "w", text: seg.text });
         span.dataset.i = String(wordEls.length);
+        span.dataset.audio = wordAudioText(seg);
         span.addEventListener("click", () => select(Number(span.dataset.i)));
         span.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -3512,7 +3615,10 @@
       return el;
     });
     function select(i) {
-      if (!results) return;
+      if (!results) {
+        playWord(wordEls[i].dataset.audio);
+        return;
+      }
       const r = results[i];
       if (selected !== null && wordEls[selected]) wordEls[selected].classList.remove("w-sel");
       selected = i;
@@ -3525,7 +3631,7 @@
           h("b", { class: "en", text: word }),
           h("span", { class: `chip w-chip-${r.state}`, text: LABEL[r.state] || r.state }),
           h("span", { class: "spacer" }),
-          h("button", { class: "btn small", type: "button", onclick: () => play({ key: audioKey(word.replace(/[.,!?;:]+$/, "")), text: word }) }, "Ouvir")
+          h("button", { class: "btn small", type: "button", onclick: () => playWord(wordEls[i].dataset.audio) }, icon("speaker"), "Ouvir")
         ),
         h("div", { class: "small", style: { marginTop: "4px" }, text: r.reason })
       );
@@ -3556,35 +3662,168 @@
       });
       detail.classList.add("hidden");
     }
-    return { el: h("div", { class: "target-wrap" }, ...paras), detail, text, apply, reset, wordEls };
+    function focus(i) {
+      wordEls.forEach((el, k) => el.classList.toggle("w-focus", k === i));
+    }
+    return { el: h("div", { class: "target-wrap" }, ...paras), detail, text, apply, reset, focus, wordEls };
   }
   function legend() {
+    const item = (st, label) => h("span", { class: "lg", role: "listitem" }, h("i", { class: `dot dot-${st}`, "aria-hidden": "true" }), label);
     return h(
       "div",
-      { class: "w-legend tiny muted" },
-      h("span", { class: "w w-good", text: "reconhecida" }),
-      " ",
-      h("span", { class: "w w-needs_practice", text: "praticar" }),
-      " ",
-      h("span", { class: "w w-uncertain", text: "n\xE3o avaliada" }),
-      " \xB7 toque numa palavra para ver o motivo"
+      { class: "w-legend", role: "list", "aria-label": "Legenda das cores" },
+      item("good", "Reconhecida"),
+      item("needs_practice", "Praticar"),
+      item("uncertain", "N\xE3o avaliada")
     );
   }
-  function scoreLine(score) {
-    const head = score.overall === null ? h("span", { class: "chip", text: "Sem nota geral" }) : h("span", { class: "chip accent", text: `Nota estimada ${score.overall}/100${score.partial ? " \xB7 parcial" : ""}` });
-    const det = h(
+  function scoreLine(score, summary) {
+    const head = score.overall === null ? h("div", { class: "score-head" }, h("span", { class: "chip", text: "Sem nota geral" })) : h("div", { class: "score-head" }, h("b", { class: "score-num", text: `${score.overall}/100` }), h("span", { class: "score-tag", text: score.partial ? "Avalia\xE7\xE3o parcial" : "Avalia\xE7\xE3o" }));
+    return h("div", { class: "score-line" }, head, summary ? h("p", { class: "score-summary", text: summary }) : null);
+  }
+  function scoreDetails(score, { heard = null, engine = null, note = "" } = {}) {
+    return h(
       "details",
-      { class: "score-details tiny" },
-      h("summary", { text: score.message }),
-      h("ul", {}, score.dims.map((d) => h(
+      { class: "more fb-details" },
+      h("summary", { text: "Ver o que o app ouviu" }),
+      heard !== null ? h("p", { class: "small" }, h("span", { class: "muted", text: "Transcri\xE7\xE3o: " }), h("span", { class: "en", text: heard ? `\u201C${heard}\u201D` : "(nada reconhecido)" })) : h("p", { class: "small muted", text: "Nenhuma transcri\xE7\xE3o nesta tentativa." }),
+      note ? h("p", { class: "small muted", text: note }) : null,
+      score ? h("ul", { class: "small dims" }, score.dims.map((d) => h(
         "li",
         {},
         `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
         d.score === null ? h("i", { text: `n\xE3o avaliado \u2014 ${d.note}` }) : h("b", { text: `${d.score}/100` })
-      ))),
-      h("div", { text: "Pesos iniciais (hip\xF3teses, n\xE3o validados cientificamente). A nota n\xE3o mede \u201Cperfei\xE7\xE3o\u201D e uma grava\xE7\xE3o ruim n\xE3o gera nota baixa: gera resultado inconclusivo." })
+      ))) : null,
+      h("p", { class: "tiny muted", text: `${engine === "model" ? "Reconhecimento local (Moonshine), no aparelho." : engine === "webspeech" ? "Reconhecimento do Chrome, no aparelho." : ""} As cores indicam se cada palavra foi reconhecida, n\xE3o qual som foi dito; sotaque n\xE3o \xE9 erro. Pesos da nota: hip\xF3teses iniciais, n\xE3o validadas.` })
     );
-    return h("div", { class: "score-line" }, head, det);
+  }
+
+  // app/js/engine/practice.js
+  function analyseAttempt(evaluation, text) {
+    if (!evaluation || !evaluation.evaluated) return { list: [], goodKeys: [], conclusive: false };
+    const segs = wordsOf(text);
+    const seen = /* @__PURE__ */ new Set();
+    const list = [];
+    const goodKeys = /* @__PURE__ */ new Set();
+    evaluation.words.forEach((r, i) => {
+      const seg = segs[i];
+      if (!seg || seg.weak) return;
+      const audioText = wordAudioText(seg);
+      const key = audioText.toLowerCase();
+      if (r.state === "good") goodKeys.add(key);
+      if (r.state !== "needs_practice" || seen.has(key)) return;
+      seen.add(key);
+      list.push({ w: i, text: seg.text.replace(/[.,!?;:]+$/, ""), audioText, key, heard: r.heard || null, kind: r.heard ? "substituted" : "missing" });
+    });
+    for (const x of list) goodKeys.delete(x.key);
+    return { list, goodKeys: [...goodKeys], conclusive: true };
+  }
+  function practiceSummary(list) {
+    if (!list.length) return "Nenhuma palavra pendente nesta tentativa.";
+    return list.length === 1 ? "Vamos praticar 1 palavra." : `Vamos praticar ${list.length} palavras.`;
+  }
+  var practiceReason = (x) => x.kind === "substituted" ? `o app ouviu \u201C${x.heard}\u201D` : "n\xE3o foi reconhecida";
+  function latestGate() {
+    let current2 = 0;
+    return {
+      next: () => ++current2,
+      invalidate: () => {
+        current2++;
+      },
+      isCurrent: (ticket) => ticket === current2
+    };
+  }
+
+  // app/js/ui/asrsetup.js
+  var mb = (bytes) => String(Math.round(bytes / 1048576));
+  async function runInstall(box2, { onProgressText } = {}) {
+    const fill = h("i", { style: { width: "0%" } });
+    const bar2 = h("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": 0, "aria-label": "Progresso do download" }, fill);
+    const label = h("div", { class: "small muted", text: "Preparando o download\u2026" });
+    clear(box2).append(bar2, label);
+    try {
+      await install({
+        onProgress: (f, done, total) => {
+          const pct = Math.round(f * 100);
+          fill.style.width = `${pct}%`;
+          bar2.setAttribute("aria-valuenow", String(pct));
+          label.textContent = `Baixando\u2026 ${mb(done)} de ${mb(total)} MB`;
+          onProgressText && onProgressText(pct);
+        }
+      });
+      fill.style.width = "100%";
+      label.textContent = "Conferindo os arquivos\u2026";
+      const v = await verify();
+      if (!v.ok) throw new Error("os arquivos baixados est\xE3o incompletos");
+      clear(box2).append(h("div", { class: "setup-done", role: "status" }, icon("check"), "Reconhecimento instalado. Funciona offline."));
+      return true;
+    } catch (e) {
+      clear(box2).append(h(
+        "div",
+        { class: "setup-error", role: "alert" },
+        h("b", { text: "N\xE3o foi poss\xEDvel baixar agora." }),
+        " ",
+        h("span", { text: navigator.onLine === false ? "Voc\xEA est\xE1 sem internet. Conecte-se e tente de novo." : `Verifique a conex\xE3o e tente de novo (${e.message}).` }),
+        h("div", { class: "tiny muted", text: "O que j\xE1 foi baixado \xE9 aproveitado na pr\xF3xima tentativa." })
+      ));
+      return false;
+    }
+  }
+  function asrSetupCard(App2, { onInstalled, onLater } = {}) {
+    const progress = h("div", { class: "setup-progress" });
+    const primary = h("button", { class: "btn primary", type: "button" }, icon("download"), "Baixar reconhecimento");
+    const later = h("button", { class: "btn ghost", type: "button" }, "Agora n\xE3o");
+    const card = h(
+      "section",
+      { class: "card setup-card", "data-role": "asr-setup", "aria-labelledby": "asr-setup-title" },
+      h("div", { class: "setup-head" }, h("span", { class: "setup-icon", "aria-hidden": "true" }, icon("mic")), h("h3", { id: "asr-setup-title", text: "Avalie sua pron\xFAncia" })),
+      h("p", { text: "Baixe o reconhecimento de fala para analisar suas grava\xE7\xF5es no pr\xF3prio aparelho, sem enviar seu \xE1udio para a nuvem." }),
+      h(
+        "ul",
+        { class: "setup-facts" },
+        h("li", {}, h("b", { text: `${sizeLabel()}` }), " de download, uma \xFAnica vez"),
+        h("li", { text: "Precisa de internet s\xF3 para baixar" }),
+        h("li", { text: "Depois funciona offline" }),
+        h("li", { text: "Tudo \xE9 processado no aparelho" })
+      ),
+      progress,
+      h("div", { class: "row setup-actions" }, primary, later)
+    );
+    primary.onclick = async () => {
+      primary.disabled = true;
+      later.disabled = true;
+      const ok = await runInstall(progress);
+      if (ok) {
+        App2.state.settings.asrPrompt = "installed";
+        App2.flush().catch(() => {
+        });
+        toast("Reconhecimento instalado. Suas grava\xE7\xF5es ser\xE3o analisadas automaticamente.", 4e3);
+        onInstalled && onInstalled();
+        return;
+      }
+      clear(primary).append(icon("refresh"), "Tentar de novo");
+      primary.disabled = false;
+      later.disabled = false;
+    };
+    later.onclick = () => {
+      App2.state.settings.asrPrompt = "later";
+      App2.flush().catch(() => {
+      });
+      onLater && onLater();
+    };
+    return card;
+  }
+  function asrOffNotice(App2, { onInstalled } = {}) {
+    const box2 = h("div", { class: "asr-off", "data-role": "asr-off" });
+    const open = () => clear(box2).append(asrSetupCard(App2, { onInstalled, onLater: () => {
+      clear(box2).append(...line());
+    } }));
+    const line = () => [
+      h("span", { class: "small muted", text: "An\xE1lise autom\xE1tica desligada at\xE9 instalar o reconhecimento." }),
+      h("button", { class: "link-btn", type: "button", onclick: open }, "Instalar")
+    ];
+    box2.append(...line());
+    return box2;
   }
 
   // app/js/ui/lab.js
@@ -3595,7 +3834,17 @@
     if (params.routine) labRoutine = params.routine;
     const { content, state } = App2;
     const view = App2.layout("Speaking Lab");
-    view.append(h("p", { class: "small muted", text: "Ou\xE7a, grave sua voz e compare. As m\xE9tricas medem ritmo e pausas; a pron\xFAncia dos sons voc\xEA avalia comparando com a refer\xEAncia." }));
+    view.append(h("p", { class: "small muted", text: "Escolha uma frase, ou\xE7a, grave e pratique as palavras que o app sinalizar." }));
+    const setupSlot = h("div", {});
+    view.append(setupSlot);
+    if (state.settings.asrPrompt !== "later") {
+      status().then((st) => {
+        if (st !== "not-installed" || !setupSlot.isConnected) return;
+        setupSlot.append(asrSetupCard(App2, { onInstalled: () => {
+          setTimeout(() => clear(setupSlot), 2500);
+        }, onLater: () => clear(setupSlot) }));
+      });
+    }
     const seg = h("div", { class: "seg", role: "group", "aria-label": "Tipo de pr\xE1tica" });
     const filter = h("div", { class: "chips scroll", style: { margin: "12px 0" } });
     const body = h("div", {});
@@ -3703,89 +3952,216 @@
     }
     const view = App2.layout(title, { back });
     if (extra) view.append(extra);
-    const iw = en.length ? inlineWords(en) : null;
-    const legendEl = legend();
-    legendEl.classList.add("hidden");
-    const scoreBox = h("div", {});
-    const statusLine = h("div", { class: "tiny muted" });
-    const showEvaluation = (evaluation, score) => {
-      iw.apply(evaluation);
-      legendEl.classList.remove("hidden");
-      statusLine.textContent = evaluation.note || "";
-      clear(scoreBox).append(scoreLine(score));
-    };
-    if (en.length) {
-      let showPt = false;
-      const textBox = h("div", { class: "card", style: { marginTop: "10px" } });
-      const draw = () => {
-        clear(textBox).append(
-          h(
-            "div",
-            { class: "row nowrap" },
-            h("div", { class: "small muted", style: { flex: 1 }, text: params.q ? "Resposta-modelo" : "Texto" }),
-            h("button", { class: "btn small", onclick: () => {
-              showPt = !showPt;
-              draw();
-            } }, showPt ? "Ocultar PT" : "Ver PT")
-          ),
-          iw.el,
-          legendEl,
-          statusLine,
-          iw.detail,
-          scoreBox,
-          showPt && pt ? h("p", { class: "para-pt", style: { whiteSpace: "pre-line" }, text: pt }) : null
-        );
-      };
-      draw();
-      const rates = [0.75, 1, 1.25];
-      let rate = state.settings.rate || 1;
-      const rateRow = h("div", { class: "chips" });
-      const drawRates = () => clear(rateRow).append(...rates.map((r) => h("button", { class: "chip", "aria-pressed": String(r === rate), onclick: () => {
-        rate = r;
-        drawRates();
-      } }, `${r}\xD7`)));
-      drawRates();
-      view.append(textBox, h(
-        "div",
-        { class: "row", style: { marginTop: "10px" } },
-        h("button", { class: "btn primary", onclick: () => playSequence(clips, { rate }) }, icon("speaker"), "Ouvir refer\xEAncia"),
-        h("button", { class: "btn", onclick: () => stopAll() }, icon("stop"), "Parar"),
-        rateRow
-      ));
-    }
     const durations = globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.files || {};
     const referenceSec = clips.reduce((n, c) => n + (durations[c.key] || 0), 0);
     const expectedWords = en.join(" ").split(/\s+/).filter(Boolean).length;
-    view.append(h("h2", { text: "Sua grava\xE7\xE3o" }));
+    const iw = en.length ? inlineWords(en) : null;
     const reading = !!iw && !params.q;
     const asrEligible = expectedWords <= 60;
-    let engine = null, engineInfo = null;
-    let listener = null;
-    let attempt = 0;
-    let alive = true;
-    const missingNote = () => !engineInfo ? "Verificando o reconhecimento de fala no aparelho\u2026" : engineInfo.local === "not-installed" ? "Avalia\xE7\xE3o por palavra desligada: baixe o reconhecimento local abaixo (opcional)." : "Reconhecimento de fala no aparelho indispon\xEDvel: palavras n\xE3o avaliadas.";
-    async function evaluateRecording(blob, analysis, { fromListener = false } = {}) {
-      const my = ++attempt;
+    let rate = state.settings.rate || 1;
+    const legendEl = legend();
+    legendEl.classList.add("hidden");
+    if (en.length) {
+      let showPt = false;
+      const ptBox = h("div", {});
+      const ptBtn = h("button", { class: "btn small ghost", type: "button", "aria-pressed": "false" }, "Ver PT");
+      ptBtn.onclick = () => {
+        showPt = !showPt;
+        ptBtn.textContent = showPt ? "Ocultar PT" : "Ver PT";
+        ptBtn.setAttribute("aria-pressed", String(showPt));
+        clear(ptBox).append(showPt && pt ? h("p", { class: "para-pt", style: { whiteSpace: "pre-line" }, text: pt }) : null);
+      };
+      const rateSeg = h("div", { class: "seg rate-seg", role: "group", "aria-label": "Velocidade da refer\xEAncia" });
+      const drawRates = () => clear(rateSeg).append(...[0.75, 1, 1.25].map((r) => h("button", { type: "button", "aria-pressed": String(r === rate), onclick: () => {
+        rate = r;
+        drawRates();
+      } }, `${String(r).replace(".", ",")}\xD7`)));
+      drawRates();
+      view.append(h(
+        "section",
+        { class: "card phrase-card" },
+        h("div", { class: "phrase-top" }, h("span", { class: "eyebrow", text: params.q ? "Resposta-modelo" : "Leia em voz alta" }), ptBtn),
+        iw.el,
+        legendEl,
+        iw.detail,
+        ptBox,
+        h(
+          "div",
+          { class: "listen-row" },
+          h("button", { class: "btn primary", type: "button", onclick: () => playSequence(clips, { rate }) }, icon("speaker"), "Ouvir refer\xEAncia"),
+          h("button", { class: "icon-btn", type: "button", "aria-label": "Parar", onclick: () => stopAll() }, icon("stop")),
+          rateSeg
+        )
+      ));
+    }
+    const fbBox = h("section", { class: "fb hidden", "aria-live": "polite", "data-role": "feedback" });
+    let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
+    const gate = latestGate();
+    let practiceSel = null;
+    const resetFeedback = () => {
+      gate.invalidate();
+      if (busy()) release2();
+      if (iw) {
+        iw.reset();
+        iw.focus(null);
+      }
+      legendEl.classList.add("hidden");
+      practiceSel = null;
+      clear(fbBox);
+      fbBox.classList.add("hidden");
+      fbBox.dataset.state = "idle";
+    };
+    const showFb = (stateName, ...children) => {
+      clear(fbBox).append(...children);
+      fbBox.dataset.state = stateName;
+      fbBox.classList.toggle("hidden", !children.filter(Boolean).length);
+    };
+    async function analyse(blob, analysis, { listenerRes, saved = null } = {}) {
+      if (!reading) return;
+      const ticket = gate.next();
+      lastBlob = blob;
+      lastAnalysis = analysis;
       const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
       let res = null, why = "";
-      if (fromListener) {
-        res = await listener.stop();
-        listener = null;
-        if (!res) why = "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho. Use \u201CVerificar palavras\u201D.";
-      } else if (!asrEligible) why = "Texto longo: avalia\xE7\xE3o por palavra s\xF3 para trechos de at\xE9 60 palavras (grave um bloco).";
-      else if (engine === "model" && !insufficient) {
-        statusLine.textContent = "Reconhecendo a grava\xE7\xE3o no aparelho\u2026 (alguns segundos)";
+      if (saved) res = saved;
+      else if (!asrEligible) why = "Texto longo: a an\xE1lise por palavra vale para trechos de at\xE9 60 palavras. Grave um bloco por vez.";
+      else if (insufficient) why = "";
+      else if (listenerRes !== void 0) {
+        res = listenerRes;
+        if (!res) why = "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho.";
+      } else if (engine === "model") {
+        showFb("analysing", h("div", { class: "fb-analysing", role: "status" }, h("span", { class: "spinner", "aria-hidden": "true" }), "Analisando sua grava\xE7\xE3o\u2026"));
         try {
           res = await transcribe(blob);
         } catch (e) {
-          why = `Reconhecimento local sem resultado (${e.message}): nada foi avaliado.`;
+          if (!alive || !gate.isCurrent(ticket) || e.code === "cancelled") return;
+          return showError(e, blob, analysis);
         }
-      } else if (!engine) why = missingNote();
-      if (!alive || my !== attempt) return;
+      } else if (!engine) {
+        drawUnavailable();
+      }
+      if (!alive || !gate.isCurrent(ticket)) return;
       let evaluation = evaluateWords(iw.text, res, { insufficient });
       if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
-      showEvaluation(evaluation, scoreAttempt({ evaluation, analysis, expectedWords }));
-      if (res && evaluation.evaluated) statusLine.textContent = `Ouvido pelo reconhecimento local: \u201C${res.text}\u201D. Sotaque n\xE3o \xE9 erro: as cores indicam se cada palavra foi reconhecida, n\xE3o a qualidade dos sons.`;
+      const score = scoreAttempt({ evaluation, analysis, expectedWords });
+      const attempt = analyseAttempt(evaluation, iw.text);
+      iw.apply(evaluation);
+      legendEl.classList.remove("hidden");
+      if (!engine && !res) return;
+      if (attempt.conclusive) {
+        if (!saved) {
+          updatePracticeWords(state, targetId, attempt);
+          App2.save();
+        }
+        showResult(score, attempt, res);
+      } else {
+        showFb(
+          "inconclusive",
+          scoreLine(score, inconclusiveHint(evaluation, insufficient)),
+          h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
+          scoreDetails(score, { heard: res ? res.text : null, engine, note: evaluation.note })
+        );
+      }
+      if (res && !saved && engine === "model") w.updateMeta(blob, { result: { text: res.text, at: Date.now() } });
+    }
+    const inconclusiveHint = (evaluation, insufficient) => insufficient ? "Quase n\xE3o captei voz nesta grava\xE7\xE3o. Grave de novo, num lugar silencioso e mais perto do microfone." : `${evaluation.note || "N\xE3o deu para avaliar esta tentativa."} Grave novamente.`;
+    function showResult(score, attempt, res) {
+      const list = attempt.list;
+      const chips = h("div", { class: "practice-chips", role: "list" });
+      const panel = h("div", { class: "practice-panel hidden", "aria-live": "polite" });
+      const select = (x, btn) => {
+        practiceSel = x.key;
+        chips.querySelectorAll(".pchip").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        iw.focus(x.w);
+        playWord(x.audioText);
+        const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(c.text));
+        clear(panel).append(
+          h("div", { class: "pp-head" }, h("b", { class: "en", text: x.text }), h("span", { class: "small muted", text: ` \xB7 ${practiceReason(x)}` })),
+          h(
+            "div",
+            { class: "row" },
+            h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText) }, icon("speaker"), "Ouvir"),
+            h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon("slow"), "Devagar"),
+            h("button", { class: "btn small", type: "button", onclick: () => playSequence(sentenceClips.length ? sentenceClips : clips, { rate }) }, icon("play"), "Na frase")
+          ),
+          h("p", { class: "small muted", text: "Ou\xE7a, repita a palavra em voz alta algumas vezes e grave a frase de novo." }),
+          h("button", { class: "btn primary block", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar a frase de novo")
+        );
+        panel.classList.remove("hidden");
+      };
+      for (const x of list) {
+        const btn = h(
+          "button",
+          { class: "pchip", type: "button", role: "listitem", "aria-pressed": "false", "aria-label": `Praticar \u201C${x.text}\u201D: ${practiceReason(x)}` },
+          h("span", { class: "en", text: x.text }),
+          icon("speaker")
+        );
+        btn.onclick = () => select(x, btn);
+        chips.append(btn);
+      }
+      showFb(
+        "result",
+        scoreLine(score, practiceSummary(list)),
+        list.length ? h("div", { class: "practice", "data-role": "practice", "aria-label": "Vamos praticar" }, chips, h("div", { class: "tiny muted practice-hint", text: "Toque numa palavra para ouvir e praticar." }), panel) : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
+        list.length ? null : h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
+        scoreDetails(score, { heard: res ? res.text : null, engine, note: "" })
+      );
+    }
+    function showError(e, blob, analysis) {
+      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.` }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
+      const actions = h("div", { class: "row fb-actions" });
+      const help = h("div", { class: "small" });
+      if (e.code === "decode" || e.code === "too-long") actions.append(h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente"));
+      else actions.append(h("button", { class: "btn small primary", type: "button", onclick: () => analyse(blob, analysis) }, icon("refresh"), "Tentar de novo"));
+      if (e.code === "load") {
+        actions.append(h("button", { class: "btn small", type: "button", onclick: async (ev) => {
+          ev.currentTarget.disabled = true;
+          const v = await verify();
+          if (v.ok) {
+            help.textContent = "Os arquivos do reconhecimento est\xE3o \xEDntegros. Tente de novo; se continuar falhando, feche e reabra o app.";
+            return;
+          }
+          clear(help).append(
+            h("p", { text: `Arquivos do reconhecimento incompletos (${[...v.missing, ...v.damaged].length}). \xC9 preciso baix\xE1-los de novo (precisa de internet).` }),
+            h("button", { class: "btn small primary", type: "button", onclick: async () => {
+              const ok = await runInstall(help);
+              if (ok) analyse(blob, analysis);
+            } }, icon("download"), "Baixar de novo")
+          );
+        } }, icon("target"), "Verificar instala\xE7\xE3o"));
+      }
+      showFb(
+        "error",
+        h("div", { class: "fb-error", role: "alert" }, h("b", { text: msg }), " ", h("span", { class: "muted", text: "Nenhuma nota foi gerada. Sua grava\xE7\xE3o continua salva." })),
+        actions,
+        help,
+        h("details", { class: "more" }, h("summary", { text: "Detalhes t\xE9cnicos" }), h("p", { class: "tiny muted", text: `${e.code || "erro"}: ${e.message}` }))
+      );
+    }
+    function rerecord() {
+      w.el.scrollIntoView({ block: "center", behavior: "smooth" });
+      w.start();
+    }
+    function drawUnavailable() {
+      if (!reading || !asrEligible || !engineInfo) return;
+      const installed = () => {
+        refresh().then(() => {
+          if (lastBlob) analyse(lastBlob, lastAnalysis);
+        });
+      };
+      if (engineInfo.local === "not-installed" && state.settings.asrPrompt !== "later") {
+        return showFb("setup", asrSetupCard(App2, { onInstalled: installed, onLater: () => drawUnavailable() }));
+      }
+      const parts = [];
+      if (engineInfo.local === "not-installed") parts.push(asrOffNotice(App2, { onInstalled: installed }));
+      else if (engineInfo.why) parts.push(h("p", { class: "small muted", text: `An\xE1lise autom\xE1tica indispon\xEDvel aqui: ${engineInfo.why}.` }));
+      if (!engineInfo.webspeech && !isAndroid()) {
+        parts.push(h("button", { class: "link-btn", type: "button", onclick: (e) => {
+          e.currentTarget.disabled = true;
+          refresh(true);
+        } }, "Ver se est\xE1 dispon\xEDvel (reconhecimento do Chrome)"));
+      }
+      showFb("unavailable", ...parts);
     }
     const w = recWidget(App2, {
       targetId,
@@ -3794,52 +4170,65 @@
       referenceSec,
       maxMs: params.routine ? 3e5 : 12e4,
       onStart: () => {
-        attempt++;
+        resetFeedback();
         if (!reading) return;
-        iw.reset();
-        legendEl.classList.add("hidden");
-        clear(scoreBox);
-        statusLine.textContent = "";
         listener = asrEligible && engine === "webspeech" ? listen({ lang: "en-GB" }) : null;
       },
-      onRecorded: (blob, analysis) => {
-        if (reading) evaluateRecording(blob, analysis, { fromListener: !!listener });
+      onRecorded: async (blob, analysis) => {
+        if (!reading) return;
+        if (listener) {
+          const l = listener;
+          listener = null;
+          analyse(blob, analysis, { listenerRes: await l.stop() });
+        } else analyse(blob, analysis);
+      },
+      onLoaded: (rec) => {
+        savedPending = rec;
+        if (engineInfo) processSaved();
+      },
+      onDeleted: () => {
+        resetFeedback();
+        lastBlob = null;
+        if (!engine) drawUnavailable();
       }
     });
-    view.append(w.el);
-    if (en.length && asrEligible) {
-      const asrBox = h("div", { class: "card flat", style: { marginTop: "12px" } }, h("p", { class: "small muted", text: "Verificando o reconhecimento de fala no aparelho\u2026" }));
-      view.append(asrBox);
-      const onLive = (res) => {
-        const evaluation = evaluateWords(iw.text, res);
-        showEvaluation(evaluation, scoreAttempt({ evaluation, analysis: null, expectedWords, recorded: false }));
-      };
-      const evalLast = async () => {
-        const blob = w.getBlob();
-        if (!blob) return toast("Grave primeiro.");
-        iw.reset();
-        clear(scoreBox);
-        const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
-        if (alive) evaluateRecording(blob, analysis);
-      };
-      const refresh = async (ask = false) => {
-        engineInfo = await detectEngine({ ask, known: state.settings.asrKnown });
-        if (!alive) return;
-        engine = engineInfo.engine;
-        if (engineInfo.webspeech && engineInfo.webspeech !== state.settings.asrKnown) {
-          state.settings.asrKnown = engineInfo.webspeech;
-          App2.save();
-        }
-        drawAsr(App2, asrBox, engineInfo, { onLive, isQuestion: !!params.q, evalLast, refresh, hasBlob: () => !!w.getBlob() });
-      };
-      refresh();
+    view.append(w.el, fbBox);
+    function processSaved() {
+      const rec = savedPending;
+      savedPending = null;
+      if (!rec || !reading || !alive) return;
+      const meta = rec.meta || {};
+      if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0 } });
+      else if (engine === "model" && asrEligible) analyse(rec.blob, meta.analysis);
+      else {
+        lastBlob = rec.blob;
+        lastAnalysis = meta.analysis;
+      }
     }
-    if (en.length && expectedWords <= 60) {
+    const refresh = async (ask = false) => {
+      engineInfo = await detectEngine({ ask, known: state.settings.asrKnown });
+      if (!alive) return;
+      engine = engineInfo.engine;
+      if (engineInfo.webspeech && engineInfo.webspeech !== state.settings.asrKnown) {
+        state.settings.asrKnown = engineInfo.webspeech;
+        App2.save();
+      }
+      if (!engine) drawUnavailable();
+      else if (fbBox.dataset.state === "setup" || fbBox.dataset.state === "unavailable") resetFeedback();
+      drawManual();
+      if (savedPending) processSaved();
+    };
+    if (reading) refresh();
+    const manualBox = h("div", {});
+    view.append(manualBox);
+    function drawManual() {
+      clear(manualBox);
+      if (!en.length || !asrEligible || engine) return;
       const words = [...new Set(en.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
       state.difficultWords = state.difficultWords || {};
       const picks = h("div", {}, ...words.map((wd) => {
         const key = wd.toLowerCase();
-        const b = h("button", { class: "word-pick", "aria-pressed": String(!!state.difficultWords[key]) }, wd);
+        const b = h("button", { class: "word-pick", type: "button", "aria-pressed": String(!!state.difficultWords[key]) }, wd);
         b.onclick = () => {
           if (state.difficultWords[key]) delete state.difficultWords[key];
           else state.difficultWords[key] = { at: Date.now(), from: targetId };
@@ -3848,24 +4237,36 @@
         };
         return b;
       }));
-      view.append(h("h2", { text: "Autoavalia\xE7\xE3o" }), h("p", { class: "small muted", text: "Compare A/B e marque as palavras que soaram diferentes da refer\xEAncia. Elas aparecem em \u201CRevisar\u201D." }), picks);
+      manualBox.append(h(
+        "details",
+        { class: "more card flat manual" },
+        h("summary", { text: "Marcar palavras dif\xEDceis (sem an\xE1lise autom\xE1tica)" }),
+        h("p", { class: "small muted", text: "Compare A/B e marque as palavras que soaram diferentes. Elas aparecem em \u201CRevisar\u201D." }),
+        picks
+      ));
     }
+    if (!reading && en.length) drawManual();
     const tips = relevantTips(content, en.join(" "));
     if (tips.length) {
-      view.append(h("h2", { text: "Dicas de pron\xFAncia" }), h("ul", { class: "list card" }, tips.map((it) => h(
-        "li",
-        {},
-        h(
-          "div",
-          { class: "list-btn" },
-          h("div", { class: "grow" }, h("div", { class: "title en", text: `${it.en}  ${it.ipa || ""}` }), h("div", { class: "small muted", text: it.tip || "" })),
-          speakerButton({ key: it.au, text: it.en }, { cls: "icon-btn ghost" })
-        )
-      ))));
+      view.append(h(
+        "details",
+        { class: "more card flat tips" },
+        h("summary", { text: `Dicas de pron\xFAncia (${tips.length})` }),
+        h("ul", { class: "list" }, tips.map((it) => h(
+          "li",
+          {},
+          h(
+            "div",
+            { class: "list-btn" },
+            h("div", { class: "grow" }, h("div", { class: "title en", text: `${it.en}  ${it.ipa || ""}` }), h("div", { class: "small muted", text: it.tip || "" })),
+            speakerButton({ key: it.au, text: it.en }, { cls: "icon-btn ghost" })
+          )
+        )))
+      ));
     }
     return () => {
       alive = false;
-      attempt++;
+      gate.invalidate();
       if (listener) {
         listener.stop();
         listener = null;
@@ -3874,6 +4275,7 @@
       w.destroy();
     };
   }
+  var isAndroid = () => /Android/i.test(navigator.userAgent || "");
   function relevantTips(content, text) {
     const tokens = new Set(wordTokens(text));
     return Object.values(content.items).filter((it) => (it.ipa || it.tip) && wordTokens(it.en).every((t) => tokens.has(t))).slice(0, 6);
@@ -3882,83 +4284,6 @@
     const local = await status();
     const webspeech = cachedStatus() || (ask || known === "available" ? await status2("en-GB") : null);
     return { engine: local === "installed" ? "model" : webspeech === "available" ? "webspeech" : null, local, webspeech, why: unsupportedReason() };
-  }
-  function drawAsr(App2, box2, info, { onLive, isQuestion, evalLast, refresh, hasBlob }) {
-    clear(box2);
-    if (info.engine === "model") {
-      box2.append(
-        h("p", { class: "small", text: isQuestion ? "Reconhecimento local instalado. Para comparar com o modelo, grave lendo a resposta-modelo e toque em \u201CAvaliar minha grava\xE7\xE3o\u201D." : "Reconhecimento de fala local instalado: depois de cada grava\xE7\xE3o, as palavras s\xE3o avaliadas no pr\xF3prio aparelho (nada \xE9 enviado)." }),
-        h("button", { class: "btn small", onclick: (e) => {
-          if (!hasBlob()) return toast("Grave primeiro.");
-          evalLast();
-          e.currentTarget.blur();
-        } }, icon("target"), "Avaliar minha grava\xE7\xE3o")
-      );
-      return;
-    }
-    if (info.engine === "webspeech") {
-      const out = h("div", {});
-      const btn = h("button", { class: "btn" }, icon("target"), isQuestion ? "Verificar palavras (lendo o modelo)" : "Verificar palavras (sem gravar)");
-      btn.onclick = async () => {
-        stopAll();
-        btn.disabled = true;
-        clear(out).append(h("p", { class: "small", text: "\u{1F399}\uFE0F Fale agora\u2026" }));
-        try {
-          const res = await recognise({ lang: "en-GB" });
-          onLive(res);
-          clear(out).append(h("p", { class: "tiny muted", text: `Ouvido: \u201C${res.text}\u201D. As cores no texto mostram se cada palavra foi reconhecida (inteligibilidade aproximada), n\xE3o a qualidade dos sons. Sotaque n\xE3o \xE9 erro.` }));
-        } catch (e) {
-          clear(out).append(h("p", { class: "small", text: `Inconclusivo: ${e.message}. Tente de novo.` }));
-        }
-        btn.disabled = false;
-      };
-      box2.append(h("div", { class: "small muted", style: { marginBottom: "8px" }, text: isQuestion ? "Reconhecimento no aparelho dispon\xEDvel. Para comparar com o modelo, leia a resposta-modelo em voz alta." : "Reconhecimento no aparelho dispon\xEDvel: ao gravar, as palavras s\xE3o avaliadas automaticamente (nada \xE9 enviado)." }), btn, out);
-      return;
-    }
-    box2.append(h("p", { class: "small", text: info.webspeech ? "Este navegador n\xE3o oferece reconhecimento de fala no aparelho (o Chrome para Android s\xF3 tem o modo online, que enviaria sua voz a servidores externos e por isso n\xE3o \xE9 usado). Gravar, ouvir, comparar A/B e a autoavalia\xE7\xE3o continuam funcionando." : "Avalia\xE7\xE3o palavra por palavra usa reconhecimento de fala no pr\xF3prio aparelho (opcional, nada \xE9 enviado). O Chrome para Android n\xE3o tem esse modo; o modo online dele enviaria sua voz para fora e nunca \xE9 usado. Gravar, ouvir, comparar A/B e a autoavalia\xE7\xE3o funcionam sem ele." }));
-    if (info.local === "not-installed") {
-      const bar2 = h("div", { class: "bar hidden", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100 }, h("i", { style: { width: "0%" } }));
-      const msg = h("p", { class: "tiny muted" });
-      const btn = h("button", { class: "btn small" }, icon("download"), `Baixar reconhecimento local (${sizeLabel()}, uma vez)`);
-      btn.onclick = async () => {
-        btn.disabled = true;
-        bar2.classList.remove("hidden");
-        msg.textContent = "Baixando do endere\xE7o do pr\xF3prio app\u2026";
-        try {
-          await install({ onProgress: (f) => {
-            bar2.firstChild.style.width = `${Math.round(f * 100)}%`;
-            bar2.setAttribute("aria-valuenow", String(Math.round(f * 100)));
-          } });
-          toast("Reconhecimento local instalado. Funciona offline.");
-          await refresh();
-          if (hasBlob()) evalLast();
-        } catch (e) {
-          msg.textContent = `N\xE3o foi poss\xEDvel baixar agora (${e.message}). Tente com internet; o que j\xE1 baixou \xE9 aproveitado.`;
-          btn.disabled = false;
-        }
-      };
-      box2.append(h("p", { class: "small muted", text: `Opcional: um modelo de reconhecimento (Moonshine, c\xF3digo aberto) que roda no pr\xF3prio celular. S\xE3o ${sizeLabel()} baixados uma vez do mesmo endere\xE7o do app; depois funciona offline. Sua voz nunca sai do aparelho. \xC9 um modelo pequeno: \xE0s vezes erra palavras, e sem certeza a palavra fica cinza (n\xE3o avaliada).` }), btn, bar2, msg);
-    } else if (info.webspeech === "downloadable" || info.webspeech === "downloading") {
-      const btn = h("button", { class: "btn small" }, icon("download"), "Baixar reconhecimento offline do Chrome (uma vez)");
-      btn.onclick = async () => {
-        btn.disabled = true;
-        const ok = await install2();
-        toast(ok ? "Modelo instalado." : "N\xE3o foi poss\xEDvel instalar agora.");
-        refresh();
-      };
-      box2.append(btn);
-    } else if (info.why) {
-      box2.append(h("p", { class: "tiny muted", text: `Reconhecimento local indispon\xEDvel aqui: ${info.why}.` }));
-    }
-    if (!info.webspeech) {
-      box2.append(
-        h("button", { class: "btn small ghost", onclick: (e) => {
-          e.currentTarget.disabled = true;
-          refresh(true);
-        } }, icon("target"), "Ver se est\xE1 dispon\xEDvel"),
-        h("span", { class: "tiny muted", text: " (reconhecimento do pr\xF3prio Chrome, no aparelho)" })
-      );
-    }
   }
 
   // app/js/ui/review.js
