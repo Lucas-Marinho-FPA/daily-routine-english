@@ -332,6 +332,28 @@ details.more.card { padding: 4px 16px; margin-top: 12px; }
 .practice-panel .row { margin: 8px 0; }
 .practice-panel p { margin: 4px 0 10px; }
 .pp-head .en { font-size: 1.15rem; }
+.pchip.done { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.pchip.done svg { color: var(--ok); }
+.pchip.done[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--accent-ink); }
+.pchip.done[aria-pressed="true"] svg { color: currentColor; }
+.wp-target { font-size: 1.5rem !important; }
+.wp-status { display: flex; align-items: center; gap: 10px; min-height: 28px; margin: 6px 0 10px; font-weight: 600; }
+.wp-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bad); animation: pulse 1.2s infinite; flex: none; }
+.wp-result { flex: 1; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); font-weight: 400; }
+.wp-result.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.wp-result.bad { background: var(--bad-soft); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+.wp-result.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
+.wp-result p { margin: 6px 0 0 !important; }
+.wp-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.wp-dl dt { color: var(--muted); font-size: .85rem; align-self: center; }
+.wp-dl dd { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.wp-verdict { display: inline-flex; align-items: center; gap: 6px; }
+.wp-verdict svg, .wp-result svg { width: 18px; height: 18px; flex: none; }
+.wp-result.ok .wp-verdict { color: var(--ok); }
+.wp-result.bad .wp-verdict { color: var(--bad); }
+.wp-result.warn .wp-verdict { color: var(--warn); }
+.wp-secondary { justify-content: center; margin: 4px 0 0 !important; }
 .practice-ok { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--ok-soft); color: var(--ok); font-weight: 600; }
 .fb-details { margin-top: 8px; }
 .fb-details .dims { padding-left: 18px; margin: 6px 0; }

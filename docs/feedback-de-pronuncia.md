@@ -15,13 +15,27 @@ Tocar numa palavra mostra o motivo em texto e um botão “Ouvir” (antes da an
 1. **Primeira entrada em Falar:** se o reconhecimento local não estiver instalado, o cartão “Avalie sua pronúncia” oferece o download (tamanho real, precisa de internet só para baixar, depois funciona offline, tudo no aparelho). Nada é baixado sem o toque em “Baixar reconhecimento”. “Agora não” é lembrado: o cartão não volta a cada visita, e a tela mostra uma linha compacta “Análise automática desligada · Instalar”.
 2. **Gravar:** “Gravar minha voz” → “Gravando… 0:03” → parar. A gravação é salva antes de qualquer análise.
 3. **Análise automática:** ao parar, aparece “Analisando sua gravação…” e o resultado surge na própria tela, sem outro botão. Estados: não gravado, gravando, analisando, resultado, inconclusivo, falha recuperável (“Tentar de novo”; se o modelo não carrega, “Verificar instalação” confere os arquivos e só baixa de novo com o toque do aluno).
-4. **Vamos praticar:** lista automática com as palavras da tentativa ATUAL que o reconhecedor não reconheceu (omitidas ou ouvidas como outra). Tocar numa palavra toca o áudio dela (voz britânica embutida), destaca a palavra na frase e abre “Ouvir · Devagar · Na frase · Gravar a frase de novo”. Sem pendências: “Nenhuma palavra pendente nesta tentativa.”
+4. **Vamos praticar:** lista automática com as palavras da tentativa ATUAL que o reconhecedor não reconheceu (omitidas ou ouvidas como outra). Tocar numa palavra toca o áudio dela (voz britânica embutida), destaca a palavra na frase e abre o cartão da palavra: “Ouvir · Devagar · Na frase · Praticar esta palavra” (ver “Prática isolada de palavras”). Sem pendências: “Nenhuma palavra pendente nesta tentativa.”
 5. **Regravar** invalida o resultado anterior (inclusive uma análise ainda em andamento) e reconstrói a lista. **Excluir gravação** apaga só a gravação daquele exercício, seu resultado e suas pendências.
 6. **Detalhes:** “Ver o que o app ouviu” (recolhido) mostra a transcrição, as dimensões da nota e os limites da análise.
 
 A lista mede divergência de reconhecimento, não um fonema errado comprovado. Palavras átonas e nomes próprios não entram. A lista de **Revisar** é atualizada automaticamente: a palavra entra quando é sinalizada e só sai depois de ser reconhecida em **duas tentativas seguidas** (uma transcrição favorável isolada não prova a pronúncia). Palavras marcadas à mão nunca são removidas. A marcação manual só aparece quando não há análise automática.
 
 **Áudio das palavras:** 356 palavras isoladas geradas offline com a mesma voz das frases (Kokoro `bf_emma`, inglês britânico), embutidas no app (+≈ 1,1 MB). Nenhum serviço de voz externo.
+
+## Prática isolada de palavras
+
+No cartão de uma palavra da lista “Vamos praticar”, **Praticar esta palavra** grava só a palavra (para sozinha em 6 s) e mostra:
+**Palavra esperada · O app ouviu · Resultado**. A transcrição aparece exatamente como o reconhecimento devolveu; nunca é trocada pela palavra esperada.
+
+- **Comparação (lexical, não fonética):** maiúsculas e pontuação são ignoradas; aceitam-se só formas equivalentes de escrita (número ↔ algarismo, grafia americana ↔ britânica, “lunch box” ↔ “lunchbox”). Sem tolerância por semelhança (“fridge” ≠ “fruit”, “bother” ≠ “brother”, “oat” ≠ “oats”).
+- **Resultados:** *Reconhecida* · *Não reconhecida corretamente* (outra palavra) · *Inconclusivo* (a palavra veio junto com outras: diga só a palavra) · *Nenhuma palavra captada* (silêncio ou transcrição vazia; nunca é acerto).
+- **Ciclo:** repetir quantas vezes quiser; “Próxima palavra” sem precisar acertar; ao acertar, “Praticar próxima palavra”; os chips mostram o estado (✓ reconhecida, × tente de novo). “Agora, pratique a frase completa” volta à gravação da frase na mesma tela.
+- **Separado da frase:** as tentativas não substituem a gravação nem o resultado da frase, não mudam a nota, o XP nem a lista de palavras difíceis.
+- **Armazenamento:** o áudio da tentativa fica só na memória até ser transcrito e é descartado; nada é salvo no aparelho. O estado das palavras vale enquanto a tela está aberta.
+- **Recorte do silêncio:** antes de transcrever, a gravação da palavra é recortada ao trecho com voz (margem de 0,15 s). Medido com 40 palavras sintéticas do app: com o silêncio original o modelo devolveu texto vazio em 25/40; recortado, em 0/40 (24/40 reconhecidas).
+
+**Limitação:** o Moonshine tiny foi treinado com frases; com uma palavra solta ele erra mais, sobretudo em monossílabas (ex.: “teeth” → “Tifa”, “oats” → “Loud”, “wake” → “Blake” depois de o microfone se ajustar). “Não reconhecida” pode ser limitação do reconhecedor, não erro do aluno; por isso nenhuma tentativa isolada afeta a nota ou o progresso.
 
 ## O que é medido de verdade
 - **Reconhecimento de fala no próprio aparelho**, só nos textos de leitura (frase, bloco, rotina) com até 60 palavras. A transcrição é alinhada à frase-alvo; horas (“6pm”, “900a. M.”), números por extenso, grafia americana, palavras compostas (“lunchbox”), flexões regulares (“walked”) e nomes próprios não penalizam. Dois motores, ambos locais:

@@ -1680,6 +1680,28 @@
     segs.push({ start: start2, end: n });
     return segs;
   }
+  function speechBounds(pcm, sr = 16e3, { pad = 0.15 } = {}) {
+    const hop = Math.round(sr * 0.02);
+    const frames = Math.floor(pcm.length / hop);
+    if (!frames) return { start: 0, end: pcm.length };
+    const rms = new Float32Array(frames);
+    for (let f = 0; f < frames; f++) {
+      let s = 0;
+      for (let i = f * hop; i < (f + 1) * hop; i++) s += pcm[i] * pcm[i];
+      rms[f] = Math.sqrt(s / hop);
+    }
+    const sorted = [...rms].sort((a, b) => a - b);
+    const noise = sorted[Math.floor(frames * 0.15)] || 0, peak = sorted[Math.floor(frames * 0.98)] || 0;
+    const thr = Math.max(8e-3, noise * 2.5, peak * 0.12);
+    let first = -1, last = -1;
+    for (let f = 0; f < frames; f++) if (rms[f] > thr) {
+      if (first < 0) first = f;
+      last = f;
+    }
+    if (first < 0) return { start: 0, end: pcm.length };
+    const p = Math.round(pad * sr);
+    return { start: Math.max(0, first * hop - p), end: Math.min(pcm.length, (last + 1) * hop + p) };
+  }
 
   // app/js/audio/localasr.js
   var MANIFEST = typeof define_ASR_MANIFEST_default !== "undefined" ? define_ASR_MANIFEST_default : null;
@@ -1870,15 +1892,15 @@
     return out;
   }
   var MAX_FREE_SECONDS = 180;
-  async function transcribe(blob, { long = false, onProgress } = {}) {
+  async function transcribe(blob, { long = false, onProgress, word = false } = {}) {
     active++;
     try {
-      return await run(blob, long, onProgress);
+      return await run(blob, long, onProgress, word);
     } finally {
       active--;
     }
   }
-  async function run(blob, long, onProgress) {
+  async function run(blob, long, onProgress, word) {
     const mine = epoch;
     const cancelled = () => {
       if (mine !== epoch) throw asrError("cancelado", "cancelled");
@@ -1888,6 +1910,10 @@
       pcm = await toPcm16k(blob);
     } catch (e) {
       throw asrError("n\xE3o foi poss\xEDvel ler o \xE1udio gravado", "decode");
+    }
+    if (word) {
+      const b = speechBounds(pcm, 16e3);
+      pcm = pcm.slice(b.start, b.end);
     }
     cancelled();
     const secs = pcm.length / 16e3;
@@ -2976,6 +3002,13 @@
     if (t.endsWith("'s")) out.add(t.slice(0, -2));
     return out;
   }
+  function sameWordForm(target, heard) {
+    if (target === heard) return true;
+    if (target.endsWith("'s") !== heard.endsWith("'s")) return false;
+    const b = forms(heard);
+    for (const x of forms(target)) if (b.has(x)) return true;
+    return false;
+  }
   function inflected(target, heard) {
     if (target.length < 3 || !heard.startsWith(target)) return false;
     const rest = heard.slice(target.length);
@@ -3133,6 +3166,51 @@
         current2++;
       },
       isCurrent: (ticket) => ticket === current2
+    };
+  }
+  function matchIsolatedWord(target, transcript) {
+    const heard = String(transcript ?? "").trim();
+    const T = wordTokens(target);
+    const H = wordTokens(heard);
+    if (!H.length || !T.length) return { status: "empty", heard };
+    const eqAt = (i) => T.every((t, k) => H[i + k] !== void 0 && sameWordForm(t, H[i + k]));
+    if (H.length === T.length && eqAt(0) || H.join("") === T.join("")) return { status: "match", heard };
+    for (let i = 0; i + T.length <= H.length; i++) if (eqAt(i)) return { status: "extra", heard };
+    return { status: "mismatch", heard };
+  }
+  function wordPracticeSession() {
+    const words2 = /* @__PURE__ */ new Map();
+    const get = (key) => words2.get(key) || { status: "todo", tries: 0, last: null };
+    const set = (key, patch) => {
+      const v = { ...get(key), ...patch };
+      words2.set(key, v);
+      return v;
+    };
+    return {
+      get,
+      start: (key) => set(key, { status: "recording", prev: get(key).status }),
+      processing: (key) => set(key, { status: "processing" }),
+      /** Gravação cancelada/falhou antes do resultado: volta ao estado anterior, sem contar tentativa. */
+      abort: (key) => {
+        const v = get(key);
+        return set(key, { status: v.prev && !["recording", "processing"].includes(v.prev) ? v.prev : "todo" });
+      },
+      result: (key, match) => {
+        const v = get(key);
+        const done = v.prev === "done" || match.status === "match";
+        return set(key, { status: done ? "done" : "retry", tries: v.tries + 1, last: match, prev: void 0 });
+      },
+      /** Próxima palavra ainda não concluída depois de `key` (dá a volta na lista); null se todas concluídas. */
+      next: (list, key) => {
+        const i = list.findIndex((x) => x.key === key);
+        for (let k = 1; k <= list.length; k++) {
+          const x = list[(i + k) % list.length];
+          if (x.key !== key && get(x.key).status !== "done") return x;
+        }
+        return null;
+      },
+      allDone: (list) => list.length > 0 && list.every((x) => get(x.key).status === "done"),
+      doneCount: (list) => list.filter((x) => get(x.key).status === "done").length
     };
   }
 
@@ -4975,6 +5053,192 @@
     };
   }
 
+  // app/js/ui/wordpractice.js
+  var WORD_MAX_MS = 6e3;
+  var RESULT = {
+    match: { cls: "ok", mark: "check", label: "Reconhecida", text: (w) => `O app reconheceu \u201C${w}\u201D.` },
+    mismatch: { cls: "bad", mark: "x", label: "N\xE3o reconhecida corretamente", text: () => "Ou\xE7a de novo e tente outra vez." },
+    extra: { cls: "warn", mark: "refresh", label: "Inconclusivo", text: (w) => `O app ouviu outras palavras junto. Diga s\xF3 \u201C${w}\u201D.` },
+    empty: { cls: "warn", mark: "refresh", label: "Nenhuma palavra captada", text: () => "Fale mais perto do microfone e tente de novo." }
+  };
+  var CHIP = { done: ["check", "reconhecida"], retry: ["x", "tente de novo"], todo: ["speaker", "n\xE3o praticada"] };
+  function wordPractice({ list, session, engine, clips, getRate, focusWord, onFullSentence }) {
+    let sel = null, rec = null, token = 0, error = "";
+    const chips = h("div", { class: "practice-chips", role: "list" });
+    const progress = h("div", { class: "tiny muted practice-hint", "data-role": "wp-progress" });
+    const panel = h("div", { class: "practice-panel hidden", "data-role": "word-practice" });
+    const footer = h("div", { "data-role": "wp-footer" });
+    const el = h("div", { class: "practice", "data-role": "practice", "aria-label": "Vamos praticar" }, chips, progress, panel, footer);
+    const drawChips = () => {
+      clear(chips).append(...list.map((x) => {
+        const st = session.get(x.key).status;
+        const [mark, label] = CHIP[st] || CHIP.todo;
+        const b = h("button", {
+          class: `pchip${st === "done" ? " done" : ""}`,
+          type: "button",
+          role: "listitem",
+          "aria-pressed": String(sel === x),
+          "data-status": st,
+          "aria-label": `Praticar \u201C${x.text}\u201D: ${practiceReason(x)} \xB7 ${label}`
+        }, h("span", { class: "en", text: x.text }), icon(mark));
+        b.onclick = () => select(x);
+        return b;
+      }));
+      const n = session.doneCount(list);
+      progress.textContent = n ? `Palavras reconhecidas: ${n} de ${list.length}.` : "Toque numa palavra para ouvir e praticar.";
+    };
+    const drawFooter = () => {
+      const practised = list.some((x) => session.get(x.key).tries > 0);
+      const all = session.allDone(list);
+      clear(footer);
+      if (all) footer.append(h("div", { class: "practice-ok", "data-role": "wp-all-done" }, icon("check"), "Todas as palavras foram reconhecidas."));
+      footer.append(h("button", { class: `btn block${all ? " primary" : ""}`, type: "button", "data-role": "wp-full", style: { marginTop: "10px" }, onclick: () => full() }, icon("mic"), practised ? "Agora, pratique a frase completa" : "Gravar a frase completa"));
+    };
+    function select(x) {
+      if (sel !== x) cancel();
+      sel = x;
+      error = "";
+      focusWord(x.w);
+      playWord(x.audioText);
+      draw();
+    }
+    function draw() {
+      drawChips();
+      drawFooter();
+      if (!sel) return;
+      const x = sel, st = session.get(x.key);
+      const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(c.text));
+      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite" });
+      const actions = h("div", { class: "wp-actions" });
+      if (st.status === "recording") {
+        status3.append(h("span", { class: "wp-dot", "aria-hidden": "true" }), h("span", { text: `Gravando\u2026 diga s\xF3 \u201C${x.text}\u201D` }));
+        actions.append(h("button", { class: "btn primary block", type: "button", "data-role": "wp-stop", onclick: () => rec && rec.stop() }, icon("stop"), "Parar"));
+      } else if (st.status === "processing") {
+        status3.append(h("span", { class: "spinner", "aria-hidden": "true" }), h("span", { text: "Reconhecendo a palavra\u2026" }));
+      } else {
+        if (error) status3.append(h("div", { class: "wp-result warn", role: "alert", "data-role": "wp-error" }, icon("refresh"), h("span", { text: error })));
+        else if (st.last) status3.append(resultBox(x, st.last));
+        else status3.append(h("span", { class: "small muted", text: "A pr\xF3xima grava\xE7\xE3o avalia s\xF3 esta palavra, n\xE3o a frase." }));
+        const next = session.next(list, x.key);
+        if (st.status === "done" && !error) {
+          if (next) actions.append(h("button", { class: "btn primary block", type: "button", "data-role": "wp-next", onclick: () => select(next) }, icon("next"), "Praticar pr\xF3xima palavra"));
+          actions.append(h("div", { class: "row wp-secondary" }, h("button", { class: "link-btn", type: "button", "data-role": "wp-record", onclick: () => practise(x) }, icon("mic"), "Repetir esta palavra")));
+        } else {
+          actions.append(h("button", { class: "btn primary block", type: "button", "data-role": "wp-record", onclick: () => practise(x) }, icon("mic"), st.tries || error ? "Tentar novamente" : "Praticar esta palavra"));
+          if (next) actions.append(h("div", { class: "row wp-secondary" }, h("button", { class: "link-btn", type: "button", "data-role": "wp-skip", onclick: () => select(next) }, "Pr\xF3xima palavra", icon("next"))));
+        }
+      }
+      clear(panel).append(
+        h("div", { class: "pp-head" }, h("b", { class: "en wp-target", text: x.text }), h("span", { class: "small muted", "data-role": "wp-before", text: ` \xB7 na frase, ${practiceReason(x)}` })),
+        h(
+          "div",
+          { class: "row" },
+          h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText) }, icon("speaker"), "Ouvir"),
+          h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon("slow"), "Devagar"),
+          h("button", { class: "btn small", type: "button", onclick: () => playSequence(sentenceClips.length ? sentenceClips : clips, { rate: getRate() }) }, icon("play"), "Na frase")
+        ),
+        status3,
+        actions
+      );
+      panel.dataset.status = st.status;
+      panel.classList.remove("hidden");
+    }
+    function resultBox(x, m) {
+      const r = RESULT[m.status];
+      return h(
+        "div",
+        { class: `wp-result ${r.cls}`, "data-role": "wp-result", "data-result": m.status },
+        h(
+          "dl",
+          { class: "wp-dl" },
+          h("dt", { text: "Palavra esperada" }),
+          h("dd", { class: "en", text: x.text }),
+          h("dt", { text: "O app ouviu" }),
+          h("dd", { class: "en", "data-role": "wp-heard", text: m.heard ? `\u201C${m.heard}\u201D` : "(nada)" }),
+          h("dt", { text: "Resultado" }),
+          h("dd", { class: "wp-verdict" }, icon(r.mark), h("b", { text: r.label }))
+        ),
+        h("p", { class: "small", text: r.text(x.text) }),
+        m.status === "match" ? h("p", { class: "tiny muted", text: "Reconhecida = o reconhecimento entendeu a palavra. N\xE3o \xE9 uma medi\xE7\xE3o completa da pron\xFAncia." }) : null
+      );
+    }
+    async function practise(x) {
+      if (rec || sel !== x) return;
+      const mine = ++token;
+      stopAll();
+      error = "";
+      session.start(x.key);
+      draw();
+      let session_;
+      try {
+        session_ = await start({ maxMs: WORD_MAX_MS });
+      } catch (e) {
+        if (mine !== token) return;
+        session.abort(x.key);
+        error = e.userMessage || "N\xE3o foi poss\xEDvel gravar.";
+        return draw();
+      }
+      if (mine !== token) {
+        session_.cancel();
+        return;
+      }
+      const listener = engine === "webspeech" ? listen({ lang: "en-GB" }) : null;
+      rec = session_;
+      draw();
+      const res = await session_.stopped;
+      rec = null;
+      if (mine !== token) {
+        if (listener) listener.stop();
+        return;
+      }
+      session.processing(x.key);
+      draw();
+      let match;
+      try {
+        const a = await analyseBlob(res.blob, { expectedWords: 1 });
+        if (!a) throw Object.assign(new Error("decode"), { code: "decode" });
+        if (a.silent || a.speechSec < 0.15) {
+          if (listener) listener.stop();
+          match = { status: "empty", heard: "" };
+        } else if (listener) {
+          const out = await listener.stop();
+          if (!out) throw Object.assign(new Error("webspeech"), { code: "webspeech" });
+          match = matchIsolatedWord(x.text, out.text);
+        } else {
+          match = matchIsolatedWord(x.text, (await transcribe(res.blob, { word: true })).text);
+        }
+      } catch (e) {
+        if (mine !== token || e.code === "cancelled") return;
+        session.abort(x.key);
+        error = e.code === "decode" ? "N\xE3o consegui ler esta grava\xE7\xE3o. Tente novamente." : "O reconhecimento falhou nesta tentativa. Tente novamente.";
+        return draw();
+      }
+      if (mine !== token) return;
+      session.result(x.key, match);
+      draw();
+    }
+    function full() {
+      cancel();
+      onFullSentence();
+    }
+    function cancel() {
+      token++;
+      if (rec) {
+        const r = rec;
+        rec = null;
+        r.cancel();
+      }
+      if (sel) {
+        const st = session.get(sel.key).status;
+        if (st === "recording" || st === "processing") session.abort(sel.key);
+      }
+    }
+    drawChips();
+    drawFooter();
+    el.prepend(h("span", { class: "sr-only", text: practiceSummary(list) }));
+    return { el, cancel };
+  }
+
   // app/js/ui/lab.js
   var labTab = "sentences";
   var labRoutine = "R01";
@@ -5146,7 +5410,8 @@
     const fbBox = h("section", { class: "fb hidden", "aria-live": "polite", "data-role": "feedback" });
     let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
     const gate = latestGate();
-    let practiceSel = null;
+    const wordSession = wordPracticeSession();
+    let wp = null;
     const resetFeedback = () => {
       gate.invalidate();
       if (busy()) release2();
@@ -5155,7 +5420,10 @@
         iw.focus(null);
       }
       legendEl.classList.add("hidden");
-      practiceSel = null;
+      if (wp) {
+        wp.cancel();
+        wp = null;
+      }
       clear(fbBox);
       fbBox.classList.add("hidden");
       fbBox.dataset.state = "idle";
@@ -5216,42 +5484,12 @@
     const inconclusiveHint = (evaluation, insufficient) => insufficient ? "Quase n\xE3o captei voz nesta grava\xE7\xE3o. Grave de novo, num lugar silencioso e mais perto do microfone." : `${evaluation.note || "N\xE3o deu para avaliar esta tentativa."} Grave novamente.`;
     function showResult(score, attempt, res) {
       const list = attempt.list;
-      const chips = h("div", { class: "practice-chips", role: "list" });
-      const panel = h("div", { class: "practice-panel hidden", "aria-live": "polite" });
-      const select = (x, btn) => {
-        practiceSel = x.key;
-        chips.querySelectorAll(".pchip").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
-        iw.focus(x.w);
-        playWord(x.audioText);
-        const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(c.text));
-        clear(panel).append(
-          h("div", { class: "pp-head" }, h("b", { class: "en", text: x.text }), h("span", { class: "small muted", text: ` \xB7 ${practiceReason(x)}` })),
-          h(
-            "div",
-            { class: "row" },
-            h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText) }, icon("speaker"), "Ouvir"),
-            h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon("slow"), "Devagar"),
-            h("button", { class: "btn small", type: "button", onclick: () => playSequence(sentenceClips.length ? sentenceClips : clips, { rate }) }, icon("play"), "Na frase")
-          ),
-          h("p", { class: "small muted", text: "Ou\xE7a, repita a palavra em voz alta algumas vezes e grave a frase de novo." }),
-          h("button", { class: "btn primary block", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar a frase de novo")
-        );
-        panel.classList.remove("hidden");
-      };
-      for (const x of list) {
-        const btn = h(
-          "button",
-          { class: "pchip", type: "button", role: "listitem", "aria-pressed": "false", "aria-label": `Praticar \u201C${x.text}\u201D: ${practiceReason(x)}` },
-          h("span", { class: "en", text: x.text }),
-          icon("speaker")
-        );
-        btn.onclick = () => select(x, btn);
-        chips.append(btn);
-      }
+      if (wp) wp.cancel();
+      wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
       showFb(
         "result",
         scoreLine(score, practiceSummary(list)),
-        list.length ? h("div", { class: "practice", "data-role": "practice", "aria-label": "Vamos praticar" }, chips, h("div", { class: "tiny muted practice-hint", text: "Toque numa palavra para ouvir e praticar." }), panel) : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
+        wp ? wp.el : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
         list.length ? null : h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
         scoreDetails(score, { heard: res ? res.text : null, engine, note: "" })
       );
@@ -5425,6 +5663,7 @@
     return () => {
       alive = false;
       gate.invalidate();
+      if (wp) wp.cancel();
       if (listener) {
         listener.stop();
         listener = null;

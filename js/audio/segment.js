@@ -43,3 +43,30 @@ export function splitForAsr(pcm, sr = 16000, { maxSeg = 24, minSeg = 12 } = {}) 
   segs.push({ start, end: n });
   return segs;
 }
+
+/**
+ * Recorte de uma palavra isolada: só o trecho com voz, com uma pequena margem de silêncio.
+ * Medido com o Moonshine tiny (40 palavras sintéticas do app): com ~0,6 s de silêncio antes e ~1,5 s depois
+ * ele devolveu transcrição vazia em 25/40; recortado com margem de 0,15 s, em 1/40.
+ * O mesmo critério de voz da análise acústica (janelas de 20 ms). Sem voz detectável, devolve o áudio inteiro.
+ * @returns {{start: number, end: number}} limites em amostras
+ */
+export function speechBounds(pcm, sr = 16000, { pad = 0.15 } = {}) {
+  const hop = Math.round(sr * 0.02);
+  const frames = Math.floor(pcm.length / hop);
+  if (!frames) return { start: 0, end: pcm.length };
+  const rms = new Float32Array(frames);
+  for (let f = 0; f < frames; f++) {
+    let s = 0;
+    for (let i = f * hop; i < (f + 1) * hop; i++) s += pcm[i] * pcm[i];
+    rms[f] = Math.sqrt(s / hop);
+  }
+  const sorted = [...rms].sort((a, b) => a - b);
+  const noise = sorted[Math.floor(frames * 0.15)] || 0, peak = sorted[Math.floor(frames * 0.98)] || 0;
+  const thr = Math.max(0.008, noise * 2.5, peak * 0.12);
+  let first = -1, last = -1;
+  for (let f = 0; f < frames; f++) if (rms[f] > thr) { if (first < 0) first = f; last = f; }
+  if (first < 0) return { start: 0, end: pcm.length };
+  const p = Math.round(pad * sr);
+  return { start: Math.max(0, first * hop - p), end: Math.min(pcm.length, (last + 1) * hop + p) };
+}

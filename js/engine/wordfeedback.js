@@ -77,6 +77,19 @@ function forms(t) {
   return out;
 }
 
+/**
+ * Mesma palavra para a prática ISOLADA (regra estrita): igualdade após normalização ou forma equivalente
+ * de escrita (número por extenso ↔ dígitos, grafia americana ↔ britânica). Sem flexões, sem “parecida”
+ * (Levenshtein) e sem posse (“Emma's” ≠ “Emma”): uma palavra diferente nunca conta como acerto.
+ */
+export function sameWordForm(target, heard) {
+  if (target === heard) return true;
+  if (target.endsWith("'s") !== heard.endsWith("'s")) return false;
+  const b = forms(heard);
+  for (const x of forms(target)) if (b.has(x)) return true;
+  return false;
+}
+
 /** Flexão regular (walk → walked/walks, stop → stopped): o radical foi entendido; não é erro de pronúncia. */
 function inflected(target, heard) {
   if (target.length < 3 || !heard.startsWith(target)) return false;

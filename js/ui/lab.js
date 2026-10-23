@@ -6,9 +6,10 @@ import * as localasr from '../audio/localasr.js';
 import { wordTokens } from '../engine/text.js';
 import { recWidget } from './recwidget.js';
 import { freeAnswerPanel } from './freeanswer.js';
-import { inlineWords, legend, scoreLine, scoreDetails, playWord } from './inlinewords.js';
+import { inlineWords, legend, scoreLine, scoreDetails } from './inlinewords.js';
 import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
-import { analyseAttempt, practiceSummary, practiceReason, latestGate } from '../engine/practice.js';
+import { analyseAttempt, practiceSummary, latestGate, wordPracticeSession } from '../engine/practice.js';
+import { wordPractice } from './wordpractice.js';
 import { updatePracticeWords } from '../engine/progress.js';
 import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
 import { speakerButton, sessionHref } from './common.js';
@@ -150,14 +151,15 @@ function renderTarget(App, params) {
   // motor de reconhecimento (sempre no aparelho): 'model' = modelo local baixado; 'webspeech' = modo local do Chrome
   let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
   const gate = latestGate(); // só a tentativa mais recente pode mostrar resultado
-  let practiceSel = null;
+  const wordSession = wordPracticeSession(); // prática isolada das palavras: só na memória desta tela
+  let wp = null;
 
   const resetFeedback = () => {
     gate.invalidate();
     if (localasr.busy()) localasr.release(); // cancela a análise anterior (o worker recomeça na próxima)
     if (iw) { iw.reset(); iw.focus(null); }
     legendEl.classList.add('hidden');
-    practiceSel = null;
+    if (wp) { wp.cancel(); wp = null; }
     clear(fbBox);
     fbBox.classList.add('hidden');
     fbBox.dataset.state = 'idle';
@@ -213,34 +215,11 @@ function renderTarget(App, params) {
 
   function showResult(score, attempt, res) {
     const list = attempt.list;
-    const chips = h('div', { class: 'practice-chips', role: 'list' });
-    const panel = h('div', { class: 'practice-panel hidden', 'aria-live': 'polite' });
-    const select = (x, btn) => {
-      practiceSel = x.key;
-      chips.querySelectorAll('.pchip').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      iw.focus(x.w);
-      playWord(x.audioText);
-      const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(c.text));
-      clear(panel).append(
-        h('div', { class: 'pp-head' }, h('b', { class: 'en', text: x.text }), h('span', { class: 'small muted', text: ` · ${practiceReason(x)}` })),
-        h('div', { class: 'row' },
-          h('button', { class: 'btn small', type: 'button', onclick: () => playWord(x.audioText) }, icon('speaker'), 'Ouvir'),
-          h('button', { class: 'btn small', type: 'button', onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon('slow'), 'Devagar'),
-          h('button', { class: 'btn small', type: 'button', onclick: () => player.playSequence(sentenceClips.length ? sentenceClips : clips, { rate }) }, icon('play'), 'Na frase')),
-        h('p', { class: 'small muted', text: 'Ouça, repita a palavra em voz alta algumas vezes e grave a frase de novo.' }),
-        h('button', { class: 'btn primary block', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar a frase de novo'));
-      panel.classList.remove('hidden');
-    };
-    for (const x of list) {
-      const btn = h('button', { class: 'pchip', type: 'button', role: 'listitem', 'aria-pressed': 'false', 'aria-label': `Praticar “${x.text}”: ${practiceReason(x)}` },
-        h('span', { class: 'en', text: x.text }), icon('speaker'));
-      btn.onclick = () => select(x, btn);
-      chips.append(btn);
-    }
+    if (wp) wp.cancel();
+    wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
     showFb('result',
       scoreLine(score, practiceSummary(list)),
-      list.length ? h('div', { class: 'practice', 'data-role': 'practice', 'aria-label': 'Vamos praticar' }, chips, h('div', { class: 'tiny muted practice-hint', text: 'Toque numa palavra para ouvir e praticar.' }), panel)
-        : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
+      wp ? wp.el : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
       list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
       scoreDetails(score, { heard: res ? res.text : null, engine, note: '' }));
   }
@@ -368,7 +347,7 @@ function renderTarget(App, params) {
         h('div', { class: 'list-btn' }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: `${it.en}  ${it.ipa || ''}` }), h('div', { class: 'small muted', text: it.tip || '' })),
           speakerButton({ key: it.au, text: it.en }, { cls: 'icon-btn ghost' })))))));
   }
-  return () => { alive = false; gate.invalidate(); if (listener) { listener.stop(); listener = null; } if (free) free.destroy(); localasr.release(); w.destroy(); };
+  return () => { alive = false; gate.invalidate(); if (wp) wp.cancel(); if (listener) { listener.stop(); listener = null; } if (free) free.destroy(); localasr.release(); w.destroy(); };
 }
 
 const isAndroid = () => /Android/i.test(navigator.userAgent || '');

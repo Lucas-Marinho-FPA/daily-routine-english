@@ -6,7 +6,7 @@
 // áudio gravado, então não disputa o microfone com o MediaRecorder. Nenhum áudio sai do aparelho.
 
 /* global __ASR_MANIFEST__ */
-import { splitForAsr } from './segment.js';
+import { splitForAsr, speechBounds } from './segment.js';
 const MANIFEST = typeof __ASR_MANIFEST__ !== 'undefined' ? __ASR_MANIFEST__ : null;
 const PREFIX = 'asr-local-'; // não começa com "drg-": o service worker não apaga este cache ao atualizar o app
 const cacheName = () => PREFIX + MANIFEST.version;
@@ -217,17 +217,19 @@ export const MAX_FREE_SECONDS = 180;
  * confiança (0 = “sem informação”, nunca “confiança baixa”). Rejeita com mensagem (e .code) em caso de falha.
  * opts.long = true: respostas livres de até MAX_FREE_SECONDS, transcritas em trechos cortados nas pausas
  * (o modelo degenera com trechos longos); onProgress(parte, total). Nada do áudio é descartado.
+ * opts.word = true: palavra isolada — transcreve só o trecho com voz (ver speechBounds em segment.js).
  */
-export async function transcribe(blob, { long = false, onProgress } = {}) {
+export async function transcribe(blob, { long = false, onProgress, word = false } = {}) {
   active++;
-  try { return await run(blob, long, onProgress); } finally { active--; }
+  try { return await run(blob, long, onProgress, word); } finally { active--; }
 }
 
-async function run(blob, long, onProgress) {
+async function run(blob, long, onProgress, word) {
   const mine = epoch;
   const cancelled = () => { if (mine !== epoch) throw asrError('cancelado', 'cancelled'); };
   let pcm;
   try { pcm = await toPcm16k(blob); } catch (e) { throw asrError('não foi possível ler o áudio gravado', 'decode'); }
+  if (word) { const b = speechBounds(pcm, 16000); pcm = pcm.slice(b.start, b.end); } // palavra isolada: só o trecho com voz
   cancelled(); // a tela foi fechada (ou nova gravação) enquanto o áudio era decodificado: nem cria o worker
   const secs = pcm.length / 16000;
   const max = long ? MAX_FREE_SECONDS : MAX_SECONDS;
