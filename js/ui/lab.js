@@ -5,6 +5,7 @@ import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
 import { wordTokens } from '../engine/text.js';
 import { recWidget } from './recwidget.js';
+import { freeAnswerPanel } from './freeanswer.js';
 import { inlineWords, legend, scoreLine, scoreDetails, playWord } from './inlinewords.js';
 import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
 import { analyseAttempt, practiceSummary, practiceReason, latestGate } from '../engine/practice.js';
@@ -285,6 +286,12 @@ function renderTarget(App, params) {
     showFb('unavailable', ...parts);
   }
 
+  // perguntas e drills (resposta livre): transcrição + avaliação contextual, como nas missões
+  const free = !reading && (params.q || params.drill !== undefined)
+    ? freeAnswerPanel(App, params.q
+      ? { question: content.questions[params.q].q, model: content.questions[params.q].a || '', modelClips: clips, unit: 'q' }
+      : { question: '', model: content.drills[Number(params.drill)].prompts.join(' '), modelClips: [], unit: 'drill' })
+    : null;
   const w = recWidget(App, {
     targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 300000 : 120000,
     onStart: () => {
@@ -302,8 +309,10 @@ function renderTarget(App, params) {
       if (engineInfo) processSaved();
     },
     onDeleted: () => { resetFeedback(); lastBlob = null; if (!engine) drawUnavailable(); },
+    ...(free ? free.hooks : {}), // resposta livre: os ganchos do painel substituem os da leitura
   });
-  view.append(w.el, fbBox);
+  if (free) free.attach(w);
+  view.append(w.el, free ? free.el : fbBox);
 
   function processSaved() {
     const rec = savedPending;
@@ -348,7 +357,8 @@ function renderTarget(App, params) {
     manualBox.append(h('details', { class: 'more card flat manual' }, h('summary', { text: 'Marcar palavras difíceis (sem análise automática)' }),
       h('p', { class: 'small muted', text: 'Compare A/B e marque as palavras que soaram diferentes. Elas aparecem em “Revisar”.' }), picks));
   }
-  if (!reading && en.length) drawManual();
+  // resposta livre: a marcação manual só aparece se não houver análise automática instalada
+  if (!reading && en.length) { if (free) localasr.status().then((st) => { if (st !== 'installed' && alive) drawManual(); }); else drawManual(); }
 
   // ---------- dicas de pronúncia (recolhidas) ----------
   const tips = relevantTips(content, en.join(' '));
@@ -358,7 +368,7 @@ function renderTarget(App, params) {
         h('div', { class: 'list-btn' }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: `${it.en}  ${it.ipa || ''}` }), h('div', { class: 'small muted', text: it.tip || '' })),
           speakerButton({ key: it.au, text: it.en }, { cls: 'icon-btn ghost' })))))));
   }
-  return () => { alive = false; gate.invalidate(); if (listener) { listener.stop(); listener = null; } localasr.release(); w.destroy(); };
+  return () => { alive = false; gate.invalidate(); if (listener) { listener.stop(); listener = null; } if (free) free.destroy(); localasr.release(); w.destroy(); };
 }
 
 const isAndroid = () => /Android/i.test(navigator.userAgent || '');

@@ -9,6 +9,7 @@ Aplicativo web **offline** para praticar inglês britânico falando sobre rotina
 - **Privacidade:** o progresso, as respostas e as gravações ficam **somente no aparelho** (IndexedDB). O app não faz chamadas externas; uma política CSP bloqueia conexões para fora do site.
 - O conteúdo é uma versão **generalizada** de um material pessoal de estudo: nomes de empresa e de escola foram substituídos por termos genéricos.
 - **Speaking Lab:** grave a frase e a análise começa sozinha: cada palavra é marcada no próprio texto (reconhecida / praticar / não avaliada), com nota estimada parcial quando há evidência e uma lista automática “Vamos praticar” com o áudio de cada palavra. Detalhes e limitações em [`docs/feedback-de-pronuncia.md`](docs/feedback-de-pronuncia.md).
+- **Missões com resposta livre:** ao parar a gravação, a resposta é transcrita no aparelho e recebe feedback de conteúdo (responde à pergunta?), palavras para revisar e métricas de ritmo, sem exigir que seja igual ao exemplo.
 - **Reconhecimento de fala local (opcional):** o Chrome para Android não tem reconhecimento no aparelho, então o app oferece um modelo próprio (Moonshine tiny, MIT, ≈ 38 MB) baixado só a pedido, do próprio site, que roda offline no celular. A voz nunca sai do aparelho. Licenças em `asr/LICENSES.txt`.
 - **Voz de referência:** inglês britânico gerado offline com o modelo Kokoro (Apache-2.0), voz `bf_emma`.
 

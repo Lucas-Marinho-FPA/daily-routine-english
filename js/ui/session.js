@@ -6,6 +6,7 @@ import { recordAnswer, recordLearn, recordSession } from '../engine/progress.js'
 import * as player from '../audio/player.js';
 import { speakerButton, sourceChip, focusTitle, sessionHref } from './common.js';
 import { recWidget } from './recwidget.js';
+import { freeAnswerPanel } from './freeanswer.js';
 
 const OUTCOME = { correct: 'good', accepted_variant: 'good', variant_ame: 'good', spelling: 'ok', grammar: 'bad', meaning: 'bad', inconclusive: 'bad', empty: 'bad' };
 const HEAD = {
@@ -58,6 +59,7 @@ export function renderSession(App, { params }) {
   let xpGained = 0;
   const events = [];
   let widget = null;
+  let freePanel = null; // feedback automático da resposta oral livre (ui/freeanswer.js)
 
   if (!queue.length) {
     area.append(h('div', { class: 'card center', style: { marginTop: '24px' } },
@@ -83,6 +85,7 @@ export function renderSession(App, { params }) {
   }
 
   function next() {
+    if (freePanel) { freePanel.destroy(); freePanel = null; }
     if (widget) { widget.destroy(); widget = null; }
     player.stopAll();
     updateTop();
@@ -454,8 +457,11 @@ export function renderSession(App, { params }) {
     const input = h('textarea', { class: 'field en', rows: unit === 'routine' ? 6 : 4, spellcheck: 'false', autocapitalize: 'sentences', placeholder: 'Escreva sua resposta (opcional se você gravar)', 'aria-label': 'Sua resposta' });
     if (isQ && state.myAnswers[ex.q.id]) input.value = state.myAnswers[ex.q.id].text;
     area.append(h('label', { class: 'lbl', style: { marginTop: '12px' }, text: 'Fale e/ou escreva' }));
-    widget = recWidget(App, { targetId, reference: modelClips, expectedWords: model ? model.split(/\s+/).length : 0, maxMs: unit === 'routine' ? 300000 : 120000 });
-    area.append(widget.el, h('div', { style: { height: '10px' } }), input);
+    // ao parar a gravação, transcrição local + avaliação contextual (não muda XP nem a autoavaliação abaixo)
+    freePanel = freeAnswerPanel(App, { question: isQ ? ex.q.q : '', model, modelClips, unit: isQ ? 'q' : unit });
+    widget = recWidget(App, { targetId, reference: modelClips, expectedWords: model ? model.split(/\s+/).length : 0, maxMs: unit === 'routine' ? 300000 : 120000, ...freePanel.hooks });
+    freePanel.attach(widget);
+    area.append(widget.el, freePanel.el, h('div', { style: { height: '10px' } }), input);
 
     const reveal = h('button', { class: 'btn primary lg' }, 'Ver modelo e avaliar');
     reveal.onclick = () => {
@@ -554,7 +560,7 @@ export function renderSession(App, { params }) {
   }
 
   next();
-  return () => { player.stopAll(); if (widget) widget.destroy(); actionbar.remove(); App.flush(); };
+  return () => { player.stopAll(); if (freePanel) freePanel.destroy(); if (widget) widget.destroy(); actionbar.remove(); App.flush(); };
 }
 
 /** Remove pistas redundantes (contidas em outra pista ou já cobertas pelas palavras-chave). */

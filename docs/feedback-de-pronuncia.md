@@ -66,3 +66,23 @@ A nota combina apenas as dimensões medidas (pesos renormalizados) e aparece com
 
 ## Integração futura
 `app/js/engine/wordfeedback.js` recebe uma transcrição e devolve estados por palavra; um avaliador especializado (alinhamento forçado ou modelo fonêmico) pode preencher os mesmos estados e as dimensões hoje indisponíveis, sem mudar a interface (`app/js/ui/inlinewords.js`).
+
+## Respostas orais livres (missões e perguntas da teacher)
+
+Nas missões “Pergunta da teacher”, “Conte este bloco do dia” e “Conte a rotina completa” (e nas perguntas e drills do Speaking Lab), a resposta é livre: **não existe texto-alvo** e o exemplo da teacher é só referência.
+
+**Fluxo:** gravar → parar (a gravação é salva) → “Analisando sua resposta…” → resultado no próprio exercício, sem outro botão. A autoavaliação (“Preciso rever / Parcial / Consegui”), o XP e a conclusão da missão continuam exatamente como antes: a análise não dá nem tira XP, e uma falha dela nunca bloqueia a missão. Sem o reconhecimento local instalado, aparece o mesmo convite do Speaking Lab (tamanho real; “Agora não”); nada é baixado sem toque.
+
+**Transcrição:** o que o modelo reconheceu, sem correção nem substituição pelo exemplo, identificada como “transcrição automática, pode conter erros”. Respostas longas são transcritas em trechos de até 24 s cortados nas pausas (todo o áudio é processado; progresso “parte 2 de 4”), até **3 minutos**. Acima disso a resposta não é cortada nem avaliada, e o aluno vê a duração e o limite.
+
+**Avaliação, em quatro partes separadas (sem nota numérica geral):**
+- **Reconhecimento:** cada palavra fica verde (reconhecida, sem divergência identificada) ou âmbar (revisar) quando (a) não existe em inglês segundo o léxico local (CMU Pronouncing Dictionary + vocabulário do app; compostos como “lunchbox” e grafias BrE/AmE não contam) ou (b) está fora do tema e é quase igual a uma palavra esperada que não apareceu (mesma inicial, até 2 letras de diferença, ex.: “chest” numa pergunta sobre “chess”). O texto sempre diz “se você disse X, está tudo certo”: é divergência do reconhecedor, não erro de pronúncia. Tocar mostra o motivo, toca a referência quando existe áudio da palavra provável, a própria resposta e o exemplo.
+- **Resposta:** “Responde à pergunta”, “Responde em parte” ou “Pouca relação com a pergunta”, com uma lista de critérios explícitos: (1) fala do tema (palavras da pergunta, do exemplo, do conteúdo do app ou de um vocabulário de vida diária; vocabulário diferente do exemplo não é penalizado); (2) traz o que a pergunta pede, detectado pelo texto da pergunta: horário, frequência, motivo, duração, lugar, significado, comida, gostar, sim/não, atividades ou uma informação concreta; (3) desenvolve a resposta (sugestão; só pesa em relatos). Erros de gramática não reduzem o resultado: aparecem como “confira ouvindo sua gravação”.
+- **Ritmo:** duração da gravação, do início ao fim da fala, velocidade estimada (palavras reconhecidas ÷ tempo de fala; só entre 40 e 260 palavras/min) e pausas (≥ 0,3 s e ≥ 0,8 s). Sem medida confiável: “indisponível”.
+- **Pronúncia:** não avaliada (o app não mede fonemas).
+
+**Inconclusivo** (sem avaliação): pouca voz na gravação, transcrição vazia, transcrição degenerada (repetições) ou fala com menos de 3 palavras.
+
+**Calibração** (falas sintéticas; não comprova a qualidade com sotaque brasileiro): 64 das 66 respostas-exemplo do app são classificadas como “Responde à pergunta” (as outras 2 não trazem o elemento pedido de forma explícita); nas transcrições reais do modelo para as 101 frases do app, 0,13% das palavras foram marcadas, todas erros reais do reconhecedor.
+
+**Limites:** os critérios são heurísticos e explícitos, não “entendem” o significado como uma pessoa; uma resposta pertinente com vocabulário muito diferente pode sair “em parte”. O histórico de tentativas não é guardado: só a transcrição da gravação atual, junto com ela.

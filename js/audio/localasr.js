@@ -6,6 +6,7 @@
 // áudio gravado, então não disputa o microfone com o MediaRecorder. Nenhum áudio sai do aparelho.
 
 /* global __ASR_MANIFEST__ */
+import { splitForAsr } from './segment.js';
 const MANIFEST = typeof __ASR_MANIFEST__ !== 'undefined' ? __ASR_MANIFEST__ : null;
 const PREFIX = 'asr-local-'; // não começa com "drg-": o service worker não apaga este cache ao atualizar o app
 const cacheName = () => PREFIX + MANIFEST.version;
@@ -58,11 +59,14 @@ async function migrate(cache, f, url) {
     const sha = hit.headers.get('X-DRG-Sha');
     if (sha ? sha !== f.sha : (await cachedSize(hit.clone())) !== f.size) continue;
     const body = await hit.blob();
-    await cache.put(url, new Response(body, { headers: { 'Content-Type': hit.headers.get('Content-Type') || 'application/octet-stream', 'X-DRG-Size': String(body.size), 'X-DRG-Sha': f.sha } }));
+    await cache.put(url, new Response(body, { headers: { 'Content-Type': typeFor(f.path), 'X-DRG-Size': String(body.size), 'X-DRG-Sha': f.sha } }));
     return true;
   }
   return false;
 }
+
+// tipo pela extensão (nunca pelo que estava guardado): módulos .mjs/.js só carregam com tipo JavaScript
+const typeFor = (path) => (/\.m?js$/.test(path) ? 'text/javascript' : /\.wasm$/.test(path) ? 'application/wasm' : 'application/octet-stream');
 
 async function dropOldCaches() {
   for (const k of await caches.keys()) if (k.startsWith(PREFIX) && k !== cacheName()) await caches.delete(k);
@@ -124,7 +128,7 @@ export async function install({ onProgress } = {}) {
       done += value.byteLength;
       report();
     }
-    const type = res.headers.get('Content-Type') || 'application/octet-stream';
+    const type = typeFor(f.path);
     const body = new Blob(parts, { type });
     if (body.size !== f.size) throw new Error(`arquivo incompleto: ${f.path}`);
     await cache.put(url, new Response(body, { headers: { 'Content-Type': type, 'X-DRG-Size': String(body.size), 'X-DRG-Sha': f.sha } }));
@@ -142,6 +146,7 @@ export async function remove() {
 
 // ---------- worker ----------
 let worker = null, seq = 0;
+let epoch = 0; // muda a cada release(): transcrições já iniciadas (ex.: ainda decodificando o áudio) desistem
 const pending = new Map();
 
 function getWorker() {
@@ -180,11 +185,13 @@ function call(msg, transfer, timeoutMs) {
   });
 }
 
+let active = 0; // transcrições em andamento (inclusive decodificando o áudio, antes de chamar o worker)
 /** Há uma transcrição em andamento? */
-export const busy = () => pending.size > 0;
+export const busy = () => active > 0 || pending.size > 0;
 
 /** Encerra o worker e libera a memória do modelo (ao sair da tela). Transcrições pendentes são rejeitadas. */
 export function release() {
+  epoch++;
   if (worker) { worker.terminate(); worker = null; }
   failAll(asrError('cancelado', 'cancelled'));
 }
@@ -202,15 +209,40 @@ export async function toPcm16k(blob) {
   return out;
 }
 
+/** Limite das respostas livres (processadas em trechos): acima disso a análise não é feita, e o aluno é avisado. */
+export const MAX_FREE_SECONDS = 180;
+
 /**
- * Transcreve uma gravação. Resolve { text, confidence: 0, engine, ms } — o modelo não informa confiança
- * (0 = “sem informação”, nunca “confiança baixa”). Rejeita com mensagem em caso de falha.
+ * Transcreve uma gravação. Resolve { text, confidence: 0, engine, ms, secs, parts } — o modelo não informa
+ * confiança (0 = “sem informação”, nunca “confiança baixa”). Rejeita com mensagem (e .code) em caso de falha.
+ * opts.long = true: respostas livres de até MAX_FREE_SECONDS, transcritas em trechos cortados nas pausas
+ * (o modelo degenera com trechos longos); onProgress(parte, total). Nada do áudio é descartado.
  */
-export async function transcribe(blob) {
+export async function transcribe(blob, { long = false, onProgress } = {}) {
+  active++;
+  try { return await run(blob, long, onProgress); } finally { active--; }
+}
+
+async function run(blob, long, onProgress) {
+  const mine = epoch;
+  const cancelled = () => { if (mine !== epoch) throw asrError('cancelado', 'cancelled'); };
   let pcm;
   try { pcm = await toPcm16k(blob); } catch (e) { throw asrError('não foi possível ler o áudio gravado', 'decode'); }
+  cancelled(); // a tela foi fechada (ou nova gravação) enquanto o áudio era decodificado: nem cria o worker
   const secs = pcm.length / 16000;
-  if (secs > MAX_SECONDS) throw asrError(`gravação longa demais para a análise (máx. ${MAX_SECONDS} s)`, 'too-long');
-  const res = await call({ type: 'transcribe', pcm }, [pcm.buffer], 60000 + secs * 4000);
-  return { text: res.text, confidence: 0, engine: 'local-model', ms: res.ms };
+  const max = long ? MAX_FREE_SECONDS : MAX_SECONDS;
+  if (secs > max) { const e = asrError(`gravação longa demais para a análise (máx. ${max} s)`, 'too-long'); e.secs = secs; e.max = max; throw e; }
+  const segs = long ? splitForAsr(pcm, 16000) : [{ start: 0, end: pcm.length }];
+  const texts = [];
+  let ms = 0;
+  for (let i = 0; i < segs.length; i++) {
+    cancelled();
+    onProgress && onProgress(i + 1, segs.length);
+    const part = segs.length === 1 ? pcm : pcm.slice(segs[i].start, segs[i].end);
+    const partSecs = part.length / 16000;
+    const res = await call({ type: 'transcribe', pcm: part }, [part.buffer], 60000 + partSecs * 4000);
+    texts.push(res.text);
+    ms += res.ms;
+  }
+  return { text: texts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim(), confidence: 0, engine: 'local-model', ms, secs, parts: segs.length };
 }
