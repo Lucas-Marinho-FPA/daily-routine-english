@@ -219,6 +219,7 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     const meta = rec.meta || {};
     last = { blob: rec.blob, analysis: meta.analysis || null };
     if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text });
+    if (!rec.blob) return; // áudio já apagado pela retenção e sem resultado salvo: nada a analisar
     if (status === 'installed') return analyse(rec.blob, meta.analysis || null); // gravada antes de instalar: analisa uma vez
     unavailable();
   }

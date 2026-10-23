@@ -5,6 +5,7 @@ import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
 import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
+import { storageReport } from '../store/storage.js';
 import { freshState } from '../engine/progress.js';
 
 export function renderSettings(App) {
@@ -73,19 +74,29 @@ export function renderSettings(App) {
       h('label', { class: 'btn', role: 'button', tabindex: '0' }, icon('upload'), 'Importar backup',
         h('input', { type: 'file', accept: 'application/json,.json', class: 'hidden', onchange: (e) => importFile(e.target.files[0]) }))),
     h('button', { class: 'btn small', onclick: async () => { const ok = await db.requestPersistence(); toast(ok ? 'Armazenamento persistente ativo' : 'O navegador não concedeu armazenamento persistente (instalar o app na tela inicial ajuda).'); drawUsage(); } }, 'Proteger dados contra limpeza automática'),
+    h('p', { class: 'tiny muted', text: 'Os áudios das suas gravações são apagados automaticamente 7 dias depois de gravados; transcrições, avaliações e progresso continuam. A proteção contra limpeza é um pedido ao navegador e não impede que o sistema ou você apaguem os dados do site.' }),
     h('button', { class: 'btn danger', onclick: wipe }, 'Apagar todo o progresso…')));
 
   async function drawUsage() {
-    let persisted = null, quota = null;
-    try { persisted = await navigator.storage.persisted(); const est = await navigator.storage.estimate(); quota = est; } catch (e) { /* ok */ }
-    const r = await db.recordingsUsage();
+    clear(usage).append(h('span', { class: 'muted', text: 'Medindo…' }), h('span', {}));
+    if (App.runRetention) await App.runRetention(); // aplica a retenção antes de contar
+    const r = await storageReport();
+    if (!usage.isConnected) return;
+    const kb = (b) => `${Math.round(b / 1024).toLocaleString('pt-BR')} KB`;
+    const mb = (b) => `${(b / 1048576).toLocaleString('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} MB`;
+    const row = (label, value, role) => [h('span', { text: label }), h('span', { text: value, 'data-role': role || null })];
     clear(usage).append(
-      h('span', { text: 'Armazenamento' }), h('span', { text: db.backend === 'indexeddb' ? 'IndexedDB' : db.backend === 'localstorage' ? 'localStorage (limitado)' : '—' }),
-      h('span', { text: 'Protegido contra limpeza' }), h('span', { text: persisted === null ? '—' : persisted ? 'sim' : 'não' }),
-      h('span', { text: 'Cartões de estudo' }), h('span', { text: String(Object.keys(state.cards).length) }),
-      h('span', { text: 'Gravações salvas' }), h('span', { text: `${r.count} (${Math.round(r.bytes / 1024)} KB)` }),
-      h('span', { text: 'Uso total' }), h('span', { text: quota ? `${Math.round(quota.usage / 1048576)} MB` : '—' }),
-      h('span', { text: 'Último backup' }), h('span', { text: state.lastBackupAt ? fmtDate(state.lastBackupAt) : 'nunca' }));
+      ...row('Armazenamento', db.backend === 'indexeddb' ? 'IndexedDB' : db.backend === 'localstorage' ? 'localStorage (limitado)' : '—'),
+      ...row('Protegido contra limpeza', r.persisted === null ? '—' : r.persisted ? 'sim (pedido aceito pelo navegador)' : 'não', 'persisted'),
+      ...row('Cartões de estudo', String(Object.keys(state.cards).length)),
+      ...row('Gravações salvas', `${r.recordings.count} (${kb(r.recordings.bytes)})`, 'rec-usage'),
+      ...(r.recordings.textOnly ? row('Resultados sem áudio', `${r.recordings.textOnly} (áudio já apagado; transcrição e análise mantidas)`, 'rec-textonly') : []),
+      ...row('Progresso e respostas', kb(r.study), 'study-usage'),
+      ...(r.cache ? row('App offline (textos e áudios de referência)', mb(r.cache.app), 'app-cache') : []),
+      ...(r.cache ? row('Reconhecimento de fala local', r.cache.asr ? mb(r.cache.asr) : 'não instalado', 'asr-cache') : []),
+      ...row('Uso total (estimativa do navegador)', r.usage === null ? '—' : `≈ ${mb(r.usage)}`, 'usage-total'),
+      ...(r.unattributed ? row('Não atribuído (dados internos do navegador)', `≈ ${mb(r.unattributed)}`, 'usage-other') : []),
+      ...row('Último backup', state.lastBackupAt ? fmtDate(state.lastBackupAt) : 'nunca'));
   }
   drawUsage();
 

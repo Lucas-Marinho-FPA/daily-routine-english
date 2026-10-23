@@ -320,7 +320,7 @@ function renderTarget(App, params) {
     if (!rec || !reading || !alive) return;
     const meta = rec.meta || {};
     if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0 } });
-    else if (engine === 'model' && asrEligible) analyse(rec.blob, meta.analysis);
+    else if (engine === 'model' && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
     else { lastBlob = rec.blob; lastAnalysis = meta.analysis; }
   }
 

@@ -4,7 +4,8 @@ import { h, icon, clear, toast, confirmSheet } from './dom.js';
 import * as recorder from '../audio/recorder.js';
 import * as player from '../audio/player.js';
 import { analyseBlob, describe } from '../audio/analysis.js';
-import { putRecording, getRecording, deleteRecording, backend } from '../store/db.js';
+import { putRecording, getRecording, deleteRecording, updateRecordingMeta, backend } from '../store/db.js';
+import { RETENTION_DAYS } from '../engine/retention.js';
 import { recordRecording, forgetRecording } from '../engine/progress.js';
 
 const fmtSec = (ms) => String(Math.round(ms / 100) / 10).replace('.', ',');
@@ -80,7 +81,9 @@ export function recWidget(App, opts) {
     session = null;
     if (destroyed) {
       // a tela foi fechada durante a gravação: a gravação é preservada (salva), sem recriar a interface
-      if (targetId && backend === 'indexeddb') { try { await putRecording(targetId, res.blob, { ms: res.ms }); } catch (e) { /* ok */ } }
+      if (targetId && backend === 'indexeddb') {
+        try { await putRecording(targetId, res.blob, { ms: res.ms }); recordRecording(App.state, targetId, { ms: res.ms }); App.save(); } catch (e) { /* a anterior continua */ }
+      }
       return;
     }
     recBtn.classList.remove('on');
@@ -103,7 +106,10 @@ export function recWidget(App, opts) {
     showAfter();
     meta = { ...meta, analysis: analysis && { ...analysis, envelope: undefined } };
     if (targetId) {
-      try { if (backend === 'indexeddb') await putRecording(targetId, blob, meta); } catch (e) { /* segue sem salvar */ }
+      try { if (backend === 'indexeddb') await putRecording(targetId, blob, meta); } catch (e) {
+        // a transação não foi confirmada: a gravação anterior (se houver) continua salva
+        toast('Não foi possível salvar esta gravação no aparelho (pouco espaço?). A gravação anterior foi mantida.', 6000);
+      }
       const r = recordRecording(App.state, targetId, { ms: res.ms });
       App.save();
       if (r.xp) toast(`+${r.xp} XP pela prática oral`);
@@ -168,13 +174,21 @@ export function recWidget(App, opts) {
   async function updateMeta(forBlob, patch) {
     if (destroyed || !targetId || forBlob !== blob) return;
     meta = { ...(meta || {}), ...patch };
-    try { if (backend === 'indexeddb') await putRecording(targetId, blob, meta); } catch (e) { /* ok */ }
+    try { await updateRecordingMeta(targetId, patch); } catch (e) { /* ok */ } // só o texto: o áudio não é regravado
   }
 
   // gravação anterior salva
   if (targetId) {
     getRecording(targetId).then((rec) => {
       if (!rec || blob || destroyed || session) return;
+      if (!rec.blob) {
+        // áudio apagado pela retenção automática; transcrição e análise continuam salvas
+        setIdle(true);
+        time.textContent = `O áudio desta gravação foi apagado automaticamente após ${RETENTION_DAYS} dias. O resultado continua salvo.`;
+        meta = rec.meta || null;
+        opts.onLoaded && opts.onLoaded(rec);
+        return;
+      }
       blob = rec.blob;
       meta = rec.meta || null;
       url = URL.createObjectURL(blob);

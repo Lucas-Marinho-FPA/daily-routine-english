@@ -1127,9 +1127,19 @@
     return s;
   }
 
+  // app/js/engine/retention.js
+  var RETENTION_DAYS = 7;
+  var RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1e3;
+  var FUTURE_TOLERANCE_MS = 24 * 60 * 60 * 1e3;
+  function retentionStatus(recordedAt, now = Date.now()) {
+    if (typeof recordedAt !== "number" || !Number.isFinite(recordedAt) || recordedAt <= 0) return "invalid";
+    if (recordedAt > now + FUTURE_TOLERANCE_MS) return "invalid";
+    return now - recordedAt >= RETENTION_MS ? "expire" : "keep";
+  }
+
   // app/js/store/db.js
   var DB_NAME = "drg";
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
   var LS_KEY = "drg.state";
   var dbPromise = null;
   var backend = "none";
@@ -1138,10 +1148,26 @@
     dbPromise = new Promise((resolve, reject) => {
       if (!("indexedDB" in globalThis)) return reject(new Error("IndexedDB indispon\xEDvel"));
       const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
+      req.onupgradeneeded = (ev) => {
         const db = req.result;
         if (!db.objectStoreNames.contains("kv")) db.createObjectStore("kv");
         if (!db.objectStoreNames.contains("recordings")) db.createObjectStore("recordings");
+        if (!db.objectStoreNames.contains("audio")) db.createObjectStore("audio");
+        if (ev.oldVersion >= 1 && ev.oldVersion < 2) {
+          const t = req.transaction;
+          const recs = t.objectStore("recordings"), audio = t.objectStore("audio");
+          recs.openCursor().onsuccess = (e) => {
+            const cur = e.target.result;
+            if (!cur) return;
+            const v = cur.value || {};
+            if (v.blob instanceof Blob) {
+              const recordedAt = typeof v.at === "number" ? v.at : null;
+              audio.put({ blob: v.blob, bytes: v.blob.size, type: v.blob.type, recordedAt }, cur.key);
+              cur.update({ meta: v.meta || null, recordedAt, at: v.at || null, audio: true, migratedFrom: 1 });
+            }
+            cur.continue();
+          };
+        }
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
@@ -1236,8 +1262,9 @@
     } catch (e) {
     }
     try {
-      await tx("recordings", "readwrite", (s) => {
-        s.clear();
+      await txs(["audio", "recordings"], "readwrite", (a, r) => {
+        a.clear();
+        r.clear();
       });
     } catch (e) {
     }
@@ -1246,30 +1273,116 @@
     } catch (e) {
     }
   }
-  async function putRecording(id, blob, meta) {
+  var txs = (stores, mode, fn) => openDb().then((db) => new Promise((resolve, reject) => {
+    const t = db.transaction(stores, mode);
+    let out;
+    let ret;
+    try {
+      ret = fn(...stores.map((n) => t.objectStore(n)));
+    } catch (e) {
+      try {
+        t.abort();
+      } catch (e2) {
+      }
+      reject(e);
+      return;
+    }
+    Promise.resolve(ret).then((r) => {
+      out = r;
+    });
+    t.oncomplete = () => resolve(out);
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error("transa\xE7\xE3o abortada"));
+  }));
+  async function putRecording(id, blob, meta, { now = Date.now() } = {}) {
     if (backend !== "indexeddb") throw new Error("Grava\xE7\xF5es n\xE3o podem ser salvas neste modo de execu\xE7\xE3o");
-    return tx("recordings", "readwrite", (s) => s.put({ blob, meta, at: Date.now() }, id));
+    return txs(["audio", "recordings"], "readwrite", (audio, recs) => {
+      audio.put({ blob, bytes: blob.size, type: blob.type, recordedAt: now }, id);
+      recs.put({ meta: meta || null, recordedAt: now, at: now, audio: true }, id);
+    });
+  }
+  async function updateRecordingMeta(id, patch) {
+    if (backend !== "indexeddb") return;
+    return txs(["recordings"], "readwrite", (recs) => new Promise((res) => {
+      const r = recs.get(id);
+      r.onsuccess = () => {
+        if (r.result) recs.put({ ...r.result, meta: { ...r.result.meta || {}, ...patch } }, id);
+        res();
+      };
+      r.onerror = () => res();
+    }));
   }
   async function getRecording(id) {
     try {
-      return await tx("recordings", "readonly", (s) => reqP(s.get(id)));
+      return await txs(["audio", "recordings"], "readonly", (audio, recs) => Promise.all([reqP(audio.get(id)), reqP(recs.get(id))]).then(([a, r]) => {
+        if (!r && !a) return null;
+        return { blob: a ? a.blob : null, meta: r ? r.meta : null, at: a && a.recordedAt || r && r.recordedAt || null, recordedAt: a && a.recordedAt || r && r.recordedAt || null, audioExpiredAt: r && r.audioExpiredAt ? r.audioExpiredAt : null };
+      }));
     } catch (e) {
       return null;
     }
   }
   async function deleteRecording(id) {
     try {
-      await tx("recordings", "readwrite", (s) => {
-        s.delete(id);
+      await txs(["audio", "recordings"], "readwrite", (audio, recs) => {
+        audio.delete(id);
+        recs.delete(id);
       });
     } catch (e) {
     }
   }
   async function recordingsUsage() {
     try {
-      return await tx("recordings", "readonly", (s) => reqP(s.getAll()).then((all) => ({ count: all.length, bytes: all.reduce((n, r) => n + (r.blob ? r.blob.size : 0), 0) })));
+      return await txs(["audio", "recordings"], "readonly", (audio, recs) => Promise.all([reqP(audio.getAll()), reqP(audio.getAllKeys()), reqP(recs.getAllKeys())]).then(([all, aKeys, rKeys]) => {
+        const withAudio = new Set(aKeys);
+        return { count: all.length, bytes: all.reduce((n, a) => n + (a && a.blob ? a.blob.size : 0), 0), textOnly: rKeys.filter((k) => !withAudio.has(k)).length };
+      }));
     } catch (e) {
-      return { count: 0, bytes: 0 };
+      return { count: 0, bytes: 0, textOnly: 0 };
+    }
+  }
+  async function pruneRecordings({ now = Date.now() } = {}) {
+    const report = { checked: 0, removed: [], invalid: [], bytesFreed: 0 };
+    if (backend !== "indexeddb") return report;
+    try {
+      await txs(["audio", "recordings", "kv"], "readwrite", (audio, recs, kv) => new Promise((res) => {
+        const cur = audio.openCursor();
+        cur.onsuccess = () => {
+          const c = cur.result;
+          if (!c) {
+            if (report.invalid.length) kv.put({ at: now, items: report.invalid }, "diag.retention");
+            return res();
+          }
+          report.checked++;
+          const v = c.value || {};
+          const st = retentionStatus(v.recordedAt, now);
+          if (st === "expire") {
+            report.removed.push(c.key);
+            report.bytesFreed += v.blob ? v.blob.size : 0;
+            const key = c.key;
+            c.delete();
+            const g = recs.get(key);
+            g.onsuccess = () => {
+              const r = g.result || { meta: null, recordedAt: v.recordedAt, at: v.recordedAt };
+              recs.put({ ...r, audio: false, audioExpiredAt: now }, key);
+            };
+          } else if (st === "invalid") {
+            report.invalid.push({ key: c.key, recordedAt: v.recordedAt === void 0 ? null : v.recordedAt });
+          }
+          c.continue();
+        };
+        cur.onerror = () => res();
+      }));
+    } catch (e) {
+      report.error = e.message;
+    }
+    return report;
+  }
+  async function kvUsage() {
+    try {
+      return await txs(["kv"], "readonly", (kv) => Promise.all([reqP(kv.getAllKeys()), reqP(kv.getAll())]).then(([keys, vals]) => keys.map((k, i) => ({ key: k, bytes: new Blob([JSON.stringify(vals[i])]).size }))));
+    } catch (e) {
+      return [];
     }
   }
   function exportBackup(state) {
@@ -2653,6 +2766,8 @@
         if (targetId && backend === "indexeddb") {
           try {
             await putRecording(targetId, res.blob, { ms: res.ms });
+            recordRecording(App2.state, targetId, { ms: res.ms });
+            App2.save();
           } catch (e) {
           }
         }
@@ -2681,6 +2796,7 @@
         try {
           if (backend === "indexeddb") await putRecording(targetId, blob, meta);
         } catch (e) {
+          toast("N\xE3o foi poss\xEDvel salvar esta grava\xE7\xE3o no aparelho (pouco espa\xE7o?). A grava\xE7\xE3o anterior foi mantida.", 6e3);
         }
         const r = recordRecording(App2.state, targetId, { ms: res.ms });
         App2.save();
@@ -2752,13 +2868,20 @@
       if (destroyed || !targetId || forBlob !== blob) return;
       meta = { ...meta || {}, ...patch };
       try {
-        if (backend === "indexeddb") await putRecording(targetId, blob, meta);
+        await updateRecordingMeta(targetId, patch);
       } catch (e) {
       }
     }
     if (targetId) {
       getRecording(targetId).then((rec) => {
         if (!rec || blob || destroyed || session) return;
+        if (!rec.blob) {
+          setIdle(true);
+          time.textContent = `O \xE1udio desta grava\xE7\xE3o foi apagado automaticamente ap\xF3s ${RETENTION_DAYS} dias. O resultado continua salvo.`;
+          meta = rec.meta || null;
+          opts.onLoaded && opts.onLoaded(rec);
+          return;
+        }
         blob = rec.blob;
         meta = rec.meta || null;
         url = URL.createObjectURL(blob);
@@ -3984,6 +4107,7 @@
       const meta = rec.meta || {};
       last = { blob: rec.blob, analysis: meta.analysis || null };
       if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text });
+      if (!rec.blob) return;
       if (status3 === "installed") return analyse(rec.blob, meta.analysis || null);
       unavailable();
     }
@@ -5228,7 +5352,7 @@
       if (!rec || !reading || !alive) return;
       const meta = rec.meta || {};
       if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0 } });
-      else if (engine === "model" && asrEligible) analyse(rec.blob, meta.analysis);
+      else if (engine === "model" && asrEligible && rec.blob) analyse(rec.blob, meta.analysis);
       else {
         lastBlob = rec.blob;
         lastAnalysis = meta.analysis;
@@ -5479,6 +5603,56 @@
     view.append(h("h2", { text: "Conquistas" }), h("div", { class: "ach" }, ACHIEVEMENTS.map((a) => h("div", { class: state.achievements[a.id] ? "" : "locked", title: a.desc }, h("span", { class: "ico", text: a.icon }), a.title))));
   }
 
+  // app/js/store/storage.js
+  async function cachesUsage() {
+    const out = { app: 0, asr: 0, other: 0, files: 0 };
+    if (!("caches" in globalThis)) return null;
+    try {
+      for (const name of await caches.keys()) {
+        const c = await caches.open(name);
+        let bytes = 0;
+        for (const req of await c.keys()) {
+          const r = await c.match(req);
+          if (!r) continue;
+          const h2 = r.headers.get("X-DRG-Size");
+          bytes += h2 ? Number(h2) : (await r.blob()).size;
+          out.files++;
+        }
+        if (name.startsWith("drg-")) out.app += bytes;
+        else if (name.startsWith("asr-local-")) out.asr += bytes;
+        else out.other += bytes;
+      }
+      return out;
+    } catch (e) {
+      return null;
+    }
+  }
+  async function storageReport() {
+    const [rec, kv, cache] = await Promise.all([recordingsUsage(), kvUsage(), cachesUsage()]);
+    let estimate = null, persisted = null;
+    try {
+      estimate = await navigator.storage.estimate();
+    } catch (e) {
+    }
+    try {
+      persisted = await navigator.storage.persisted();
+    } catch (e) {
+    }
+    const study = kv.reduce((n, x) => n + x.bytes, 0);
+    const measured = rec.bytes + study + (cache ? cache.app + cache.asr + cache.other : 0);
+    return {
+      recordings: rec,
+      study,
+      studyKeys: kv,
+      cache,
+      persisted,
+      usage: estimate ? estimate.usage : null,
+      quota: estimate ? estimate.quota : null,
+      // diferença entre a estimativa do navegador e o que foi somado: não é atribuída a nenhuma categoria
+      unattributed: estimate && cache ? Math.max(0, estimate.usage - measured) : null
+    };
+  }
+
   // app/js/ui/settings.js
   function renderSettings(App2) {
     const { state } = App2;
@@ -5585,30 +5759,29 @@
         toast(ok ? "Armazenamento persistente ativo" : "O navegador n\xE3o concedeu armazenamento persistente (instalar o app na tela inicial ajuda).");
         drawUsage();
       } }, "Proteger dados contra limpeza autom\xE1tica"),
+      h("p", { class: "tiny muted", text: "Os \xE1udios das suas grava\xE7\xF5es s\xE3o apagados automaticamente 7 dias depois de gravados; transcri\xE7\xF5es, avalia\xE7\xF5es e progresso continuam. A prote\xE7\xE3o contra limpeza \xE9 um pedido ao navegador e n\xE3o impede que o sistema ou voc\xEA apaguem os dados do site." }),
       h("button", { class: "btn danger", onclick: wipe }, "Apagar todo o progresso\u2026")
     ));
     async function drawUsage() {
-      let persisted = null, quota = null;
-      try {
-        persisted = await navigator.storage.persisted();
-        const est = await navigator.storage.estimate();
-        quota = est;
-      } catch (e) {
-      }
-      const r = await recordingsUsage();
+      clear(usage).append(h("span", { class: "muted", text: "Medindo\u2026" }), h("span", {}));
+      if (App2.runRetention) await App2.runRetention();
+      const r = await storageReport();
+      if (!usage.isConnected) return;
+      const kb = (b) => `${Math.round(b / 1024).toLocaleString("pt-BR")} KB`;
+      const mb2 = (b) => `${(b / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} MB`;
+      const row = (label, value, role) => [h("span", { text: label }), h("span", { text: value, "data-role": role || null })];
       clear(usage).append(
-        h("span", { text: "Armazenamento" }),
-        h("span", { text: backend === "indexeddb" ? "IndexedDB" : backend === "localstorage" ? "localStorage (limitado)" : "\u2014" }),
-        h("span", { text: "Protegido contra limpeza" }),
-        h("span", { text: persisted === null ? "\u2014" : persisted ? "sim" : "n\xE3o" }),
-        h("span", { text: "Cart\xF5es de estudo" }),
-        h("span", { text: String(Object.keys(state.cards).length) }),
-        h("span", { text: "Grava\xE7\xF5es salvas" }),
-        h("span", { text: `${r.count} (${Math.round(r.bytes / 1024)} KB)` }),
-        h("span", { text: "Uso total" }),
-        h("span", { text: quota ? `${Math.round(quota.usage / 1048576)} MB` : "\u2014" }),
-        h("span", { text: "\xDAltimo backup" }),
-        h("span", { text: state.lastBackupAt ? fmtDate(state.lastBackupAt) : "nunca" })
+        ...row("Armazenamento", backend === "indexeddb" ? "IndexedDB" : backend === "localstorage" ? "localStorage (limitado)" : "\u2014"),
+        ...row("Protegido contra limpeza", r.persisted === null ? "\u2014" : r.persisted ? "sim (pedido aceito pelo navegador)" : "n\xE3o", "persisted"),
+        ...row("Cart\xF5es de estudo", String(Object.keys(state.cards).length)),
+        ...row("Grava\xE7\xF5es salvas", `${r.recordings.count} (${kb(r.recordings.bytes)})`, "rec-usage"),
+        ...r.recordings.textOnly ? row("Resultados sem \xE1udio", `${r.recordings.textOnly} (\xE1udio j\xE1 apagado; transcri\xE7\xE3o e an\xE1lise mantidas)`, "rec-textonly") : [],
+        ...row("Progresso e respostas", kb(r.study), "study-usage"),
+        ...r.cache ? row("App offline (textos e \xE1udios de refer\xEAncia)", mb2(r.cache.app), "app-cache") : [],
+        ...r.cache ? row("Reconhecimento de fala local", r.cache.asr ? mb2(r.cache.asr) : "n\xE3o instalado", "asr-cache") : [],
+        ...row("Uso total (estimativa do navegador)", r.usage === null ? "\u2014" : `\u2248 ${mb2(r.usage)}`, "usage-total"),
+        ...r.unattributed ? row("N\xE3o atribu\xEDdo (dados internos do navegador)", `\u2248 ${mb2(r.unattributed)}`, "usage-other") : [],
+        ...row("\xDAltimo backup", state.lastBackupAt ? fmtDate(state.lastBackupAt) : "nunca")
       );
     }
     drawUsage();
@@ -5834,6 +6007,26 @@
     route();
     if (problem) toast(problem, 6e3);
     registerServiceWorker();
+    scheduleRetention();
+  }
+  var retentionRunning = null;
+  App.runRetention = (now) => {
+    if (!retentionRunning) {
+      retentionRunning = pruneRecordings(now === void 0 ? {} : { now }).then((r) => {
+        App.lastRetention = { ...r, at: now || Date.now() };
+        return r;
+      }).catch(() => null).finally(() => {
+        retentionRunning = null;
+      });
+    }
+    return retentionRunning;
+  };
+  function scheduleRetention() {
+    setTimeout(() => App.runRetention(), 1500);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") App.runRetention();
+    });
+    setInterval(() => App.runRetention(), 60 * 60 * 1e3);
   }
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;

@@ -110,6 +110,26 @@ async function boot() {
   route();
   if (problem) toast(problem, 6000);
   registerServiceWorker();
+  scheduleRetention();
+}
+
+// ---------- retenção de 7 dias dos áudios gravados (store/db.js#pruneRecordings) ----------
+// Roda depois da primeira tela (nunca atrasa a abertura), ao voltar para o app e de hora em hora com ele aberto.
+// Não depende de tarefas em segundo plano; falhas são ignoradas e tentadas de novo no próximo momento.
+let retentionRunning = null;
+App.runRetention = (now) => {
+  if (!retentionRunning) {
+    retentionRunning = db.pruneRecordings(now === undefined ? {} : { now })
+      .then((r) => { App.lastRetention = { ...r, at: now || Date.now() }; return r; })
+      .catch(() => null)
+      .finally(() => { retentionRunning = null; });
+  }
+  return retentionRunning;
+};
+function scheduleRetention() {
+  setTimeout(() => App.runRetention(), 1500);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') App.runRetention(); });
+  setInterval(() => App.runRetention(), 60 * 60 * 1000);
 }
 
 function registerServiceWorker() {
