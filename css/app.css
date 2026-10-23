@@ -369,3 +369,6 @@ details.more.card { padding: 4px 16px; margin-top: 12px; }
 .fa-tips { margin-top: 12px; }
 .fa-tips ul { margin: 4px 0 0; padding-left: 20px; }
 .fa-metrics { list-style: none; padding: 0; margin: 4px 0; }
+
+/* diferença de estilo (ex.: “the office” × “my office”): informativa, não é erro */
+.diff .style { border-bottom: 1.5px dotted var(--muted); }

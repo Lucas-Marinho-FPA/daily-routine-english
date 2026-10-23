@@ -8,7 +8,7 @@
 //   meaning          falta o conteúdo essencial → não aceita
 //   inconclusive     diferença que o motor não consegue julgar com segurança → mostra a diferença; o usuário decide
 //   empty            sem resposta
-import { basicNormalise, wordTokens, levenshtein, lcsAlign, findPattern, inflections } from './text.js';
+import { basicNormalise, wordTokens, tokenSpans, levenshtein, lcsAlign, findPattern, inflections } from './text.js';
 
 const ACCEPTED = new Set(['correct', 'accepted_variant', 'variant_ame', 'spelling']);
 const TIME_PREP = new Set(['at', 'until', 'by', 'around', 'about', 'from', 'till', 'before', 'after', 'between']);
@@ -23,81 +23,114 @@ export function createChecker(lang, { userVariants = {} } = {}) {
   const synonymGroups = (lang.synonyms || []).map((g) => g.map((p) => wordTokens(p)));
   const rules = (lang.errors || []).map((e) => ({ ...e, rx: new RegExp(e.re, 'i') }));
 
-  // ---------- normalização em tokens ----------
-  function expandContractions(tokens) {
-    const out = [];
-    for (const t of tokens) {
-      if (contractions[t]) out.push(...contractions[t].split(' '));
-      else if (/^\w+'s$/.test(t)) out.push(t.replace(/'s$/, ''), "'s");
-      else out.push(t);
-    }
-    return out.filter((t) => t !== "'s");
+  // ---------- normalização em tokens (com procedência) ----------
+  // Cada token guarda `src`: os índices dos trechos do texto ORIGINAL (tokenSpans) de onde veio. Assim a
+  // diferença é mostrada por posição no texto que o aluno escreveu, nunca por palavra solta normalizada.
+  const tok = (t, src) => ({ t, src });
+  const srcUnion = (list) => [...new Set(list.flatMap((o) => o.src))].sort((a, b) => a - b);
+
+  function srcTokens(text) {
+    const spans = tokenSpans(text);
+    const toks = [];
+    spans.forEach((sp, k) => { for (const w of wordTokens(sp.text)) toks.push(tok(w, [k])); });
+    return { spans, toks };
   }
 
-  // Horas → token canônico "@H:MM" ou "@H:MMam/pm"
-  function canonTimes(tokens) {
+  function expandContractionsS(toks) {
     const out = [];
-    const num = (t) => (/^\d{1,2}$/.test(t) ? Number(t) : numberWords[t]);
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-      let h = null, m = 0, consumed = 0;
-      let match;
-      if ((match = /^(\d{1,2}):(\d{2})$/.exec(t))) { h = +match[1]; m = +match[2]; consumed = 1; }
-      else if ((match = /^(\d{1,2})h(\d{2})?$/.exec(t))) { h = +match[1]; m = match[2] ? +match[2] : 0; consumed = 1; }
-      else if ((match = /^(\d{1,2})(am|pm)$/.exec(t))) { h = +match[1]; consumed = 1; tokens.splice(i + 1, 0, match[2]); }
-      else if (t === 'midnight') { out.push('@12:00am'); continue; }
-      else if (t === 'noon' || t === 'midday') { out.push('@12:00pm'); continue; }
-      else if (t === 'half' && tokens[i + 1] === 'past' && num(tokens[i + 2]) <= 12) { h = num(tokens[i + 2]); m = 30; consumed = 3; }
-      else if (t === 'quarter' && tokens[i + 1] === 'past' && num(tokens[i + 2]) <= 12) { h = num(tokens[i + 2]); m = 15; consumed = 3; if (out[out.length - 1] === 'a') out.pop(); }
-      else if (t === 'quarter' && tokens[i + 1] === 'to' && num(tokens[i + 2]) <= 12) { h = num(tokens[i + 2]) - 1 || 12; m = 45; consumed = 3; if (out[out.length - 1] === 'a') out.pop(); }
-      else if (num(t) !== undefined && num(t) >= 1 && num(t) <= 12) {
-        const next = tokens[i + 1];
-        const nextNum = numberWords[next];
-        const isTimeContext = ['am', 'pm', "o'clock", 'oclock', 'sharp'].includes(next) || TIME_PREP.has(tokens[i - 1]) ||
-          (tokens[i + 1] === 'in' && tokens[i + 2] === 'the' && ['morning', 'afternoon', 'evening'].includes(tokens[i + 3]));
-        if (isTimeContext) {
-          h = num(t); consumed = 1;
-          if (nextNum !== undefined && nextNum >= 10 && nextNum < 60 && nextNum !== 12) { m = nextNum; consumed = 2; } // "five forty-five"
-        }
-      }
-      if (h === null) { out.push(t); continue; }
-      i += consumed - 1;
-      let mer = '';
-      if (tokens[i + 1] === "o'clock" || tokens[i + 1] === 'oclock') { i++; }
-      if (tokens[i + 1] === 'am' || tokens[i + 1] === 'pm') { mer = tokens[i + 1]; i++; }
-      else if (tokens[i + 1] === 'in' && tokens[i + 2] === 'the' && tokens[i + 3] === 'morning') { mer = 'am'; i += 3; }
-      else if (tokens[i + 1] === 'in' && tokens[i + 2] === 'the' && ['afternoon', 'evening'].includes(tokens[i + 3])) { mer = 'pm'; i += 3; }
-      else if (tokens[i + 1] === 'at' && tokens[i + 2] === 'night') { mer = 'pm'; i += 2; }
-      if (h > 12 && h < 24) { h -= 12; mer = 'pm'; }
-      out.push(`@${h}:${String(m).padStart(2, '0')}${mer}`);
+    for (const o of toks) {
+      if (contractions[o.t]) out.push(...contractions[o.t].split(' ').map((w) => tok(w, o.src)));
+      else if (/^\w+'s$/.test(o.t)) out.push(tok(o.t.replace(/'s$/, ''), o.src));
+      else out.push(o);
     }
     return out;
   }
 
-  function numbersToDigits(tokens) {
-    return tokens.map((t) => (numberWords[t] !== undefined && !/^@/.test(t) ? String(numberWords[t]) : t));
+  // Horas → token canônico "@H:MM" ou "@H:MMam/pm". `style` recebe formas compreensíveis mas pouco naturais.
+  function canonTimesS(toks, style = []) {
+    const tk = toks.map((o) => o.t);
+    const out = [];
+    const num = (t) => (/^\d{1,2}$/.test(t) ? Number(t) : numberWords[t]);
+    // minutos a partir de j: "thirty", "forty five", "45"
+    const minutesAt = (j) => {
+      if (/^\d{2}$/.test(tk[j] || '') && +tk[j] < 60) return { m: +tk[j], n: 1 };
+      const a = numberWords[tk[j]];
+      if (a === undefined) return null;
+      const b = numberWords[tk[j + 1]];
+      if ([20, 30, 40, 50].includes(a) && b >= 1 && b <= 9) return { m: a + b, n: 2 };
+      if (a >= 10 && a < 60 && a !== 12) return { m: a, n: 1 };
+      return null;
+    };
+    for (let i = 0; i < toks.length; i++) {
+      const t = tk[i];
+      let h = null, m = 0, consumed = 0, unnatural = false;
+      let match;
+      if ((match = /^(\d{1,2}):(\d{2})$/.exec(t))) { h = +match[1]; m = +match[2]; consumed = 1; }
+      else if ((match = /^(\d{1,2})h(\d{2})?$/.exec(t))) { h = +match[1]; m = match[2] ? +match[2] : 0; consumed = 1; }
+      else if ((match = /^(\d{1,2}(?::\d{2})?)(am|pm)$/.exec(t))) {
+        const [hh, mm] = match[1].split(':');
+        out.push(tok(`@${+hh}:${mm || '00'}${match[2]}`, toks[i].src)); continue;
+      }
+      else if (t === 'midnight') { out.push(tok('@12:00am', toks[i].src)); continue; }
+      else if (t === 'noon' || t === 'midday') { out.push(tok('@12:00pm', toks[i].src)); continue; }
+      else if (t === 'half' && tk[i + 1] === 'past' && num(tk[i + 2]) <= 12) { h = num(tk[i + 2]); m = 30; consumed = 3; }
+      else if (t === 'quarter' && tk[i + 1] === 'past' && num(tk[i + 2]) <= 12) { h = num(tk[i + 2]); m = 15; consumed = 3; if (out.length && out[out.length - 1].t === 'a') out.pop(); }
+      else if (t === 'quarter' && tk[i + 1] === 'to' && num(tk[i + 2]) <= 12) { h = num(tk[i + 2]) - 1 || 12; m = 45; consumed = 3; if (out.length && out[out.length - 1].t === 'a') out.pop(); }
+      else if (num(t) !== undefined && num(t) >= 1 && num(t) <= 12) {
+        const isTimeContext = ['am', 'pm', "o'clock", 'oclock', 'sharp'].includes(tk[i + 1]) || TIME_PREP.has(tk[i - 1]) ||
+          (tk[i + 1] === 'in' && tk[i + 2] === 'the' && ['morning', 'afternoon', 'evening'].includes(tk[i + 3]));
+        if (isTimeContext) {
+          h = num(t); consumed = 1;
+          const mm = minutesAt(i + 1);
+          if (mm) { m = mm.m; consumed = 1 + mm.n; } // "five thirty", "five forty-five"
+          else if (tk[i + 1] === 'and') {
+            // “five and thirty” (calque do português “cinco e trinta”): compreensível, pouco natural
+            const m2 = minutesAt(i + 2);
+            if (m2) { m = m2.m; consumed = 2 + m2.n; unnatural = true; }
+          }
+        }
+      }
+      if (h === null) { out.push(toks[i]); continue; }
+      const parts = toks.slice(i, i + consumed);
+      i += consumed - 1;
+      let mer = '';
+      if (tk[i + 1] === "o'clock" || tk[i + 1] === 'oclock') { parts.push(toks[++i]); }
+      if (tk[i + 1] === 'am' || tk[i + 1] === 'pm') { mer = tk[i + 1]; parts.push(toks[++i]); }
+      else if (tk[i + 1] === 'in' && tk[i + 2] === 'the' && tk[i + 3] === 'morning') { mer = 'am'; parts.push(...toks.slice(i + 1, i + 4)); i += 3; }
+      else if (tk[i + 1] === 'in' && tk[i + 2] === 'the' && ['afternoon', 'evening'].includes(tk[i + 3])) { mer = 'pm'; parts.push(...toks.slice(i + 1, i + 4)); i += 3; }
+      else if (tk[i + 1] === 'at' && tk[i + 2] === 'night') { mer = 'pm'; parts.push(...toks.slice(i + 1, i + 3)); i += 2; }
+      if (h > 12 && h < 24) { h -= 12; mer = 'pm'; }
+      const src = srcUnion(parts);
+      if (unnatural) style.push({ kind: 'time-and', src, h, m, mer });
+      out.push(tok(`@${h}:${String(m).padStart(2, '0')}${mer}`, src));
+    }
+    return out;
   }
 
-  function applyAmE(tokens) {
+  const numbersToDigitsS = (toks) => toks.map((o) => (numberWords[o.t] !== undefined && !/^@/.test(o.t) ? tok(String(numberWords[o.t]), o.src) : o));
+
+  function applyAmES(toks) {
     let changed = false;
-    const out = tokens.map((t, i) => {
-      if (ame[t]) { changed = true; return ame[t]; }
-      if (t === 'practice' && PRACTICE_SUBJ.has(tokens[i - 1])) { changed = true; return 'practise'; }
-      if (t === 'practices' && ['my', 'wife', 'he', 'she', 'son'].includes(tokens[i - 1])) { changed = true; return 'practises'; }
-      return t;
+    const out = toks.map((o, i) => {
+      const prev = toks[i - 1] && toks[i - 1].t;
+      if (ame[o.t]) { changed = true; return tok(ame[o.t], o.src); }
+      if (o.t === 'practice' && PRACTICE_SUBJ.has(prev)) { changed = true; return tok('practise', o.src); }
+      if (o.t === 'practices' && ['my', 'wife', 'he', 'she', 'son'].includes(prev)) { changed = true; return tok('practises', o.src); }
+      return o;
     });
     return { tokens: out, changed };
   }
 
-  function applySynonyms(tokens) {
+  function applySynonymsS(toks) {
     let changed = false;
-    let out = tokens.slice();
+    let out = toks.slice();
     for (const group of synonymGroups) {
       const canon = group[0];
       for (const alt of group.slice(1)) {
         for (let i = 0; i + alt.length <= out.length; i++) {
-          if (alt.every((t, k) => out[i + k] === t)) {
-            out = [...out.slice(0, i), ...canon, ...out.slice(i + alt.length)];
+          if (alt.every((t, k) => out[i + k].t === t)) {
+            const src = srcUnion(out.slice(i, i + alt.length));
+            out = [...out.slice(0, i), ...canon.map((t) => tok(t, src)), ...out.slice(i + alt.length)];
             changed = true;
           }
         }
@@ -106,11 +139,22 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     return { tokens: out, changed };
   }
 
+  // versões em texto puro (usadas pela cobertura de respostas longas)
+  const plain = (fn) => (tokens) => fn(tokens.map((t) => tok(t, []))).map((o) => o.t);
+  const expandContractions = plain(expandContractionsS);
+  const canonTimes = plain((x) => canonTimesS(x));
+  const numbersToDigits = plain(numbersToDigitsS);
+  const applyAmE = (tokens) => { const r = applyAmES(tokens.map((t) => tok(t, []))); return { tokens: r.tokens.map((o) => o.t), changed: r.changed }; };
+  const applySynonyms = (tokens) => { const r = applySynonymsS(tokens.map((t) => tok(t, []))); return { tokens: r.tokens.map((o) => o.t), changed: r.changed }; };
+
   function prepare(text) {
-    const base = numbersToDigits(canonTimes(expandContractions(wordTokens(text))));
-    const a = applyAmE(base);
-    const s = applySynonyms(a.tokens);
-    return { base, bre: a.tokens, full: s.tokens, ame: a.changed, syn: s.changed };
+    const { spans, toks } = srcTokens(text);
+    const style = [];
+    const baseS = numbersToDigitsS(canonTimesS(expandContractionsS(toks), style));
+    const a = applyAmES(baseS);
+    const s = applySynonymsS(a.tokens);
+    const strs = (l) => l.map((o) => o.t);
+    return { base: strs(baseS), bre: strs(a.tokens), full: strs(s.tokens), baseS, breS: a.tokens, fullS: s.tokens, spans, style, ame: a.changed, syn: s.changed };
   }
 
   const timeEq = (x, y) => {
@@ -134,6 +178,59 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     return rules.filter((r) => r.rx.test(a) && !r.rx.test(t));
   }
 
+  // ---------- diferença por posição (no texto original) ----------
+  const spanText = (P, srcs) => {
+    if (!srcs.length) return '';
+    const a = Math.min(...srcs), b = Math.max(...srcs);
+    return P.text.slice(P.spans[a].start, P.spans[b].end);
+  };
+  const srcOf = (list) => [...new Set(list.flatMap((o) => o.src))];
+
+  /**
+   * Classifica cada trecho do original: ok | equiv (equivalente: hora/número escrito de outro jeito) |
+   * style (troca de artigo/possessivo: “the office” × “my office”) | extra | miss | typo.
+   * A comparação é feita por LACUNAS entre âncoras alinhadas, nunca por palavra solta.
+   */
+  function buildDiff(A, P, pairs) {
+    const aState = A.spans.map(() => 'ok'), pState = P.spans.map(() => 'ok');
+    const RANK = { ok: 0, equiv: 1, style: 2, typo: 3, extra: 4, miss: 4 };
+    const set = (st, srcs, v) => srcs.forEach((k) => { if (RANK[v] > RANK[st[k]]) st[k] = v; });
+    const swaps = [];
+    const anchors = [[-1, -1], ...pairs, [A.fullS.length, P.fullS.length]];
+    for (let g = 0; g < anchors.length - 1; g++) {
+      const [i0, j0] = anchors[g], [i1, j1] = anchors[g + 1];
+      const aG = A.fullS.slice(i0 + 1, i1), pG = P.fullS.slice(j0 + 1, j1);
+      if (aG.length && pG.length && aG.every((o) => determiners.has(o.t)) && pG.every((o) => determiners.has(o.t))) {
+        set(aState, srcOf(aG), 'style'); set(pState, srcOf(pG), 'style');
+        swaps.push({ a: srcOf(aG), p: srcOf(pG), nextA: i1 < A.fullS.length ? A.fullS[i1].src : [], nextP: j1 < P.fullS.length ? P.fullS[j1].src : [] });
+        continue;
+      }
+      set(aState, srcOf(aG), 'extra');
+      set(pState, srcOf(pG), 'miss');
+    }
+    for (const [i, j] of pairs) {
+      const a = A.fullS[i], b = P.fullS[j];
+      if (a.t !== b.t && !timeEq(a.t, b.t)) { set(aState, a.src, 'typo'); continue; }
+      // mesma unidade de sentido escrita de outro jeito (ex.: “five thirty a.m.” × “5:30”)
+      const sa = wordTokens(spanText(A, a.src)).join(' '), sb = wordTokens(spanText(P, b.src)).join(' ');
+      if (sa !== sb && a.t[0] === '@') { set(aState, a.src, 'equiv'); set(pState, b.src, 'equiv'); }
+    }
+    const view = (X, st) => X.spans.map((sp, k) => ({ start: sp.start, end: sp.end, state: st[k] }));
+    return { answerSpans: view(A, aState), targetSpans: view(P, pState), swaps };
+  }
+
+  /** Expressões compreensíveis, mas pouco naturais (ex.: “five and thirty” → “five thirty”). */
+  function naturalnessNotes(A) {
+    return A.style.map((st) => {
+      if (st.kind !== 'time-and') return null;
+      const k0 = Math.min(...st.src);
+      const prev = k0 > 0 && TIME_PREP.has(wordTokens(A.spans[k0 - 1].text)[0]) ? [k0 - 1] : [];
+      const surface = spanText(A, [...prev, ...st.src]);
+      const better = surface.replace(/\s+and\s+/i, ' ');
+      return `Seu significado está claro (${st.h}:${String(st.m).padStart(2, '0')}). Uma forma mais natural é: “${better.charAt(0).toUpperCase()}${better.slice(1)}”.`;
+    }).filter(Boolean);
+  }
+
   // ---------- verificação ----------
   /**
    * @param {string} answer   resposta do usuário
@@ -146,15 +243,16 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     const result = (cls, extra = {}) => ({ cls, accepted: ACCEPTED.has(cls), model, answer: raw, notes: [], diff: null, ...extra });
     if (!raw) return result('empty');
 
-    const A = prepare(raw);
+    const A = { text: raw, ...prepare(raw) };
     const allTargets = [...targets, ...((opts.itemId && userVariants[opts.itemId]) || [])];
     const prepared = allTargets.map((t) => ({ text: t, ...prepare(t) }));
     const P0 = prepared[0];
+    const natural = naturalnessNotes(A);
 
-    // 1. exatamente o modelo
-    if (same(A.base, P0.base)) return result('correct');
+    // 1. exatamente o modelo (uma forma pouco natural, mas compreensível, é aceita com sugestão)
+    if (same(A.base, P0.base)) return natural.length ? result('accepted_variant', { notes: natural }) : result('correct');
     // 2. grafia americana
-    if (A.ame && same(A.bre, P0.bre)) return result('variant_ame', { notes: ['Grafia americana aceita. No inglês britânico: ' + P0.text] });
+    if (A.ame && same(A.bre, P0.bre)) return result('variant_ame', { notes: ['Grafia americana aceita. No inglês britânico: ' + P0.text, ...natural] });
     // 3. variantes (do item, sinônimos seguros, aprovadas pelo usuário); regras leves viram observação
     const soft = ruleHits(raw, model).filter((h) => h.soft).map((h) => h.msg);
     for (let i = 0; i < prepared.length; i++) {
@@ -162,7 +260,7 @@ export function createChecker(lang, { userVariants = {} } = {}) {
       if (same(A.full, P.full) || same(A.bre, P.bre)) {
         const fromUser = i >= targets.length;
         const note = i === 0 ? 'Variante equivalente aceita.' : fromUser ? 'Aceita por você anteriormente (variante pessoal).' : `Variante aceita: “${P.text}”.`;
-        return result('accepted_variant', { notes: [note, ...(A.ame ? ['Grafia americana: no BrE use a forma britânica.'] : []), ...soft] });
+        return result('accepted_variant', { notes: [note, ...(A.ame ? ['Grafia americana: no BrE use a forma britânica.'] : []), ...natural, ...soft] });
       }
     }
 
@@ -179,11 +277,28 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     const extra = A.full.filter((_, i) => !matchedA.has(i));
     const missing = P.full.filter((_, j) => !matchedT.has(j));
     const typos = pairs.filter(([i, j]) => A.full[i] !== P.full[j] && !timeEq(A.full[i], P.full[j])).map(([i, j]) => [A.full[i], P.full[j]]);
+    const view = buildDiff(A, P, pairs);
     const diff = {
       target: P.full.map((t, j) => ({ t, ok: matchedT.has(j) })),
       answer: A.full.map((t, i) => ({ t, ok: matchedA.has(i) })),
       missing, extra, typos,
+      targetText: P.text, answerText: raw, targetSpans: view.targetSpans, answerSpans: view.answerSpans,
     };
+    // diferenças descritas com as palavras ORIGINAIS (nunca tokens internos como “@5:30”)
+    const listSpans = (X, spans, st) => {
+      const out = [];
+      let cur = null;
+      spans.forEach((sp, k) => {
+        if (sp.state === st) { if (cur && cur.end === k - 1) cur.end = k; else out.push(cur = { start: k, end: k }); }
+      });
+      return out.map((r) => `“${X.slice(spans[r.start].start, spans[r.end].end)}”`);
+    };
+    const missingSurf = listSpans(P.text, view.targetSpans, 'miss');
+    const extraSurf = listSpans(raw, view.answerSpans, 'extra');
+    const swapNotes = view.swaps.map((sw) => {
+      const a = spanText(A, [...sw.a, ...sw.nextA]), b = spanText(P, [...sw.p, ...sw.nextP]);
+      return `“${a}” também está correto aqui; o modelo usa “${b}”.`;
+    });
 
     // 5. regras gramaticais reconhecidas (só quando a resposta tem relação com o modelo; senão é erro de sentido)
     const hits = ruleHits(raw, P.text);
@@ -191,13 +306,21 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     const contentT0 = P.full.filter((t) => !stop.has(t) && !determiners.has(t));
     const related = !contentT0.length || P.full.some((t, j) => matchedT.has(j) && !stop.has(t) && !determiners.has(t));
     if (hard.length && related) {
-      return result('grammar', { diff, notes: hard.map((h) => h.msg), rules: hard.map((h) => h.id) });
+      return result('grammar', { diff, notes: [...hard.map((h) => h.msg), ...natural], rules: hard.map((h) => h.id) });
     }
-    const softNotes = hits.filter((h) => h.soft).map((h) => h.msg);
+    const softNotes = [...hits.filter((h) => h.soft).map((h) => h.msg), ...natural];
 
+    // 6a. “digitação” que é, na verdade, outra FORMA da palavra (gets × get, worked × work): gramática, não digitação
+    // só verbos logo depois do sujeito (“I gets”, “she work”); plural de substantivo (oat × oats) segue tolerado
+    const SUBJ = new Set(['i', 'you', 'we', 'they', 'he', 'she', 'it']);
+    const formSwaps = pairs.filter(([i, j]) => A.full[i] !== P.full[j] && SUBJ.has(A.full[i - 1]) && SUBJ.has(P.full[j - 1])
+      && ([...inflections(A.full[i])].includes(P.full[j]) || [...inflections(P.full[j])].includes(A.full[i]))).map(([i, j]) => [A.full[i], P.full[j]]);
+    if (!missing.length && !extra.length && formSwaps.length && related) {
+      return result('grammar', { diff, rules: ['E_FORM'], notes: [`Forma da palavra: ${formSwaps.map(([a, b]) => `você escreveu “${a}”, o modelo usa “${b}”`).join('; ')}.${formSwaps.some(([a, b]) => a === b + 's' || a === b + 'es') ? ' Com I/you/we/they o verbo no presente fica sem -s.' : ''}`, ...swapNotes, ...softNotes] });
+    }
     // 6. só erros de digitação
     if (!missing.length && !extra.length && typos.length) {
-      return result('spelling', { diff, notes: [`Pequeno erro de digitação: ${typos.map(([a, b]) => `“${a}” → “${b}”`).join(', ')}.`, ...softNotes] });
+      return result('spelling', { diff, notes: [`Pequeno erro de digitação: ${typos.map(([a, b]) => `“${a}” → “${b}”`).join(', ')}.`, ...swapNotes, ...softNotes] });
     }
 
     // 7. concordância (-s) e plural: palavra faltante = palavra extra + s/es/ies
@@ -206,14 +329,14 @@ export function createChecker(lang, { userVariants = {} } = {}) {
       return result('grammar', { diff, notes: [`Concordância: o modelo usa “${agreement.join('”, “')}”. Na 3ª pessoa (he/she/it, my wife, the laptop) o verbo leva -s.`, ...softNotes], rules: ['E_AGREEMENT'] });
     }
 
-    // 8. diferenças só de determinantes (a/the/my…)
+    // 8. diferenças só de determinantes (a/the/my…): troca = estilo (aceito); falta = gramática
     const missingContent = missing.filter((t) => !determiners.has(t));
     const extraContent = extra.filter((t) => !determiners.has(t));
     if (!missingContent.length && !extraContent.length) {
-      const swapped = missing.length && extra.length;
-      if (swapped) return result('accepted_variant', { diff, notes: [`Aceito. O modelo usa “${missing.join(' ')}” em vez de “${extra.join(' ')}”.`, ...softNotes] });
-      if (missing.length) return result('grammar', { diff, notes: [`Falta o artigo/determinante “${missing.join(' ')}”. Ex.: ${P.text}`, ...softNotes], rules: ['E_ARTICLE'] });
-      return result('accepted_variant', { diff, notes: [`Aceito, com palavra a mais: “${extra.join(' ')}”.`, ...softNotes] });
+      // por posição: trocado no mesmo lugar (the ↔ my) = estilo; faltando sem nada no lugar = gramática
+      if (missingSurf.length) return result('grammar', { diff, notes: [`Falta o artigo/determinante ${missingSurf.join(', ')}. Ex.: ${P.text}`, ...swapNotes, ...softNotes], rules: ['E_ARTICLE'] });
+      if (view.swaps.length) return result('accepted_variant', { diff, notes: [`Aceito. ${swapNotes.join(' ')}`, ...softNotes] });
+      return result('accepted_variant', { diff, notes: [`Aceito, com palavra a mais: ${extraSurf.join(', ')}.`, ...softNotes] });
     }
 
     // 9. cobertura de conteúdo
@@ -223,12 +346,12 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     const overlap = pairs.length;
 
     if (overlap === 0 || coverage < 0.5) {
-      return result('meaning', { diff, coverage, notes: [`A resposta não contém o essencial: ${missingContent.slice(0, 4).map((t) => `“${t}”`).join(', ') || 'conteúdo esperado'}.`, ...hard.map((h) => 'Além disso: ' + h.msg), ...softNotes] });
+      return result('meaning', { diff, coverage, notes: [`A resposta não contém o essencial: ${missingSurf.slice(0, 4).join(', ') || 'conteúdo esperado'}.`, ...hard.map((h) => 'Além disso: ' + h.msg), ...softNotes] });
     }
     // Substituições pequenas: o motor não sabe se o sinônimo é válido → inconclusivo, com a diferença
     return result('inconclusive', {
       diff, coverage,
-      notes: [`Diferença em relação ao modelo: ${missingContent.length ? 'faltou ' + missingContent.map((t) => `“${t}”`).join(', ') : ''}${missingContent.length && extraContent.length ? '; ' : ''}${extraContent.length ? 'você usou ' + extraContent.map((t) => `“${t}”`).join(', ') : ''}. Se tiver certeza de que é equivalente, marque “Eu estava certo”.`, ...softNotes],
+      notes: [`Diferença em relação ao modelo: ${missingSurf.length ? 'o modelo tem ' + missingSurf.join(', ') : ''}${missingSurf.length && extraSurf.length ? '; ' : ''}${extraSurf.length ? 'você usou ' + extraSurf.join(', ') : ''}. Se tiver certeza de que é equivalente, marque “Eu estava certo”.`, ...swapNotes, ...softNotes],
     });
   }
 
@@ -254,7 +377,10 @@ export function createChecker(lang, { userVariants = {} } = {}) {
     return { keywords: kw, items: it, ratio, grammar: hits.map((h) => ({ id: h.id, msg: h.msg, soft: !!h.soft })), words: tokens.length };
   }
 
-  return { check, coverage, prepare, isAccepted: (cls) => ACCEPTED.has(cls) };
+  /** Formas compreensíveis, mas pouco naturais, num texto livre (ex.: transcrição de uma resposta oral). */
+  const naturalness = (text) => naturalnessNotes({ text, ...prepare(text) });
+
+  return { check, coverage, prepare, naturalness, isAccepted: (cls) => ACCEPTED.has(cls) };
 }
 
 export { ACCEPTED };

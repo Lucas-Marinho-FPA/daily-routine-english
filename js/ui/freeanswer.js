@@ -9,13 +9,14 @@ import { segment } from '../engine/wordfeedback.js';
 import { latestGate } from '../engine/practice.js';
 import { loadLexicon } from '../engine/lexicon.js';
 import { analyseFreeAnswer, buildVocab, insufficientAudio, STATUS_LABEL } from '../engine/freeanswer.js';
+import { findDivergences, contextPool } from '../engine/context.js';
 import { legend } from './inlinewords.js';
 import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
 
 const vocabCache = new WeakMap();
 const vocabOf = (content) => { if (!vocabCache.has(content)) vocabCache.set(content, buildVocab(content)); return vocabCache.get(content); };
 const fmt = (n) => String(n).replace('.', ',');
-const STATE_LABEL = { good: 'Reconhecida', needs_practice: 'Revisar', uncertain: 'Não avaliada' };
+const STATE_LABEL = { good: 'Reconhecida', needs_practice: 'Possível erro de reconhecimento', uncertain: 'Não avaliada' };
 
 /**
  * opts: { question, model, modelClips, unit: 'q'|'block'|'routine'|'drill' }
@@ -78,7 +79,10 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     await loadLexicon();
     if (!alive || !gate.isCurrent(ticket)) return; // nova gravação ou tela fechada: resultado antigo descartado
     const grammar = text && App.checker ? App.checker.coverage(text, { keywords: [] }).grammar : [];
-    const r = analyseFreeAnswer({ question, model, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar });
+    // camada contextual: hipóteses de erro do reconhecedor (a transcrição em si não é alterada)
+    const divergences = text && App.checker ? findDivergences(text, { checker: App.checker, pool: contextPool(App.content, App.checker), model }) : [];
+    const naturalness = text && App.checker ? App.checker.naturalness(text) : [];
+    const r = analyseFreeAnswer({ question, model, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar, divergences, naturalness });
     render(r, !!saved);
     if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now() } });
   }
@@ -115,20 +119,25 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     const panel = h('div', { class: 'practice-panel hidden', 'aria-live': 'polite' });
     const tb = transcriptBox(r, (i) => focusPractice(i));
     function focusPractice(i) {
-      const x = r.practice.find((p) => p.w === i);
-      tb.focus(i);
-      chips.querySelectorAll('.pchip').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.w) === i)));
+      const x = r.practice.find((p) => p.w === i || (p.ws && p.ws.includes(i)));
+      tb.focus(x && x.ws ? x.ws : i);
+      chips.querySelectorAll('.pchip').forEach((b) => b.setAttribute('aria-pressed', String(!!x && Number(b.dataset.w) === x.w)));
       if (!x) { panel.classList.add('hidden'); return; }
-      const refKey = x.ref ? audioKey(x.ref.toLowerCase()) : null;
+      if (x.ws) tb.focus(x.ws);
+      // áudio de referência só quando existe de fato: a palavra isolada, ou a frase do conteúdo com o trecho esperado
+      const refKey = x.ref ? audioKey(x.ref.toLowerCase().replace(/[.,!?;:]+$/, '')) : null;
       const hasRef = refKey && player.hasEmbedded(refKey);
+      const hasSentence = x.refAu && player.hasEmbedded(x.refAu);
       if (hasRef) player.play({ key: refKey, text: x.ref });
+      else if (hasSentence) player.play({ key: x.refAu, text: x.refText });
       clear(panel).append(
         h('p', { class: 'small', text: x.reason }),
         h('div', { class: 'row' },
           hasRef ? h('button', { class: 'btn small', type: 'button', onclick: () => player.play({ key: refKey, text: x.ref }) }, icon('speaker'), `Ouvir “${x.ref}”`) : null,
+          hasSentence ? h('button', { class: 'btn small', type: 'button', onclick: () => player.play({ key: x.refAu, text: x.refText }) }, icon('speaker'), 'Ouvir a frase de referência') : null,
           mineBtn(),
           modelClips.length ? h('button', { class: 'btn small', type: 'button', onclick: () => player.playSequence(modelClips) }, icon('play'), 'Ouvir o exemplo') : null),
-        h('p', { class: 'tiny muted', text: hasRef ? 'Ouça, repita a palavra algumas vezes e grave a resposta de novo.' : 'Não há áudio de referência para esta palavra; compare com sua gravação e com o exemplo.' }),
+        h('p', { class: 'tiny muted', text: hasRef || hasSentence ? 'Ouça sua gravação e a referência. Se o app ouviu errado, está tudo certo; se a palavra saiu diferente, repita e grave de novo.' : 'Não há áudio de referência para este trecho; compare com sua gravação e com o exemplo.' }),
         h('button', { class: 'btn primary block', type: 'button', onclick: recordAgain }, icon('mic'), 'Gravar a resposta de novo'));
       panel.classList.remove('hidden');
     }
@@ -147,9 +156,12 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
         h('span', { class: 'fa-mark', 'aria-hidden': 'true', text: c.ok ? '✓' : '○' }), c.label, h('span', { class: 'sr-only', text: c.ok ? ' (sim)' : c.required ? ' (não)' : ' (sugestão)' })))),
       tb.el,
       r.practice.length ? h('div', { class: 'practice', 'data-role': 'free-practice', 'aria-label': 'Palavras para revisar' }, chips,
-        h('div', { class: 'tiny muted practice-hint', text: 'Marcadas pelo reconhecimento, não por erro de pronúncia comprovado. Toque para revisar.' }), panel) : null,
-      r.tips.length || r.grammarTips.length ? h('div', { class: 'fa-tips' }, h('b', { class: 'small', text: 'Para melhorar' }),
-        h('ul', { class: 'small' }, r.tips.map((t) => h('li', { text: t })), r.grammarTips.map((t) => h('li', {}, h('span', { class: 'muted', text: 'Confira ouvindo sua gravação: ' }), t)))) : null,
+        h('div', { class: 'tiny muted practice-hint', text: 'Possíveis erros do reconhecimento, não erros de pronúncia comprovados. Toque para conferir.' }), panel) : null,
+      r.tips.length ? h('div', { class: 'fa-tips' }, h('b', { class: 'small', text: 'Para melhorar a resposta' }),
+        h('ul', { class: 'small' }, r.tips.map((t) => h('li', { text: t })))) : null,
+      r.language && (r.language.grammar.length || r.language.naturalness.length) ? h('div', { class: 'fa-tips', 'data-role': 'fa-language' }, h('b', { class: 'small', text: 'Gramática e naturalidade' }),
+        h('ul', { class: 'small' }, r.language.naturalness.map((t) => h('li', { text: t })), r.language.grammar.map((t) => h('li', { text: t }))),
+        h('div', { class: 'tiny muted', text: 'Com base na transcrição automática: confira ouvindo sua gravação.' })) : null,
       h('div', { class: 'row fb-actions' }, mineBtn(), againBtn()),
       h('details', { class: 'more' }, h('summary', { text: 'Ritmo e pausas' }),
         h('ul', { class: 'small fa-metrics' },
@@ -194,11 +206,12 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
       p.append(span);
     }
     const lg = legend();
-    lg.querySelectorAll('.lg')[1].lastChild.textContent = 'Revisar';
+    lg.querySelectorAll('.lg')[1].lastChild.textContent = STATE_LABEL.needs_practice;
     const box = h('div', { class: 'fa-transcript' },
       h('div', { class: 'fa-tlabel' }, h('span', { class: 'eyebrow', text: 'O que o app ouviu' }), h('span', { class: 'tiny muted', text: ' · transcrição automática, pode conter erros' })),
       p, lg, detail);
-    return { el: box, focus: (i) => spans.forEach((s) => s.classList.toggle('w-focus', Number(s.dataset.w) === i)) };
+    // i: índice de uma palavra ou lista de índices (trecho inteiro)
+    return { el: box, focus: (i) => { const set = new Set([].concat(i)); spans.forEach((s) => s.classList.toggle('w-focus', set.has(Number(s.dataset.w)))); } };
   }
 
   function loaded(rec) {

@@ -143,7 +143,13 @@ export function renderSession(App, { params }) {
     if (res.cls !== 'correct') {
       panel.append(h('div', { class: 'small muted', style: { marginTop: '6px' }, text: 'Resposta-modelo' }));
       panel.append(h('div', { class: 'row nowrap' }, h('div', { class: 'model', style: { flex: 1 } }, diffModel(res, model)), au || model ? speakerButton({ key: au, text: model }, { cls: 'icon-btn ghost' }) : null));
-      if (res.diff && res.diff.extra && res.diff.extra.length && res.cls !== 'meaning') panel.append(h('div', { class: 'small diff' }, 'Você escreveu: ', h('span', { class: 'en' }, ...res.diff.answer.map((t, i) => [i ? ' ' : '', h('span', { class: t.ok ? '' : 'extra', text: t.t })]))));
+      // “Você escreveu” só quando há palavra a mais ou digitação: no texto ORIGINAL, por posição
+      const ans = res.diff && res.diff.answerSpans;
+      if (ans && res.cls !== 'meaning' && ans.some((x) => x.state === 'extra' || x.state === 'typo')) {
+        panel.append(h('div', { class: 'small diff' }, 'Você escreveu: ', h('span', { class: 'en' }, spansView(res.diff.answerText, ans, { extra: 'extra', typo: 'extra', style: 'style' }))));
+      } else if (!ans && res.diff && res.diff.extra && res.diff.extra.length && res.cls !== 'meaning') {
+        panel.append(h('div', { class: 'small diff' }, 'Você escreveu: ', h('span', { class: 'en' }, ...res.diff.answer.map((t, i) => [i ? ' ' : '', h('span', { class: t.ok ? '' : 'extra', text: t.t })]))));
+      }
     } else if (model) {
       panel.append(h('div', { class: 'row nowrap' }, h('div', { class: 'model', style: { flex: 1 }, text: model }), speakerButton({ key: au, text: model }, { cls: 'icon-btn ghost' })));
     }
@@ -160,8 +166,25 @@ export function renderSession(App, { params }) {
     return panel;
   }
 
+  /** Texto original com os trechos marcados por posição (classes CSS por estado). */
+  function spansView(text, spans, classes) {
+    const frag = document.createDocumentFragment();
+    let pos = 0;
+    for (const sp of spans) {
+      if (sp.start > pos) frag.append(document.createTextNode(text.slice(pos, sp.start)));
+      const cls = classes[sp.state];
+      const piece = text.slice(sp.start, sp.end);
+      frag.append(cls ? h('span', { class: cls, text: piece, title: sp.state === 'style' ? 'diferença de estilo, não de erro' : null }) : document.createTextNode(piece));
+      pos = sp.end;
+    }
+    if (pos < text.length) frag.append(document.createTextNode(text.slice(pos)));
+    return frag;
+  }
+
   function diffModel(res, model) {
     if (!res.diff || !res.diff.target || res.cls === 'meaning') return document.createTextNode(model || '');
+    // marca por POSIÇÃO no modelo: só o que faltou de fato (a palavra repetida em outro lugar não acende)
+    if (res.diff.targetSpans && res.diff.targetText === model) return h('span', { class: 'diff' }, spansView(model, res.diff.targetSpans, { miss: 'miss', style: 'style' }));
     const missing = new Set(res.diff.missing);
     if (!missing.size) return document.createTextNode(model || '');
     // destaca no texto original as palavras ausentes

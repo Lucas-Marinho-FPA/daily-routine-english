@@ -171,9 +171,9 @@ export function evaluateWords(text, asr, opts = {}) {
     if (x.proper) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Nome próprio: o reconhecedor pode não conhecê-lo e escrevê-lo de outro jeito. Não foi avaliado.' };
     if (near.length) {
       return { w: x.w, text: x.text, state: 'needs_practice', heard: near.join(' '),
-        reason: `Não foi reconhecida como esperado: o reconhecedor ouviu “${near.join(' ')}”. Ouça a referência e repita esta palavra. (O sistema não identifica qual som diferiu.)` };
+        reason: `Não foi reconhecida como esperado: o reconhecedor ouviu “${near.join(' ')}”. Pode ser erro do reconhecimento ou da fala: ouça sua gravação e a referência, e repita se soar diferente. (O sistema não identifica qual som diferiu.)` };
     }
-    return { w: x.w, text: x.text, state: 'needs_practice', reason: 'Não foi reconhecida: a palavra pode ter sido omitida ou dita de forma pouco clara. Ouça a referência e repita. (O sistema não identifica qual som diferiu.)' };
+    return { w: x.w, text: x.text, state: 'needs_practice', reason: 'Não foi reconhecida: a palavra pode ter sido omitida, dita de forma pouco clara ou perdida pelo reconhecimento. Ouça sua gravação e a referência. (O sistema não identifica qual som diferiu.)' };
   });
   return { words: out, evaluated: true, note: '' };
 }

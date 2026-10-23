@@ -125,7 +125,7 @@ export const insufficientAudio = (analysis) => !analysis || analysis.silent || a
  * @param p.vocab      buildVocab(content)
  * @param p.grammar    dicas de gramática do corretor do app sobre a transcrição (opcional)
  */
-export function analyseFreeAnswer({ question = '', model = '', unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [] }) {
+export function analyseFreeAnswer({ question = '', model = '', unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [], divergences = [], naturalness = [] }) {
   const text = String(transcript || '').trim();
   const tokens = wordTokens(text);
   const metrics = measure(analysis, tokens.length);
@@ -147,11 +147,24 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   const words = [];
   const practice = [];
   const seen = new Set();
+  // camada contextual (engine/context.js): trechos que destoam de uma frase conhecida que o aluno está dizendo
+  const byWord = new Map();
+  for (const d of divergences || []) for (const k of d.src) if (!byWord.has(k)) byWord.set(k, d);
   for (const seg of segment(text)) {
     if (seg.w === undefined) continue;
     const t = seg.norm;
     const r = { w: seg.w, text: seg.text, state: 'good', reason: 'Reconhecida pelo app, sem divergência identificada. (Não é uma análise dos sons.)' };
     const skip = !t || t.length < 3 || /\d/.test(t) || seg.weak || seg.proper || t.includes(' ') || STOP.has(t);
+    const d = byWord.get(seg.w);
+    if (d) {
+      Object.assign(r, { state: 'needs_practice', flag: 'context', ref: d.expected, reason: `No contexto “${d.context}”, o app ouviu “${d.heard}”; o esperado seria algo como “${d.expected}”. Pode ser erro do reconhecimento: ouça sua gravação para conferir. Se você disse “${d.heard}” mesmo, ignore esta marca.` });
+      if (!seen.has('ctx:' + d.heard)) {
+        seen.add('ctx:' + d.heard);
+        practice.push({ w: seg.w, ws: d.src, text: d.heard, heard: d.heard, ref: d.expected, refAu: d.ref.au || null, refText: d.ref.text, context: d.context, flag: 'context', reason: r.reason });
+      }
+      words.push(r);
+      continue;
+    }
     if (!skip) {
       const l = lemma(t);
       const known = isKnownWord(t, vocab.known) ?? null;
@@ -226,10 +239,12 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
     else if (c.id === 'sequence') tips.push('Ligue as ideias com “then”, “after that”, “before”.');
     else if (INTENT_TIP[c.id]) tips.push(INTENT_TIP[c.id]);
   }
-  if (practice.length) tips.push(practice.length === 1 ? 'Confira a palavra marcada: ouça sua gravação e a referência.' : `Confira as ${practice.length} palavras marcadas: ouça sua gravação e as referências.`);
+  if (practice.length) tips.push(practice.length === 1 ? 'Confira o trecho marcado: ouça sua gravação e a referência.' : `Confira os ${practice.length} trechos marcados: ouça sua gravação e as referências.`);
   const grammarTips = (grammar || []).map((g) => g.msg).filter(Boolean).slice(0, 2);
+  // B. correção linguística (pela transcrição): gramática e naturalidade, separadas da adequação e do reconhecimento
+  const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
 
-  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, words, practice,
+  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, language, words, practice,
     evidence: { strong: strongHits, domain: domainHits.length, activities: activities.size, words: tokens.length, minWords } };
 }
 

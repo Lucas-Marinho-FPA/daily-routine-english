@@ -172,7 +172,7 @@ export function shuffle(list, rand = Math.random) {
  * Usado para destacar ou ocultar um item dentro da frase exibida.
  */
 export function tokenSpans(text) {
-  const rx = /\d{1,2}[.:]\d\d|\b[ap]\.\s?m\.?|[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*/g;
+  const rx = /\d{1,2}[.:]\d\d|\b[aApP]\.\s?[mM]\.?|[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*/g;
   const spans = [];
   let m;
   while ((m = rx.exec(text))) spans.push({ start: m.index, end: m.index + m[0].length, text: m[0] });

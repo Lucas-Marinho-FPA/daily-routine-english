@@ -303,7 +303,7 @@
     return a;
   }
   function tokenSpans(text) {
-    const rx = /\d{1,2}[.:]\d\d|\b[ap]\.\s?m\.?|[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*/g;
+    const rx = /\d{1,2}[.:]\d\d|\b[aApP]\.\s?[mM]\.?|[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*/g;
     const spans = [];
     let m;
     while (m = rx.exec(text)) spans.push({ start: m.index, end: m.index + m[0].length, text: m[0] });
@@ -322,21 +322,41 @@
     const determiners = new Set(lang.determiners || []);
     const synonymGroups = (lang.synonyms || []).map((g) => g.map((p) => wordTokens(p)));
     const rules = (lang.errors || []).map((e) => ({ ...e, rx: new RegExp(e.re, "i") }));
-    function expandContractions(tokens) {
-      const out = [];
-      for (const t of tokens) {
-        if (contractions[t]) out.push(...contractions[t].split(" "));
-        else if (/^\w+'s$/.test(t)) out.push(t.replace(/'s$/, ""), "'s");
-        else out.push(t);
-      }
-      return out.filter((t) => t !== "'s");
+    const tok = (t, src) => ({ t, src });
+    const srcUnion = (list) => [...new Set(list.flatMap((o) => o.src))].sort((a, b) => a - b);
+    function srcTokens(text) {
+      const spans = tokenSpans(text);
+      const toks = [];
+      spans.forEach((sp, k) => {
+        for (const w of wordTokens(sp.text)) toks.push(tok(w, [k]));
+      });
+      return { spans, toks };
     }
-    function canonTimes(tokens) {
+    function expandContractionsS(toks) {
+      const out = [];
+      for (const o of toks) {
+        if (contractions[o.t]) out.push(...contractions[o.t].split(" ").map((w) => tok(w, o.src)));
+        else if (/^\w+'s$/.test(o.t)) out.push(tok(o.t.replace(/'s$/, ""), o.src));
+        else out.push(o);
+      }
+      return out;
+    }
+    function canonTimesS(toks, style = []) {
+      const tk = toks.map((o) => o.t);
       const out = [];
       const num = (t) => /^\d{1,2}$/.test(t) ? Number(t) : numberWords[t];
-      for (let i = 0; i < tokens.length; i++) {
-        const t = tokens[i];
-        let h2 = null, m = 0, consumed = 0;
+      const minutesAt = (j) => {
+        if (/^\d{2}$/.test(tk[j] || "") && +tk[j] < 60) return { m: +tk[j], n: 1 };
+        const a = numberWords[tk[j]];
+        if (a === void 0) return null;
+        const b = numberWords[tk[j + 1]];
+        if ([20, 30, 40, 50].includes(a) && b >= 1 && b <= 9) return { m: a + b, n: 2 };
+        if (a >= 10 && a < 60 && a !== 12) return { m: a, n: 1 };
+        return null;
+      };
+      for (let i = 0; i < toks.length; i++) {
+        const t = tk[i];
+        let h2 = null, m = 0, consumed = 0, unnatural = false;
         let match;
         if (match = /^(\d{1,2}):(\d{2})$/.exec(t)) {
           h2 = +match[1];
@@ -346,104 +366,116 @@
           h2 = +match[1];
           m = match[2] ? +match[2] : 0;
           consumed = 1;
-        } else if (match = /^(\d{1,2})(am|pm)$/.exec(t)) {
-          h2 = +match[1];
-          consumed = 1;
-          tokens.splice(i + 1, 0, match[2]);
+        } else if (match = /^(\d{1,2}(?::\d{2})?)(am|pm)$/.exec(t)) {
+          const [hh, mm] = match[1].split(":");
+          out.push(tok(`@${+hh}:${mm || "00"}${match[2]}`, toks[i].src));
+          continue;
         } else if (t === "midnight") {
-          out.push("@12:00am");
+          out.push(tok("@12:00am", toks[i].src));
           continue;
         } else if (t === "noon" || t === "midday") {
-          out.push("@12:00pm");
+          out.push(tok("@12:00pm", toks[i].src));
           continue;
-        } else if (t === "half" && tokens[i + 1] === "past" && num(tokens[i + 2]) <= 12) {
-          h2 = num(tokens[i + 2]);
+        } else if (t === "half" && tk[i + 1] === "past" && num(tk[i + 2]) <= 12) {
+          h2 = num(tk[i + 2]);
           m = 30;
           consumed = 3;
-        } else if (t === "quarter" && tokens[i + 1] === "past" && num(tokens[i + 2]) <= 12) {
-          h2 = num(tokens[i + 2]);
+        } else if (t === "quarter" && tk[i + 1] === "past" && num(tk[i + 2]) <= 12) {
+          h2 = num(tk[i + 2]);
           m = 15;
           consumed = 3;
-          if (out[out.length - 1] === "a") out.pop();
-        } else if (t === "quarter" && tokens[i + 1] === "to" && num(tokens[i + 2]) <= 12) {
-          h2 = num(tokens[i + 2]) - 1 || 12;
+          if (out.length && out[out.length - 1].t === "a") out.pop();
+        } else if (t === "quarter" && tk[i + 1] === "to" && num(tk[i + 2]) <= 12) {
+          h2 = num(tk[i + 2]) - 1 || 12;
           m = 45;
           consumed = 3;
-          if (out[out.length - 1] === "a") out.pop();
+          if (out.length && out[out.length - 1].t === "a") out.pop();
         } else if (num(t) !== void 0 && num(t) >= 1 && num(t) <= 12) {
-          const next = tokens[i + 1];
-          const nextNum = numberWords[next];
-          const isTimeContext = ["am", "pm", "o'clock", "oclock", "sharp"].includes(next) || TIME_PREP.has(tokens[i - 1]) || tokens[i + 1] === "in" && tokens[i + 2] === "the" && ["morning", "afternoon", "evening"].includes(tokens[i + 3]);
+          const isTimeContext = ["am", "pm", "o'clock", "oclock", "sharp"].includes(tk[i + 1]) || TIME_PREP.has(tk[i - 1]) || tk[i + 1] === "in" && tk[i + 2] === "the" && ["morning", "afternoon", "evening"].includes(tk[i + 3]);
           if (isTimeContext) {
             h2 = num(t);
             consumed = 1;
-            if (nextNum !== void 0 && nextNum >= 10 && nextNum < 60 && nextNum !== 12) {
-              m = nextNum;
-              consumed = 2;
+            const mm = minutesAt(i + 1);
+            if (mm) {
+              m = mm.m;
+              consumed = 1 + mm.n;
+            } else if (tk[i + 1] === "and") {
+              const m2 = minutesAt(i + 2);
+              if (m2) {
+                m = m2.m;
+                consumed = 2 + m2.n;
+                unnatural = true;
+              }
             }
           }
         }
         if (h2 === null) {
-          out.push(t);
+          out.push(toks[i]);
           continue;
         }
+        const parts = toks.slice(i, i + consumed);
         i += consumed - 1;
         let mer = "";
-        if (tokens[i + 1] === "o'clock" || tokens[i + 1] === "oclock") {
-          i++;
+        if (tk[i + 1] === "o'clock" || tk[i + 1] === "oclock") {
+          parts.push(toks[++i]);
         }
-        if (tokens[i + 1] === "am" || tokens[i + 1] === "pm") {
-          mer = tokens[i + 1];
-          i++;
-        } else if (tokens[i + 1] === "in" && tokens[i + 2] === "the" && tokens[i + 3] === "morning") {
+        if (tk[i + 1] === "am" || tk[i + 1] === "pm") {
+          mer = tk[i + 1];
+          parts.push(toks[++i]);
+        } else if (tk[i + 1] === "in" && tk[i + 2] === "the" && tk[i + 3] === "morning") {
           mer = "am";
+          parts.push(...toks.slice(i + 1, i + 4));
           i += 3;
-        } else if (tokens[i + 1] === "in" && tokens[i + 2] === "the" && ["afternoon", "evening"].includes(tokens[i + 3])) {
+        } else if (tk[i + 1] === "in" && tk[i + 2] === "the" && ["afternoon", "evening"].includes(tk[i + 3])) {
           mer = "pm";
+          parts.push(...toks.slice(i + 1, i + 4));
           i += 3;
-        } else if (tokens[i + 1] === "at" && tokens[i + 2] === "night") {
+        } else if (tk[i + 1] === "at" && tk[i + 2] === "night") {
           mer = "pm";
+          parts.push(...toks.slice(i + 1, i + 3));
           i += 2;
         }
         if (h2 > 12 && h2 < 24) {
           h2 -= 12;
           mer = "pm";
         }
-        out.push(`@${h2}:${String(m).padStart(2, "0")}${mer}`);
+        const src = srcUnion(parts);
+        if (unnatural) style.push({ kind: "time-and", src, h: h2, m, mer });
+        out.push(tok(`@${h2}:${String(m).padStart(2, "0")}${mer}`, src));
       }
       return out;
     }
-    function numbersToDigits(tokens) {
-      return tokens.map((t) => numberWords[t] !== void 0 && !/^@/.test(t) ? String(numberWords[t]) : t);
-    }
-    function applyAmE(tokens) {
+    const numbersToDigitsS = (toks) => toks.map((o) => numberWords[o.t] !== void 0 && !/^@/.test(o.t) ? tok(String(numberWords[o.t]), o.src) : o);
+    function applyAmES(toks) {
       let changed = false;
-      const out = tokens.map((t, i) => {
-        if (ame[t]) {
+      const out = toks.map((o, i) => {
+        const prev = toks[i - 1] && toks[i - 1].t;
+        if (ame[o.t]) {
           changed = true;
-          return ame[t];
+          return tok(ame[o.t], o.src);
         }
-        if (t === "practice" && PRACTICE_SUBJ.has(tokens[i - 1])) {
+        if (o.t === "practice" && PRACTICE_SUBJ.has(prev)) {
           changed = true;
-          return "practise";
+          return tok("practise", o.src);
         }
-        if (t === "practices" && ["my", "wife", "he", "she", "son"].includes(tokens[i - 1])) {
+        if (o.t === "practices" && ["my", "wife", "he", "she", "son"].includes(prev)) {
           changed = true;
-          return "practises";
+          return tok("practises", o.src);
         }
-        return t;
+        return o;
       });
       return { tokens: out, changed };
     }
-    function applySynonyms(tokens) {
+    function applySynonymsS(toks) {
       let changed = false;
-      let out = tokens.slice();
+      let out = toks.slice();
       for (const group of synonymGroups) {
         const canon = group[0];
         for (const alt of group.slice(1)) {
           for (let i = 0; i + alt.length <= out.length; i++) {
-            if (alt.every((t, k) => out[i + k] === t)) {
-              out = [...out.slice(0, i), ...canon, ...out.slice(i + alt.length)];
+            if (alt.every((t, k) => out[i + k].t === t)) {
+              const src = srcUnion(out.slice(i, i + alt.length));
+              out = [...out.slice(0, i), ...canon.map((t) => tok(t, src)), ...out.slice(i + alt.length)];
               changed = true;
             }
           }
@@ -451,11 +483,26 @@
       }
       return { tokens: out, changed };
     }
+    const plain = (fn) => (tokens) => fn(tokens.map((t) => tok(t, []))).map((o) => o.t);
+    const expandContractions = plain(expandContractionsS);
+    const canonTimes = plain((x) => canonTimesS(x));
+    const numbersToDigits = plain(numbersToDigitsS);
+    const applyAmE = (tokens) => {
+      const r = applyAmES(tokens.map((t) => tok(t, [])));
+      return { tokens: r.tokens.map((o) => o.t), changed: r.changed };
+    };
+    const applySynonyms = (tokens) => {
+      const r = applySynonymsS(tokens.map((t) => tok(t, [])));
+      return { tokens: r.tokens.map((o) => o.t), changed: r.changed };
+    };
     function prepare(text) {
-      const base = numbersToDigits(canonTimes(expandContractions(wordTokens(text))));
-      const a = applyAmE(base);
-      const s = applySynonyms(a.tokens);
-      return { base, bre: a.tokens, full: s.tokens, ame: a.changed, syn: s.changed };
+      const { spans, toks } = srcTokens(text);
+      const style = [];
+      const baseS = numbersToDigitsS(canonTimesS(expandContractionsS(toks), style));
+      const a = applyAmES(baseS);
+      const s = applySynonymsS(a.tokens);
+      const strs = (l) => l.map((o) => o.t);
+      return { base: strs(baseS), bre: strs(a.tokens), full: strs(s.tokens), baseS, breS: a.tokens, fullS: s.tokens, spans, style, ame: a.changed, syn: s.changed };
     }
     const timeEq = (x, y) => {
       if (x[0] !== "@" || y[0] !== "@") return false;
@@ -476,24 +523,76 @@
       const t = basicNormalise(targetText || "").replace(/[.,!?;]/g, " ");
       return rules.filter((r) => r.rx.test(a) && !r.rx.test(t));
     }
+    const spanText = (P, srcs) => {
+      if (!srcs.length) return "";
+      const a = Math.min(...srcs), b = Math.max(...srcs);
+      return P.text.slice(P.spans[a].start, P.spans[b].end);
+    };
+    const srcOf2 = (list) => [...new Set(list.flatMap((o) => o.src))];
+    function buildDiff(A, P, pairs) {
+      const aState = A.spans.map(() => "ok"), pState = P.spans.map(() => "ok");
+      const RANK = { ok: 0, equiv: 1, style: 2, typo: 3, extra: 4, miss: 4 };
+      const set = (st, srcs, v) => srcs.forEach((k) => {
+        if (RANK[v] > RANK[st[k]]) st[k] = v;
+      });
+      const swaps = [];
+      const anchors = [[-1, -1], ...pairs, [A.fullS.length, P.fullS.length]];
+      for (let g = 0; g < anchors.length - 1; g++) {
+        const [i0, j0] = anchors[g], [i1, j1] = anchors[g + 1];
+        const aG = A.fullS.slice(i0 + 1, i1), pG = P.fullS.slice(j0 + 1, j1);
+        if (aG.length && pG.length && aG.every((o) => determiners.has(o.t)) && pG.every((o) => determiners.has(o.t))) {
+          set(aState, srcOf2(aG), "style");
+          set(pState, srcOf2(pG), "style");
+          swaps.push({ a: srcOf2(aG), p: srcOf2(pG), nextA: i1 < A.fullS.length ? A.fullS[i1].src : [], nextP: j1 < P.fullS.length ? P.fullS[j1].src : [] });
+          continue;
+        }
+        set(aState, srcOf2(aG), "extra");
+        set(pState, srcOf2(pG), "miss");
+      }
+      for (const [i, j] of pairs) {
+        const a = A.fullS[i], b = P.fullS[j];
+        if (a.t !== b.t && !timeEq(a.t, b.t)) {
+          set(aState, a.src, "typo");
+          continue;
+        }
+        const sa = wordTokens(spanText(A, a.src)).join(" "), sb = wordTokens(spanText(P, b.src)).join(" ");
+        if (sa !== sb && a.t[0] === "@") {
+          set(aState, a.src, "equiv");
+          set(pState, b.src, "equiv");
+        }
+      }
+      const view = (X, st) => X.spans.map((sp, k) => ({ start: sp.start, end: sp.end, state: st[k] }));
+      return { answerSpans: view(A, aState), targetSpans: view(P, pState), swaps };
+    }
+    function naturalnessNotes(A) {
+      return A.style.map((st) => {
+        if (st.kind !== "time-and") return null;
+        const k0 = Math.min(...st.src);
+        const prev = k0 > 0 && TIME_PREP.has(wordTokens(A.spans[k0 - 1].text)[0]) ? [k0 - 1] : [];
+        const surface2 = spanText(A, [...prev, ...st.src]);
+        const better = surface2.replace(/\s+and\s+/i, " ");
+        return `Seu significado est\xE1 claro (${st.h}:${String(st.m).padStart(2, "0")}). Uma forma mais natural \xE9: \u201C${better.charAt(0).toUpperCase()}${better.slice(1)}\u201D.`;
+      }).filter(Boolean);
+    }
     function check(answer, targets, opts = {}) {
       const raw = String(answer || "").trim();
       const model = targets[0];
       const result = (cls, extra2 = {}) => ({ cls, accepted: ACCEPTED.has(cls), model, answer: raw, notes: [], diff: null, ...extra2 });
       if (!raw) return result("empty");
-      const A = prepare(raw);
+      const A = { text: raw, ...prepare(raw) };
       const allTargets = [...targets, ...opts.itemId && userVariants[opts.itemId] || []];
       const prepared = allTargets.map((t) => ({ text: t, ...prepare(t) }));
       const P0 = prepared[0];
-      if (same(A.base, P0.base)) return result("correct");
-      if (A.ame && same(A.bre, P0.bre)) return result("variant_ame", { notes: ["Grafia americana aceita. No ingl\xEAs brit\xE2nico: " + P0.text] });
+      const natural = naturalnessNotes(A);
+      if (same(A.base, P0.base)) return natural.length ? result("accepted_variant", { notes: natural }) : result("correct");
+      if (A.ame && same(A.bre, P0.bre)) return result("variant_ame", { notes: ["Grafia americana aceita. No ingl\xEAs brit\xE2nico: " + P0.text, ...natural] });
       const soft = ruleHits(raw, model).filter((h2) => h2.soft).map((h2) => h2.msg);
       for (let i = 0; i < prepared.length; i++) {
         const P2 = prepared[i];
         if (same(A.full, P2.full) || same(A.bre, P2.bre)) {
           const fromUser = i >= targets.length;
           const note = i === 0 ? "Variante equivalente aceita." : fromUser ? "Aceita por voc\xEA anteriormente (variante pessoal)." : `Variante aceita: \u201C${P2.text}\u201D.`;
-          return result("accepted_variant", { notes: [note, ...A.ame ? ["Grafia americana: no BrE use a forma brit\xE2nica."] : [], ...soft] });
+          return result("accepted_variant", { notes: [note, ...A.ame ? ["Grafia americana: no BrE use a forma brit\xE2nica."] : [], ...natural, ...soft] });
         }
       }
       let best = null;
@@ -508,23 +607,50 @@
       const extra = A.full.filter((_, i) => !matchedA.has(i));
       const missing = P.full.filter((_, j) => !matchedT.has(j));
       const typos = pairs.filter(([i, j]) => A.full[i] !== P.full[j] && !timeEq(A.full[i], P.full[j])).map(([i, j]) => [A.full[i], P.full[j]]);
+      const view = buildDiff(A, P, pairs);
       const diff = {
         target: P.full.map((t, j) => ({ t, ok: matchedT.has(j) })),
         answer: A.full.map((t, i) => ({ t, ok: matchedA.has(i) })),
         missing,
         extra,
-        typos
+        typos,
+        targetText: P.text,
+        answerText: raw,
+        targetSpans: view.targetSpans,
+        answerSpans: view.answerSpans
       };
+      const listSpans = (X, spans, st) => {
+        const out = [];
+        let cur = null;
+        spans.forEach((sp, k) => {
+          if (sp.state === st) {
+            if (cur && cur.end === k - 1) cur.end = k;
+            else out.push(cur = { start: k, end: k });
+          }
+        });
+        return out.map((r) => `\u201C${X.slice(spans[r.start].start, spans[r.end].end)}\u201D`);
+      };
+      const missingSurf = listSpans(P.text, view.targetSpans, "miss");
+      const extraSurf = listSpans(raw, view.answerSpans, "extra");
+      const swapNotes = view.swaps.map((sw) => {
+        const a = spanText(A, [...sw.a, ...sw.nextA]), b = spanText(P, [...sw.p, ...sw.nextP]);
+        return `\u201C${a}\u201D tamb\xE9m est\xE1 correto aqui; o modelo usa \u201C${b}\u201D.`;
+      });
       const hits = ruleHits(raw, P.text);
       const hard = hits.filter((h2) => !h2.soft);
       const contentT0 = P.full.filter((t) => !stop2.has(t) && !determiners.has(t));
       const related = !contentT0.length || P.full.some((t, j) => matchedT.has(j) && !stop2.has(t) && !determiners.has(t));
       if (hard.length && related) {
-        return result("grammar", { diff, notes: hard.map((h2) => h2.msg), rules: hard.map((h2) => h2.id) });
+        return result("grammar", { diff, notes: [...hard.map((h2) => h2.msg), ...natural], rules: hard.map((h2) => h2.id) });
       }
-      const softNotes = hits.filter((h2) => h2.soft).map((h2) => h2.msg);
+      const softNotes = [...hits.filter((h2) => h2.soft).map((h2) => h2.msg), ...natural];
+      const SUBJ2 = /* @__PURE__ */ new Set(["i", "you", "we", "they", "he", "she", "it"]);
+      const formSwaps = pairs.filter(([i, j]) => A.full[i] !== P.full[j] && SUBJ2.has(A.full[i - 1]) && SUBJ2.has(P.full[j - 1]) && ([...inflections(A.full[i])].includes(P.full[j]) || [...inflections(P.full[j])].includes(A.full[i]))).map(([i, j]) => [A.full[i], P.full[j]]);
+      if (!missing.length && !extra.length && formSwaps.length && related) {
+        return result("grammar", { diff, rules: ["E_FORM"], notes: [`Forma da palavra: ${formSwaps.map(([a, b]) => `voc\xEA escreveu \u201C${a}\u201D, o modelo usa \u201C${b}\u201D`).join("; ")}.${formSwaps.some(([a, b]) => a === b + "s" || a === b + "es") ? " Com I/you/we/they o verbo no presente fica sem -s." : ""}`, ...swapNotes, ...softNotes] });
+      }
       if (!missing.length && !extra.length && typos.length) {
-        return result("spelling", { diff, notes: [`Pequeno erro de digita\xE7\xE3o: ${typos.map(([a, b]) => `\u201C${a}\u201D \u2192 \u201C${b}\u201D`).join(", ")}.`, ...softNotes] });
+        return result("spelling", { diff, notes: [`Pequeno erro de digita\xE7\xE3o: ${typos.map(([a, b]) => `\u201C${a}\u201D \u2192 \u201C${b}\u201D`).join(", ")}.`, ...swapNotes, ...softNotes] });
       }
       const agreement = missing.filter((m) => extra.some((x) => [...inflections(x)].includes(m) && m !== x && /s$/.test(m)));
       if (agreement.length && missing.length === agreement.length && extra.length === agreement.length) {
@@ -533,32 +659,31 @@
       const missingContent = missing.filter((t) => !determiners.has(t));
       const extraContent = extra.filter((t) => !determiners.has(t));
       if (!missingContent.length && !extraContent.length) {
-        const swapped = missing.length && extra.length;
-        if (swapped) return result("accepted_variant", { diff, notes: [`Aceito. O modelo usa \u201C${missing.join(" ")}\u201D em vez de \u201C${extra.join(" ")}\u201D.`, ...softNotes] });
-        if (missing.length) return result("grammar", { diff, notes: [`Falta o artigo/determinante \u201C${missing.join(" ")}\u201D. Ex.: ${P.text}`, ...softNotes], rules: ["E_ARTICLE"] });
-        return result("accepted_variant", { diff, notes: [`Aceito, com palavra a mais: \u201C${extra.join(" ")}\u201D.`, ...softNotes] });
+        if (missingSurf.length) return result("grammar", { diff, notes: [`Falta o artigo/determinante ${missingSurf.join(", ")}. Ex.: ${P.text}`, ...swapNotes, ...softNotes], rules: ["E_ARTICLE"] });
+        if (view.swaps.length) return result("accepted_variant", { diff, notes: [`Aceito. ${swapNotes.join(" ")}`, ...softNotes] });
+        return result("accepted_variant", { diff, notes: [`Aceito, com palavra a mais: ${extraSurf.join(", ")}.`, ...softNotes] });
       }
       const contentT = P.full.filter((t) => !stop2.has(t) && !determiners.has(t));
       const contentFound = P.full.filter((t, j) => matchedT.has(j) && !stop2.has(t) && !determiners.has(t));
       const coverage2 = contentT.length ? contentFound.length / contentT.length : pairs.length / Math.max(P.full.length, 1);
       const overlap = pairs.length;
       if (overlap === 0 || coverage2 < 0.5) {
-        return result("meaning", { diff, coverage: coverage2, notes: [`A resposta n\xE3o cont\xE9m o essencial: ${missingContent.slice(0, 4).map((t) => `\u201C${t}\u201D`).join(", ") || "conte\xFAdo esperado"}.`, ...hard.map((h2) => "Al\xE9m disso: " + h2.msg), ...softNotes] });
+        return result("meaning", { diff, coverage: coverage2, notes: [`A resposta n\xE3o cont\xE9m o essencial: ${missingSurf.slice(0, 4).join(", ") || "conte\xFAdo esperado"}.`, ...hard.map((h2) => "Al\xE9m disso: " + h2.msg), ...softNotes] });
       }
       return result("inconclusive", {
         diff,
         coverage: coverage2,
-        notes: [`Diferen\xE7a em rela\xE7\xE3o ao modelo: ${missingContent.length ? "faltou " + missingContent.map((t) => `\u201C${t}\u201D`).join(", ") : ""}${missingContent.length && extraContent.length ? "; " : ""}${extraContent.length ? "voc\xEA usou " + extraContent.map((t) => `\u201C${t}\u201D`).join(", ") : ""}. Se tiver certeza de que \xE9 equivalente, marque \u201CEu estava certo\u201D.`, ...softNotes]
+        notes: [`Diferen\xE7a em rela\xE7\xE3o ao modelo: ${missingSurf.length ? "o modelo tem " + missingSurf.join(", ") : ""}${missingSurf.length && extraSurf.length ? "; " : ""}${extraSurf.length ? "voc\xEA usou " + extraSurf.join(", ") : ""}. Se tiver certeza de que \xE9 equivalente, marque \u201CEu estava certo\u201D.`, ...swapNotes, ...softNotes]
       });
     }
     function coverage(answer, { keywords = [], items = [] } = {}) {
-      const plain = numbersToDigits(expandContractions(wordTokens(answer)));
+      const plain2 = numbersToDigits(expandContractions(wordTokens(answer)));
       const tokens = numbersToDigits(canonTimes(expandContractions(wordTokens(answer))));
       const bre = applyAmE(tokens).tokens;
       const syn = applySynonyms(bre).tokens;
       const has = (raw) => {
         const phrase = numbersToDigits(expandContractions(wordTokens(raw))).join(" ");
-        return [bre, plain, syn].some((t) => !!findPattern(phrase, t, { separable: true })) || !!findPattern(applySynonyms(wordTokens(phrase)).tokens.join(" "), syn, { separable: true });
+        return [bre, plain2, syn].some((t) => !!findPattern(phrase, t, { separable: true })) || !!findPattern(applySynonyms(wordTokens(phrase)).tokens.join(" "), syn, { separable: true });
       };
       const kw = keywords.map((group) => ({ group, ok: group.some((p) => has(String(p))) }));
       const it = items.map((x) => ({ id: x.id, en: x.en, ok: has((x.match || x.en).split(" / ")[0].replace(/…$/, "")) || (x.v || []).some((v) => has(v)) }));
@@ -567,7 +692,8 @@
       const hits = ruleHits(answer, "");
       return { keywords: kw, items: it, ratio, grammar: hits.map((h2) => ({ id: h2.id, msg: h2.msg, soft: !!h2.soft })), words: tokens.length };
     }
-    return { check, coverage, prepare, isAccepted: (cls) => ACCEPTED.has(cls) };
+    const naturalness = (text) => naturalnessNotes({ text, ...prepare(text) });
+    return { check, coverage, prepare, naturalness, isAccepted: (cls) => ACCEPTED.has(cls) };
   }
 
   // app/js/engine/scheduler.js
@@ -2805,10 +2931,10 @@
           text: x.text,
           state: "needs_practice",
           heard: near.join(" "),
-          reason: `N\xE3o foi reconhecida como esperado: o reconhecedor ouviu \u201C${near.join(" ")}\u201D. Ou\xE7a a refer\xEAncia e repita esta palavra. (O sistema n\xE3o identifica qual som diferiu.)`
+          reason: `N\xE3o foi reconhecida como esperado: o reconhecedor ouviu \u201C${near.join(" ")}\u201D. Pode ser erro do reconhecimento ou da fala: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia, e repita se soar diferente. (O sistema n\xE3o identifica qual som diferiu.)`
         };
       }
-      return { w: x.w, text: x.text, state: "needs_practice", reason: "N\xE3o foi reconhecida: a palavra pode ter sido omitida ou dita de forma pouco clara. Ou\xE7a a refer\xEAncia e repita. (O sistema n\xE3o identifica qual som diferiu.)" };
+      return { w: x.w, text: x.text, state: "needs_practice", reason: "N\xE3o foi reconhecida: a palavra pode ter sido omitida, dita de forma pouco clara ou perdida pelo reconhecimento. Ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia. (O sistema n\xE3o identifica qual som diferiu.)" };
     });
     return { words: out, evaluated: true, note: "" };
   }
@@ -3034,7 +3160,7 @@
     return false;
   }
   var insufficientAudio = (analysis) => !analysis || analysis.silent || analysis.speechSec < 0.8;
-  function analyseFreeAnswer({ question = "", model = "", unit = "q", transcript = "", analysis = null, vocab = { known: /* @__PURE__ */ new Set(), domain: /* @__PURE__ */ new Set() }, grammar = [] }) {
+  function analyseFreeAnswer({ question = "", model = "", unit = "q", transcript = "", analysis = null, vocab = { known: /* @__PURE__ */ new Set(), domain: /* @__PURE__ */ new Set() }, grammar = [], divergences = [], naturalness = [] }) {
     const text = String(transcript || "").trim();
     const tokens = wordTokens(text);
     const metrics = measure(analysis, tokens.length);
@@ -3053,11 +3179,23 @@
     const words2 = [];
     const practice = [];
     const seen = /* @__PURE__ */ new Set();
+    const byWord = /* @__PURE__ */ new Map();
+    for (const d of divergences || []) for (const k of d.src) if (!byWord.has(k)) byWord.set(k, d);
     for (const seg of segment(text)) {
       if (seg.w === void 0) continue;
       const t = seg.norm;
       const r = { w: seg.w, text: seg.text, state: "good", reason: "Reconhecida pelo app, sem diverg\xEAncia identificada. (N\xE3o \xE9 uma an\xE1lise dos sons.)" };
       const skip = !t || t.length < 3 || /\d/.test(t) || seg.weak || seg.proper || t.includes(" ") || STOP.has(t);
+      const d = byWord.get(seg.w);
+      if (d) {
+        Object.assign(r, { state: "needs_practice", flag: "context", ref: d.expected, reason: `No contexto \u201C${d.context}\u201D, o app ouviu \u201C${d.heard}\u201D; o esperado seria algo como \u201C${d.expected}\u201D. Pode ser erro do reconhecimento: ou\xE7a sua grava\xE7\xE3o para conferir. Se voc\xEA disse \u201C${d.heard}\u201D mesmo, ignore esta marca.` });
+        if (!seen.has("ctx:" + d.heard)) {
+          seen.add("ctx:" + d.heard);
+          practice.push({ w: seg.w, ws: d.src, text: d.heard, heard: d.heard, ref: d.expected, refAu: d.ref.au || null, refText: d.ref.text, context: d.context, flag: "context", reason: r.reason });
+        }
+        words2.push(r);
+        continue;
+      }
       if (!skip) {
         const l = lemma(t);
         const known = isKnownWord(t, vocab.known) ?? null;
@@ -3130,8 +3268,9 @@
       else if (c.id === "sequence") tips.push("Ligue as ideias com \u201Cthen\u201D, \u201Cafter that\u201D, \u201Cbefore\u201D.");
       else if (INTENT_TIP[c.id]) tips.push(INTENT_TIP[c.id]);
     }
-    if (practice.length) tips.push(practice.length === 1 ? "Confira a palavra marcada: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia." : `Confira as ${practice.length} palavras marcadas: ou\xE7a sua grava\xE7\xE3o e as refer\xEAncias.`);
+    if (practice.length) tips.push(practice.length === 1 ? "Confira o trecho marcado: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia." : `Confira os ${practice.length} trechos marcados: ou\xE7a sua grava\xE7\xE3o e as refer\xEAncias.`);
     const grammarTips = (grammar || []).map((g) => g.msg).filter(Boolean).slice(0, 2);
+    const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
     return {
       ...base,
       status: status3,
@@ -3141,6 +3280,7 @@
       checklist,
       tips: tips.slice(0, 4),
       grammarTips,
+      language,
       words: words2,
       practice,
       evidence: { strong: strongHits, domain: domainHits.length, activities: activities.size, words: tokens.length, minWords }
@@ -3176,6 +3316,173 @@
     };
   }
   var STATUS_LABEL = { answers: "Responde \xE0 pergunta", partial: "Responde em parte", "off-topic": "Pouca rela\xE7\xE3o com a pergunta", inconclusive: "Avalia\xE7\xE3o inconclusiva" };
+
+  // app/js/engine/context.js
+  var SUBJ = /* @__PURE__ */ new Set(["i", "we", "you", "he", "she", "they", "it"]);
+  var CONNECT = /* @__PURE__ */ new Set(["and", "then", "so", "but", "also"]);
+  var FUNCTION = new Set("a an the my your his her our their this that these those some any to of in on at for from by with into and or but so then also i you he she it we they me him us them is am are was were be been do does did have has had not up out off over about around after before".split(" "));
+  var OBJ_VERBS = {
+    app: "open check use close download install update start launch turn switch log tap look",
+    phone: "check use pick charge turn switch look call take unlock grab put answer",
+    laptop: "open switch turn start use close shut log boot charge check put",
+    computer: "switch turn start use shut log boot check put",
+    car: "drive park get take start wash use leave",
+    shower: "take have need",
+    teeth: "brush clean wash",
+    breakfast: "have eat make prepare cook skip grab take bring heat buy",
+    lunch: "have eat make prepare cook skip grab take bring heat buy",
+    dinner: "have eat make prepare cook skip grab take bring heat buy",
+    destination: "set enter choose type put select change",
+    coffee: "drink have make take grab buy",
+    bus: "take catch get ride miss wait",
+    train: "take catch get ride miss wait",
+    email: "check read answer send write reply",
+    rides: "accept take give do offer get",
+    chess: "play watch learn"
+  };
+  var VERB_LIKE = new Set("sit stand lie put open check use close take have get set drive park brush eat make go do watch play listen read write send start switch turn shut log pick call accept leave arrive see look buy cook wash clean run walk".split(" "));
+  for (const k of Object.keys(OBJ_VERBS)) OBJ_VERBS[k] = new Set(OBJ_VERBS[k].split(" "));
+  function soundsLike(a, b) {
+    const norm = (x2) => x2.toLowerCase().replace(/[^a-z]/g, "").replace(/th/g, "t").replace(/ph/g, "f").replace(/c(?=[aou])/g, "k").replace(/ck/g, "k");
+    const x = norm(a), y = norm(b);
+    if (!x || !y || x === y) return false;
+    let suf = 0;
+    while (suf < Math.min(x.length, y.length) && x[x.length - 1 - suf] === y[y.length - 1 - suf]) suf++;
+    if (suf >= 4) return true;
+    const sk = (z) => z.replace(/(?!^)[aeiouy]/g, "").replace(/(.)\1+/g, "$1");
+    const sx = sk(x), sy = sk(y);
+    return Math.max(sx.length, sy.length) >= 3 && levenshtein(sx, sy) / Math.max(sx.length, sy.length) <= 0.34;
+  }
+  function verbObjectClash(tw, rightWords) {
+    if (!rightWords.length || FUNCTION.has(rightWords[0]) && !["my", "the", "your", "a"].includes(rightWords[0])) return false;
+    const obj = rightWords.map((w) => lemma(w)).find((w) => OBJ_VERBS[w] || OBJ_VERBS[w + "s"]);
+    if (!obj) return false;
+    const ok = OBJ_VERBS[obj] || OBJ_VERBS[obj + "s"];
+    const verbs = tw.map((w) => lemma(w)).filter((w) => VERB_LIKE.has(w));
+    return verbs.length > 0 && verbs.every((v) => !ok.has(v));
+  }
+  var poolCache = /* @__PURE__ */ new WeakMap();
+  function contextPool(content, checker) {
+    let byChecker = poolCache.get(content);
+    if (!byChecker) poolCache.set(content, byChecker = /* @__PURE__ */ new WeakMap());
+    if (byChecker.has(checker)) return byChecker.get(checker);
+    const refs = [];
+    const add = (text, au) => {
+      if (text && wordTokens(text).length >= 4) refs.push({ text, au: au || null, prep: checker.prepare(text) });
+    };
+    for (const s of Object.values(content.sentences || {})) add(s.en, s.au);
+    for (const q of Object.values(content.questions || {})) {
+      add(q.a, q.aau);
+      (q.altAnswers || []).forEach((a, i) => add(a, (q.altAu || [])[i]));
+    }
+    for (const it of Object.values(content.items || {})) (it.ex || []).forEach((x) => add(x.en, x.au));
+    for (const r of refs) r.content = new Set(r.prep.full.filter((t) => !FUNCTION.has(t)));
+    byChecker.set(checker, refs);
+    return refs;
+  }
+  var isContent = (t) => !FUNCTION.has(t);
+  var surface = (X, srcs) => {
+    if (!srcs.length) return "";
+    const a = Math.min(...srcs), b = Math.max(...srcs);
+    return X.text.slice(X.prep.spans[a].start, X.prep.spans[b].end);
+  };
+  var srcOf = (toks) => [...new Set(toks.flatMap((o) => o.src))].sort((a, b) => a - b);
+  var punctBefore = (X, k) => {
+    const sp = X.prep.spans;
+    const from = k > 0 ? sp[k - 1].end : 0;
+    return /[.,;:!?]/.test(X.text.slice(from, sp[k] ? sp[k].start : X.text.length));
+  };
+  function clauseBefore(X, idx, max) {
+    const toks = X.prep.fullS;
+    const out = [];
+    for (let i = idx - 1; i >= 0 && out.length < max + 2; i--) {
+      out.unshift(toks[i]);
+      const first = Math.min(...toks[i].src);
+      if (punctBefore(X, first) || CONNECT.has(toks[i].t) || i === 0) break;
+    }
+    while (out.length && (SUBJ.has(out[0].t) || CONNECT.has(out[0].t))) out.shift();
+    return out.length <= max ? out : null;
+  }
+  function bestCluster(pairs, Tt, Rt) {
+    let best = null, cur = [];
+    const flush2 = () => {
+      if (!cur.length) return;
+      const contentN = cur.filter(([, j]) => isContent(Rt[j])).length;
+      if (!best || contentN > best.contentN) best = { pairs: cur, contentN };
+      cur = [];
+    };
+    for (const p of pairs) {
+      const last = cur[cur.length - 1];
+      if (last && (p[0] - last[0] > 5 || p[1] - last[1] > 5)) flush2();
+      cur.push(p);
+    }
+    flush2();
+    return best;
+  }
+  function findDivergences(transcript, { checker, pool = [], model = "" } = {}) {
+    const text = String(transcript || "");
+    if (!checker || !text.trim()) return [];
+    const T = { text, prep: checker.prepare(text) };
+    const Tt = T.prep.full;
+    if (Tt.length < 4) return [];
+    const tContent = new Set(Tt.filter(isContent));
+    const refs = [...model ? [{ text: model, au: null, prep: checker.prepare(model) }] : [], ...pool];
+    const eq = (a, b) => a === b || a[0] === "@" && b[0] === "@" && a.replace(/(am|pm)$/, "") === b.replace(/(am|pm)$/, "") || a.length > 3 && b.length > 3 && lemma(a) === lemma(b);
+    const out = [];
+    const explained = /* @__PURE__ */ new Set();
+    const taken = /* @__PURE__ */ new Set();
+    for (const ref of refs) {
+      const rContent = ref.content || new Set(ref.prep.full.filter(isContent));
+      let shared = 0;
+      for (const t of rContent) if (tContent.has(t)) shared++;
+      if (shared < 3) continue;
+      const R = { text: ref.text, prep: ref.prep };
+      const Rt = R.prep.full;
+      const cl = bestCluster(lcsAlign(Tt, Rt, eq), Tt, Rt);
+      if (!cl || cl.contentN < 3) continue;
+      const ps = cl.pairs;
+      if (!ps.some(([i, j], k) => k > 0 && ps[k - 1][0] === i - 1 && ps[k - 1][1] === j - 1 && isContent(Rt[j]) && isContent(Rt[j - 1]))) continue;
+      const j0 = ps[0][1], j1 = ps[ps.length - 1][1];
+      const regionContent = Rt.slice(j0, j1 + 1).filter(isContent).length;
+      if (cl.contentN / Math.max(1, regionContent) < 0.6) continue;
+      for (const [i] of ps) explained.add(i);
+      const blocks = [];
+      for (let k = 1; k < ps.length; k++) {
+        const [ia, ja] = ps[k - 1], [ib, jb] = ps[k];
+        blocks.push({ tG: T.prep.fullS.slice(ia + 1, ib), rG: R.prep.fullS.slice(ja + 1, jb), left: ps[k - 1], right: ps[k] });
+      }
+      const tL = clauseBefore(T, ps[0][0], 4), rL = clauseBefore(R, ps[0][1], 3);
+      if (tL && rL) blocks.push({ tG: tL, rG: rL, left: null, right: ps[0] });
+      for (const b of blocks) {
+        const { tG, rG } = b;
+        if (!tG.length || !rG.length || tG.length > 4 || rG.length > 3) continue;
+        const tw = tG.map((o) => o.t), rw = rG.map((o) => o.t);
+        if (tw.every((t) => !isContent(t)) && rw.every((t) => !isContent(t))) continue;
+        if (tw.join("") === rw.join("")) continue;
+        const expectedContent = rw.filter(isContent);
+        if (!expectedContent.length) continue;
+        if (expectedContent.every((t) => tContent.has(t))) continue;
+        if (tw.every((t) => rw.includes(t))) continue;
+        const rightWords = R.prep.fullS.slice(b.right[1], b.right[1] + 3).map((o) => o.t);
+        const tContentWords = tw.filter(isContent).join(" ") || tw.join(" ");
+        if (!soundsLike(tContentWords, expectedContent.join(" ")) && !soundsLike(tw.join(""), rw.join("")) && !verbObjectClash(tw, rightWords)) continue;
+        const src = srcOf(tG.filter((o) => isContent(o.t) || tG.length <= 3));
+        if (src.some((k) => taken.has(k))) continue;
+        src.forEach((k) => taken.add(k));
+        const leftCtx = b.left ? surface(R, R.prep.fullS[b.left[1]].src) : "";
+        const rightCtx = surface(R, R.prep.fullS.slice(b.right[1], Math.min(b.right[1] + 3, R.prep.fullS.length)).flatMap((o) => o.src));
+        out.push({
+          tIdx: tG.map((o) => T.prep.fullS.indexOf(o)),
+          src,
+          heard: surface(T, src),
+          expected: surface(R, srcOf(rG)),
+          context: `${leftCtx ? leftCtx + " " : ""}___ ${rightCtx}`.trim(),
+          ref: { text: ref.text, au: ref.au }
+        });
+      }
+    }
+    return out.filter((d) => !d.tIdx.every((i) => explained.has(i))).map(({ tIdx, ...d }) => d).sort((a, b) => a.src[0] - b.src[0]);
+  }
 
   // app/js/ui/inlinewords.js
   var LABEL = { good: "Reconhecida como esperado", needs_practice: "Precisa de pr\xE1tica", uncertain: "N\xE3o avaliada / inconclusiva" };
@@ -3391,7 +3698,7 @@
     return vocabCache.get(content);
   };
   var fmt2 = (n) => String(n).replace(".", ",");
-  var STATE_LABEL = { good: "Reconhecida", needs_practice: "Revisar", uncertain: "N\xE3o avaliada" };
+  var STATE_LABEL = { good: "Reconhecida", needs_practice: "Poss\xEDvel erro de reconhecimento", uncertain: "N\xE3o avaliada" };
   function freeAnswerPanel(App2, { question = "", model = "", modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
@@ -3460,7 +3767,9 @@
       await loadLexicon();
       if (!alive || !gate.isCurrent(ticket)) return;
       const grammar = text && App2.checker ? App2.checker.coverage(text, { keywords: [] }).grammar : [];
-      const r = analyseFreeAnswer({ question, model, unit, transcript: text || "", analysis, vocab: vocabOf(App2.content), grammar });
+      const divergences = text && App2.checker ? findDivergences(text, { checker: App2.checker, pool: contextPool(App2.content, App2.checker), model }) : [];
+      const naturalness = text && App2.checker ? App2.checker.naturalness(text) : [];
+      const r = analyseFreeAnswer({ question, model, unit, transcript: text || "", analysis, vocab: vocabOf(App2.content), grammar, divergences, naturalness });
       render(r, !!saved);
       if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now() } });
     }
@@ -3508,26 +3817,30 @@
       const panel = h("div", { class: "practice-panel hidden", "aria-live": "polite" });
       const tb = transcriptBox(r, (i) => focusPractice(i));
       function focusPractice(i) {
-        const x = r.practice.find((p) => p.w === i);
-        tb.focus(i);
-        chips.querySelectorAll(".pchip").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.w) === i)));
+        const x = r.practice.find((p) => p.w === i || p.ws && p.ws.includes(i));
+        tb.focus(x && x.ws ? x.ws : i);
+        chips.querySelectorAll(".pchip").forEach((b) => b.setAttribute("aria-pressed", String(!!x && Number(b.dataset.w) === x.w)));
         if (!x) {
           panel.classList.add("hidden");
           return;
         }
-        const refKey = x.ref ? audioKey(x.ref.toLowerCase()) : null;
+        if (x.ws) tb.focus(x.ws);
+        const refKey = x.ref ? audioKey(x.ref.toLowerCase().replace(/[.,!?;:]+$/, "")) : null;
         const hasRef = refKey && hasEmbedded(refKey);
+        const hasSentence = x.refAu && hasEmbedded(x.refAu);
         if (hasRef) play({ key: refKey, text: x.ref });
+        else if (hasSentence) play({ key: x.refAu, text: x.refText });
         clear(panel).append(
           h("p", { class: "small", text: x.reason }),
           h(
             "div",
             { class: "row" },
             hasRef ? h("button", { class: "btn small", type: "button", onclick: () => play({ key: refKey, text: x.ref }) }, icon("speaker"), `Ouvir \u201C${x.ref}\u201D`) : null,
+            hasSentence ? h("button", { class: "btn small", type: "button", onclick: () => play({ key: x.refAu, text: x.refText }) }, icon("speaker"), "Ouvir a frase de refer\xEAncia") : null,
             mineBtn(),
             modelClips.length ? h("button", { class: "btn small", type: "button", onclick: () => playSequence(modelClips) }, icon("play"), "Ouvir o exemplo") : null
           ),
-          h("p", { class: "tiny muted", text: hasRef ? "Ou\xE7a, repita a palavra algumas vezes e grave a resposta de novo." : "N\xE3o h\xE1 \xE1udio de refer\xEAncia para esta palavra; compare com sua grava\xE7\xE3o e com o exemplo." }),
+          h("p", { class: "tiny muted", text: hasRef || hasSentence ? "Ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia. Se o app ouviu errado, est\xE1 tudo certo; se a palavra saiu diferente, repita e grave de novo." : "N\xE3o h\xE1 \xE1udio de refer\xEAncia para este trecho; compare com sua grava\xE7\xE3o e com o exemplo." }),
           h("button", { class: "btn primary block", type: "button", onclick: recordAgain }, icon("mic"), "Gravar a resposta de novo")
         );
         panel.classList.remove("hidden");
@@ -3560,14 +3873,21 @@
           "div",
           { class: "practice", "data-role": "free-practice", "aria-label": "Palavras para revisar" },
           chips,
-          h("div", { class: "tiny muted practice-hint", text: "Marcadas pelo reconhecimento, n\xE3o por erro de pron\xFAncia comprovado. Toque para revisar." }),
+          h("div", { class: "tiny muted practice-hint", text: "Poss\xEDveis erros do reconhecimento, n\xE3o erros de pron\xFAncia comprovados. Toque para conferir." }),
           panel
         ) : null,
-        r.tips.length || r.grammarTips.length ? h(
+        r.tips.length ? h(
           "div",
           { class: "fa-tips" },
-          h("b", { class: "small", text: "Para melhorar" }),
-          h("ul", { class: "small" }, r.tips.map((t) => h("li", { text: t })), r.grammarTips.map((t) => h("li", {}, h("span", { class: "muted", text: "Confira ouvindo sua grava\xE7\xE3o: " }), t)))
+          h("b", { class: "small", text: "Para melhorar a resposta" }),
+          h("ul", { class: "small" }, r.tips.map((t) => h("li", { text: t })))
+        ) : null,
+        r.language && (r.language.grammar.length || r.language.naturalness.length) ? h(
+          "div",
+          { class: "fa-tips", "data-role": "fa-language" },
+          h("b", { class: "small", text: "Gram\xE1tica e naturalidade" }),
+          h("ul", { class: "small" }, r.language.naturalness.map((t) => h("li", { text: t })), r.language.grammar.map((t) => h("li", { text: t }))),
+          h("div", { class: "tiny muted", text: "Com base na transcri\xE7\xE3o autom\xE1tica: confira ouvindo sua grava\xE7\xE3o." })
         ) : null,
         h("div", { class: "row fb-actions" }, mineBtn(), againBtn()),
         h(
@@ -3645,7 +3965,7 @@
         p.append(span);
       }
       const lg = legend();
-      lg.querySelectorAll(".lg")[1].lastChild.textContent = "Revisar";
+      lg.querySelectorAll(".lg")[1].lastChild.textContent = STATE_LABEL.needs_practice;
       const box2 = h(
         "div",
         { class: "fa-transcript" },
@@ -3654,7 +3974,10 @@
         lg,
         detail
       );
-      return { el: box2, focus: (i) => spans.forEach((s) => s.classList.toggle("w-focus", Number(s.dataset.w) === i)) };
+      return { el: box2, focus: (i) => {
+        const set = new Set([].concat(i));
+        spans.forEach((s) => s.classList.toggle("w-focus", set.has(Number(s.dataset.w))));
+      } };
     }
     function loaded(rec) {
       if (!alive || !rec) return;
@@ -3849,7 +4172,12 @@
       if (res.cls !== "correct") {
         panel.append(h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Resposta-modelo" }));
         panel.append(h("div", { class: "row nowrap" }, h("div", { class: "model", style: { flex: 1 } }, diffModel(res, model)), au || model ? speakerButton({ key: au, text: model }, { cls: "icon-btn ghost" }) : null));
-        if (res.diff && res.diff.extra && res.diff.extra.length && res.cls !== "meaning") panel.append(h("div", { class: "small diff" }, "Voc\xEA escreveu: ", h("span", { class: "en" }, ...res.diff.answer.map((t, i) => [i ? " " : "", h("span", { class: t.ok ? "" : "extra", text: t.t })]))));
+        const ans = res.diff && res.diff.answerSpans;
+        if (ans && res.cls !== "meaning" && ans.some((x) => x.state === "extra" || x.state === "typo")) {
+          panel.append(h("div", { class: "small diff" }, "Voc\xEA escreveu: ", h("span", { class: "en" }, spansView(res.diff.answerText, ans, { extra: "extra", typo: "extra", style: "style" }))));
+        } else if (!ans && res.diff && res.diff.extra && res.diff.extra.length && res.cls !== "meaning") {
+          panel.append(h("div", { class: "small diff" }, "Voc\xEA escreveu: ", h("span", { class: "en" }, ...res.diff.answer.map((t, i) => [i ? " " : "", h("span", { class: t.ok ? "" : "extra", text: t.t })]))));
+        }
       } else if (model) {
         panel.append(h("div", { class: "row nowrap" }, h("div", { class: "model", style: { flex: 1 }, text: model }), speakerButton({ key: au, text: model }, { cls: "icon-btn ghost" })));
       }
@@ -3869,8 +4197,22 @@
       }
       return panel;
     }
+    function spansView(text, spans, classes) {
+      const frag = document.createDocumentFragment();
+      let pos = 0;
+      for (const sp of spans) {
+        if (sp.start > pos) frag.append(document.createTextNode(text.slice(pos, sp.start)));
+        const cls = classes[sp.state];
+        const piece = text.slice(sp.start, sp.end);
+        frag.append(cls ? h("span", { class: cls, text: piece, title: sp.state === "style" ? "diferen\xE7a de estilo, n\xE3o de erro" : null }) : document.createTextNode(piece));
+        pos = sp.end;
+      }
+      if (pos < text.length) frag.append(document.createTextNode(text.slice(pos)));
+      return frag;
+    }
     function diffModel(res, model) {
       if (!res.diff || !res.diff.target || res.cls === "meaning") return document.createTextNode(model || "");
+      if (res.diff.targetSpans && res.diff.targetText === model) return h("span", { class: "diff" }, spansView(model, res.diff.targetSpans, { miss: "miss", style: "style" }));
       const missing = new Set(res.diff.missing);
       if (!missing.size) return document.createTextNode(model || "");
       const frag = document.createDocumentFragment();
