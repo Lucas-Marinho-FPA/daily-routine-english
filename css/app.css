@@ -378,6 +378,7 @@ div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
 .fa-status { font-weight: 700; }
 .fa-answers { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .fa-partial { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.fa-unclear { background: var(--surface-2); color: var(--ink); border: 1.5px dashed color-mix(in srgb, var(--warn) 55%, var(--line)); }
 .fa-off-topic { background: var(--surface-2); color: var(--ink); }
 .fa-msg { margin: 8px 0 6px; font-weight: 600; }
 .fa-check { list-style: none; padding: 0; margin: 4px 0 8px; display: grid; gap: 2px; font-size: .9rem; }
@@ -385,6 +386,9 @@ div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
 .fa-check .fa-mark { width: 16px; flex: none; text-align: center; font-weight: 700; }
 .fa-check li.ok .fa-mark { color: var(--ok); }
 .fa-check li.no { color: var(--muted); }
+.fa-check li.unk .fa-mark { color: var(--warn); font-weight: 700; }
+.fa-integrity, .fa-coherence { margin: 10px 0; }
+.fa-integrity ul, .fa-coherence ul { margin: 4px 0 2px; padding-left: 18px; }
 .fa-transcript { margin-top: 10px; padding: 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
 .fa-text { font-family: var(--font-en); font-size: 1.08rem; line-height: 1.85; margin: 6px 0 2px; overflow-wrap: break-word; }
 .fa-text .w { cursor: pointer; border-radius: 4px; padding: 0 1px; }

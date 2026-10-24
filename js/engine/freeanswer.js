@@ -2,16 +2,23 @@
 //
 // Uma resposta livre não tem texto-alvo: não é comparada palavra por palavra com o exemplo.
 // A avaliação é separada em quatro componentes, cada um com critérios explícitos (docs/feedback-de-pronuncia.md):
+//   0. Integridade   — a transcrição cobre todo o áudio? (engine/integrity.js) Se parte da fala pode ter sido
+//      perdida, a falta de uma informação vira “não confirmado”, nunca “você não disse”.
 //   A. Reconhecimento — a transcrição automática e possíveis divergências DO RECONHECEDOR
-//      (palavra inexistente em inglês; palavra fora do tema parecida com uma palavra esperada).
+//      (palavra inexistente em inglês; trecho que destoa de uma moldura do conteúdo — engine/coherence.js e
+//      engine/context.js; palavra fora do tema parecida com uma palavra esperada).
+//      Cores (evidência, não confiança do reconhecedor): verde = compatível com o vocabulário/tema da atividade e
+//      sem sinal contra; âmbar = trecho suspeito, confira; cinza = sem evidência para classificar.
 //   B. Adequação      — relação com a pergunta, o elemento que a pergunta pede (horário, motivo, frequência…)
 //      e quantidade de fala. Vocabulário diferente do exemplo nunca é penalizado.
 //   C. Métricas       — duração, tempo de fala, velocidade estimada e pausas, só quando medidos.
 //   D. Pronúncia      — NÃO avaliada: o app não mede fonemas.
 // Não há nota numérica geral: cada componente diz o que foi (ou não) avaliado.
 import { wordTokens, levenshtein } from './text.js';
-import { segment } from './wordfeedback.js';
+import { segment, forms } from './wordfeedback.js';
 import { lemma, isKnownWord, lexiconReady } from './lexicon.js';
+import { findSlotSuspicions, findOddCombinations, findHoles, findContradictions, prepRef, categoryOf } from './coherence.js';
+import { mayHaveLostSpeech } from './integrity.js';
 
 // palavras funcionais, auxiliares e marcadores de hesitação: não contam como conteúdo
 const STOP = new Set(('a an the and or but so if of to in on at for from by with about as into than then also too very really just ' +
@@ -124,13 +131,15 @@ export const insufficientAudio = (analysis) => !analysis || analysis.silent || a
  * @param p.analysis   métricas da gravação (audio/analysis.js) ou null
  * @param p.vocab      buildVocab(content)
  * @param p.grammar    dicas de gramática do corretor do app sobre a transcrição (opcional)
+ * @param p.frames     frameRefs(content) — molduras do conteúdo para a coerência contextual (opcional)
+ * @param p.integrity  transcriptIntegrity(...) do reconhecimento (opcional; null = não verificada)
  */
-export function analyseFreeAnswer({ question = '', model = '', unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [], divergences = [], naturalness = [] }) {
+export function analyseFreeAnswer({ question = '', model = '', unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [], divergences = [], naturalness = [], frames = null, integrity = null }) {
   const text = String(transcript || '').trim();
   const tokens = wordTokens(text);
   const metrics = measure(analysis, tokens.length);
   const pronunciation = { evaluated: false, note: 'Não avaliada: o app não mede os sons (fonemas). As marcações na transcrição indicam divergências do reconhecimento, não erros de pronúncia.' };
-  const base = { transcript: text, metrics, pronunciation };
+  const base = { transcript: text, metrics, pronunciation, integrity: integrity || { checked: false, complete: null, issues: [] } };
   const inconclusive = (reason, message) => ({ ...base, status: 'inconclusive', reason, message, words: wordsAll(text, 'uncertain'), practice: [], checklist: [], tips: [] });
 
   if (analysis && insufficientAudio(analysis)) return inconclusive('audio', 'Quase não captei voz nesta gravação. Grave de novo, num lugar silencioso e mais perto do microfone.');
@@ -147,31 +156,49 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   const words = [];
   const practice = [];
   const seen = new Set();
-  // camada contextual (engine/context.js): trechos que destoam de uma frase conhecida que o aluno está dizendo
-  const byWord = new Map();
-  for (const d of divergences || []) for (const k of d.src) if (!byWord.has(k)) byWord.set(k, d);
-  for (const seg of segment(text)) {
-    if (seg.w === undefined) continue;
+  // trechos suspeitos (cada palavra recebe no máximo uma marca): molduras do conteúdo, alinhamento com frases
+  // conhecidas (context.js) e combinações estranhas sem referência
+  const flags = new Map();
+  const mark = (ws, f) => { if (ws.some((k) => flags.has(k))) return; ws.forEach((k) => flags.set(k, f)); };
+  const refs = frames ? [...(model ? [prepRef(model)] : []), ...frames].filter(Boolean) : [];
+  // o alinhamento com uma frase inteira (context.js) explica melhor o trecho (“this nation” ← “my destination”): vem primeiro
+  for (const d of divergences || []) mark(d.src, { kind: 'context', ...d });
+  for (const sp of refs.length ? findSlotSuspicions(text, refs) : []) mark(sp.src, { kind: 'frame', ...sp });
+  for (const o of findOddCombinations(text)) mark(o.src, { kind: 'odd', ...o });
+  const segs = segment(text).filter((x) => x.w !== undefined);
+  const deferred = [];
+  for (const seg of segs) {
     const t = seg.norm;
-    const r = { w: seg.w, text: seg.text, state: 'good', reason: 'Reconhecida pelo app, sem divergência identificada. (Não é uma análise dos sons.)' };
-    const skip = !t || t.length < 3 || /\d/.test(t) || seg.weak || seg.proper || t.includes(' ') || STOP.has(t);
-    const d = byWord.get(seg.w);
-    if (d) {
-      Object.assign(r, { state: 'needs_practice', flag: 'context', ref: d.expected, reason: `No contexto “${d.context}”, o app ouviu “${d.heard}”; o esperado seria algo como “${d.expected}”. Pode ser erro do reconhecimento: ouça sua gravação para conferir. Se você disse “${d.heard}” mesmo, ignore esta marca.` });
-      if (!seen.has('ctx:' + d.heard)) {
-        seen.add('ctx:' + d.heard);
-        practice.push({ w: seg.w, ws: d.src, text: d.heard, heard: d.heard, ref: d.expected, refAu: d.ref.au || null, refText: d.ref.text, context: d.context, flag: 'context', reason: r.reason });
+    const f = flags.get(seg.w);
+    if (f) {
+      const r = { w: seg.w, text: seg.text, state: 'needs_practice', flag: f.kind, ref: f.expected || null, reason: flagReason(f) };
+      const key = 'flag:' + f.src.join(',');
+      if (!seen.has(key)) {
+        seen.add(key);
+        practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, strength: f.strength || 'possible', reason: r.reason });
       }
       words.push(r);
       continue;
     }
-    if (!skip) {
-      const l = lemma(t);
+    if (!t || /\d/.test(t) || NUMBER_WORDS.includes(t)) { words.push({ w: seg.w, text: seg.text, state: 'good', reason: 'Número ou horário reconhecido.' }); continue; }
+    if (seg.weak || STOP.has(t) || t.length < 3) { deferred.push(words.length); words.push({ w: seg.w, text: seg.text, state: 'uncertain', reason: '' }); continue; }
+    const l = lemma(t);
+    // grafia americana/britânica e números por extenso contam como a mesma palavra; composto de palavras do app também
+    const inActivity = [...forms(t)].some((f) => vocab.known.has(f) || vocab.domain.has(lemma(f)) || expected.includes(lemma(f)))
+      || appCompound(t, vocab.known) || !!categoryOf(t); // palavra de uma categoria do cotidiano (alimento, transporte…)
+    if (seg.proper && !inActivity) {
+      words.push({ w: seg.w, text: seg.text, state: 'uncertain', reason: 'Nome próprio ou termo fora do vocabulário da atividade: não avaliado. O app não tenta adivinhar nomes.' });
+      continue;
+    }
+    const r = { w: seg.w, text: seg.text, state: inActivity ? 'good' : 'uncertain',
+      reason: inActivity ? 'Compatível com o vocabulário e o tema da atividade, sem sinal de divergência. (Não é uma análise dos sons.)'
+        : 'Palavra do inglês fora do vocabulário desta atividade: o app não tem evidência para confirmar se é o que você disse. Se estiver certa, tudo bem.' };
+    if (!t.includes(' ')) {
       const known = isKnownWord(t, vocab.known) ?? null;
       const compound = known === false && splitsInTwo(t, vocab.known);
       if (known === false && !compound) {
         Object.assign(r, { state: 'needs_practice', flag: 'nonword', reason: `“${seg.text}” não parece uma palavra do inglês: provável erro do reconhecimento. Ouça sua gravação; se a palavra estiver clara, está tudo certo.` });
-      } else if (!vocab.domain.has(l) && !expected.includes(l)) {
+      } else if (!inActivity) {
         // palavra fora do tema parecida com uma palavra esperada que não apareceu: possível troca do reconhecedor
         // critério estrito (melhor deixar de marcar do que marcar uma palavra válida): mesma inicial,
         // esqueleto de consoantes quase igual, no máximo 2 letras de diferença e tamanho parecido
@@ -189,6 +216,14 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
       if (!seen.has(key)) { seen.add(key); practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ''), heard: seg.text.replace(/[.,!?;:]+$/, ''), ref: r.ref || null, flag: r.flag, reason: r.reason }); }
     }
     words.push(r);
+  }
+  // palavras funcionais não têm evidência própria: encostadas num trecho marcado, ou cercadas só de palavras não
+  // confirmadas (até 3 posições), ficam “não avaliadas”; nos demais casos acompanham a frase
+  for (const k of deferred) {
+    const near = [1, -1, 2, -2, 3, -3].map((d) => k + d).filter((j) => words[j] && !deferred.includes(j)).map((j) => words[j]);
+    const touchesFlag = [words[k - 1], words[k + 1]].some((x) => x && x.state === 'needs_practice');
+    const good = !touchesFlag && (!near.length || near.some((x) => x.state === 'good'));
+    Object.assign(words[k], { state: good ? 'good' : 'uncertain', reason: good ? 'Palavra curta que acompanha um trecho compatível.' : 'Palavra curta perto de um trecho não confirmado: não avaliada sozinha.' });
   }
 
   // ---------- B. adequação à pergunta ----------
@@ -223,17 +258,30 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   }
   checklist.push({ id: 'length', label: 'Desenvolve a resposta', ok: enough, required: false });
 
-  const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok);
-  const status = relevance === 'none' ? 'off-topic' : requiredOk && tokens.length >= minToAnswer ? 'answers' : 'partial';
+  // a falta de uma informação só é “falta” se a transcrição está íntegra: com fala possivelmente perdida
+  // (integridade) ou lacunas (“at in the morning”), o item obrigatório fica “não confirmado” (ok = null)
+  const holes = findHoles(text);
+  const lostSpeech = mayHaveLostSpeech(integrity) || holes.length > 0;
+  if (lostSpeech) for (const c of checklist) if (c.required && c.id !== 'topic' && !c.ok) { c.ok = null; c.unconfirmed = true; }
+  const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok !== false);
+  const unconfirmed = checklist.some((c) => c.unconfirmed);
+  const status = relevance === 'none' ? 'off-topic' : requiredOk && tokens.length >= minToAnswer ? (unconfirmed ? 'unclear' : 'answers') : 'partial';
+  const holeText = holes.length ? ` (por exemplo, depois de “${holes[0].after}”)` : '';
   const message = {
     answers: 'Sua resposta responde à pergunta.',
     partial: 'Sua resposta tem relação com a pergunta, mas pode ficar mais completa.',
+    unclear: `Sua resposta tem relação com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. Não dá para afirmar que faltou algo: ouça sua gravação.`,
     'off-topic': 'Não encontrei relação clara com a pergunta. Pode ser erro do reconhecimento: ouça sua gravação. Se você falou de outro assunto, tente responder diretamente.',
   }[status];
 
+  // coerência interna do relato: informações conflitantes (não decide qual está certa)
+  const coherence = findContradictions(text).map((c) => c.kind === 'two-times'
+    ? { kind: c.kind, msg: `Você mencionou dois horários para “${c.activity}” (${c.times.join(' e ')}) sem dizer quando vale cada um (ex.: “on weekends”). Confira na gravação: pode ter sido o reconhecimento.` }
+    : { kind: c.kind, msg: `“${c.times[0]}” e “${c.period}” não combinam (p.m. é tarde/noite; a.m. é manhã). Confira o horário na gravação.` });
+
   const tips = [];
   for (const c of checklist) {
-    if (c.ok) continue;
+    if (c.ok || c.unconfirmed) continue;
     if (c.id === 'topic') continue;
     if (c.id === 'length') tips.push(unit === 'q' ? 'Desenvolva com mais uma ou duas frases (o que, quando, por quê).' : 'Acrescente mais detalhes: o que você faz, quando e por quê.');
     else if (c.id === 'sequence') tips.push('Ligue as ideias com “then”, “after that”, “before”.');
@@ -244,8 +292,24 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   // B. correção linguística (pela transcrição): gramática e naturalidade, separadas da adequação e do reconhecimento
   const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
 
-  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, language, words, practice,
+  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, language, words, practice, coherence, holes,
     evidence: { strong: strongHits, domain: domainHits.length, activities: activities.size, words: tokens.length, minWords } };
+}
+
+/** Explicação de uma marca: o que foi ouvido, por que destoa, sugestão (rotulada) e as duas hipóteses. */
+function flagReason(f) {
+  if (f.kind === 'context') {
+    return `No contexto “${f.context}”, o app ouviu “${f.heard}”; o esperado seria algo como “${f.expected}” (sugestão, não a transcrição). Pode ter sido o reconhecimento ou a pronúncia: ouça sua gravação e a referência. Se você disse “${f.heard}” mesmo, ignore esta marca.`;
+  }
+  if (f.kind === 'odd') {
+    const why = f.clash === 'not-food' ? `“${f.heard}” junta um animal ou objeto a um prato` : `“${f.heard}” não ocupa o lugar de um alimento na lista`;
+    return `${why}: combinação incomum. Pode ter sido o reconhecimento ou a pronúncia, ou você quis dizer isso mesmo. Ouça sua gravação; o app não tem uma sugestão segura.`;
+  }
+  const why = [];
+  if (f.signals.includes('category')) why.push(f.clash === 'not-food' ? `“${f.heard}” não é um alimento, mas o trecho fala de comida` : `“${f.heard}” não ocupa o lugar de um nome neste trecho`);
+  if (f.signals.includes('sound')) why.push(`soa parecido com “${f.expected}”`);
+  const lead = f.strength === 'likely' ? 'Este trecho provavelmente não corresponde ao que você quis dizer' : 'Este trecho pode não corresponder ao que você quis dizer';
+  return `${lead}: no trecho “${f.context}” o app ouviu “${f.heard}” — ${why.join(' e ')}. Sugestão (não é a transcrição): “${f.expected}”, como em “${f.ref.text}”. Pode ter sido o reconhecimento ou a pronúncia: ouça sua gravação e a referência. Se você disse “${f.heard}” mesmo, ignore esta marca.`;
 }
 
 function commonPrefix(a, b) { let i = 0; while (i < a.length && a[i] === b[i]) i++; return i; }
@@ -254,6 +318,12 @@ function splitsInTwo(t, extra) {
   // cada parte: palavra do app ou palavra conhecida com 4+ letras (evita “you”+“ber” em “youber”)
   const ok = (x) => (extra && extra.has(x)) || (x.length >= 4 && isKnownWord(x, extra));
   for (let i = 3; i <= t.length - 3; i++) if (ok(t.slice(0, i)) && ok(t.slice(i))) return true;
+  return false;
+}
+
+/** Composto escrito junto cujas duas partes são palavras do conteúdo do app (“lunchbox” = lunch + box). */
+function appCompound(t, known) {
+  for (let i = 3; i <= t.length - 3; i++) if (known.has(t.slice(0, i)) && known.has(t.slice(i))) return true;
   return false;
 }
 
@@ -277,4 +347,4 @@ export function measure(analysis, words) {
   };
 }
 
-export const STATUS_LABEL = { answers: 'Responde à pergunta', partial: 'Responde em parte', 'off-topic': 'Pouca relação com a pergunta', inconclusive: 'Avaliação inconclusiva' };
+export const STATUS_LABEL = { answers: 'Responde à pergunta', partial: 'Responde em parte', unclear: 'Não deu para confirmar tudo', 'off-topic': 'Pouca relação com a pergunta', inconclusive: 'Avaliação inconclusiva' };

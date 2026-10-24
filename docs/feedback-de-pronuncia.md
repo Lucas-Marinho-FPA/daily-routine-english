@@ -116,3 +116,46 @@ Entre a transcrição bruta e o feedback há uma camada contextual (`js/engine/c
 **Validação:** casos A, B e C do teste no Galaxy S25+ estão na bateria `tests/unit/context.test.js`. Nas 355 frases do conteúdo comparadas consigo mesmas não há nenhuma marca; nas transcrições reais do modelo para as 101 frases (fala sintética), só três trechos são marcados, todos erros reais do reconhecedor (“chest” por “chess”, “youber” por “Uber”, “Ideal” por “I deal”).
 
 **Limites:** a camada só ajuda quando o aluno fala algo próximo de uma frase do conteúdo; numa resposta totalmente livre, um erro do reconhecedor que produza palavras válidas e plausíveis não é detectado. A lista de colocações verbo + objeto é pequena e curada. Nada disto foi validado ainda com voz humana além do relato do caso A.
+
+## Avaliação em camadas das respostas orais (caso real: frango, alface, Uber)
+
+**Caso que orientou a revisão.** O aluno contou que come um sanduíche de frango com alface e tomate e usa o app da Uber; o reconhecimento local devolveu “I ate a **kitten** sandwich with salad”, “Usually I ate **a little** and tomato” e “I opened my **over** app and set **this station** to my office”. Na versão anterior, **todas** essas palavras apareciam em verde (“Reconhecida”).
+
+**Causa raiz (fatos, verificados por reprodução em teste):**
+1. Na resposta livre, toda palavra começava como verde e só mudava se alguma regra disparasse: verde significava “o reconhecedor produziu e nada contra foi achado”, não “há evidência de correspondência”.
+2. A camada contextual (`engine/context.js`) só alinhava a resposta com uma frase do conteúdo se houvesse 3 palavras de conteúdo em comum **com a mesma frase** e um par de palavras de conteúdo vizinhas; falas reais (“app and set”, “sandwich with salad”) não passavam, e “opened” não contava como “open”. Resultado: 0 divergências nos quatro trechos.
+3. O critério de “som parecido” comparava letras (sufixo comum, esqueleto de consoantes) e não aproximava kitten/chicken, over/Uber nem a little/lettuce.
+4. Não havia nenhuma checagem semântica (animal num prato, quantificador no lugar de um alimento).
+5. Na leitura de frase, a tolerância de 1 letra aceitava outra palavra real do inglês (“bother” por “brother”).
+
+**Hipótese não verificável:** se o aluno pronunciou “kitten” ou se o modelo errou. Não há gravação do caso, e o app não tem alinhamento acústico; por isso o feedback apresenta as duas possibilidades.
+
+**Defeito latente encontrado (não é a causa do caso):** a biblioteca do reconhecedor (`moonshine-js`, `generate`) decodifica no máximo 6 tokens por segundo de áudio e sempre descarta o último token; se o limite é atingido, o texto sai cortado sem aviso. Medição: 0 cortes nas 101 leituras reais de frases. Mitigação sem tocar no pacote do modelo (que exigiria novo download): verificação de integridade pelo tamanho do texto e recorte mínimo de 1 s na palavra isolada.
+
+### Camadas
+| Camada | O que verifica | Onde |
+|---|---|---|
+| 0. Integridade | o texto chegou perto do limite do reconhecedor (possível corte); trecho com voz que voltou vazio; divisão do áudio no meio da fala; poucas palavras para o tempo de fala | `engine/integrity.js`, `audio/localasr.js` (dados por trecho), `audio/segment.js` |
+| 1. Correspondência | leitura: palavra a palavra com a frase-alvo; resposta livre: vocabulário e tema da atividade; grafias BrE/AmE, números por extenso e compostos contam como iguais | `engine/wordfeedback.js`, `engine/freeanswer.js` |
+| 2. Coerência | trecho que repete uma moldura do conteúdo (“___ and tomato”, “my ___ app”, “set ___ to”) com encaixe diferente **e** pelo menos um sinal: som parecido, ou categoria incompatível (animal num prato; quantificador/preposição no lugar de um nome); combinações estranhas sem referência; contradições internas (mesma atividade com dois horários sem “on weekends”, “p.m.” com “in the morning”) | `engine/coherence.js`, `engine/context.js` |
+| 3. Adequação | tema, elemento pedido pela pergunta, desenvolvimento. Se a transcrição pode ter perdido fala (integridade) ou tem lacuna (“at and then”), o item ausente fica **não confirmado** e o status vira “Não deu para confirmar tudo”, nunca “você não disse” | `engine/freeanswer.js` |
+| 4. Feedback | o que foi ouvido (inalterado), por que destoa, **sugestão rotulada** (“Sugestão (não é a transcrição)”), as duas hipóteses (reconhecimento ou pronúncia), ouvir a própria gravação e a referência | `ui/freeanswer.js` |
+
+### Cores (resposta livre)
+- **Verde — Compatível:** palavra do vocabulário/tema da atividade (ou de uma categoria do cotidiano), sem nenhum sinal contra.
+- **Âmbar — Confira:** trecho com sinal de divergência (moldura + som/categoria, alinhamento com frase conhecida, palavra inexistente).
+- **Cinza — Não avaliada:** sem evidência para classificar (palavra real do inglês fora da atividade, nome próprio desconhecido, palavra curta encostada num trecho suspeito).
+Nenhuma cor mede os sons; o reconhecedor não dá confiança por palavra e nenhuma probabilidade é inventada.
+
+### Regras contra falsos alarmes (medidas)
+- Alternativa da mesma categoria nunca é marcada (ham × chicken, bus × car, school × office, evening × morning).
+- Som parecido sozinho exige a moldura completa (âncoras dos dois lados); “palavra funcional no lugar de um nome” exige que o esperado seja um nome e mais um indício.
+- Nomes próprios desconhecidos não recebem sugestão (“Bolt”, “Itaipava”).
+- Bateria fixa nos testes: 0 suspeitas nas 66 respostas-modelo, 101 frases e 34 blocos do conteúdo e nas 101 transcrições reais do Moonshine de leituras corretas (antes dos ajustes eram 27 e 19).
+
+### Limitações
+- Coerência depende de **molduras do conteúdo** e de **categorias pequenas e explícitas**; fala sobre temas fora do conteúdo tem menos cobertura (cai mais em cinza do que em âmbar).
+- O “som parecido” é uma aproximação pela escrita, não fonética; pode errar em pares não testados.
+- Gramática na fala livre: “my wife go” é detectado; “I goes” não (só nas respostas escritas).
+- Sem marcas de tempo por palavra, não é possível reproduzir só o trecho suspeito da gravação do aluno: o app oferece a gravação inteira e a referência.
+- A correção do corte da biblioteca exige atualizar o pacote do reconhecimento (download de ~0,7 MB com consentimento) — pendente.

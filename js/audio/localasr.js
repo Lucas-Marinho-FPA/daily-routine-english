@@ -6,7 +6,7 @@
 // áudio gravado, então não disputa o microfone com o MediaRecorder. Nenhum áudio sai do aparelho.
 
 /* global __ASR_MANIFEST__ */
-import { splitForAsr, speechBounds } from './segment.js';
+import { splitForAsr, speechBounds, voiceProfile, voicedSeconds, inSpeechAt } from './segment.js';
 const MANIFEST = typeof __ASR_MANIFEST__ !== 'undefined' ? __ASR_MANIFEST__ : null;
 const PREFIX = 'asr-local-'; // não começa com "drg-": o service worker não apaga este cache ao atualizar o app
 const cacheName = () => PREFIX + MANIFEST.version;
@@ -218,6 +218,7 @@ export const MAX_FREE_SECONDS = 180;
  * opts.long = true: respostas livres de até MAX_FREE_SECONDS, transcritas em trechos cortados nas pausas
  * (o modelo degenera com trechos longos); onProgress(parte, total). Nada do áudio é descartado.
  * opts.word = true: palavra isolada — transcreve só o trecho com voz (ver speechBounds em segment.js).
+ * Resolve também segments: [{ secs, voicedSec, cutInSpeech, text }] por trecho, para a verificação de integridade.
  */
 export async function transcribe(blob, { long = false, onProgress, word = false } = {}) {
   active++;
@@ -229,13 +230,15 @@ async function run(blob, long, onProgress, word) {
   const cancelled = () => { if (mine !== epoch) throw asrError('cancelado', 'cancelled'); };
   let pcm;
   try { pcm = await toPcm16k(blob); } catch (e) { throw asrError('não foi possível ler o áudio gravado', 'decode'); }
-  if (word) { const b = speechBounds(pcm, 16000); pcm = pcm.slice(b.start, b.end); } // palavra isolada: só o trecho com voz
+  if (word) { const b = speechBounds(pcm, 16000, { minSec: 1 }); pcm = pcm.slice(b.start, b.end); } // palavra isolada: só o trecho com voz (≥ 1 s de áudio real)
   cancelled(); // a tela foi fechada (ou nova gravação) enquanto o áudio era decodificado: nem cria o worker
   const secs = pcm.length / 16000;
   const max = long ? MAX_FREE_SECONDS : MAX_SECONDS;
   if (secs > max) { const e = asrError(`gravação longa demais para a análise (máx. ${max} s)`, 'too-long'); e.secs = secs; e.max = max; throw e; }
   const segs = long ? splitForAsr(pcm, 16000) : [{ start: 0, end: pcm.length }];
   const texts = [];
+  const prof = voiceProfile(pcm, 16000); // calculado antes de transferir os trechos ao worker
+  const info = segs.map((sg, i) => ({ secs: Math.round(((sg.end - sg.start) / 16000) * 100) / 100, voicedSec: voicedSeconds(prof, sg.start, sg.end), cutInSpeech: i < segs.length - 1 && inSpeechAt(prof, sg.end) }));
   let ms = 0;
   for (let i = 0; i < segs.length; i++) {
     cancelled();
@@ -244,7 +247,9 @@ async function run(blob, long, onProgress, word) {
     const partSecs = part.length / 16000;
     const res = await call({ type: 'transcribe', pcm: part }, [part.buffer], 60000 + partSecs * 4000);
     texts.push(res.text);
+    info[i].text = res.text;
     ms += res.ms;
   }
-  return { text: texts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim(), confidence: 0, engine: 'local-model', ms, secs, parts: segs.length };
+  // segments: dados para a verificação de integridade (engine/integrity.js); o texto final é a junção, na ordem, sem descartes
+  return { text: texts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim(), confidence: 0, engine: 'local-model', ms, secs, parts: segs.length, segments: info };
 }

@@ -12,6 +12,8 @@ import { analyseAttempt, practiceSummary, latestGate, wordPracticeSession } from
 import { wordPractice } from './wordpractice.js';
 import { updatePracticeWords } from '../engine/progress.js';
 import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
+import { transcriptIntegrity } from '../engine/integrity.js';
+import { loadLexicon } from '../engine/lexicon.js';
 import { speakerButton, sessionHref } from './common.js';
 
 let labTab = 'sentences';
@@ -110,6 +112,7 @@ function renderTarget(App, params) {
       Number(params.drill) === 0 ? h('div', { class: 'notice small', text: 'Fale de 30 a 45 segundos sem ler. O tempo aparece durante a gravação.' }) : null);
   }
   const view = App.layout(title, { back });
+  loadLexicon(); // já no cache offline: distingue palavra inexistente de outra palavra do inglês na comparação
   if (extra) view.append(extra);
 
   const durations = (globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.files) || {};
@@ -190,7 +193,11 @@ function renderTarget(App, params) {
     } else if (!engine) { drawUnavailable(); }
     if (!alive || !gate.isCurrent(ticket)) return; // a tela mudou ou já há uma gravação mais nova
 
-    let evaluation = evaluateWords(iw.text, res, { insufficient });
+    // integridade antes da avaliação: com a transcrição possivelmente cortada, o fim da frase não vira “não reconhecido”
+    const integrity = saved ? saved.integrity || null : res && res.segments ? transcriptIntegrity({ text: res.text, segments: res.segments, secs: res.secs }) : null;
+    const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
+    let evaluation = evaluateWords(iw.text, res, { insufficient, tailUnreliable });
+    if (tailUnreliable) evaluation = { ...evaluation, note: [evaluation.note, ...integrity.issues.map((x) => x.msg)].filter(Boolean).join(' ') };
     if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
     const score = scoreAttempt({ evaluation, analysis, expectedWords });
     const attempt = analyseAttempt(evaluation, iw.text);
@@ -199,21 +206,21 @@ function renderTarget(App, params) {
     if (!engine && !res) return; // sem reconhecimento: palavras cinza + aviso de indisponibilidade (já desenhado)
     if (attempt.conclusive) {
       if (!saved) { updatePracticeWords(state, targetId, attempt); App.save(); }
-      showResult(score, attempt, res);
+      showResult(score, attempt, res, evaluation.note);
     } else {
       showFb('inconclusive',
         scoreLine(score, inconclusiveHint(evaluation, insufficient)),
         h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
         scoreDetails(score, { heard: res ? res.text : null, engine, note: evaluation.note }));
     }
-    if (res && !saved && engine === 'model') w.updateMeta(blob, { result: { text: res.text, at: Date.now() } });
+    if (res && !saved && engine === 'model') w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
   }
 
   const inconclusiveHint = (evaluation, insufficient) => (insufficient
     ? 'Quase não captei voz nesta gravação. Grave de novo, num lugar silencioso e mais perto do microfone.'
     : `${evaluation.note || 'Não deu para avaliar esta tentativa.'} Grave novamente.`);
 
-  function showResult(score, attempt, res) {
+  function showResult(score, attempt, res, note = '') {
     const list = attempt.list;
     if (wp) wp.cancel();
     wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
@@ -221,7 +228,7 @@ function renderTarget(App, params) {
       scoreLine(score, practiceSummary(list)),
       wp ? wp.el : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
       list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
-      scoreDetails(score, { heard: res ? res.text : null, engine, note: '' }));
+      scoreDetails(score, { heard: res ? res.text : null, engine, note }));
   }
 
   function showError(e, blob, analysis) {
@@ -298,7 +305,7 @@ function renderTarget(App, params) {
     savedPending = null;
     if (!rec || !reading || !alive) return;
     const meta = rec.meta || {};
-    if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0 } });
+    if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0, integrity: meta.result.integrity || null } });
     else if (engine === 'model' && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
     else { lastBlob = rec.blob; lastAnalysis = meta.analysis; }
   }

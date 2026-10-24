@@ -10,6 +10,7 @@
 //   • "pending"         = ainda não avaliada.
 // Nenhum estado afirma qual som (vogal, consoante, sílaba tônica) foi pronunciado errado.
 import { tokenSpans, wordTokens, lcsAlign, levenshtein } from './text.js';
+import { isKnownWord } from './lexicon.js';
 
 export const STATES = ['pending', 'good', 'needs_practice', 'uncertain'];
 
@@ -62,7 +63,7 @@ export function wordAudioText(seg) {
 export const practiceCandidates = (text) => wordsOf(text).filter((s) => !s.weak);
 
 /** Formas equivalentes de um token (número por extenso ↔ dígitos, hora → hora cheia, AmE → BrE). */
-function forms(t) {
+export function forms(t) {
   const out = new Set([t]);
   if (AME[t]) out.add(AME[t]);
   if (/iz(e|ed|es|ing|ation)$/.test(t)) out.add(t.replace(/iz(e|ed|es|ing|ation)$/, 'is$1')); // finalized → finalised
@@ -101,8 +102,10 @@ function tokenEq(target, heard) {
   if (target === heard) return true;
   const a = forms(target), b = forms(heard);
   for (const x of a) for (const y of b) if (x === y || inflected(x, y)) return true;
-  // pequeno desvio de grafia na transcrição (ex.: "cafeteria"/"cafetaria") só em palavras longas
-  return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1;
+  // pequeno desvio de grafia na transcrição (ex.: "cafeteria"/"cafetaria") só em palavras longas — e só quando o que
+  // foi ouvido NÃO é outra palavra do inglês (“bother” ≠ “brother”): distância de edição sozinha não prova acerto.
+  // Sem o léxico carregado (null) mantém-se a tolerância anterior.
+  return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1 && isKnownWord(heard) !== true;
 }
 
 /** Tokens ouvidos: separa horas coladas ("6pm", "8:30pm", "6p m") e expande "a.m." etc. */
@@ -149,7 +152,9 @@ function matchCompounds(target, heard) {
  * Avalia as palavras do texto-alvo a partir da transcrição local.
  * @param {string} text        texto-alvo exibido
  * @param {object|null} asr     { text, confidence } ou null quando não há reconhecimento
- * @param {object} opts         { insufficient: true } quando a gravação não tem voz suficiente
+ * @param {object} opts         { insufficient: true } quando a gravação não tem voz suficiente;
+ *                              { tailUnreliable: true } quando a transcrição pode ter sido cortada no fim (integrity.js):
+ *                              palavras depois da última âncora ficam “não avaliadas”, não “praticar"
  * @returns {{ words: Array<{w, text, state, reason, heard?}>, evaluated: boolean, note: string }}
  */
 export function evaluateWords(text, asr, opts = {}) {
@@ -177,11 +182,13 @@ export function evaluateWords(text, asr, opts = {}) {
     tGap.forEach((i, idx) => gapHeard.set(i, tGap.length === hGap.length ? [hGap[idx]] : hGap));
   }
 
+  const lastMatched = pairs.length ? pairs[pairs.length - 1][0] : -1;
   const out = words.map((x, i) => {
     if (matchT.has(i)) return { w: x.w, text: x.text, state: 'good', reason: 'Reconhecida como esperado. Isso indica que a palavra foi entendida (inteligível); não é uma análise fonética dos sons.' };
     const near = (gapHeard.get(i) || []).filter(Boolean);
     if (x.weak) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Palavra curta e átona: o reconhecedor costuma omiti-la mesmo quando é dita. Não foi avaliada.' };
-    if (x.proper) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Nome próprio: o reconhecedor pode não conhecê-lo e escrevê-lo de outro jeito. Não foi avaliado.' };
+    if (x.proper) return { w: x.w, text: x.text, state: 'uncertain', heard: near.length ? near.join(' ') : undefined, reason: `Nome próprio: o reconhecedor pode não conhecê-lo e escrevê-lo de outro jeito${near.length ? ` (aqui ouviu “${near.join(' ')}”)` : ''}. Não foi avaliado.` };
+    if (opts.tailUnreliable && i > lastMatched) return { w: x.w, text: x.text, state: 'uncertain', reason: 'A transcrição pode ter sido cortada no fim: esta palavra não foi avaliada. Grave de novo se quiser conferir.' };
     if (near.length) {
       return { w: x.w, text: x.text, state: 'needs_practice', heard: near.join(' '),
         reason: `Não foi reconhecida como esperado: o reconhecedor ouviu “${near.join(' ')}”. Pode ser erro do reconhecimento ou da fala: ouça sua gravação e a referência, e repita se soar diferente. (O sistema não identifica qual som diferiu.)` };

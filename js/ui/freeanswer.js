@@ -10,13 +10,16 @@ import { latestGate } from '../engine/practice.js';
 import { loadLexicon } from '../engine/lexicon.js';
 import { analyseFreeAnswer, buildVocab, insufficientAudio, STATUS_LABEL } from '../engine/freeanswer.js';
 import { findDivergences, contextPool } from '../engine/context.js';
+import { frameRefs } from '../engine/coherence.js';
+import { transcriptIntegrity } from '../engine/integrity.js';
 import { legend } from './inlinewords.js';
 import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
 
 const vocabCache = new WeakMap();
 const vocabOf = (content) => { if (!vocabCache.has(content)) vocabCache.set(content, buildVocab(content)); return vocabCache.get(content); };
 const fmt = (n) => String(n).replace('.', ',');
-const STATE_LABEL = { good: 'Reconhecida', needs_practice: 'Possível erro de reconhecimento', uncertain: 'Não avaliada' };
+// verde = compatível com a atividade (evidência), âmbar = trecho suspeito, cinza = sem evidência para classificar
+const STATE_LABEL = { good: 'Compatível', needs_practice: 'Confira', uncertain: 'Não avaliada' };
 
 /**
  * opts: { question, model, modelClips, unit: 'q'|'block'|'routine'|'drill' }
@@ -65,12 +68,14 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     last = { blob, analysis };
     if (!saved && status !== 'installed') return unavailable();
     let text = saved ? saved.text : null;
+    let integrity = saved ? saved.integrity || null : null; // resultados antigos: integridade não verificada
     if (!saved && !insufficientAudio(analysis)) {
       const prog = h('span', { class: 'small muted' });
       show('analysing', h('div', { class: 'fb-analysing', role: 'status' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Analisando sua resposta…', prog));
       try {
         const res = await localasr.transcribe(blob, { long: true, onProgress: (i, n) => { if (n > 1) prog.textContent = ` parte ${i} de ${n}`; } });
         text = res.text;
+        integrity = transcriptIntegrity({ text, segments: res.segments, secs: res.secs });
       } catch (e) {
         if (!alive || !gate.isCurrent(ticket) || e.code === 'cancelled') return;
         return error(e, blob, analysis);
@@ -82,9 +87,9 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     // camada contextual: hipóteses de erro do reconhecedor (a transcrição em si não é alterada)
     const divergences = text && App.checker ? findDivergences(text, { checker: App.checker, pool: contextPool(App.content, App.checker), model }) : [];
     const naturalness = text && App.checker ? App.checker.naturalness(text) : [];
-    const r = analyseFreeAnswer({ question, model, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar, divergences, naturalness });
+    const r = analyseFreeAnswer({ question, model, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar, divergences, naturalness, frames: frameRefs(App.content), integrity });
     render(r, !!saved);
-    if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now() } });
+    if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now(), integrity } });
   }
 
   function error(e, blob, analysis) {
@@ -152,11 +157,16 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     show('result',
       h('div', { class: 'fa-head' }, h('span', { class: `chip fa-status fa-${r.status}`, text: STATUS_LABEL[r.status] }), fromSaved ? h('span', { class: 'tiny muted', text: 'última resposta gravada' }) : null),
       h('p', { class: 'fa-msg', text: r.message }),
-      h('ul', { class: 'fa-check', 'aria-label': 'Critérios da resposta' }, r.checklist.map((c) => h('li', { class: c.ok ? 'ok' : 'no' },
-        h('span', { class: 'fa-mark', 'aria-hidden': 'true', text: c.ok ? '✓' : '○' }), c.label, h('span', { class: 'sr-only', text: c.ok ? ' (sim)' : c.required ? ' (não)' : ' (sugestão)' })))),
+      h('ul', { class: 'fa-check', 'aria-label': 'Critérios da resposta' }, r.checklist.map((c) => h('li', { class: c.ok ? 'ok' : c.unconfirmed ? 'unk' : 'no' },
+        h('span', { class: 'fa-mark', 'aria-hidden': 'true', text: c.ok ? '✓' : c.unconfirmed ? '?' : '○' }), c.label,
+        c.unconfirmed ? h('span', { class: 'tiny muted', text: ' — não confirmado: pode ter sido perdido pelo reconhecimento' }) : null,
+        h('span', { class: 'sr-only', text: c.ok ? ' (sim)' : c.unconfirmed ? ' (não confirmado)' : c.required ? ' (não)' : ' (sugestão)' })))),
+      integrityNote(r.integrity),
       tb.el,
+      r.coherence && r.coherence.length ? h('div', { class: 'notice small fa-coherence', 'data-role': 'fa-coherence', role: 'note' },
+        h('b', { text: 'Coerência do relato' }), h('ul', {}, r.coherence.map((c) => h('li', { text: c.msg })))) : null,
       r.practice.length ? h('div', { class: 'practice', 'data-role': 'free-practice', 'aria-label': 'Palavras para revisar' }, chips,
-        h('div', { class: 'tiny muted practice-hint', text: 'Possíveis erros do reconhecimento, não erros de pronúncia comprovados. Toque para conferir.' }), panel) : null,
+        h('div', { class: 'tiny muted practice-hint', text: 'Trechos que destoam do contexto: podem ser erro do reconhecimento ou da pronúncia — o app não sabe qual. Toque para conferir.' }), panel) : null,
       r.tips.length ? h('div', { class: 'fa-tips' }, h('b', { class: 'small', text: 'Para melhorar a resposta' }),
         h('ul', { class: 'small' }, r.tips.map((t) => h('li', { text: t })))) : null,
       r.language && (r.language.grammar.length || r.language.naturalness.length) ? h('div', { class: 'fa-tips', 'data-role': 'fa-language' }, h('b', { class: 'small', text: 'Gramática e naturalidade' }),
@@ -173,13 +183,22 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
         h('p', { class: 'tiny muted', text: 'Medido no aparelho a partir da gravação e da transcrição. Falar mais rápido não significa falar melhor; pausas curtas para pensar são normais.' })),
       h('details', { class: 'more' }, h('summary', { text: 'Como esta avaliação funciona' }),
         h('ul', { class: 'small' },
-          h('li', {}, h('b', { text: 'Reconhecimento: ' }), 'a transcrição é automática e pode errar palavras; marcações em âmbar indicam possíveis divergências do reconhecedor.'),
+          h('li', {}, h('b', { text: 'Transcrição: ' }), 'antes de avaliar, o app confere se a transcrição cobre toda a gravação; se parte da fala pode ter se perdido, o que faltar fica “não confirmado”.'),
+          h('li', {}, h('b', { text: 'Cores: ' }), 'verde = compatível com o vocabulário e o contexto da atividade; âmbar = trecho que destoa do contexto (confira); cinza = sem evidência para classificar. Nenhuma cor mede os sons.'),
           h('li', {}, h('b', { text: 'Resposta: ' }), 'confere se você falou do tema da pergunta e trouxe o que ela pede. Não precisa repetir o exemplo: outras palavras valem.'),
           h('li', {}, h('b', { text: 'Ritmo: ' }), 'duração, tempo de fala, velocidade e pausas, quando foi possível medir.'),
           h('li', {}, h('b', { text: 'Pronúncia: ' }), r.pronunciation.note))));
   }
 
-  /** Transcrição com realce por palavra (verde reconhecida, âmbar revisar, cinza não avaliada). */
+  /** Aviso de integridade: a transcrição pode não representar toda a gravação. */
+  function integrityNote(integ) {
+    if (!integ || !integ.issues || !integ.issues.length) return null;
+    return h('div', { class: 'notice small fa-integrity', 'data-role': 'fa-integrity', role: 'note' },
+      h('b', { text: 'A transcrição pode estar incompleta' }), h('ul', {}, integ.issues.map((x) => h('li', { text: x.msg }))),
+      h('div', { class: 'tiny muted', text: 'Por isso, o que não aparece na transcrição não é tratado como “você não disse”.' }));
+  }
+
+  /** Transcrição com realce por palavra (verde compatível, âmbar confira, cinza não avaliada). */
   function transcriptBox(r, onPick) {
     const detail = h('div', { class: 'word-detail hidden', role: 'status' });
     const spans = [];
@@ -206,7 +225,7 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
       p.append(span);
     }
     const lg = legend();
-    lg.querySelectorAll('.lg')[1].lastChild.textContent = STATE_LABEL.needs_practice;
+    lg.querySelectorAll('.lg').forEach((el, i) => { el.lastChild.textContent = [STATE_LABEL.good, STATE_LABEL.needs_practice, STATE_LABEL.uncertain][i]; });
     const box = h('div', { class: 'fa-transcript' },
       h('div', { class: 'fa-tlabel' }, h('span', { class: 'eyebrow', text: 'O que o app ouviu' }), h('span', { class: 'tiny muted', text: ' · transcrição automática, pode conter erros' })),
       p, lg, detail);
@@ -218,7 +237,7 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     if (!alive || !rec) return;
     const meta = rec.meta || {};
     last = { blob: rec.blob, analysis: meta.analysis || null };
-    if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text });
+    if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text, integrity: meta.free.integrity || null });
     if (!rec.blob) return; // áudio já apagado pela retenção e sem resultado salvo: nada a analisar
     if (status === 'installed') return analyse(rec.blob, meta.analysis || null); // gravada antes de instalar: analisa uma vez
     unavailable();
