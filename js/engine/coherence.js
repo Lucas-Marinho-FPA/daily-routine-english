@@ -37,7 +37,7 @@ export const categoryOf = (t) => { const l = lemma(t); for (const [k, s] of Obje
 // palavras funcionais (artigos, possessivos, preposições, pronomes, auxiliares) e quantificadores
 const FUNCTION = set(`a an the my your his her our their this that these those some any to of in on at for from by with into onto and or but
   so then also i you he she it we they me him us them is am are was were be been do does did have has had not up out off over under about
-  around after before as if than very just`);
+  around after before as if than very just myself yourself himself herself itself ourselves yourselves themselves mine yours hers ours theirs`);
 const QUANT = set('little bit lot lots few couple much many');
 const DET = set('a an the my your his her our their this that some');
 // preposições/advérbios que o reconhecedor costuma pôr no lugar de um nome (“my over app”); estruturais (to, at, in…) ficam de fora

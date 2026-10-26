@@ -56,7 +56,7 @@ export function contentFor(base, id, reg) {
     ...base,
     character: ch.id,
     meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
-    dayTypes: { club: 'Dia no clube', short: 'Dia mais curto', variation: 'Variação', ...base.dayTypes },
+    dayTypes: { club: 'Dia no clube', short: 'Dia mais curto', variation: 'Variação', episode: 'Episódio', ...base.dayTypes },
     routines: pack.routines, blocks: pack.blocks, sentences: pack.sentences, questions: pack.questions, items,
     verbs: [], drills: [], checklist: [], review: { ...base.review, rev: [], gap: [] },
   };

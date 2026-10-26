@@ -5,7 +5,7 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 | | Lucas | Karla |
 |---|---|---|
 | Situação | ativo (conteúdo atual do app) | **em preparação** |
-| Conteúdo | `data/content.js` (intocado) — 10 rotinas, 101 frases | `data/characters.js` — 3 rotinas, 18 frases, 18 itens próprios, 7 perguntas |
+| Conteúdo | `data/content.js` (intocado) — 10 rotinas, 101 frases | `data/characters.js` — jornada de 11 episódios (K01–K11), 104 frases, 151 itens próprios, 35 perguntas — ver [`karla-jornada.md`](karla-jornada.md) |
 | Áudio de referência | 896 clipes britânicos pré-gerados | **pendente**: até ser gerado, o app usa a voz em inglês do aparelho (offline, qualidade varia) |
 | Imagens dos 6 estados | **pendentes** (o app nunca teve imagem de personagem) | **pendentes** |
 
@@ -52,10 +52,10 @@ O Lucas segue a mesma convenção em `assets/characters/lucas/` quando as imagen
 
 ## Karla — o que foi usado e o que falta
 
-Fonte: `content/characters/karla.json` (cópia de trabalho). Só fatos informados; cada frase aponta para o fato de origem. Variações estão como **possibilidades** (“when…”, “if…”, “can…”), não como rotina fixa.
+Fonte: `content/characters/karla.json` (cópia de trabalho) e a **Character Bible — Karla v1.0**. Duas camadas: a rotina-base (K01–K03) só com fatos informados, cada frase apontando para o fato de origem e variações como **possibilidades** (“when…”, “if…”, “can…”); e os **episódios** (K04–K11), situações ilustrativas ancoradas no perfil, que não viram fatos biográficos. Mapa, matriz e backlog: [`karla-jornada.md`](karla-jornada.md).
 
-- Perfil: personal trainer e instrutora de Pilates em um clube; organizada, disciplinada, determinada, positiva, acolhedora. **Não informados (e não inventados)**: idade, sobrenome, cidade, formação, número/nomes dos filhos, nome do marido, meio de transporte.
-- Rotinas: K01 dia normal (rotina-base), K02 terças e quintas, K03 variações (cancelamento, spinning, corrida).
+- Perfil (rotina + Character Bible): personal trainer e instrutora de Pilates num clube; estuda Nutrição e faz pós-graduação em Biomecânica do Movimento e Postura; casada, dois filhos (11 e 7 anos; o mais novo muito apegado a ela); gosta de treinar, correr, Hyrox, café especial e leitura. **Não informados (e não inventados)**: idade dela, sobrenome, cidade, nome e profissão do marido, nomes dos filhos, nome do clube, meio de transporte.
+- Jornada: K01 dia normal, K02 terças e quintas, K03 quando os planos mudam (rotina-base); K04–K11 episódios — família, Pilates, sessão com aluna, café e leitura, estudos, um dia que saiu do plano, Hyrox e planejamento da semana.
 
 | # | Tema | Situação | Precisa confirmar |
 |---|---|---|---|
@@ -79,4 +79,4 @@ Fonte: `content/characters/karla.json` (cópia de trabalho). Só fatos informado
 - Novos personagens, rotinas e exercícios; revisão humana do conteúdo da Karla (perguntas da tabela acima).
 - Fora de escopo no projeto todo até nova decisão: cadastro/login, sincronização em nuvem, integração com outros repositórios.
 
-Pendências técnicas da Karla: imagens dos seis estados; áudio britânico pré-gerado (o gerador `tools/gen_audio.py` ainda lê só o manifesto do conteúdo do Lucas); tabela de verbos (3ª pessoa) e drills próprios; revisão humana das frases antes de tirar o status “em preparação”.
+Pendências técnicas da Karla: imagens dos seis estados; áudio britânico pré-gerado (o gerador `tools/gen_audio.py` ainda lê só o manifesto do conteúdo do Lucas); tabela de verbos (3ª pessoa) e drills próprios; revisão humana das frases antes de tirar o status “em preparação”. Detalhes e prioridades no backlog de [`karla-jornada.md`](karla-jornada.md).

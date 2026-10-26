@@ -2244,7 +2244,7 @@
       ...base,
       character: ch.id,
       meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
-      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", ...base.dayTypes },
+      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", episode: "Epis\xF3dio", ...base.dayTypes },
       routines: pack.routines,
       blocks: pack.blocks,
       sentences: pack.sentences,
@@ -2565,9 +2565,17 @@
     const m = mastery(state.cards, r.items.map((i) => cardKey("item", i, "rec")));
     const revNotes = content.review.rev.filter((x) => x.note && (x.where.startsWith(r.id + "-") || x.where.startsWith(r.id + ".")));
     view.append(
-      h("div", { class: "chips" }, r.priority ? h("span", { class: "chip accent", text: "Priorit\xE1ria para a aula" }) : null, h("span", { class: "chip", text: content.dayTypes[r.dayType] }), h("span", { class: "chip", text: "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })),
+      h(
+        "div",
+        { class: "chips" },
+        r.priority ? h("span", { class: "chip accent", text: "Priorit\xE1ria para a aula" }) : null,
+        h("span", { class: "chip", text: content.dayTypes[r.dayType] }),
+        r.stage ? h("span", { class: "chip", "data-role": "stage", text: `Etapa ${r.stage}` }) : null,
+        h("span", { class: "chip", text: r.kind === "episode" ? "Situa\xE7\xE3o ilustrativa" : "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })
+      ),
       h("p", { class: "en muted", style: { margin: "8px 0 2px" }, text: r.title }),
       h("p", { class: "small", text: r.goal }),
+      r.grammar ? h("p", { class: "small", "data-role": "grammar" }, h("b", { text: "Foco da l\xEDngua: " }), r.grammar) : null,
       bar(m.ratio),
       h(
         "div",
@@ -2593,7 +2601,7 @@
       r.blocks.forEach((bid) => {
         const b = content.blocks[bid];
         const told = state.cards[cardKey("block", bid, "tell")];
-        const para = h("p", { class: "para" });
+        const para = h(b.kind === "dialogue" ? "div" : "p", { class: b.kind === "dialogue" ? "para dialogue" : "para" });
         b.sentences.forEach((sid, i) => {
           const s = content.sentences[sid];
           const el = h("span", { class: "sent", role: "button", tabindex: "0", "aria-label": `Ouvir: ${s.en}`, text: s.en });
@@ -2602,7 +2610,8 @@
             if (e.key === "Enter") playOne(sid);
           });
           sentenceEls.set(sid, el);
-          para.append(el, i < b.sentences.length - 1 ? " " : "");
+          if (b.kind === "dialogue") para.append(h("p", { class: "line" }, h("b", { class: "speaker", text: `${s.speaker}: ` }), el));
+          else para.append(el, i < b.sentences.length - 1 ? " " : "");
         });
         blocksBox.append(h(
           "section",
@@ -2611,6 +2620,7 @@
             "div",
             { class: "row" },
             h("span", { class: "chip", text: `Bloco ${b.index}` }),
+            b.title && r.kind === "episode" ? h("span", { class: "chip", text: b.title }) : null,
             ...b.ctx.map((c) => h("span", { class: "chip", text: content.contexts.find((x) => x.id === c).pt })),
             h("span", { class: "spacer" }),
             told ? h("span", { class: "chip ok", text: "contado \u2713" }) : null
@@ -2662,11 +2672,12 @@
       return h("li", {}, h(
         "a",
         { class: "list-btn", href: `#/lab?q=${qid}` },
-        h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), h("div", { class: "small muted", text: done ? "praticada" : "ainda n\xE3o praticada" })),
+        h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), h("div", { class: "small muted", text: `${QKIND[q.kind] ? QKIND[q.kind] + " \xB7 " : ""}${done ? "praticada" : "ainda n\xE3o praticada"}` })),
         icon("mic")
       ));
     })));
   }
+  var QKIND = { comp: "compreens\xE3o da hist\xF3ria", transfer: "responda sobre voc\xEA" };
   function itemList(App2, items) {
     return h("ul", { class: "list card" }, items.map((it) => h(
       "li",
@@ -3476,7 +3487,7 @@
   };
   var FUNCTION = set(`a an the my your his her our their this that these those some any to of in on at for from by with into onto and or but
   so then also i you he she it we they me him us them is am are was were be been do does did have has had not up out off over under about
-  around after before as if than very just`);
+  around after before as if than very just myself yourself himself herself itself ourselves yourselves themselves mine yours hers ours theirs`);
   var QUANT = set("little bit lot lots few couple much many");
   var DET = set("a an the my your his her our their this that some");
   var PREP_ADV = set("over under about after before up out off around through across");

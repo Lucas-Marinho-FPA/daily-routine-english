@@ -75,9 +75,12 @@ export function renderRoutine(App, { arg }) {
   const revNotes = content.review.rev.filter((x) => x.note && (x.where.startsWith(r.id + '-') || x.where.startsWith(r.id + '.')));
 
   view.append(
-    h('div', { class: 'chips' }, r.priority ? h('span', { class: 'chip accent', text: 'Prioritária para a aula' }) : null, h('span', { class: 'chip', text: content.dayTypes[r.dayType] }), h('span', { class: 'chip', text: 'Tipo de dia — não é todo dia' })),
+    h('div', { class: 'chips' }, r.priority ? h('span', { class: 'chip accent', text: 'Prioritária para a aula' }) : null, h('span', { class: 'chip', text: content.dayTypes[r.dayType] }),
+      r.stage ? h('span', { class: 'chip', 'data-role': 'stage', text: `Etapa ${r.stage}` }) : null,
+      h('span', { class: 'chip', text: r.kind === 'episode' ? 'Situação ilustrativa' : 'Tipo de dia — não é todo dia' })),
     h('p', { class: 'en muted', style: { margin: '8px 0 2px' }, text: r.title }),
     h('p', { class: 'small', text: r.goal }),
+    r.grammar ? h('p', { class: 'small', 'data-role': 'grammar' }, h('b', { text: 'Foco da língua: ' }), r.grammar) : null,
     bar(m.ratio),
     h('div', { class: 'row', style: { marginTop: '14px' } },
       h('a', { class: 'btn primary', href: sessionHref({ routine: r.id }) }, icon('play'), 'Praticar'),
@@ -96,17 +99,19 @@ export function renderRoutine(App, { arg }) {
     r.blocks.forEach((bid) => {
       const b = content.blocks[bid];
       const told = state.cards[cardKey('block', bid, 'tell')];
-      const para = h('p', { class: 'para' });
+      // diálogo: uma fala por linha, com quem fala; texto corrido: frases no mesmo parágrafo
+      const para = h(b.kind === 'dialogue' ? 'div' : 'p', { class: b.kind === 'dialogue' ? 'para dialogue' : 'para' });
       b.sentences.forEach((sid, i) => {
         const s = content.sentences[sid];
         const el = h('span', { class: 'sent', role: 'button', tabindex: '0', 'aria-label': `Ouvir: ${s.en}`, text: s.en });
         el.addEventListener('click', () => playOne(sid));
         el.addEventListener('keydown', (e) => { if (e.key === 'Enter') playOne(sid); });
         sentenceEls.set(sid, el);
-        para.append(el, i < b.sentences.length - 1 ? ' ' : '');
+        if (b.kind === 'dialogue') para.append(h('p', { class: 'line' }, h('b', { class: 'speaker', text: `${s.speaker}: ` }), el));
+        else para.append(el, i < b.sentences.length - 1 ? ' ' : '');
       });
       blocksBox.append(h('section', { class: 'card' },
-        h('div', { class: 'row' }, h('span', { class: 'chip', text: `Bloco ${b.index}` }), ...b.ctx.map((c) => h('span', { class: 'chip', text: content.contexts.find((x) => x.id === c).pt })),
+        h('div', { class: 'row' }, h('span', { class: 'chip', text: `Bloco ${b.index}` }), b.title && r.kind === 'episode' ? h('span', { class: 'chip', text: b.title }) : null, ...b.ctx.map((c) => h('span', { class: 'chip', text: content.contexts.find((x) => x.id === c).pt })),
           h('span', { class: 'spacer' }), told ? h('span', { class: 'chip ok', text: 'contado ✓' }) : null),
         para, showPt ? h('p', { class: 'para-pt', text: b.pt }) : null,
         h('div', { class: 'row' },
@@ -149,9 +154,11 @@ export function renderRoutine(App, { arg }) {
     const q = content.questions[qid];
     const done = state.cards[cardKey('q', qid, 'conv')];
     return h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${qid}` },
-      h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), h('div', { class: 'small muted', text: done ? 'praticada' : 'ainda não praticada' })), icon('mic')));
+      h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), h('div', { class: 'small muted', text: `${QKIND[q.kind] ? QKIND[q.kind] + ' · ' : ''}${done ? 'praticada' : 'ainda não praticada'}` })), icon('mic')));
   })));
 }
+
+const QKIND = { comp: 'compreensão da história', transfer: 'responda sobre você' };
 
 export function itemList(App, items) {
   return h('ul', { class: 'list card' }, items.map((it) => h('li', {},
