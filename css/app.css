@@ -398,3 +398,10 @@ div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
 
 /* diferença de estilo (ex.: “the office” × “my office”): informativa, não é erro */
 .diff .style { border-bottom: 1.5px dotted var(--muted); }
+
+/* personagens: marcador com a inicial enquanto a imagem do estado não foi aprovada */
+.char-ph { display: inline-grid; place-items: center; flex: none; border-radius: 50%; background: var(--surface-2); border: 2px dashed var(--line); color: var(--muted); font-weight: 800; font-size: 1.05rem; }
+.char-img { flex: none; border-radius: 50%; object-fit: cover; }
+.char-line { margin-top: 8px; gap: 10px; }
+.char-opt { gap: 12px; }
+.char-opt[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 8%, transparent); }

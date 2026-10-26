@@ -16,7 +16,7 @@ export function freshState(contentVersion) {
     schema: SCHEMA, contentVersion, createdAt: Date.now(), updatedAt: Date.now(),
     cards: {}, log: [], days: {}, xp: 0, achievements: {}, myAnswers: {}, pending: [], userVariants: {},
     recordingsMeta: {}, checklist: {}, lastBackupAt: null, firstDay: today,
-    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12 },
+    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12, character: 'lucas' },
   };
 }
 

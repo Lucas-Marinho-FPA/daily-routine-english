@@ -23,6 +23,7 @@ export function renderLab(App, { params }) {
   if (params.q || params.block || params.routine && params.full || params.sentence || params.drill) return renderTarget(App, params);
   if (params.routine) labRoutine = params.routine;
   const { content, state } = App;
+  if (!content.routines.some((r) => r.id === labRoutine)) labRoutine = content.routines[0].id; // personagem trocado
   const view = App.layout('Speaking Lab');
   view.append(h('p', { class: 'small muted', text: 'Escolha uma frase, ouça, grave e pratique as palavras que o app sinalizar.' }));
   // primeira entrada: convite para instalar o reconhecimento local (não baixa nada sem o toque do aluno)
@@ -63,8 +64,10 @@ export function renderLab(App, { params }) {
       }), h('a', { class: 'btn block', href: `#/lab?routine=${r.id}&full=1` }, icon('mic'), `Gravar a ${r.id} completa`));
     }
     if (labTab === 'questions') {
-      const groups = [['Rotina 1 (prioritária)', (q) => q.routine === 'R01'], ['Gerais (Word)', (q) => q.source === 'word' && !q.routine], ['Outras rotinas', (q) => q.routine && q.routine !== 'R01'], ['Inesperadas (novas)', (q) => q.source === 'new']];
+      const r1 = content.routines[0].id;
+      const groups = [['Rotina 1 (prioritária)', (q) => q.routine === r1], ['Gerais (Word)', (q) => q.source === 'word' && !q.routine], ['Outras rotinas', (q) => q.routine && q.routine !== r1], ['Inesperadas (novas)', (q) => q.source === 'new']];
       for (const [title, pred] of groups) {
+        if (!Object.values(content.questions).some(pred)) continue; // grupo vazio (ex.: personagem sem perguntas “do Word”)
         body.append(h('h2', { text: title }), h('ul', { class: 'list card' }, Object.values(content.questions).filter(pred).map((q) =>
           h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), q.routine ? h('div', { class: 'small muted', text: q.routine }) : null), rec(`q:${q.id}`), icon('mic'))))));
       }
@@ -81,6 +84,11 @@ export function renderLab(App, { params }) {
 
 function renderTarget(App, params) {
   const { content, state } = App;
+  // alvo de outro personagem (link antigo, palavra marcada com o outro): volta ao Lab em vez de quebrar
+  const exists = params.sentence ? content.sentences[params.sentence] : params.block ? content.blocks[params.block]
+    : params.routine ? content.routines.some((r) => r.id === params.routine) : params.q ? content.questions[params.q]
+      : params.drill !== undefined ? content.drills[Number(params.drill)] : null;
+  if (!exists) return App.go('#/lab');
   let title, en = [], pt = '', clips = [], targetId, extra = null, back = '#/lab';
   if (params.sentence) {
     const s = content.sentences[params.sentence];

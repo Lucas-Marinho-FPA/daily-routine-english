@@ -156,6 +156,13 @@ function orderedSentences(content, inFocus) {
  * - uma pergunta de conversação quando houver;
  * - espaço restante: mais revisões, depois mais desbloqueios, depois mais novos.
  */
+/** O cartão pertence a este conteúdo? (com mais de um personagem, o estado guarda cartões de todos) */
+export function cardInContent(content, k) {
+  const [unit, id] = k.split(':');
+  return unit === 'item' ? !!content.items[id] : unit === 'sent' ? !!content.sentences[id] : unit === 'block' ? !!content.blocks[id]
+    : unit === 'routine' ? content.routines.some((r) => r.id === id) : unit === 'q' ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
+}
+
 export function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
   const inFocus = focusFilter(content, focus);
   const unitInFocus = (k) => {
@@ -167,11 +174,7 @@ export function buildSession(content, cards, { focus = {}, size = 12, maxNewItem
     if (unit === 'q') return inFocus.questions.has(id);
     return inFocus.verbs;
   };
-  const exists = (k) => {
-    const [unit, id] = k.split(':');
-    return unit === 'item' ? !!content.items[id] : unit === 'sent' ? !!content.sentences[id] : unit === 'block' ? !!content.blocks[id]
-      : unit === 'routine' ? content.routines.some((r) => r.id === id) : unit === 'q' ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
-  };
+  const exists = (k) => cardInContent(content, k);
   // graduação: com a habilidade superior estabelecida (caixa ≥ 2), a inferior deixa de ser revisada
   const graduated = (k) => {
     const [unit, id, skill] = k.split(':');

@@ -7,6 +7,8 @@ import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
 import { storageReport } from '../store/storage.js';
 import { freshState } from '../engine/progress.js';
+import { registry, visualStatus } from '../engine/characters.js';
+import { characterBadge } from './character.js';
 
 export function renderSettings(App) {
   const { state } = App;
@@ -29,6 +31,34 @@ export function renderSettings(App) {
   // ---------- áudio ----------
   const voiceSel = h('select', { class: 'field', 'aria-label': 'Voz do sistema' });
   const diag = h('div', { class: 'kv small', style: { marginTop: '10px' } });
+  // personagem: troca só o conteúdo praticado; o progresso de cada um fica guardado
+  const chars = h('div', { class: 'list card', role: 'radiogroup', 'aria-label': 'Personagem', 'data-role': 'characters' });
+  const drawChars = () => clear(chars).append(...registry().characters.map((c) => {
+    const on = App.character.id === c.id;
+    const vs = visualStatus(c);
+    const pack = c.content === 'base' ? App.baseContent : c.content;
+    const sub = c.profile && c.profile.occupation ? `${c.profile.occupation.pt} · ` : '';
+    const btn = h('button', { class: 'list-btn char-opt', type: 'button', role: 'radio', 'aria-checked': String(on), 'data-character': c.id },
+      characterBadge(c, 'idle'),
+      h('div', { class: 'grow' },
+        h('div', { class: 'title' }, c.name, c.status === 'preview' ? h('span', { class: 'chip', style: { marginLeft: '8px' }, text: 'em preparação' }) : null),
+        h('div', { class: 'small muted', text: `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` }),
+        h('div', { class: 'tiny muted', text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === 'preview' ? ' · áudio de referência: voz do aparelho' : ''}` })),
+      on ? icon('check') : null);
+    btn.onclick = () => {
+      if (on) return;
+      App.setCharacter(c.id);
+      App.rebuildChecker();
+      App.flush().catch(() => {}); // grava já: trocar e fechar o app logo em seguida não pode perder a escolha
+      toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
+      drawChars();
+    };
+    return h('li', {}, btn);
+  }));
+  drawChars();
+  view.append(h('h2', { text: 'Personagem' }), chars,
+    h('p', { class: 'tiny muted', text: 'Cada personagem tem rotinas e frases próprias. Palavras comuns às duas rotinas são revisadas juntas; XP, nível e sequência de dias são os mesmos.' }));
+
   view.append(h('h2', { text: 'Áudio' }), h('div', { class: 'card' },
     seg('Fonte da voz de referência', 'audioSource', [['embedded', 'Embutida (britânica)'], ['system', 'Voz do sistema']]),
     h('p', { class: 'small muted', text: 'A voz embutida foi gerada offline em inglês britânico e funciona sem internet. A voz do sistema depende das vozes instaladas no Android.' }),
@@ -36,7 +66,7 @@ export function renderSettings(App) {
     toggle('Tocar áudio automaticamente', 'autoplay', 'Nos exercícios e ao mostrar a resposta.'),
     h('label', { class: 'lbl', text: 'Voz do sistema (quando usada)' }), voiceSel,
     h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn small', onclick: () => player.play({ key: null, text: 'I wake up at five, take a shower and brush my teeth.' }).then((r) => toast(r.ok ? 'Voz do sistema OK' : 'Voz do sistema indisponível')) }, icon('speaker'), 'Testar voz do sistema'),
-      h('button', { class: 'btn small', onclick: () => player.play({ key: App.content.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
+      h('button', { class: 'btn small', onclick: () => player.play({ key: App.baseContent.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
     diag));
   player.diagnose().then((d) => {
     clear(voiceSel).append(h('option', { value: '', text: 'Automática (en-GB local preferida)' }), ...d.englishVoices.map((v) => h('option', { value: v.uri, selected: v.uri === s.voiceURI, text: `${v.name} (${v.lang}${v.local ? '' : ', online'})` })));

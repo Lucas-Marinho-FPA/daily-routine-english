@@ -12,11 +12,14 @@ import { renderLab } from './ui/lab.js';
 import { renderReview } from './ui/review.js';
 import { renderStats } from './ui/stats.js';
 import { renderSettings, renderChecklist } from './ui/settings.js';
+import { contentFor, characterById } from './engine/characters.js';
 
 export const APP_VERSION = '1.0.0';
 
 const App = {
-  content: globalThis.DRG_CONTENT,
+  baseContent: globalThis.DRG_CONTENT, // conteúdo do Lucas (data/content.js), nunca alterado
+  content: globalThis.DRG_CONTENT, // visão do personagem ativo (engine/characters.js); o motor só enxerga esta
+  character: null,
   state: null,
   checker: null,
   storageProblem: null,
@@ -26,6 +29,12 @@ const App = {
   flush() { return db.flush(App.state); },
   go(hash) { if (location.hash === hash) route(); else location.hash = hash; },
   rebuildChecker() { App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants }); },
+  /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
+  setCharacter(id) {
+    App.character = characterById(id);
+    App.content = contentFor(App.baseContent, App.character.id);
+    if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id; // quem chama grava
+  },
   applySettings() {
     const s = App.state.settings;
     const root = document.documentElement;
@@ -101,6 +110,7 @@ async function boot() {
   App.state = state;
   App.isNew = isNew;
   App.storageProblem = problem;
+  App.setCharacter(state.settings.character); // estados antigos não têm a preferência: Lucas (padrão)
   App.rebuildChecker();
   App.applySettings();
   if (isNew) await db.saveState(state).catch(() => {});

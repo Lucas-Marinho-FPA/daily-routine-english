@@ -64,7 +64,7 @@ export function makeExercise(content, entry, rand = Math.random) {
     const item = content.items[id];
     if (skill === 'rec') {
       const options = shuffle([{ pt: item.pt, correct: true }, ...distractors(content, item, 3, rand).map((x) => ({ pt: x.pt, correct: false }))], rand);
-      const ex = item.ex.find((x) => x.src && /^R\d\d-B\d-S\d+$/.test(x.src));
+      const ex = item.ex.find((x) => x.src && /^[A-Z]\d\d-B\d+-S\d+$/.test(x.src)); // frase de rotina de qualquer personagem (R01-…, K01-…)
       const inContext = ex && rand() < 0.4 ? locate(item, ex.en) : null;
       return { type: 'mc', entry, item, options, context: inContext ? { ...inContext, au: ex.au } : null };
     }

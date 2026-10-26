@@ -824,6 +824,10 @@
     for (const r of content.routines) for (const b of r.blocks) if (inFocus.blocks.has(b)) out.push(...content.blocks[b].sentences.map((s) => content.sentences[s]));
     return out;
   }
+  function cardInContent(content, k) {
+    const [unit, id] = k.split(":");
+    return unit === "item" ? !!content.items[id] : unit === "sent" ? !!content.sentences[id] : unit === "block" ? !!content.blocks[id] : unit === "routine" ? content.routines.some((r) => r.id === id) : unit === "q" ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
+  }
   function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
     const inFocus = focusFilter(content, focus);
     const unitInFocus = (k) => {
@@ -835,10 +839,7 @@
       if (unit === "q") return inFocus.questions.has(id);
       return inFocus.verbs;
     };
-    const exists = (k) => {
-      const [unit, id] = k.split(":");
-      return unit === "item" ? !!content.items[id] : unit === "sent" ? !!content.sentences[id] : unit === "block" ? !!content.blocks[id] : unit === "routine" ? content.routines.some((r) => r.id === id) : unit === "q" ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
-    };
+    const exists = (k) => cardInContent(content, k);
     const graduated = (k) => {
       const [unit, id, skill] = k.split(":");
       const up = { "item:rec": "rcl", "sent:ord": "wrt", "block:seq": "tell" }[`${unit}:${skill}`];
@@ -930,7 +931,7 @@
       checklist: {},
       lastBackupAt: null,
       firstDay: today,
-      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12 }
+      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas" }
     };
   }
   function day(state, today) {
@@ -2033,7 +2034,7 @@
       const item = content.items[id];
       if (skill === "rec") {
         const options = shuffle([{ pt: item.pt, correct: true }, ...distractors(content, item, 3, rand).map((x) => ({ pt: x.pt, correct: false }))], rand);
-        const ex = item.ex.find((x) => x.src && /^R\d\d-B\d-S\d+$/.test(x.src));
+        const ex = item.ex.find((x) => x.src && /^[A-Z]\d\d-B\d+-S\d+$/.test(x.src));
         const inContext = ex && rand() < 0.4 ? locate(item, ex.en) : null;
         return { type: "mc", entry, item, options, context: inContext ? { ...inContext, au: ex.au } : null };
       }
@@ -2203,6 +2204,71 @@
     return `#/session${q ? "?" + q : ""}`;
   }
 
+  // app/js/engine/characters.js
+  var STATES = ["idle", "thinking", "correct", "wrong", "celebrate", "levelup"];
+  var DEFAULT_CHARACTER = "lucas";
+  var FALLBACK = { version: 1, states: STATES, characters: [{ id: "lucas", name: "Lucas", status: "active", content: "base", profile: {}, visual: { states: {} } }] };
+  var registry = (reg = globalThis.DRG_CHARACTERS) => reg && Array.isArray(reg.characters) && reg.characters.length ? reg : FALLBACK;
+  function characterById(id, reg) {
+    const list = registry(reg).characters;
+    return list.find((c) => c.id === id) || list.find((c) => c.id === DEFAULT_CHARACTER) || list[0];
+  }
+  function assetFor(character, state) {
+    const v = character && character.visual;
+    const s = v && v.states && (v.states[state] || v.states.idle);
+    if (!s || s.status !== "ready") return null;
+    return `${v.dir}/${s.file}.${v.ext || "png"}`;
+  }
+  function visualStatus(character) {
+    const st = character && character.visual && character.visual.states || {};
+    return { ready: STATES.filter((s) => st[s] && st[s].status === "ready"), pending: STATES.filter((s) => !st[s] || st[s].status !== "ready") };
+  }
+  var views = /* @__PURE__ */ new WeakMap();
+  function contentFor(base, id, reg) {
+    const ch = characterById(id, reg);
+    if (!ch || ch.content === "base" || !ch.content) return base;
+    if (!views.has(base)) views.set(base, /* @__PURE__ */ new Map());
+    const cache = views.get(base);
+    if (cache.has(ch.id)) return cache.get(ch.id);
+    const pack = ch.content;
+    const items = { ...pack.items };
+    for (const [iid, ref] of Object.entries(pack.sharedItems || {})) {
+      const it = base.items[iid];
+      if (it) items[iid] = { ...it, ex: ref.ex, routines: ref.routines, blocks: ref.blocks, sentences: ref.sentences };
+    }
+    const view = {
+      ...base,
+      character: ch.id,
+      meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
+      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", ...base.dayTypes },
+      routines: pack.routines,
+      blocks: pack.blocks,
+      sentences: pack.sentences,
+      questions: pack.questions,
+      items,
+      verbs: [],
+      drills: [],
+      checklist: [],
+      review: { ...base.review, rev: [], gap: [] }
+    };
+    cache.set(ch.id, view);
+    return view;
+  }
+
+  // app/js/ui/character.js
+  var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
+  function characterImage(ch, state, { size = 56 } = {}) {
+    if (!ch || !STATES.includes(state)) return null;
+    const src = assetFor(ch, state);
+    if (!src) return null;
+    return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
+  }
+  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
+    const img = characterImage(ch, state, { size });
+    if (img) return img;
+    return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
+  }
+
   // app/js/ui/home.js
   function renderHome(App2) {
     const { state, content } = App2;
@@ -2214,9 +2280,18 @@
     const goal = state.settings.dailyGoal || 12;
     const st = streak(state, today);
     const lvl = levelForXp(state.xp);
-    const due = Object.values(state.cards).filter((c) => c.due <= today).length;
+    const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).length;
     const pct = Math.min(100, Math.round(d.ex / goal * 100));
     if (App2.isNew && !state.welcomed) view.append(welcome(App2));
+    if (registry().characters.length > 1) {
+      view.append(h(
+        "div",
+        { class: "row nowrap char-line", "data-role": "active-character" },
+        characterBadge(App2.character, "idle", { size: 36 }),
+        h("div", { class: "grow small" }, "Praticando com ", h("b", { text: App2.character.name })),
+        h("a", { class: "btn small ghost", href: "#/settings", text: "Trocar" })
+      ));
+    }
     view.append(h(
       "section",
       { class: "hero", style: { marginTop: "8px" } },
@@ -4251,7 +4326,7 @@
     return vocabCache.get(content);
   };
   var fmt2 = (n) => String(n).replace(".", ",");
-  var STATE_LABEL = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
+  var STATE_LABEL2 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
   function freeAnswerPanel(App2, { question = "", model = "", modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
@@ -4505,7 +4580,7 @@
           continue;
         }
         const info = states.get(seg.w) || { state: "uncertain", reason: "" };
-        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL[info.state]}`, text: seg.text });
+        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL2[info.state]}`, text: seg.text });
         const pick = () => {
           spans.forEach((s) => s.classList.toggle("w-focus", s === span));
           if (onPick && info.state === "needs_practice") {
@@ -4519,7 +4594,7 @@
               "div",
               { class: "row nowrap" },
               h("b", { class: "en", text: seg.text }),
-              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL[info.state] }),
+              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL2[info.state] }),
               h("span", { class: "spacer" }),
               hasEmbedded(key) ? h("button", { class: "btn small", type: "button", onclick: () => play({ key, text: clean }) }, icon("speaker"), "Ouvir") : null
             ),
@@ -4540,7 +4615,7 @@
       }
       const lg = legend();
       lg.querySelectorAll(".lg").forEach((el2, i) => {
-        el2.lastChild.textContent = [STATE_LABEL.good, STATE_LABEL.needs_practice, STATE_LABEL.uncertain][i];
+        el2.lastChild.textContent = [STATE_LABEL2.good, STATE_LABEL2.needs_practice, STATE_LABEL2.uncertain][i];
       });
       const box2 = h(
         "div",
@@ -4605,12 +4680,14 @@
   };
   function renderSession(App2, { params }) {
     const { content, state } = App2;
-    const focus = { routine: params.routine, context: params.context, category: params.category, mode: params.mode };
+    const routineOk = !params.routine || content.routines.some((x) => x.id === params.routine);
+    const focus = { routine: routineOk ? params.routine : void 0, context: params.context, category: params.category, mode: routineOk ? params.mode : void 0 };
     const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
     let queue;
     const today = App2.today();
+    const startLevel = levelForXp(state.xp).level;
     if (focus.mode === "review") {
-      queue = Object.values(state.cards).filter((c) => c.due <= today).sort((a, b) => a.box - b.box).slice(0, 20).map((c) => {
+      queue = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).sort((a, b) => a.box - b.box).slice(0, 20).map((c) => {
         const [unit, id, skill] = c.k.split(":");
         return { k: c.k, unit, id, skill, review: true };
       });
@@ -4623,7 +4700,7 @@
         { k: cardKey("routine", r.id, "retell"), unit: "routine", id: r.id, skill: "retell" }
       ];
     } else if (focus.mode === "difficult") {
-      queue = difficultCards(state).slice(0, 15).map((c) => {
+      queue = difficultCards(state, content).slice(0, 15).map((c) => {
         const [unit, id, skill] = c.k.split(":");
         return { k: c.k, unit, id, skill, review: true };
       });
@@ -4741,10 +4818,11 @@
     };
     function feedback(res, { model, au, pt, example, tip, k, onClaim, extra } = {}) {
       const [tone, title] = HEAD[res.cls] || ["mid", res.cls];
+      const face = characterImage(App2.character, { good: "correct", bad: "wrong", mid: "thinking" }[tone] || "thinking", { size: 40 });
       const panel = h(
         "div",
         { class: `feedback ${tone}`, role: "status", "aria-live": "polite" },
-        h("div", { class: "head" }, title, h("span", { class: "spacer" }), res.xp ? h("span", { class: "chip ok", text: `+${res.xp} XP` }) : null)
+        h("div", { class: "head" }, face, title, h("span", { class: "spacer" }), res.xp ? h("span", { class: "chip ok", text: `+${res.xp} XP` }) : null)
       );
       if (res.cls !== "correct") {
         panel.append(h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Resposta-modelo" }));
@@ -5284,11 +5362,13 @@
       App2.flush();
       progress.firstChild.style.width = "100%";
       const wrongUnits = [...new Map(bad.map((r) => [r.entry.k, r.entry])).values()];
+      const leveled = levelForXp(state.xp).level > startLevel;
+      const face = characterImage(App2.character, leveled ? "levelup" : "celebrate", { size: 96 });
       area.append(
         h(
           "div",
           { class: "card center", style: { marginTop: "16px" } },
-          h("div", { style: { fontSize: "2.2rem" }, text: bad.length ? "\u{1F4AA}" : "\u{1F31F}" }),
+          face || h("div", { style: { fontSize: "2.2rem" }, text: bad.length ? "\u{1F4AA}" : "\u{1F31F}" }),
           h("h3", { text: "Sess\xE3o conclu\xEDda" }),
           h(
             "div",
@@ -5341,6 +5421,7 @@
     return false;
   }
   function unitLabel(content, e) {
+    if (!validEntry(content, e)) return e.k || `${e.unit}:${e.id}`;
     if (e.unit === "item") return `${content.items[e.id].en} \u2014 ${content.items[e.id].pt}`;
     if (e.unit === "sent") return content.sentences[e.id].en;
     if (e.unit === "block") return `Bloco ${content.blocks[e.id].index} da ${content.blocks[e.id].routine}`;
@@ -5352,8 +5433,8 @@
     }
     return e.k;
   }
-  function difficultCards(state) {
-    return Object.values(state.cards).filter((c) => c.lapses >= 2 || c.lastResult === "bad" && c.lapses >= 1).sort((a, b) => b.lapses - a.lapses || a.box - b.box);
+  function difficultCards(state, content = null) {
+    return Object.values(state.cards).filter((c) => c.lapses >= 2 || c.lastResult === "bad" && c.lapses >= 1).filter((c) => !content || cardInContent(content, c.k)).sort((a, b) => b.lapses - a.lapses || a.box - b.box);
   }
 
   // app/js/audio/asr.js
@@ -5621,6 +5702,7 @@
     if (params.q || params.block || params.routine && params.full || params.sentence || params.drill) return renderTarget(App2, params);
     if (params.routine) labRoutine = params.routine;
     const { content, state } = App2;
+    if (!content.routines.some((r) => r.id === labRoutine)) labRoutine = content.routines[0].id;
     const view = App2.layout("Speaking Lab");
     view.append(h("p", { class: "small muted", text: "Escolha uma frase, ou\xE7a, grave e pratique as palavras que o app sinalizar." }));
     const setupSlot = h("div", {});
@@ -5670,8 +5752,10 @@
         }), h("a", { class: "btn block", href: `#/lab?routine=${r.id}&full=1` }, icon("mic"), `Gravar a ${r.id} completa`));
       }
       if (labTab === "questions") {
-        const groups = [["Rotina 1 (priorit\xE1ria)", (q) => q.routine === "R01"], ["Gerais (Word)", (q) => q.source === "word" && !q.routine], ["Outras rotinas", (q) => q.routine && q.routine !== "R01"], ["Inesperadas (novas)", (q) => q.source === "new"]];
+        const r1 = content.routines[0].id;
+        const groups = [["Rotina 1 (priorit\xE1ria)", (q) => q.routine === r1], ["Gerais (Word)", (q) => q.source === "word" && !q.routine], ["Outras rotinas", (q) => q.routine && q.routine !== r1], ["Inesperadas (novas)", (q) => q.source === "new"]];
         for (const [title, pred] of groups) {
+          if (!Object.values(content.questions).some(pred)) continue;
           body.append(h("h2", { text: title }), h("ul", { class: "list card" }, Object.values(content.questions).filter(pred).map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), q.routine ? h("div", { class: "small muted", text: q.routine }) : null), rec(`q:${q.id}`), icon("mic"))))));
         }
       }
@@ -5689,6 +5773,8 @@
   }
   function renderTarget(App2, params) {
     const { content, state } = App2;
+    const exists = params.sentence ? content.sentences[params.sentence] : params.block ? content.blocks[params.block] : params.routine ? content.routines.some((r) => r.id === params.routine) : params.q ? content.questions[params.q] : params.drill !== void 0 ? content.drills[Number(params.drill)] : null;
+    if (!exists) return App2.go("#/lab");
     let title, en = [], pt = "", clips = [], targetId, extra = null, back = "#/lab";
     if (params.sentence) {
       const s = content.sentences[params.sentence];
@@ -6069,7 +6155,7 @@
     const view = App2.layout("Revisar", { back: "#/stats" });
     const today = App2.today();
     const due = Object.values(state.cards).filter((c) => c.due <= today);
-    const hard = difficultCards(state);
+    const hard = difficultCards(state, content);
     view.append(h(
       "div",
       { class: "stat-grid" },
@@ -6297,6 +6383,42 @@
     };
     const voiceSel = h("select", { class: "field", "aria-label": "Voz do sistema" });
     const diag = h("div", { class: "kv small", style: { marginTop: "10px" } });
+    const chars = h("div", { class: "list card", role: "radiogroup", "aria-label": "Personagem", "data-role": "characters" });
+    const drawChars = () => clear(chars).append(...registry().characters.map((c) => {
+      const on = App2.character.id === c.id;
+      const vs = visualStatus(c);
+      const pack = c.content === "base" ? App2.baseContent : c.content;
+      const sub = c.profile && c.profile.occupation ? `${c.profile.occupation.pt} \xB7 ` : "";
+      const btn = h(
+        "button",
+        { class: "list-btn char-opt", type: "button", role: "radio", "aria-checked": String(on), "data-character": c.id },
+        characterBadge(c, "idle"),
+        h(
+          "div",
+          { class: "grow" },
+          h("div", { class: "title" }, c.name, c.status === "preview" ? h("span", { class: "chip", style: { marginLeft: "8px" }, text: "em prepara\xE7\xE3o" }) : null),
+          h("div", { class: "small muted", text: `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` }),
+          h("div", { class: "tiny muted", text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === "preview" ? " \xB7 \xE1udio de refer\xEAncia: voz do aparelho" : ""}` })
+        ),
+        on ? icon("check") : null
+      );
+      btn.onclick = () => {
+        if (on) return;
+        App2.setCharacter(c.id);
+        App2.rebuildChecker();
+        App2.flush().catch(() => {
+        });
+        toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
+        drawChars();
+      };
+      return h("li", {}, btn);
+    }));
+    drawChars();
+    view.append(
+      h("h2", { text: "Personagem" }),
+      chars,
+      h("p", { class: "tiny muted", text: "Cada personagem tem rotinas e frases pr\xF3prias. Palavras comuns \xE0s duas rotinas s\xE3o revisadas juntas; XP, n\xEDvel e sequ\xEAncia de dias s\xE3o os mesmos." })
+    );
     view.append(h("h2", { text: "\xC1udio" }), h(
       "div",
       { class: "card" },
@@ -6310,7 +6432,7 @@
         "div",
         { class: "row", style: { marginTop: "10px" } },
         h("button", { class: "btn small", onclick: () => play({ key: null, text: "I wake up at five, take a shower and brush my teeth." }).then((r) => toast(r.ok ? "Voz do sistema OK" : "Voz do sistema indispon\xEDvel")) }, icon("speaker"), "Testar voz do sistema"),
-        h("button", { class: "btn small", onclick: () => play({ key: App2.content.sentences["R01-B1-S1"].au, text: "" }).then((r) => toast(r.ok ? "\xC1udio embutido OK" : "\xC1udio embutido indispon\xEDvel")) }, icon("speaker"), "Testar \xE1udio embutido")
+        h("button", { class: "btn small", onclick: () => play({ key: App2.baseContent.sentences["R01-B1-S1"].au, text: "" }).then((r) => toast(r.ok ? "\xC1udio embutido OK" : "\xC1udio embutido indispon\xEDvel")) }, icon("speaker"), "Testar \xE1udio embutido")
       ),
       diag
     ));
@@ -6499,7 +6621,11 @@
   // app/js/main.js
   var APP_VERSION = "1.0.0";
   var App = {
+    baseContent: globalThis.DRG_CONTENT,
+    // conteúdo do Lucas (data/content.js), nunca alterado
     content: globalThis.DRG_CONTENT,
+    // visão do personagem ativo (engine/characters.js); o motor só enxerga esta
+    character: null,
     state: null,
     checker: null,
     storageProblem: null,
@@ -6517,6 +6643,12 @@
     },
     rebuildChecker() {
       App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants });
+    },
+    /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
+    setCharacter(id) {
+      App.character = characterById(id);
+      App.content = contentFor(App.baseContent, App.character.id);
+      if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id;
     },
     applySettings() {
       const s = App.state.settings;
@@ -6609,6 +6741,7 @@
     App.state = state;
     App.isNew = isNew;
     App.storageProblem = problem;
+    App.setCharacter(state.settings.character);
     App.rebuildChecker();
     App.applySettings();
     if (isNew) await saveState(state).catch(() => {

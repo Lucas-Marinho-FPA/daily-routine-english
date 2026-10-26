@@ -1,8 +1,10 @@
 import { h, icon, bar } from './dom.js';
 import { streak, levelForXp } from '../engine/progress.js';
-import { mastery, cardKey } from '../engine/scheduler.js';
+import { mastery, cardKey, cardInContent } from '../engine/scheduler.js';
 import { sessionHref } from './common.js';
 import { requestPersistence } from '../store/db.js';
+import { registry } from '../engine/characters.js';
+import { characterBadge } from './character.js';
 
 export function renderHome(App) {
   const { state, content } = App;
@@ -14,10 +16,16 @@ export function renderHome(App) {
   const goal = state.settings.dailyGoal || 12;
   const st = streak(state, today);
   const lvl = levelForXp(state.xp);
-  const due = Object.values(state.cards).filter((c) => c.due <= today).length;
+  const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).length; // do personagem ativo
   const pct = Math.min(100, Math.round((d.ex / goal) * 100));
 
   if (App.isNew && !state.welcomed) view.append(welcome(App));
+  // personagem ativo (só aparece quando há mais de um personagem cadastrado)
+  if (registry().characters.length > 1) {
+    view.append(h('div', { class: 'row nowrap char-line', 'data-role': 'active-character' }, characterBadge(App.character, 'idle', { size: 36 }),
+      h('div', { class: 'grow small' }, 'Praticando com ', h('b', { text: App.character.name })),
+      h('a', { class: 'btn small ghost', href: '#/settings', text: 'Trocar' })));
+  }
 
   view.append(h('section', { class: 'hero', style: { marginTop: '8px' } },
     h('div', { class: 'row nowrap' },

@@ -8,7 +8,7 @@ export function renderReview(App) {
   const view = App.layout('Revisar', { back: '#/stats' });
   const today = App.today();
   const due = Object.values(state.cards).filter((c) => c.due <= today);
-  const hard = difficultCards(state);
+  const hard = difficultCards(state, content);
 
   view.append(h('div', { class: 'stat-grid' },
     h('div', { class: 'stat' }, h('b', { text: String(due.length) }), h('span', { text: 'para hoje' })),

@@ -1,12 +1,13 @@
 // Sessão de estudo: executa a fila, renderiza cada tipo de exercício, corrige, dá feedback e registra o progresso.
 import { h, icon, clear, toast, confirmSheet } from './dom.js';
-import { buildSession, cardKey } from '../engine/scheduler.js';
+import { buildSession, cardKey, cardInContent } from '../engine/scheduler.js';
 import { makeExercise, maybePairs, makePairs, hint, categoryLabel } from '../engine/exercises.js';
-import { recordAnswer, recordLearn, recordSession } from '../engine/progress.js';
+import { recordAnswer, recordLearn, recordSession, levelForXp } from '../engine/progress.js';
 import * as player from '../audio/player.js';
 import { speakerButton, sourceChip, focusTitle, sessionHref } from './common.js';
 import { recWidget } from './recwidget.js';
 import { freeAnswerPanel } from './freeanswer.js';
+import { characterImage } from './character.js';
 
 const OUTCOME = { correct: 'good', accepted_variant: 'good', variant_ame: 'good', spelling: 'ok', grammar: 'bad', meaning: 'bad', inconclusive: 'bad', empty: 'bad' };
 const HEAD = {
@@ -17,12 +18,15 @@ const HEAD = {
 
 export function renderSession(App, { params }) {
   const { content, state } = App;
-  const focus = { routine: params.routine, context: params.context, category: params.category, mode: params.mode };
+  // rotina de outro personagem (link antigo): ignora o foco em vez de quebrar
+  const routineOk = !params.routine || content.routines.some((x) => x.id === params.routine);
+  const focus = { routine: routineOk ? params.routine : undefined, context: params.context, category: params.category, mode: routineOk ? params.mode : undefined };
   const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
   let queue;
   const today = App.today();
+  const startLevel = levelForXp(state.xp).level; // para o estado “levelup” do personagem no fim da sessão
   if (focus.mode === 'review') {
-    queue = Object.values(state.cards).filter((c) => c.due <= today).sort((a, b) => a.box - b.box).slice(0, 20)
+    queue = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).sort((a, b) => a.box - b.box).slice(0, 20)
       .map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true }; });
   } else if (focus.mode === 'present' && focus.routine) {
     // treino para a aula: contar cada bloco, responder às perguntas e contar a rotina inteira (sem esperar desbloqueio)
@@ -34,7 +38,7 @@ export function renderSession(App, { params }) {
       { k: cardKey('routine', r.id, 'retell'), unit: 'routine', id: r.id, skill: 'retell' },
     ];
   } else if (focus.mode === 'difficult') {
-    queue = difficultCards(state).slice(0, 15).map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true }; });
+    queue = difficultCards(state, content).slice(0, 15).map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true }; });
   } else {
     queue = buildSession(content, state.cards, { focus, size, today });
   }
@@ -138,8 +142,10 @@ export function renderSession(App, { params }) {
   /** Painel de feedback a partir do resultado do corretor. */
   function feedback(res, { model, au, pt, example, tip, k, onClaim, extra } = {}) {
     const [tone, title] = HEAD[res.cls] || ['mid', res.cls];
+    // personagem: só aparece quando a imagem do estado foi aprovada (sem imagem, o painel fica como antes)
+    const face = characterImage(App.character, { good: 'correct', bad: 'wrong', mid: 'thinking' }[tone] || 'thinking', { size: 40 });
     const panel = h('div', { class: `feedback ${tone}`, role: 'status', 'aria-live': 'polite' },
-      h('div', { class: 'head' }, title, h('span', { class: 'spacer' }), res.xp ? h('span', { class: 'chip ok', text: `+${res.xp} XP` }) : null));
+      h('div', { class: 'head' }, face, title, h('span', { class: 'spacer' }), res.xp ? h('span', { class: 'chip ok', text: `+${res.xp} XP` }) : null));
     if (res.cls !== 'correct') {
       panel.append(h('div', { class: 'small muted', style: { marginTop: '6px' }, text: 'Resposta-modelo' }));
       panel.append(h('div', { class: 'row nowrap' }, h('div', { class: 'model', style: { flex: 1 } }, diffModel(res, model)), au || model ? speakerButton({ key: au, text: model }, { cls: 'icon-btn ghost' }) : null));
@@ -568,8 +574,10 @@ export function renderSession(App, { params }) {
     App.flush();
     progress.firstChild.style.width = '100%';
     const wrongUnits = [...new Map(bad.map((r) => [r.entry.k, r.entry])).values()];
+    const leveled = levelForXp(state.xp).level > startLevel;
+    const face = characterImage(App.character, leveled ? 'levelup' : 'celebrate', { size: 96 });
     area.append(h('div', { class: 'card center', style: { marginTop: '16px' } },
-      h('div', { style: { fontSize: '2.2rem' }, text: bad.length ? '💪' : '🌟' }),
+      face || h('div', { style: { fontSize: '2.2rem' }, text: bad.length ? '💪' : '🌟' }),
       h('h3', { text: 'Sessão concluída' }),
       h('div', { class: 'stat-grid', style: { marginTop: '12px' } },
         h('div', { class: 'stat' }, h('b', { text: `+${xpGained}` }), h('span', { text: 'XP' })),
@@ -612,6 +620,7 @@ function validEntry(content, q) {
 }
 
 export function unitLabel(content, e) {
+  if (!validEntry(content, e)) return e.k || `${e.unit}:${e.id}`; // cartão de outro personagem: sem rótulo do conteúdo atual
   if (e.unit === 'item') return `${content.items[e.id].en} — ${content.items[e.id].pt}`;
   if (e.unit === 'sent') return content.sentences[e.id].en;
   if (e.unit === 'block') return `Bloco ${content.blocks[e.id].index} da ${content.blocks[e.id].routine}`;
@@ -621,8 +630,9 @@ export function unitLabel(content, e) {
   return e.k;
 }
 
-export function difficultCards(state) {
+export function difficultCards(state, content = null) {
   return Object.values(state.cards).filter((c) => c.lapses >= 2 || (c.lastResult === 'bad' && c.lapses >= 1))
+    .filter((c) => !content || cardInContent(content, c.k)) // só os do personagem ativo
     .sort((a, b) => b.lapses - a.lapses || a.box - b.box);
 }
 
