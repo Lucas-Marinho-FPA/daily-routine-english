@@ -47,9 +47,7 @@ export function renderSettings(App) {
       on ? icon('check') : null);
     btn.onclick = () => {
       if (on) return;
-      App.setCharacter(c.id);
-      App.rebuildChecker();
-      App.flush().catch(() => {}); // grava já: trocar e fechar o app logo em seguida não pode perder a escolha
+      App.chooseCharacter(c.id); // grava já: trocar e fechar o app logo em seguida não pode perder a escolha
       toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
       drawChars();
     };

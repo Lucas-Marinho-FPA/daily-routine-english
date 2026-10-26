@@ -13,6 +13,7 @@ import { renderReview } from './ui/review.js';
 import { renderStats } from './ui/stats.js';
 import { renderSettings, renderChecklist } from './ui/settings.js';
 import { contentFor, characterById } from './engine/characters.js';
+import { renderCharacterPick } from './ui/character.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -34,6 +35,13 @@ const App = {
     App.character = characterById(id);
     App.content = contentFor(App.baseContent, App.character.id);
     if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id; // quem chama grava
+  },
+  /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
+  chooseCharacter(id) {
+    App.setCharacter(id);
+    App.state.settings.characterChosen = true;
+    App.rebuildChecker();
+    return App.flush().catch(() => {}); // trocar e fechar o app logo em seguida não pode perder a escolha
   },
   applySettings() {
     const s = App.state.settings;
@@ -92,7 +100,8 @@ function route() {
       '': renderHome, explore: renderExplore, routine: renderRoutine, context: renderContext, category: renderCategory,
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
     };
-    const fn = screens[r.name] || renderHome;
+    // primeira abertura (estado novo, sem escolha salva): Início mostra antes a escolha do personagem
+    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick : (screens[r.name] || renderHome);
     cleanup = fn(App, r) || null;
   } catch (e) {
     console.error(e);

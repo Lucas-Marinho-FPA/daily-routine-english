@@ -16,7 +16,7 @@ export function freshState(contentVersion) {
     schema: SCHEMA, contentVersion, createdAt: Date.now(), updatedAt: Date.now(),
     cards: {}, log: [], days: {}, xp: 0, achievements: {}, myAnswers: {}, pending: [], userVariants: {},
     recordingsMeta: {}, checklist: {}, lastBackupAt: null, firstDay: today,
-    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12, character: 'lucas' },
+    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12, character: 'lucas', characterChosen: false },
   };
 }
 
@@ -198,8 +198,14 @@ export function migrate(raw, contentVersion) {
   if (typeof raw.schema !== 'number') throw new Error('Arquivo sem versão de esquema');
   if (raw.schema > SCHEMA) throw new Error(`Backup de uma versão mais nova do app (esquema ${raw.schema})`);
   const base = freshState(contentVersion);
-  const s = { ...base, ...raw, settings: { ...base.settings, ...(raw.settings || {}) } };
+  const rawSettings = raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings) ? raw.settings : {};
+  const s = { ...base, ...raw, settings: { ...base.settings, ...rawSettings } };
   const repairs = [];
+  if ('settings' in raw && rawSettings !== raw.settings) repairs.push('settings');
+  // escolha de personagem: só um estado criado por esta versão e ainda sem escolha guarda false (o app mostra a tela de
+  // escolha); estados e backups anteriores já estavam em uso com o Lucas e não são interrompidos
+  if (typeof rawSettings.characterChosen !== 'boolean') s.settings.characterChosen = true;
+  if (typeof s.settings.character !== 'string') s.settings.character = 'lucas';
   for (const key of ['cards', 'days', 'achievements', 'myAnswers', 'userVariants', 'recordingsMeta', 'checklist']) {
     if (!s[key] || typeof s[key] !== 'object' || Array.isArray(s[key])) { if (key in raw) repairs.push(key); s[key] = {}; }
   }

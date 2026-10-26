@@ -931,7 +931,7 @@
       checklist: {},
       lastBackupAt: null,
       firstDay: today,
-      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas" }
+      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false }
     };
   }
   function day(state, today) {
@@ -1100,8 +1100,12 @@
     if (typeof raw.schema !== "number") throw new Error("Arquivo sem vers\xE3o de esquema");
     if (raw.schema > SCHEMA) throw new Error(`Backup de uma vers\xE3o mais nova do app (esquema ${raw.schema})`);
     const base = freshState(contentVersion);
-    const s = { ...base, ...raw, settings: { ...base.settings, ...raw.settings || {} } };
+    const rawSettings = raw.settings && typeof raw.settings === "object" && !Array.isArray(raw.settings) ? raw.settings : {};
+    const s = { ...base, ...raw, settings: { ...base.settings, ...rawSettings } };
     const repairs = [];
+    if ("settings" in raw && rawSettings !== raw.settings) repairs.push("settings");
+    if (typeof rawSettings.characterChosen !== "boolean") s.settings.characterChosen = true;
+    if (typeof s.settings.character !== "string") s.settings.character = "lucas";
     for (const key of ["cards", "days", "achievements", "myAnswers", "userVariants", "recordingsMeta", "checklist"]) {
       if (!s[key] || typeof s[key] !== "object" || Array.isArray(s[key])) {
         if (key in raw) repairs.push(key);
@@ -2268,6 +2272,96 @@
     if (img) return img;
     return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
   }
+  function choiceSub(c) {
+    const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : c.profile && c.profile.summary || "";
+    return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === "preview" ? " \xB7 em prepara\xE7\xE3o" : ""}`;
+  }
+  function characterChoices({ selected, current: current2 = null, onSelect, role = "character-choices" }) {
+    const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
+    const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
+      const on = c.id === sel;
+      return h(
+        "button",
+        {
+          type: "button",
+          class: "char-choice",
+          role: "radio",
+          "aria-checked": String(on),
+          "data-character": c.id,
+          onclick: () => {
+            draw(c.id);
+            onSelect(c.id);
+          }
+        },
+        h("span", { class: "char-name", text: c.name }),
+        c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
+        h("span", { class: "char-sub small muted", text: choiceSub(c) })
+      );
+    }));
+    draw(selected);
+    return box2;
+  }
+  function renderCharacterPick(App2) {
+    const view = App2.layout("Daily Routine English", { nav: false });
+    let pick = App2.character.id;
+    const go = h("button", { class: "btn primary block lg", "data-role": "confirm-character", onclick: async () => {
+      go.disabled = true;
+      await App2.chooseCharacter(pick);
+      App2.go("#/");
+    } });
+    const label = () => {
+      go.textContent = `Continuar com ${registry().characters.find((c) => c.id === pick).name}`;
+    };
+    view.append(h(
+      "section",
+      { class: "char-pick", "data-role": "character-pick" },
+      h("h2", { text: "Quem vai acompanhar voc\xEA?" }),
+      h("p", { class: "small muted", text: "Cada personagem tem a pr\xF3pria rotina para voc\xEA praticar. D\xE1 para trocar depois, na tela inicial, sem perder o progresso." }),
+      characterChoices({ selected: pick, onSelect: (id) => {
+        pick = id;
+        label();
+      } }),
+      go
+    ));
+    label();
+  }
+  function characterSwitcher(App2) {
+    const wrap = h("section", { class: "card char-switch", "data-role": "active-character" });
+    const closed = () => clear(wrap).append(h(
+      "div",
+      { class: "row nowrap" },
+      h("div", { class: "grow" }, h("span", { class: "small muted", text: "Personagem atual: " }), h("b", { "data-role": "active-name", text: App2.character.name })),
+      h("button", { class: "btn small", "aria-expanded": "false", "data-role": "switch-character", onclick: open, text: "Trocar personagem" })
+    ));
+    function open() {
+      let pick = App2.character.id;
+      const ok = h("button", { class: "btn primary", "data-role": "confirm-character", disabled: true, onclick: async () => {
+        ok.disabled = true;
+        const name = registry().characters.find((c) => c.id === pick).name;
+        await App2.chooseCharacter(pick);
+        toast(`Agora com ${name}. O progresso com cada personagem continua salvo.`);
+        App2.go("#/");
+      } }, "Confirmar");
+      clear(wrap).append(
+        h("div", { class: "small muted", text: "Escolha quem vai acompanhar voc\xEA:" }),
+        characterChoices({ selected: pick, current: App2.character.id, onSelect: (id) => {
+          pick = id;
+          ok.disabled = id === App2.character.id;
+          ok.textContent = id === App2.character.id ? "Confirmar" : `Usar ${registry().characters.find((c) => c.id === id).name}`;
+        } }),
+        h(
+          "div",
+          { class: "row nowrap", style: { justifyContent: "flex-end", gap: "8px" } },
+          h("button", { class: "btn ghost", "data-role": "cancel-character", onclick: closed, text: "Cancelar" }),
+          ok
+        )
+      );
+      const first = wrap.querySelector("[aria-checked=true]");
+      if (first) first.focus();
+    }
+    closed();
+    return wrap;
+  }
 
   // app/js/ui/home.js
   function renderHome(App2) {
@@ -2283,15 +2377,7 @@
     const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).length;
     const pct = Math.min(100, Math.round(d.ex / goal * 100));
     if (App2.isNew && !state.welcomed) view.append(welcome(App2));
-    if (registry().characters.length > 1) {
-      view.append(h(
-        "div",
-        { class: "row nowrap char-line", "data-role": "active-character" },
-        characterBadge(App2.character, "idle", { size: 36 }),
-        h("div", { class: "grow small" }, "Praticando com ", h("b", { text: App2.character.name })),
-        h("a", { class: "btn small ghost", href: "#/settings", text: "Trocar" })
-      ));
-    }
+    if (registry().characters.length > 1) view.append(characterSwitcher(App2));
     view.append(h(
       "section",
       { class: "hero", style: { marginTop: "8px" } },
@@ -2351,7 +2437,7 @@
       { class: "stack", style: { marginTop: "16px" } },
       shortcut("#/lab", "mic", "Speaking Lab", "Ou\xE7a, grave e compare sua voz"),
       shortcut("#/review", "refresh", "Revisar erros", due ? `${due} pendente(s) para hoje` : "Dificuldades e respostas para revis\xE3o"),
-      shortcut("#/checklist", "check", "Checklist antes da aula", "Os 6 pontos do material")
+      content.checklist.length ? shortcut("#/checklist", "check", "Checklist antes da aula", `Os ${content.checklist.length} pontos do material`) : null
     ));
     if (state.lastBackupAt === null && Object.keys(state.cards).length > 30) {
       view.append(h("div", { class: "notice warn", style: { marginTop: "16px" } }, "Seu progresso fica s\xF3 neste aparelho. ", h("a", { href: "#/settings", text: "Fa\xE7a um backup" }), " de vez em quando."));
@@ -6404,10 +6490,7 @@
       );
       btn.onclick = () => {
         if (on) return;
-        App2.setCharacter(c.id);
-        App2.rebuildChecker();
-        App2.flush().catch(() => {
-        });
+        App2.chooseCharacter(c.id);
         toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
         drawChars();
       };
@@ -6650,6 +6733,14 @@
       App.content = contentFor(App.baseContent, App.character.id);
       if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id;
     },
+    /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
+    chooseCharacter(id) {
+      App.setCharacter(id);
+      App.state.settings.characterChosen = true;
+      App.rebuildChecker();
+      return App.flush().catch(() => {
+      });
+    },
     applySettings() {
       const s = App.state.settings;
       const root2 = document.documentElement;
@@ -6724,7 +6815,7 @@
         settings: renderSettings,
         checklist: renderChecklist
       };
-      const fn = screens[r.name] || renderHome;
+      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : screens[r.name] || renderHome;
       cleanup = fn(App, r) || null;
     } catch (e) {
       console.error(e);

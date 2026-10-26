@@ -15,7 +15,14 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 
 - **Registro**: `tools/build-characters.mjs` lê `content/characters/*.json` (fonte) e gera `data/characters.js` (`window.DRG_CHARACTERS`), validando: IDs únicos e com prefixo do personagem, itens e fatos referenciados existentes, item presente na frase, seis estados declarados, sem colisão com o conteúdo do Lucas.
 - **Visão de conteúdo** (`js/engine/characters.js#contentFor`): para o Lucas devolve o **próprio objeto** `DRG_CONTENT` (nada muda para quem já usa o app); para a Karla, uma visão no mesmo formato com as rotinas, frases e perguntas dela, os itens dela e os itens genéricos compartilhados (`it.wake-up`, `it.take-a-shower`…) reapontados para as frases dela.
-- **Seleção**: Ajustes → Personagem. A escolha fica em `state.settings.character` (padrão `lucas`; estados e backups antigos recebem o padrão sem migração). Início mostra “Praticando com …”.
+- **Seleção** (só pelo nome, sem imagem nesta etapa):
+  - **Primeira abertura**: o Início mostra antes “Quem vai acompanhar você?” com Lucas e Karla; o Lucas vem marcado e o botão diz “Continuar com …”. Nada é marcado como escolhido sem confirmar: se o app for fechado antes, a escolha volta a aparecer. Depois de confirmar, não aparece mais.
+  - **Troca**: no Início, “Personagem atual: X · Trocar personagem” abre ali mesmo a lista (o ativo vem marcado e com a etiqueta “atual”); “Usar Y” troca e redesenha o Início com a rotina de Y; “Cancelar” não muda nada. Ajustes → Personagem continua funcionando do mesmo jeito.
+  - **Durante uma atividade**: a sessão de exercícios não mostra o controle de troca (não tem barra de navegação nem acesso aos Ajustes). Cada resposta é gravada no momento em que é dada; sair da sessão para trocar mantém o que já foi respondido, no personagem em que foi respondido. O Speaking Lab grava a gravação ao sair da tela (comportamento de antes).
+- **Persistência**: no mesmo estado salvo de sempre (IndexedDB `drg` → `kv/state`, ou `localStorage` como reserva), sem chave nova de armazenamento:
+  - `settings.character` — `lucas` ou `karla` (valor inválido ou desconhecido → Lucas);
+  - `settings.characterChosen` — `false` só num estado criado por esta versão e ainda sem confirmação (mostra a primeira escolha). Estados e backups de versões anteriores não têm a chave e são lidos como `true`: quem já usa o app não é interrompido e continua com o personagem salvo. Ajustes corrompidos (não-objeto) são refeitos com os padrões e avisados como reparo, sem tocar no progresso.
+  - A troca grava na hora (`App.chooseCharacter` → `flush`), então trocar e fechar o app logo em seguida não perde a escolha. A escolha vai junto no backup “Exportar”.
 
 ## Progresso
 
@@ -30,12 +37,12 @@ Seis estados por personagem: `idle`, `thinking`, `correct`, `wrong`, `celebrate`
 
 | Estado | Onde aparece no app |
 |---|---|
-| idle | Início (“Praticando com …”) e Ajustes |
+| idle | Ajustes (o Início e a escolha usam só o nome nesta etapa) |
 | thinking | painel de feedback quando a resposta é “quase”/diferente do modelo |
 | correct / wrong | painel de feedback do exercício |
 | celebrate / levelup | fim da sessão (levelup quando a sessão subiu de nível) |
 
-Enquanto a imagem de um estado não estiver aprovada, **nada muda nas telas de exercício** (o painel fica como antes) e Início/Ajustes mostram um marcador com a inicial — não há imagem genérica.
+Enquanto a imagem de um estado não estiver aprovada, **nada muda nas telas de exercício** (o painel fica como antes) e Ajustes mostra um marcador com a inicial — não há imagem genérica; o Início e a escolha mostram só o nome.
 
 **Para entregar as imagens aprovadas** (um arquivo por estado; não usar o painel conceitual inteiro):
 1. PNG quadrado com fundo transparente, recomendado 512×512 px, otimizado (< 100 KB cada); o mesmo enquadramento nos seis estados.
@@ -62,5 +69,14 @@ Fonte: `content/characters/karla.json` (cópia de trabalho). Só fatos informado
 | 8 | Pilates e atendimentos individuais | rascunho (K01-B2, B4, B5) | detalhes das aulas |
 | 9 | Jantar e rotina familiar | rascunho (K01-B6) | o que costuma ter no jantar e no lanche |
 | 10 | Encerramento da noite | rascunho (K01-B6) | o que é “organizar o dia seguinte” |
+
+## Backlog (fora desta etapa)
+
+- Avatares/ilustrações e as seis expressões de cada personagem (a infraestrutura de estados já existe; ver “Estados visuais”). Quando houver imagens, avaliar trocar o marcador de inicial dos Ajustes e incluir a imagem na escolha.
+- Vozes de referência próprias para cada personagem (hoje: Lucas com áudio britânico pré-gerado; Karla com a voz do aparelho).
+- Textos do Início ainda ligados à jornada do Lucas (“Para a próxima aula”, “Presencial”, “Treino para a aula”, cartão de boas-vindas que fala em “nove variações”): revisar com o conteúdo final da Karla. O atalho “Checklist antes da aula” só aparece quando o personagem tem checklist.
+- Domínio de vocabulário: hoje os itens genéricos (`it.*`) são compartilhados de propósito entre os personagens e os itens próprios (`k.*`) não; decidir se isso continua antes de criar qualquer regra nova.
+- Novos personagens, rotinas e exercícios; revisão humana do conteúdo da Karla (perguntas da tabela acima).
+- Fora de escopo no projeto todo até nova decisão: cadastro/login, sincronização em nuvem, integração com outros repositórios.
 
 Pendências técnicas da Karla: imagens dos seis estados; áudio britânico pré-gerado (o gerador `tools/gen_audio.py` ainda lê só o manifesto do conteúdo do Lucas); tabela de verbos (3ª pessoa) e drills próprios; revisão humana das frases antes de tirar o status “em preparação”.

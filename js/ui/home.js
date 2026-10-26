@@ -4,7 +4,7 @@ import { mastery, cardKey, cardInContent } from '../engine/scheduler.js';
 import { sessionHref } from './common.js';
 import { requestPersistence } from '../store/db.js';
 import { registry } from '../engine/characters.js';
-import { characterBadge } from './character.js';
+import { characterSwitcher } from './character.js';
 
 export function renderHome(App) {
   const { state, content } = App;
@@ -20,12 +20,8 @@ export function renderHome(App) {
   const pct = Math.min(100, Math.round((d.ex / goal) * 100));
 
   if (App.isNew && !state.welcomed) view.append(welcome(App));
-  // personagem ativo (só aparece quando há mais de um personagem cadastrado)
-  if (registry().characters.length > 1) {
-    view.append(h('div', { class: 'row nowrap char-line', 'data-role': 'active-character' }, characterBadge(App.character, 'idle', { size: 36 }),
-      h('div', { class: 'grow small' }, 'Praticando com ', h('b', { text: App.character.name })),
-      h('a', { class: 'btn small ghost', href: '#/settings', text: 'Trocar' })));
-  }
+  // personagem ativo e troca ali mesmo (só aparece quando há mais de um personagem cadastrado)
+  if (registry().characters.length > 1) view.append(characterSwitcher(App));
 
   view.append(h('section', { class: 'hero', style: { marginTop: '8px' } },
     h('div', { class: 'row nowrap' },
@@ -66,7 +62,7 @@ export function renderHome(App) {
   view.append(h('div', { class: 'stack', style: { marginTop: '16px' } },
     shortcut('#/lab', 'mic', 'Speaking Lab', 'Ouça, grave e compare sua voz'),
     shortcut('#/review', 'refresh', 'Revisar erros', due ? `${due} pendente(s) para hoje` : 'Dificuldades e respostas para revisão'),
-    shortcut('#/checklist', 'check', 'Checklist antes da aula', 'Os 6 pontos do material')));
+    content.checklist.length ? shortcut('#/checklist', 'check', 'Checklist antes da aula', `Os ${content.checklist.length} pontos do material`) : null));
 
   if (state.lastBackupAt === null && Object.keys(state.cards).length > 30) {
     view.append(h('div', { class: 'notice warn', style: { marginTop: '16px' } }, 'Seu progresso fica só neste aparelho. ', h('a', { href: '#/settings', text: 'Faça um backup' }), ' de vez em quando.'));
