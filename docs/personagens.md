@@ -5,8 +5,8 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 | | Lucas | Karla |
 |---|---|---|
 | Situação | ativo (conteúdo atual do app) | **em preparação** |
-| Conteúdo | `data/content.js` (intocado) — 10 rotinas, 101 frases | `data/characters.js` — jornada de 11 episódios (K01–K11), 104 frases, 151 itens próprios, 35 perguntas — ver [`karla-jornada.md`](karla-jornada.md) |
-| Áudio de referência | 896 clipes britânicos pré-gerados | **pendente**: até ser gerado, o app usa a voz em inglês do aparelho (offline, qualidade varia) |
+| Conteúdo | `data/content.js` — 10 rotinas do Word (R01–R10, texto intocado) + 8 episódios (R11–R18) do Lucas 2.0, 192 frases — ver [`lucas-jornada.md`](lucas-jornada.md) | `data/characters.js` — jornada de 11 episódios (K01–K11), 104 frases, 151 itens próprios, 35 perguntas — ver [`karla-jornada.md`](karla-jornada.md) |
+| Áudio de referência | 1411 clipes britânicos pré-gerados (inclui os episódios) | **pendente**: até ser gerado, o app usa a voz em inglês do aparelho (offline, qualidade varia) |
 | Imagens dos 6 estados | **pendentes** (o app nunca teve imagem de personagem) | **pendentes** |
 
 > Observação: antes desta etapa o app **não tinha** sistema de personagens — o “Lucas” existia só como a pessoa que narra as rotinas. Os seis estados com estes nomes seguem a convenção do Bora de Inglês (companheiro Tatu), adotada aqui para manter compatibilidade futura.
