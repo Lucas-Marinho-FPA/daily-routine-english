@@ -77,7 +77,7 @@ export function renderRoutine(App, { arg }) {
   view.append(
     h('div', { class: 'chips' }, r.priority ? h('span', { class: 'chip accent', text: 'Prioritária para a aula' }) : null, h('span', { class: 'chip', text: content.dayTypes[r.dayType] }),
       r.stage ? h('span', { class: 'chip', 'data-role': 'stage', text: `Etapa ${r.stage}` }) : null,
-      h('span', { class: 'chip', text: r.kind === 'episode' ? 'Situação ilustrativa' : 'Tipo de dia — não é todo dia' })),
+      h('span', { class: 'chip', text: r.kind === 'episode' ? 'Situação ilustrativa' : r.kind === 'unit' ? 'Diálogo do Conversation Book + prática' : 'Tipo de dia — não é todo dia' })),
     h('p', { class: 'en muted', style: { margin: '8px 0 2px' }, text: r.title }),
     h('p', { class: 'small', text: r.goal }),
     r.grammar ? h('p', { class: 'small', 'data-role': 'grammar' }, h('b', { text: 'Foco da língua: ' }), r.grammar) : null,
@@ -86,7 +86,7 @@ export function renderRoutine(App, { arg }) {
       h('a', { class: 'btn primary', href: sessionHref({ routine: r.id }) }, icon('play'), 'Praticar'),
       h('button', { class: 'btn', onclick: () => listenAll() }, icon('speaker'), 'Ouvir tudo'),
       h('a', { class: 'btn', href: `#/lab?routine=${r.id}` }, icon('mic'), 'Falar')),
-    h('a', { class: 'btn block', href: sessionHref({ routine: r.id, mode: 'present' }), style: { marginTop: '10px' } }, icon('target'), 'Treino para a aula: contar blocos + perguntas'));
+    r.kind === 'unit' ? null : h('a', { class: 'btn block', href: sessionHref({ routine: r.id, mode: 'present' }), style: { marginTop: '10px' } }, icon('target'), 'Treino para a aula: contar blocos + perguntas'));
 
   const blocksBox = h('div', {});
   const ptToggle = h('button', { class: 'btn small', 'aria-pressed': 'false', onclick: () => { showPt = !showPt; ptToggle.setAttribute('aria-pressed', String(showPt)); ptToggle.textContent = showPt ? 'Ocultar tradução' : 'Mostrar tradução'; drawBlocks(); } }, 'Mostrar tradução');
@@ -111,7 +111,8 @@ export function renderRoutine(App, { arg }) {
         else para.append(el, i < b.sentences.length - 1 ? ' ' : '');
       });
       blocksBox.append(h('section', { class: 'card' },
-        h('div', { class: 'row' }, h('span', { class: 'chip', text: `Bloco ${b.index}` }), b.title && r.kind === 'episode' ? h('span', { class: 'chip', text: b.title }) : null, ...b.ctx.map((c) => h('span', { class: 'chip', text: content.contexts.find((x) => x.id === c).pt })),
+        h('div', { class: 'row' }, h('span', { class: 'chip', text: `Bloco ${b.index}` }), b.title && (r.kind === 'episode' || r.kind === 'unit') ? h('span', { class: 'chip', text: b.title }) : null,
+          b.provenance ? h('span', { class: `chip${b.provenance === 'original' ? ' accent' : ''}`, 'data-provenance': b.provenance, text: { original: 'Original do livro', adapted: 'Adaptação didática', new: 'Conteúdo novo' }[b.provenance] }) : null, ...b.ctx.map((c) => h('span', { class: 'chip', text: content.contexts.find((x) => x.id === c).pt })),
           h('span', { class: 'spacer' }), told ? h('span', { class: 'chip ok', text: 'contado ✓' }) : null),
         para, showPt ? h('p', { class: 'para-pt', text: b.pt }) : null,
         h('div', { class: 'row' },
@@ -150,7 +151,7 @@ export function renderRoutine(App, { arg }) {
       ...r.usage.map((u) => h('p', { class: 'small', text: '• ' + u })),
       ...revNotes.map((n) => h('div', { class: 'notice warn small', style: { marginTop: '8px' } }, h('b', { text: `Nota de revisão (${n.id}): ` }), n.note))));
   }
-  view.append(h('h2', { text: 'Perguntas da teacher' }), h('ul', { class: 'list card' }, r.questions.map((qid) => {
+  view.append(h('h2', { text: r.kind === 'unit' ? 'Perguntas e transferência' : 'Perguntas da teacher' }), h('ul', { class: 'list card' }, r.questions.map((qid) => {
     const q = content.questions[qid];
     const done = state.cards[cardKey('q', qid, 'conv')];
     return h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${qid}` },
@@ -158,7 +159,7 @@ export function renderRoutine(App, { arg }) {
   })));
 }
 
-const QKIND = { comp: 'compreensão da história', transfer: 'responda sobre você' };
+const QKIND = { comp: 'compreensão da história', transfer: 'responda sobre você', review: 'revisão de unidade anterior' };
 
 export function itemList(App, items) {
   return h('ul', { class: 'list card' }, items.map((it) => h('li', {},

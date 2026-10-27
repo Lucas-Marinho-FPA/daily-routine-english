@@ -121,6 +121,20 @@ export function makeExercise(content, entry, rand = Math.random) {
     const q = content.questions[id];
     return { type: 'conv', entry, q, items: q.items.map((i) => content.items[i]).filter(Boolean) };
   }
+  if (unit === 'lq') {
+    // ouvir e responder: o texto do trecho só aparece depois da resposta
+    const l = content.listening[id];
+    const options = shuffle(l.options.map((t, i) => ({ text: t, correct: i === l.answer })), rand);
+    const clips = l.sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en, speaker: content.sentences[sid].speaker || null, sid }));
+    return { type: 'listen', entry, item: l, options, clips };
+  }
+  if (unit === 'rq') {
+    // ler e responder: o diálogo inteiro à vista, com a fala de referência destacada
+    const x = content.reading[id];
+    const options = shuffle(x.options.map((t, i) => ({ text: t, correct: i === x.answer })), rand);
+    const passage = content.blocks[x.block].sentences.map((sid) => ({ ...content.sentences[sid], focus: sid === x.sentence }));
+    return { type: 'read', entry, item: x, options, passage };
+  }
   if (unit === 'verb') {
     const v = content.verbs.find((x) => x.id === id);
     return { type: 'vb3', entry, verb: v, targets: [v.third] };

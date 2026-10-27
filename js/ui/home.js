@@ -5,6 +5,7 @@ import { sessionHref } from './common.js';
 import { requestPersistence } from '../store/db.js';
 import { registry } from '../engine/characters.js';
 import { characterSwitcher } from './character.js';
+import { journeyEntry } from './journey.js';
 
 export function renderHome(App) {
   const { state, content } = App;
@@ -63,6 +64,7 @@ export function renderHome(App) {
     shortcut('#/lab', 'mic', 'Speaking Lab', 'Ouça, grave e compare sua voz'),
     shortcut('#/review', 'refresh', 'Revisar erros', due ? `${due} pendente(s) para hoje` : 'Dificuldades e respostas para revisão'),
     content.checklist.length ? shortcut('#/checklist', 'check', 'Checklist antes da aula', `Os ${content.checklist.length} pontos do material`) : null));
+  view.append(journeyEntry(App)); // jornada Conversation Practice (fora do seletor de personagem)
 
   if (state.lastBackupAt === null && Object.keys(state.cards).length > 30) {
     view.append(h('div', { class: 'notice warn', style: { marginTop: '16px' } }, 'Seu progresso fica só neste aparelho. ', h('a', { href: '#/settings', text: 'Faça um backup' }), ' de vez em quando.'));

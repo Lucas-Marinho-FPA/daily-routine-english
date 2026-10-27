@@ -257,7 +257,48 @@ export function renderSession(App, { params }) {
     } }, 'Próximo'));
   }
 
+  /** Múltipla escolha de ouvir/ler: marca certo/errado, registra e mostra o feedback (com a explicação e o trecho). */
+  function chooseOption(ex, opts, o, { reveal } = {}) {
+    opts.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+    const rightIdx = ex.options.findIndex((x) => x.correct);
+    [...opts.children][rightIdx].classList.add('right');
+    if (o && !o.correct) opts.children[ex.options.indexOf(o)].classList.add('wrong');
+    const ok = !!(o && o.correct);
+    const res = { cls: o ? (ok ? 'correct' : 'meaning') : 'empty', notes: [ex.item.explain] };
+    const r = finish(ex.entry, ok ? 'good' : 'bad', { cls: res.cls, answer: o ? o.text : '' });
+    res.xp = r.xp;
+    area.append(feedback(res, { model: ex.options[rightIdx].text, k: ex.entry.k, extra: reveal ? reveal() : null }));
+    actions(continueBtn());
+  }
+  /** Falas com quem fala (diálogo), para revelar o trecho ouvido ou mostrar o texto de leitura. */
+  const dialogueLines = (lines, { focus = null } = {}) => h('div', { class: 'para dialogue' }, lines.map((s) => h('p', { class: `line${focus && s.focus ? ' hl' : ''}` },
+    s.speaker ? h('b', { class: 'speaker', text: `${s.speaker}: ` }) : null, h('span', { class: 'en', text: s.en || s.text }))));
+
   const RENDER = {
+    listen(ex) {
+      // ouvir e responder SEM ver o texto: o trecho só aparece depois da resposta
+      area.append(kind('Ouça e responda'), h('p', { class: 'small muted', text: 'Ouça o trecho do diálogo (quantas vezes quiser) e escolha a resposta. O texto aparece depois.' }));
+      const play = () => player.playSequence(ex.clips.map((c) => ({ key: c.key, text: c.text })));
+      area.append(h('button', { class: 'btn primary block lg', 'data-role': 'listen-play', onclick: play }, icon('speaker'), 'Ouvir o trecho'),
+        h('div', { class: 'big-en', style: { marginTop: '14px' }, text: ex.item.q }));
+      const opts = h('div', { class: 'options' });
+      ex.options.forEach((o) => opts.append(h('button', { class: 'option en', text: o.text, onclick: () => chooseOption(ex, opts, o, { reveal }) })));
+      const reveal = () => h('div', { style: { marginTop: '10px' } }, h('div', { class: 'small muted', text: 'O que foi dito:' }), dialogueLines(ex.clips),
+        h('button', { class: 'btn small', onclick: play }, icon('speaker'), 'Ouvir de novo'));
+      area.append(opts);
+      if (state.settings.autoplay) setTimeout(() => { if (App.debugExercise === ex) play(); }, 300); // trecho inteiro, só se ainda estiver neste exercício
+      actions(h('button', { class: 'btn ghost', onclick: () => chooseOption(ex, opts, null, { reveal }) }, 'Não sei'));
+    },
+    read(ex) {
+      // ler e responder: o diálogo à vista, com a fala de referência destacada
+      area.append(kind('Leia e responda'), h('p', { class: 'small muted', text: 'Leia o diálogo e responda. A fala destacada é a referência.' }),
+        h('div', { class: 'card flat read-passage' }, dialogueLines(ex.passage, { focus: true })),
+        h('div', { class: 'big-en', style: { marginTop: '14px' }, text: ex.item.q }));
+      const opts = h('div', { class: 'options' });
+      ex.options.forEach((o) => opts.append(h('button', { class: 'option en', text: o.text, onclick: () => chooseOption(ex, opts, o) })));
+      area.append(opts);
+      actions(h('button', { class: 'btn ghost', onclick: () => chooseOption(ex, opts, null) }, 'Não sei'));
+    },
     mc(ex) {
       const { item } = ex;
       area.append(kind('Qual é o significado?'),
@@ -464,8 +505,8 @@ export function renderSession(App, { params }) {
       items = ex.items; targetId = `routine:${ex.routine.id}`;
     } else {
       const q = ex.q;
-      title = 'Pergunta da teacher';
-      intro = q.routine ? `Sobre a ${q.routine}` : q.source === 'new' ? 'Pergunta inesperada (conteúdo novo)' : 'Pergunta geral';
+      title = content.journey ? ({ comp: 'Compreensão', transfer: 'Transferência: responda sobre você', review: 'Revisão' }[q.kind] || 'Responda') : 'Pergunta da teacher';
+      intro = content.journey && q.kind === 'review' ? `Retoma ${q.reviews.join(', ')}` : q.routine ? `Sobre a ${q.routine}` : q.source === 'new' ? 'Pergunta inesperada (conteúdo novo)' : 'Pergunta geral';
       model = q.a; modelClips = q.a ? [{ key: q.aau, text: q.a }] : []; keywords = q.keywords; targetId = `q:${q.id}`;
       items = dedupeCues(ex.items, keywords);
     }
@@ -616,6 +657,8 @@ function validEntry(content, q) {
   if (q.unit === 'routine') return content.routines.some((r) => r.id === q.id);
   if (q.unit === 'q') return !!content.questions[q.id];
   if (q.unit === 'verb') return content.verbs.some((v) => v.id === q.id);
+  if (q.unit === 'lq') return !!(content.listening && content.listening[q.id]);
+  if (q.unit === 'rq') return !!(content.reading && content.reading[q.id]);
   return false;
 }
 
@@ -627,6 +670,8 @@ export function unitLabel(content, e) {
   if (e.unit === 'routine') return `Rotina ${e.id}`;
   if (e.unit === 'q') return content.questions[e.id].q;
   if (e.unit === 'verb') { const v = content.verbs.find((x) => x.id === e.id); return `${v.base} → ${v.third}`; }
+  if (e.unit === 'lq') return `Ouvir: ${content.listening[e.id].q}`;
+  if (e.unit === 'rq') return `Ler: ${content.reading[e.id].q}`;
   return e.k;
 }
 

@@ -414,6 +414,9 @@ div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
 .char-pick { max-width: 520px; margin: 8px auto 0; }
 .para.dialogue .line { margin: 0 0 6px; }
 .para.dialogue .speaker { color: var(--muted); font-weight: 700; }
+.para.dialogue .line.hl { background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 8px; padding: 2px 6px; }
+.read-passage { max-height: 46vh; overflow-y: auto; }
+.list.skills li { border: 0; }
 .char-pick h2 { margin-top: 4px; }
 .char-opt { gap: 12px; }
 .char-opt[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 8%, transparent); }

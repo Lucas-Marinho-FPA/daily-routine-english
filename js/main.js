@@ -14,6 +14,8 @@ import { renderStats } from './ui/stats.js';
 import { renderSettings, renderChecklist } from './ui/settings.js';
 import { contentFor, characterById } from './engine/characters.js';
 import { renderCharacterPick } from './ui/character.js';
+import { journeyById, journeyView } from './engine/journeys.js';
+import { renderJourneyHome } from './ui/journey.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -21,6 +23,7 @@ const App = {
   baseContent: globalThis.DRG_CONTENT, // conteúdo do Lucas (data/content.js), nunca alterado
   content: globalThis.DRG_CONTENT, // visão do personagem ativo (engine/characters.js); o motor só enxerga esta
   character: null,
+  journey: null, // jornada independente ativa (Conversation Practice) ou null = rotinas do personagem
   state: null,
   checker: null,
   storageProblem: null,
@@ -33,7 +36,7 @@ const App = {
   /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
   setCharacter(id) {
     App.character = characterById(id);
-    App.content = contentFor(App.baseContent, App.character.id);
+    App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
     if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id; // quem chama grava
   },
   /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
@@ -42,6 +45,14 @@ const App = {
     App.state.settings.characterChosen = true;
     App.rebuildChecker();
     return App.flush().catch(() => {}); // trocar e fechar o app logo em seguida não pode perder a escolha
+  },
+  /** Entra (id) ou sai (null) de uma jornada independente: troca só a visão de conteúdo; personagem e progresso intactos. */
+  setJourney(id) {
+    App.journey = id ? journeyById(id) : null;
+    if (App.state) App.state.settings.journey = App.journey ? App.journey.id : null;
+    App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
+    App.rebuildChecker();
+    return App.flush().catch(() => {});
   },
   applySettings() {
     const s = App.state.settings;
@@ -101,7 +112,8 @@ function route() {
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
     };
     // primeira abertura (estado novo, sem escolha salva): Início mostra antes a escolha do personagem
-    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick : (screens[r.name] || renderHome);
+    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick
+      : r.name === '' && App.journey ? renderJourneyHome : (screens[r.name] || renderHome);
     cleanup = fn(App, r) || null;
   } catch (e) {
     console.error(e);
@@ -119,6 +131,7 @@ async function boot() {
   App.state = state;
   App.isNew = isNew;
   App.storageProblem = problem;
+  App.journey = journeyById(state.settings.journey); // jornada aberta da última vez (ausente/inválida → rotinas)
   App.setCharacter(state.settings.character); // estados antigos não têm a preferência: Lucas (padrão)
   App.rebuildChecker();
   App.applySettings();

@@ -767,6 +767,17 @@
       const routineStarted = !q.routine || content.routines.find((r) => r.id === q.routine).items.some((i) => cards[cardKey("item", i, "rec")]);
       if (!cards[k] && routineStarted) out.push({ k, unit: "q", id: q.id, skill: "conv" });
     }
+    for (const l of Object.values(content.listening || {}).filter((x) => inFocus.routines.has(x.routine))) {
+      const k = cardKey("lq", l.id, "lis");
+      const started = content.routines.find((r) => r.id === l.routine).items.some((i) => cards[cardKey("item", i, "rec")]);
+      if (!cards[k] && started) out.push({ k, unit: "lq", id: l.id, skill: "lis" });
+    }
+    for (const x of Object.values(content.reading || {}).filter((y) => inFocus.routines.has(y.routine))) {
+      const k = cardKey("rq", x.id, "rdq");
+      const r = content.routines.find((y) => y.id === x.routine);
+      const listened = !(r.listening || []).length || r.listening.some((l) => cards[cardKey("lq", l, "lis")] && cards[cardKey("lq", l, "lis")].reps > 0);
+      if (!cards[k] && listened) out.push({ k, unit: "rq", id: x.id, skill: "rdq" });
+    }
     if (inFocus.verbs) {
       for (const v of content.verbs) {
         const k = cardKey("verb", v.id, "vb3");
@@ -795,7 +806,7 @@
       if (all || inCat || inCtx || inRoutine) items.add(it.id);
     }
     for (const q of Object.values(content.questions)) {
-      if (q.openPersonal && !all && !focus.category) continue;
+      if (q.openPersonal && !all && !focus.category && !content.journey) continue;
       if (all || focus.routine && q.routine === focus.routine || focus.category === "qa" || focus.context && q.routine && content.routines.find((r) => r.id === q.routine).blocks.some((b) => content.blocks[b].ctx.includes(focus.context))) {
         questions.add(q.id);
       }
@@ -826,7 +837,7 @@
   }
   function cardInContent(content, k) {
     const [unit, id] = k.split(":");
-    return unit === "item" ? !!content.items[id] : unit === "sent" ? !!content.sentences[id] : unit === "block" ? !!content.blocks[id] : unit === "routine" ? content.routines.some((r) => r.id === id) : unit === "q" ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
+    return unit === "item" ? !!content.items[id] : unit === "sent" ? !!content.sentences[id] : unit === "block" ? !!content.blocks[id] : unit === "routine" ? content.routines.some((r) => r.id === id) : unit === "q" ? !!content.questions[id] : unit === "lq" ? !!(content.listening && content.listening[id]) : unit === "rq" ? !!(content.reading && content.reading[id]) : content.verbs.some((v) => v.id === id);
   }
   function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
     const inFocus = focusFilter(content, focus);
@@ -837,6 +848,8 @@
       if (unit === "block") return inFocus.blocks.has(id);
       if (unit === "routine") return inFocus.routines.has(id);
       if (unit === "q") return inFocus.questions.has(id);
+      if (unit === "lq") return inFocus.routines.has(content.listening[id].routine);
+      if (unit === "rq") return inFocus.routines.has(content.reading[id].routine);
       return inFocus.verbs;
     };
     const exists = (k) => cardInContent(content, k);
@@ -852,7 +865,7 @@
     const due = Object.values(cards).filter((c) => c.due <= today && exists(c.k) && !graduated(c.k)).sort((a, b) => unitInFocus(b.k) - unitInFocus(a.k) || a.due - b.due || a.box - b.box || rand() - 0.5).map(toEntry);
     const fresh = unlockedNew(content, cards, focus);
     const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
-    const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== "conv"), (f) => f.skill, ["retell", "tell", "seq", "wrt", "ord", "rcl", "bld", "vb3"]);
+    const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== "conv"), (f) => f.skill, ["lis", "retell", "tell", "rdq", "seq", "wrt", "ord", "rcl", "bld", "vb3"]);
     const conv = fresh.filter((f) => f.skill === "conv");
     const queue = [];
     const take = (list, n) => {
@@ -888,7 +901,7 @@
   }
   function interleave(queue, rand) {
     let order = 0;
-    const weight = (q) => (q.learn ? order++ * 0.01 : ["rec"].includes(q.skill) ? 1 : ["rcl", "vb3"].includes(q.skill) ? 2 : ["bld", "ord"].includes(q.skill) ? 3 : ["wrt", "seq"].includes(q.skill) ? 4 : 5) + rand() * 1.5;
+    const weight = (q) => (q.learn ? order++ * 0.01 : ["rec"].includes(q.skill) ? 1 : ["rcl", "vb3"].includes(q.skill) ? 2 : ["bld", "ord", "lis"].includes(q.skill) ? 3 : ["wrt", "seq", "rdq"].includes(q.skill) ? 4 : 5) + rand() * 1.5;
     return queue.map((q) => [weight(q), q]).sort((a, b) => a[0] - b[0]).map(([, q]) => q);
   }
   function mastery(cards, keys) {
@@ -931,7 +944,7 @@
       checklist: {},
       lastBackupAt: null,
       firstDay: today,
-      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false }
+      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false, journey: null }
     };
   }
   function day(state, today) {
@@ -2093,6 +2106,18 @@
       const q = content.questions[id];
       return { type: "conv", entry, q, items: q.items.map((i) => content.items[i]).filter(Boolean) };
     }
+    if (unit === "lq") {
+      const l = content.listening[id];
+      const options = shuffle(l.options.map((t, i) => ({ text: t, correct: i === l.answer })), rand);
+      const clips = l.sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en, speaker: content.sentences[sid].speaker || null, sid }));
+      return { type: "listen", entry, item: l, options, clips };
+    }
+    if (unit === "rq") {
+      const x = content.reading[id];
+      const options = shuffle(x.options.map((t, i) => ({ text: t, correct: i === x.answer })), rand);
+      const passage = content.blocks[x.block].sentences.map((sid) => ({ ...content.sentences[sid], focus: sid === x.sentence }));
+      return { type: "read", entry, item: x, options, passage };
+    }
     if (unit === "verb") {
       const v = content.verbs.find((x) => x.id === id);
       return { type: "vb3", entry, verb: v, targets: [v.third] };
@@ -2363,6 +2388,128 @@
     return wrap;
   }
 
+  // app/js/engine/journeys.js
+  var journeyRegistry = (reg = globalThis.DRG_JOURNEYS) => reg && Array.isArray(reg.journeys) ? reg.journeys : [];
+  var journeyById = (id, reg) => journeyRegistry(reg).find((j) => j.id === id) || null;
+  var views2 = /* @__PURE__ */ new WeakMap();
+  function journeyView(base, id, reg) {
+    const j = journeyById(id, reg);
+    if (!j) return null;
+    if (!views2.has(base)) views2.set(base, /* @__PURE__ */ new Map());
+    const cache = views2.get(base);
+    if (cache.has(j.id)) return cache.get(j.id);
+    const c = j.content;
+    const view = {
+      ...base,
+      journey: j.id,
+      meta: { ...base.meta, intro: [j.name] },
+      dayTypes: { ...base.dayTypes, conversation: "Conversa" },
+      routines: c.routines,
+      blocks: c.blocks,
+      sentences: c.sentences,
+      questions: c.questions,
+      items: c.items,
+      listening: c.listening || {},
+      reading: c.reading || {},
+      verbs: [],
+      drills: [],
+      checklist: [],
+      review: { ...base.review, rev: [], gap: [] }
+    };
+    cache.set(j.id, view);
+    return view;
+  }
+  function unitStatus(view, unitId, cards) {
+    const r = view.routines.find((x) => x.id === unitId);
+    const c = (k) => cards[k];
+    const done = (k) => !!c(k) && c(k).reps > 0;
+    const right = (k) => !!c(k) && c(k).box >= 1;
+    const listen2 = r.listening.map((id) => `lq:${id}:lis`), read = r.reading.map((id) => `rq:${id}:rdq`);
+    const qs = r.questions.map((id) => view.questions[id]);
+    const speak2 = qs.filter((q) => q.kind !== "transfer").map((q) => `q:${q.id}:conv`);
+    const transfer = qs.filter((q) => q.kind === "transfer").map((q) => `q:${q.id}:conv`);
+    const sents = r.blocks.flatMap((b) => view.blocks[b].sentences);
+    const written = sents.filter((s) => done(`sent:${s}:ord`) || done(`sent:${s}:wrt`)).length;
+    const skills = {
+      listening: { done: listen2.filter(right).length, total: listen2.length },
+      reading: { done: read.filter(right).length, total: read.length },
+      writing: { done: written, total: sents.length, need: Math.ceil(sents.length / 2) },
+      speaking: { done: speak2.filter(done).length, total: speak2.length },
+      transfer: { done: transfer.filter(done).length, total: transfer.length, need: Math.min(1, transfer.length) }
+    };
+    const complete = skills.listening.done === skills.listening.total && skills.reading.done === skills.reading.total && skills.speaking.done === skills.speaking.total && skills.writing.done >= skills.writing.need && skills.transfer.done >= skills.transfer.need;
+    return { id: unitId, skills, complete };
+  }
+
+  // app/js/ui/journey.js
+  var SKILLS = [
+    ["listening", "Listening", "ouvir e responder"],
+    ["reading", "Reading", "ler e responder"],
+    ["writing", "Writing", "montar e escrever falas"],
+    ["speaking", "Speaking", "responder falando ou escrevendo"],
+    ["transfer", "Transfer\xEAncia", "falar de voc\xEA"]
+  ];
+  function journeyEntry(App2) {
+    const j = journeyRegistry()[0];
+    if (!j) return null;
+    return h(
+      "section",
+      { class: "card", "data-role": "journey-entry", style: { marginTop: "16px" } },
+      h("div", { class: "chips" }, h("span", { class: "chip accent", text: "Nova jornada" }), h("span", { class: "chip", text: "piloto" })),
+      h("h3", { style: { marginTop: "8px" }, text: j.name }),
+      h("p", { class: "small muted", text: `Di\xE1logos do Conversation Book para ouvir, ler, escrever e falar (${j.content.routines.map((r) => r.id).join(", ")}). Progresso pr\xF3prio, separado das rotinas.` }),
+      h("button", { class: "btn block", "data-role": "open-journey", onclick: async () => {
+        await App2.setJourney(j.id);
+        App2.go("#/");
+      } }, icon("play"), "Abrir Conversation Practice")
+    );
+  }
+  function renderJourneyHome(App2) {
+    const { content, state } = App2;
+    const view = App2.layout(App2.journey.name, { actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))] });
+    view.append(h("section", { class: "card char-switch", "data-role": "journey-bar" }, h(
+      "div",
+      { class: "row nowrap" },
+      h("div", { class: "grow small" }, "Jornada: ", h("b", { text: App2.journey.name })),
+      h("button", { class: "btn small", "data-role": "leave-journey", onclick: async () => {
+        await App2.setJourney(null);
+        App2.go("#/");
+      } }, `Voltar \xE0s rotinas (${App2.character.name})`)
+    )));
+    view.append(h("p", { class: "small muted", style: { marginTop: "10px" }, text: "Cada unidade parte de um di\xE1logo original do livro. Primeiro voc\xEA ouve, depois l\xEA, monta e escreve as falas, responde e por fim fala de voc\xEA." }));
+    for (const r of content.routines) {
+      const st = unitStatus(content, r.id, state.cards);
+      view.append(h(
+        "section",
+        { class: "card", "data-role": "journey-unit", "data-unit": r.id, "data-complete": String(st.complete) },
+        h("div", { class: "chips" }, h("span", { class: "chip", text: r.id }), st.complete ? h("span", { class: "chip ok", text: "Conclu\xEDda \u2713" }) : h("span", { class: "chip", text: "Em andamento" })),
+        h("h3", { style: { marginTop: "8px" }, text: r.title }),
+        h("div", { class: "small muted", text: r.pt }),
+        h("p", { class: "small", text: r.goal }),
+        h("ul", { class: "list skills small" }, SKILLS.map(([k, label, sub]) => {
+          const s = st.skills[k];
+          const need = s.need ?? s.total;
+          const ok = s.done >= need;
+          return h("li", { "data-skill": k }, h(
+            "div",
+            { class: "row nowrap", style: { gap: "8px", padding: "6px 0" } },
+            h("span", { text: ok ? "\u2705" : "\u2B1C" }),
+            h("div", { class: "grow" }, h("b", { text: label }), ` \u2014 ${sub}`),
+            h("span", { class: "muted", text: k === "writing" ? `${s.done}/${s.total} (meta ${need})` : `${s.done}/${s.total}` })
+          ));
+        })),
+        h(
+          "div",
+          { class: "row", style: { marginTop: "10px" } },
+          h("a", { class: "btn primary", href: sessionHref({ routine: r.id }) }, icon("play"), "Praticar"),
+          h("a", { class: "btn", href: `#/routine/${r.id}` }, icon("book"), "Di\xE1logo"),
+          h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
+        )
+      ));
+    }
+    view.append(h("p", { class: "tiny muted", style: { marginTop: "12px" }, text: "Conclus\xE3o: ouvir e ler acertados ao menos uma vez, perguntas respondidas, metade das falas montadas ou escritas e uma transfer\xEAncia. XP, sequ\xEAncia e revis\xE3o s\xE3o os mesmos do app; o dom\xEDnio das express\xF5es \xE9 desta jornada." }));
+  }
+
   // app/js/ui/home.js
   function renderHome(App2) {
     const { state, content } = App2;
@@ -2439,6 +2586,7 @@
       shortcut("#/review", "refresh", "Revisar erros", due ? `${due} pendente(s) para hoje` : "Dificuldades e respostas para revis\xE3o"),
       content.checklist.length ? shortcut("#/checklist", "check", "Checklist antes da aula", `Os ${content.checklist.length} pontos do material`) : null
     ));
+    view.append(journeyEntry(App2));
     if (state.lastBackupAt === null && Object.keys(state.cards).length > 30) {
       view.append(h("div", { class: "notice warn", style: { marginTop: "16px" } }, "Seu progresso fica s\xF3 neste aparelho. ", h("a", { href: "#/settings", text: "Fa\xE7a um backup" }), " de vez em quando."));
     }
@@ -2571,7 +2719,7 @@
         r.priority ? h("span", { class: "chip accent", text: "Priorit\xE1ria para a aula" }) : null,
         h("span", { class: "chip", text: content.dayTypes[r.dayType] }),
         r.stage ? h("span", { class: "chip", "data-role": "stage", text: `Etapa ${r.stage}` }) : null,
-        h("span", { class: "chip", text: r.kind === "episode" ? "Situa\xE7\xE3o ilustrativa" : "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })
+        h("span", { class: "chip", text: r.kind === "episode" ? "Situa\xE7\xE3o ilustrativa" : r.kind === "unit" ? "Di\xE1logo do Conversation Book + pr\xE1tica" : "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })
       ),
       h("p", { class: "en muted", style: { margin: "8px 0 2px" }, text: r.title }),
       h("p", { class: "small", text: r.goal }),
@@ -2584,7 +2732,7 @@
         h("button", { class: "btn", onclick: () => listenAll() }, icon("speaker"), "Ouvir tudo"),
         h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
       ),
-      h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")
+      r.kind === "unit" ? null : h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")
     );
     const blocksBox = h("div", {});
     const ptToggle = h("button", { class: "btn small", "aria-pressed": "false", onclick: () => {
@@ -2620,7 +2768,8 @@
             "div",
             { class: "row" },
             h("span", { class: "chip", text: `Bloco ${b.index}` }),
-            b.title && r.kind === "episode" ? h("span", { class: "chip", text: b.title }) : null,
+            b.title && (r.kind === "episode" || r.kind === "unit") ? h("span", { class: "chip", text: b.title }) : null,
+            b.provenance ? h("span", { class: `chip${b.provenance === "original" ? " accent" : ""}`, "data-provenance": b.provenance, text: { original: "Original do livro", adapted: "Adapta\xE7\xE3o did\xE1tica", new: "Conte\xFAdo novo" }[b.provenance] }) : null,
             ...b.ctx.map((c) => h("span", { class: "chip", text: content.contexts.find((x) => x.id === c).pt })),
             h("span", { class: "spacer" }),
             told ? h("span", { class: "chip ok", text: "contado \u2713" }) : null
@@ -2666,7 +2815,7 @@
         ...revNotes.map((n) => h("div", { class: "notice warn small", style: { marginTop: "8px" } }, h("b", { text: `Nota de revis\xE3o (${n.id}): ` }), n.note))
       ));
     }
-    view.append(h("h2", { text: "Perguntas da teacher" }), h("ul", { class: "list card" }, r.questions.map((qid) => {
+    view.append(h("h2", { text: r.kind === "unit" ? "Perguntas e transfer\xEAncia" : "Perguntas da teacher" }), h("ul", { class: "list card" }, r.questions.map((qid) => {
       const q = content.questions[qid];
       const done = state.cards[cardKey("q", qid, "conv")];
       return h("li", {}, h(
@@ -2677,7 +2826,7 @@
       ));
     })));
   }
-  var QKIND = { comp: "compreens\xE3o da hist\xF3ria", transfer: "responda sobre voc\xEA" };
+  var QKIND = { comp: "compreens\xE3o da hist\xF3ria", transfer: "responda sobre voc\xEA", review: "revis\xE3o de unidade anterior" };
   function itemList(App2, items) {
     return h("ul", { class: "list card" }, items.map((it) => h(
       "li",
@@ -5033,7 +5182,61 @@
         next();
       } }, "Pr\xF3ximo"));
     }
+    function chooseOption(ex, opts, o, { reveal } = {}) {
+      opts.querySelectorAll("button").forEach((x) => {
+        x.disabled = true;
+      });
+      const rightIdx = ex.options.findIndex((x) => x.correct);
+      [...opts.children][rightIdx].classList.add("right");
+      if (o && !o.correct) opts.children[ex.options.indexOf(o)].classList.add("wrong");
+      const ok = !!(o && o.correct);
+      const res = { cls: o ? ok ? "correct" : "meaning" : "empty", notes: [ex.item.explain] };
+      const r = finish(ex.entry, ok ? "good" : "bad", { cls: res.cls, answer: o ? o.text : "" });
+      res.xp = r.xp;
+      area.append(feedback(res, { model: ex.options[rightIdx].text, k: ex.entry.k, extra: reveal ? reveal() : null }));
+      actions(continueBtn());
+    }
+    const dialogueLines = (lines, { focus: focus2 = null } = {}) => h("div", { class: "para dialogue" }, lines.map((s) => h(
+      "p",
+      { class: `line${focus2 && s.focus ? " hl" : ""}` },
+      s.speaker ? h("b", { class: "speaker", text: `${s.speaker}: ` }) : null,
+      h("span", { class: "en", text: s.en || s.text })
+    )));
     const RENDER = {
+      listen(ex) {
+        area.append(kind("Ou\xE7a e responda"), h("p", { class: "small muted", text: "Ou\xE7a o trecho do di\xE1logo (quantas vezes quiser) e escolha a resposta. O texto aparece depois." }));
+        const play2 = () => playSequence(ex.clips.map((c) => ({ key: c.key, text: c.text })));
+        area.append(
+          h("button", { class: "btn primary block lg", "data-role": "listen-play", onclick: play2 }, icon("speaker"), "Ouvir o trecho"),
+          h("div", { class: "big-en", style: { marginTop: "14px" }, text: ex.item.q })
+        );
+        const opts = h("div", { class: "options" });
+        ex.options.forEach((o) => opts.append(h("button", { class: "option en", text: o.text, onclick: () => chooseOption(ex, opts, o, { reveal }) })));
+        const reveal = () => h(
+          "div",
+          { style: { marginTop: "10px" } },
+          h("div", { class: "small muted", text: "O que foi dito:" }),
+          dialogueLines(ex.clips),
+          h("button", { class: "btn small", onclick: play2 }, icon("speaker"), "Ouvir de novo")
+        );
+        area.append(opts);
+        if (state.settings.autoplay) setTimeout(() => {
+          if (App2.debugExercise === ex) play2();
+        }, 300);
+        actions(h("button", { class: "btn ghost", onclick: () => chooseOption(ex, opts, null, { reveal }) }, "N\xE3o sei"));
+      },
+      read(ex) {
+        area.append(
+          kind("Leia e responda"),
+          h("p", { class: "small muted", text: "Leia o di\xE1logo e responda. A fala destacada \xE9 a refer\xEAncia." }),
+          h("div", { class: "card flat read-passage" }, dialogueLines(ex.passage, { focus: true })),
+          h("div", { class: "big-en", style: { marginTop: "14px" }, text: ex.item.q })
+        );
+        const opts = h("div", { class: "options" });
+        ex.options.forEach((o) => opts.append(h("button", { class: "option en", text: o.text, onclick: () => chooseOption(ex, opts, o) })));
+        area.append(opts);
+        actions(h("button", { class: "btn ghost", onclick: () => chooseOption(ex, opts, null) }, "N\xE3o sei"));
+      },
       mc(ex) {
         const { item } = ex;
         area.append(
@@ -5314,8 +5517,8 @@
         targetId = `routine:${ex.routine.id}`;
       } else {
         const q = ex.q;
-        title = "Pergunta da teacher";
-        intro = q.routine ? `Sobre a ${q.routine}` : q.source === "new" ? "Pergunta inesperada (conte\xFAdo novo)" : "Pergunta geral";
+        title = content.journey ? { comp: "Compreens\xE3o", transfer: "Transfer\xEAncia: responda sobre voc\xEA", review: "Revis\xE3o" }[q.kind] || "Responda" : "Pergunta da teacher";
+        intro = content.journey && q.kind === "review" ? `Retoma ${q.reviews.join(", ")}` : q.routine ? `Sobre a ${q.routine}` : q.source === "new" ? "Pergunta inesperada (conte\xFAdo novo)" : "Pergunta geral";
         model = q.a;
         modelClips = q.a ? [{ key: q.aau, text: q.a }] : [];
         keywords = q.keywords;
@@ -5515,6 +5718,8 @@
     if (q.unit === "routine") return content.routines.some((r) => r.id === q.id);
     if (q.unit === "q") return !!content.questions[q.id];
     if (q.unit === "verb") return content.verbs.some((v) => v.id === q.id);
+    if (q.unit === "lq") return !!(content.listening && content.listening[q.id]);
+    if (q.unit === "rq") return !!(content.reading && content.reading[q.id]);
     return false;
   }
   function unitLabel(content, e) {
@@ -5528,6 +5733,8 @@
       const v = content.verbs.find((x) => x.id === e.id);
       return `${v.base} \u2192 ${v.third}`;
     }
+    if (e.unit === "lq") return `Ouvir: ${content.listening[e.id].q}`;
+    if (e.unit === "rq") return `Ler: ${content.reading[e.id].q}`;
     return e.k;
   }
   function difficultCards(state, content = null) {
@@ -6720,6 +6927,8 @@
     content: globalThis.DRG_CONTENT,
     // visão do personagem ativo (engine/characters.js); o motor só enxerga esta
     character: null,
+    journey: null,
+    // jornada independente ativa (Conversation Practice) ou null = rotinas do personagem
     state: null,
     checker: null,
     storageProblem: null,
@@ -6741,13 +6950,22 @@
     /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
     setCharacter(id) {
       App.character = characterById(id);
-      App.content = contentFor(App.baseContent, App.character.id);
+      App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
       if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id;
     },
     /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
     chooseCharacter(id) {
       App.setCharacter(id);
       App.state.settings.characterChosen = true;
+      App.rebuildChecker();
+      return App.flush().catch(() => {
+      });
+    },
+    /** Entra (id) ou sai (null) de uma jornada independente: troca só a visão de conteúdo; personagem e progresso intactos. */
+    setJourney(id) {
+      App.journey = id ? journeyById(id) : null;
+      if (App.state) App.state.settings.journey = App.journey ? App.journey.id : null;
+      App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
       App.rebuildChecker();
       return App.flush().catch(() => {
       });
@@ -6826,7 +7044,7 @@
         settings: renderSettings,
         checklist: renderChecklist
       };
-      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : screens[r.name] || renderHome;
+      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : r.name === "" && App.journey ? renderJourneyHome : screens[r.name] || renderHome;
       cleanup = fn(App, r) || null;
     } catch (e) {
       console.error(e);
@@ -6843,6 +7061,7 @@
     App.state = state;
     App.isNew = isNew;
     App.storageProblem = problem;
+    App.journey = journeyById(state.settings.journey);
     App.setCharacter(state.settings.character);
     App.rebuildChecker();
     App.applySettings();

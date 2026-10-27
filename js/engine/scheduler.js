@@ -2,7 +2,9 @@
 // Cartão = (unidade, habilidade). Unidades: item, sent (frase), block (parágrafo), routine, q (pergunta), verb.
 // Habilidades: rec (reconhecer), rcl (recuperar), bld (completar na frase), ord (ordenar palavras),
 //              wrt (escrever a frase), seq (ordenar frases do bloco), tell (contar o bloco),
-//              retell (contar a rotina), conv (responder pergunta), vb3 (3ª pessoa).
+//              retell (contar a rotina), conv (responder pergunta), vb3 (3ª pessoa),
+//              lis (ouvir um trecho sem ver o texto e responder — unidade lq), rdq (ler e responder — unidade rq).
+// lq/rq só existem em conteúdos que trazem listening/reading (jornadas); os demais não mudam.
 
 export const INTERVALS = [0, 1, 3, 7, 16, 35, 90]; // dias por caixa
 export const MASTERED_BOX = 3;
@@ -87,6 +89,18 @@ export function unlockedNew(content, cards, focus) {
     const routineStarted = !q.routine || content.routines.find((r) => r.id === q.routine).items.some((i) => cards[cardKey('item', i, 'rec')]);
     if (!cards[k] && routineStarted) out.push({ k, unit: 'q', id: q.id, skill: 'conv' });
   }
+  // ouvir (lq) e ler (rq): ouvir abre quando a unidade começou (como as perguntas); ler, depois de ouvir algo dela
+  for (const l of Object.values(content.listening || {}).filter((x) => inFocus.routines.has(x.routine))) {
+    const k = cardKey('lq', l.id, 'lis');
+    const started = content.routines.find((r) => r.id === l.routine).items.some((i) => cards[cardKey('item', i, 'rec')]);
+    if (!cards[k] && started) out.push({ k, unit: 'lq', id: l.id, skill: 'lis' });
+  }
+  for (const x of Object.values(content.reading || {}).filter((y) => inFocus.routines.has(y.routine))) {
+    const k = cardKey('rq', x.id, 'rdq');
+    const r = content.routines.find((y) => y.id === x.routine);
+    const listened = !(r.listening || []).length || r.listening.some((l) => cards[cardKey('lq', l, 'lis')] && cards[cardKey('lq', l, 'lis')].reps > 0);
+    if (!cards[k] && listened) out.push({ k, unit: 'rq', id: x.id, skill: 'rdq' });
+  }
   if (inFocus.verbs) {
     for (const v of content.verbs) {
       const k = cardKey('verb', v.id, 'vb3');
@@ -119,7 +133,7 @@ export function focusFilter(content, focus = {}) {
     if (all || inCat || inCtx || inRoutine) items.add(it.id);
   }
   for (const q of Object.values(content.questions)) {
-    if (q.openPersonal && !all && !focus.category) continue;
+    if (q.openPersonal && !all && !focus.category && !content.journey) continue; // nas jornadas, a transferência faz parte da unidade
     if (all || (focus.routine && q.routine === focus.routine) || focus.category === 'qa' ||
         (focus.context && q.routine && content.routines.find((r) => r.id === q.routine).blocks.some((b) => content.blocks[b].ctx.includes(focus.context)))) {
       questions.add(q.id);
@@ -160,7 +174,8 @@ function orderedSentences(content, inFocus) {
 export function cardInContent(content, k) {
   const [unit, id] = k.split(':');
   return unit === 'item' ? !!content.items[id] : unit === 'sent' ? !!content.sentences[id] : unit === 'block' ? !!content.blocks[id]
-    : unit === 'routine' ? content.routines.some((r) => r.id === id) : unit === 'q' ? !!content.questions[id] : content.verbs.some((v) => v.id === id);
+    : unit === 'routine' ? content.routines.some((r) => r.id === id) : unit === 'q' ? !!content.questions[id]
+    : unit === 'lq' ? !!(content.listening && content.listening[id]) : unit === 'rq' ? !!(content.reading && content.reading[id]) : content.verbs.some((v) => v.id === id);
 }
 
 export function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
@@ -172,6 +187,8 @@ export function buildSession(content, cards, { focus = {}, size = 12, maxNewItem
     if (unit === 'block') return inFocus.blocks.has(id);
     if (unit === 'routine') return inFocus.routines.has(id);
     if (unit === 'q') return inFocus.questions.has(id);
+    if (unit === 'lq') return inFocus.routines.has(content.listening[id].routine);
+    if (unit === 'rq') return inFocus.routines.has(content.reading[id].routine);
     return inFocus.verbs;
   };
   const exists = (k) => cardInContent(content, k);
@@ -188,7 +205,7 @@ export function buildSession(content, cards, { focus = {}, size = 12, maxNewItem
   const fresh = unlockedNew(content, cards, focus);
   const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
   // desbloqueios: alterna tipos para não vir só um tipo de exercício
-  const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== 'conv'), (f) => f.skill, ['retell', 'tell', 'seq', 'wrt', 'ord', 'rcl', 'bld', 'vb3']);
+  const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== 'conv'), (f) => f.skill, ['lis', 'retell', 'tell', 'rdq', 'seq', 'wrt', 'ord', 'rcl', 'bld', 'vb3']);
   const conv = fresh.filter((f) => f.skill === 'conv');
 
   const queue = [];
@@ -222,7 +239,7 @@ function roundRobin(list, keyFn, priority = []) {
 function interleave(queue, rand) {
   let order = 0;
   const weight = (q) => (q.learn ? (order++) * 0.01 : ['rec'].includes(q.skill) ? 1 : ['rcl', 'vb3'].includes(q.skill) ? 2
-    : ['bld', 'ord'].includes(q.skill) ? 3 : ['wrt', 'seq'].includes(q.skill) ? 4 : 5) + rand() * 1.5;
+    : ['bld', 'ord', 'lis'].includes(q.skill) ? 3 : ['wrt', 'seq', 'rdq'].includes(q.skill) ? 4 : 5) + rand() * 1.5;
   return queue.map((q) => [weight(q), q]).sort((a, b) => a[0] - b[0]).map(([, q]) => q);
 }
 
