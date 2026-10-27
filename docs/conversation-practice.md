@@ -24,7 +24,9 @@ Salvaguardas permanentes:
 - **Comparação com o livro:** quando a referência local do livro existe, o build compara todo o texto publicável com ela (sequências de 6 palavras, nomes e lugares, notas). Essa referência fica só na cópia de trabalho, fora do repositório.
 - **Controle positivo:** aplicada à versão anterior, a checagem acusa 165 reproduções; aplicada à atual, nenhuma.
 
-**Pendência no histórico do git:** o c0cb6c8 continua no histórico local de `main`. Enviar `main` como está publicaria esse commit, e com ele o texto do livro, no histórico do repositório no GitHub, mesmo que o site final não o mostre. Por isso existe a branch local `cp-publicacao`: parte do commit publicado (13de9d2) e tem um único commit com exatamente a mesma árvore final, sem o c0cb6c8 no histórico. O c0cb6c8 não foi alterado nem apagado. Qual das duas publicar é decisão do responsável.
+**Pendência no histórico do git:** o c0cb6c8 continua no histórico local de `main`. Enviar `main` como está publicaria esse commit, e com ele o texto do livro, no histórico do repositório no GitHub, mesmo que o site final não o mostre. Por isso a publicação usa a branch `cp-publicacao`: parte do commit já publicado (13de9d2) e traz a mesma árvore final em um commit próprio, sem o c0cb6c8 no histórico. O c0cb6c8 não foi alterado nem apagado; fica só no histórico local de `main`, que não é enviada.
+
+**Verificação antes do envio de `cp-publicacao`:** o c0cb6c8 não é ancestral da branch; os únicos objetos que o envio compartilha com ele são código do app (sem texto do livro) e 11 clipes de expressões comuns (“Nice to meet you.”, “What do you do?”, “can't stand”…); a árvore enviada não tem nenhuma sequência de 6 palavras do livro (as de 4 palavras que restam são expressões usuais e os nomes funcionais dos temas).
 
 ## 2. Arquitetura (sem mudança em relação ao piloto)
 
