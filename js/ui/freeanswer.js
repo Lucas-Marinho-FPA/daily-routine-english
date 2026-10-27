@@ -25,7 +25,7 @@ const STATE_LABEL = { good: 'Compatível', needs_practice: 'Confira', uncertain:
  * opts: { question, model, modelClips, unit: 'q'|'block'|'routine'|'drill' }
  * Uso: const fa = freeAnswerPanel(App, opts); const w = recWidget(App, { ..., ...fa.hooks }); fa.attach(w);
  */
-export function freeAnswerPanel(App, { question = '', model = '', modelClips = [], unit = 'q' }) {
+export function freeAnswerPanel(App, { question = '', model = '', alternatives = [], modelClips = [], unit = 'q' }) {
   const el = h('section', { class: 'fb free-fb hidden', 'aria-live': 'polite', 'data-role': 'free-feedback', 'data-state': 'idle' });
   const gate = latestGate();
   let w = null, status = null, alive = true, last = null, pendingSaved = null;
@@ -87,7 +87,7 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
     // camada contextual: hipóteses de erro do reconhecedor (a transcrição em si não é alterada)
     const divergences = text && App.checker ? findDivergences(text, { checker: App.checker, pool: contextPool(App.content, App.checker), model }) : [];
     const naturalness = text && App.checker ? App.checker.naturalness(text) : [];
-    const r = analyseFreeAnswer({ question, model, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar, divergences, naturalness, frames: frameRefs(App.content), integrity });
+    const r = analyseFreeAnswer({ question, model, alternatives, unit, transcript: text || '', analysis, vocab: vocabOf(App.content), grammar, divergences, naturalness, frames: frameRefs(App.content), integrity });
     render(r, !!saved);
     if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now(), integrity } });
   }
@@ -166,7 +166,7 @@ export function freeAnswerPanel(App, { question = '', model = '', modelClips = [
       r.coherence && r.coherence.length ? h('div', { class: 'notice small fa-coherence', 'data-role': 'fa-coherence', role: 'note' },
         h('b', { text: 'Coerência do relato' }), h('ul', {}, r.coherence.map((c) => h('li', { text: c.msg })))) : null,
       r.practice.length ? h('div', { class: 'practice', 'data-role': 'free-practice', 'aria-label': 'Palavras para revisar' }, chips,
-        h('div', { class: 'tiny muted practice-hint', text: 'Trechos que destoam do contexto: podem ser erro do reconhecimento ou da pronúncia — o app não sabe qual. Toque para conferir.' }), panel) : null,
+        h('div', { class: 'tiny muted practice-hint', text: r.practice.some((x) => x.flag === 'nonword' && x.ref) ? 'Trechos que podem ter sido reconhecidos incorretamente: a sugestão vem do contexto da pergunta, não é a transcrição. Toque para conferir se corresponde ao que você disse.' : 'Trechos que destoam do contexto: podem ser erro do reconhecimento ou da pronúncia — o app não sabe qual. Toque para conferir.' }), panel) : null,
       r.tips.length ? h('div', { class: 'fa-tips' }, h('b', { class: 'small', text: 'Para melhorar a resposta' }),
         h('ul', { class: 'small' }, r.tips.map((t) => h('li', { text: t })))) : null,
       r.language && (r.language.grammar.length || r.language.naturalness.length) ? h('div', { class: 'fa-tips', 'data-role': 'fa-language' }, h('b', { class: 'small', text: 'Gramática e naturalidade' }),

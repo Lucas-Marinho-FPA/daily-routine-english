@@ -3835,6 +3835,49 @@
     return out;
   }
 
+  // app/js/engine/agreement.js
+  var PLURAL_SUBJ = /* @__PURE__ */ new Set(["i", "you", "we", "they"]);
+  var THIRD_SUBJ = /* @__PURE__ */ new Set(["he", "she"]);
+  var ADVERB = new Set("usually always often sometimes never normally generally rarely also just really still".split(" "));
+  var AUX = new Set("do does did don't doesn't didn't can could will would shall should may might must let make makes made help helps 'll".split(" "));
+  var VERBS = new Set("get go have do wake eat drink take drive walk work study read watch listen play cook clean shower brush leave arrive start finish spend sleep prepare check meet call help pray relax rest run exercise train pick bring heat review practise practice write open turn switch park return come sit talk chat visit shop buy wash dress commute ride catch teach learn attend answer send plan organise organize try use present focus jog swim cycle feed need want like love enjoy prefer hate live stay leave make".split(" "));
+  var IRREGULAR_S = { has: "have", does: "do", goes: "go", is: "am/are" };
+  function thirdPersonBase(w) {
+    if (IRREGULAR_S[w]) return IRREGULAR_S[w];
+    if (!/s$/.test(w) || /ss$/.test(w)) return null;
+    const l = lemma(w);
+    return l !== w && VERBS.has(l) && (w === l + "s" || w === l + "es" || /y$/.test(l) && w === l.slice(0, -1) + "ies") ? l : null;
+  }
+  var thirdPerson = (b) => b === "have" ? "has" : b === "do" ? "does" : b === "go" ? "goes" : /(s|sh|ch|x|o)$/.test(b) ? b + "es" : /[^aeiou]y$/.test(b) ? b.slice(0, -1) + "ies" : b + "s";
+  function agreementIssues(text) {
+    const t = wordTokens(String(text || ""));
+    const out = [];
+    for (let i = 0; i < t.length; i++) {
+      const s = t[i];
+      if (!PLURAL_SUBJ.has(s) && !THIRD_SUBJ.has(s)) continue;
+      let j = i + 1;
+      if (ADVERB.has(t[j])) j++;
+      const v = t[j];
+      if (!v) continue;
+      const span = t.slice(i, j + 1).join(" ");
+      if (PLURAL_SUBJ.has(s)) {
+        const base = thirdPersonBase(v);
+        if (!base) continue;
+        if (v === "is" && s !== "i") continue;
+        const fix = [...t.slice(i, j), v === "is" ? "am" : base].join(" ");
+        const cap = (x) => x.replace(/^i\b/, "I");
+        const rule = v === "is" ? "com \u201CI\u201D o verbo \u201Cbe\u201D fica \u201Cam\u201D" : `com \u201C${cap(s)}\u201D o verbo no presente fica sem -s`;
+        out.push({ id: "E_AGREEMENT_FREE", heard: cap(span), fix: cap(fix), msg: `Concord\xE2ncia (Present Simple): ${rule} \u2014 \u201C${cap(fix)}\u201D, n\xE3o \u201C${cap(span)}\u201D.` });
+      } else {
+        if (i > 0 && AUX.has(t[i - 1])) continue;
+        if (!VERBS.has(v) || thirdPersonBase(v)) continue;
+        const fix = [...t.slice(i, j), thirdPerson(v)].join(" ");
+        out.push({ id: "E_AGREEMENT_FREE", heard: span, fix, msg: `Concord\xE2ncia (Present Simple): com \u201C${s}\u201D o verbo no presente leva -s \u2014 \u201C${fix}\u201D, n\xE3o \u201C${span}\u201D.` });
+      }
+    }
+    return out;
+  }
+
   // app/js/engine/integrity.js
   var TOKENS_PER_SECOND = 6;
   function estimateTokens(text) {
@@ -3953,8 +3996,26 @@
     }
     return { known, domain };
   }
+  var sameLemma = (a, b) => a === b || a + "e" === b || b + "e" === a;
   var contentLemmas = (text) => wordTokens(text).map(lemma).filter((l) => l.length > 1 && !STOP.has(l) && !/^\d/.test(l));
   var skeleton = (w) => w.replace(/(?!^)[aeiouy]/g, "").replace(/(.)\1+/g, "$1");
+  var soundSkeleton = (w) => skeleton(phoneKey(w).norm);
+  function contextualHypothesis(heard, candidates) {
+    const h2 = soundSkeleton(heard);
+    if (h2.length < 2) return null;
+    let best = null, bestD = 2, tie = false;
+    for (const c of candidates) {
+      const k = soundSkeleton(c);
+      if (k.length < 3 || k[0] !== h2[0] || Math.abs(k.length - h2.length) > 1) continue;
+      const d = levenshtein(h2, k);
+      if (d < bestD) {
+        best = c;
+        bestD = d;
+        tie = false;
+      } else if (d === bestD && best && lemma(best) !== lemma(c)) tie = true;
+    }
+    return best && !tie ? best : null;
+  }
   function degenerateFree(tokens) {
     let run2 = 1;
     for (let j = 1; j < tokens.length; j++) {
@@ -3969,7 +4030,7 @@
     return false;
   }
   var insufficientAudio = (analysis) => !analysis || analysis.silent || analysis.speechSec < 0.8;
-  function analyseFreeAnswer({ question = "", model = "", unit = "q", transcript = "", analysis = null, vocab = { known: /* @__PURE__ */ new Set(), domain: /* @__PURE__ */ new Set() }, grammar = [], divergences = [], naturalness = [], frames = null, integrity = null }) {
+  function analyseFreeAnswer({ question = "", model = "", alternatives = [], unit = "q", transcript = "", analysis = null, vocab = { known: /* @__PURE__ */ new Set(), domain: /* @__PURE__ */ new Set() }, grammar = [], divergences = [], naturalness = [], frames = null, integrity = null }) {
     const text = String(transcript || "").trim();
     const tokens = wordTokens(text);
     const metrics = measure(analysis, tokens.length);
@@ -3981,10 +4042,12 @@
     if (degenerateFree(tokens)) return inconclusive("degenerate", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido). Nada foi avaliado: grave de novo.");
     if (tokens.length < 3) return inconclusive("short", "Fala curta demais para avaliar a resposta. Responda com uma ou duas frases completas.");
     const answerLemmas = new Set(contentLemmas(text));
-    const expected = [.../* @__PURE__ */ new Set([...contentLemmas(question), ...contentLemmas(model)])].filter((l) => l.length >= 4);
+    const alts = (alternatives || []).filter(Boolean);
+    const expected = [.../* @__PURE__ */ new Set([...contentLemmas(question), ...contentLemmas(model), ...alts.flatMap(contentLemmas)])].filter((l) => l.length >= 4);
     const missingExpected = expected.filter((l) => !answerLemmas.has(l));
     const exampleWord = /* @__PURE__ */ new Map();
-    for (const w of [...wordTokens(model), ...wordTokens(question)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
+    for (const w of [...wordTokens(model), ...wordTokens(question), ...alts.flatMap(wordTokens)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
+    const candidates = missingExpected.map((l) => exampleWord.get(l) || l);
     const words2 = [];
     const practice = [];
     const seen = /* @__PURE__ */ new Set();
@@ -3993,11 +4056,30 @@
       if (ws.some((k) => flags.has(k))) return;
       ws.forEach((k) => flags.set(k, f));
     };
-    const refs = frames ? [...model ? [prepRef(model)] : [], ...frames].filter(Boolean) : [];
+    const refs = frames ? [...[model, ...alts].filter(Boolean).map(prepRef), ...frames].filter(Boolean) : [];
     for (const d of divergences || []) mark(d.src, { kind: "context", ...d });
-    for (const sp of refs.length ? findSlotSuspicions(text, refs) : []) mark(sp.src, { kind: "frame", ...sp });
+    const supported2 = (heard) => {
+      const ls = contentLemmas(heard);
+      return ls.length > 0 && ls.every((l) => expected.some((e) => sameLemma(l, e)));
+    };
+    for (const sp of refs.length ? findSlotSuspicions(text, refs) : []) if (!supported2(sp.heard)) mark(sp.src, { kind: "frame", ...sp });
     for (const o of findOddCombinations(text)) mark(o.src, { kind: "odd", ...o });
-    const segs = segment(text).filter((x) => x.w !== void 0);
+    const allSegs = segment(text);
+    const segs = allSegs.filter((x) => x.w !== void 0);
+    const joined = /* @__PURE__ */ new Map();
+    for (let k = 1; k + 1 < allSegs.length; k++) {
+      const a = allSegs[k - 1], g = allSegs[k], b = allSegs[k + 1];
+      if (a.w === void 0 || b.w === void 0 || g.text !== "-" || flags.has(a.w) || flags.has(b.w)) continue;
+      const whole = a.norm + b.norm;
+      if (/\d/.test(whole) || isKnownWord(whole, vocab.known) !== false) continue;
+      const ref = contextualHypothesis(whole, candidates);
+      if (ref) {
+        const j = { ws: [a.w, b.w], heard: `${a.text}-${b.text}`, ref };
+        joined.set(a.w, j);
+        joined.set(b.w, j);
+      }
+    }
+    const hypotheses = [];
     const deferred = [];
     for (const seg of segs) {
       const t = seg.norm;
@@ -4007,9 +4089,20 @@
         const key = "flag:" + f.src.join(",");
         if (!seen.has(key)) {
           seen.add(key);
-          practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, strength: f.strength || "possible", reason: r2.reason });
+          practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, category: f.expected ? "recognition" : "inconclusive", strength: f.strength || "possible", reason: r2.reason });
         }
         words2.push(r2);
+        continue;
+      }
+      const jn = joined.get(seg.w);
+      if (jn) {
+        const reason = recognitionReason(jn.heard, jn.ref);
+        if (!seen.has("join:" + jn.ws.join(","))) {
+          seen.add("join:" + jn.ws.join(","));
+          hypotheses.push({ heard: jn.heard, ref: jn.ref });
+          practice.push({ w: jn.ws[0], ws: jn.ws, text: jn.heard, heard: jn.heard, ref: jn.ref, flag: "nonword", category: "recognition", reason });
+        }
+        words2.push({ w: seg.w, text: seg.text, state: "needs_practice", flag: "nonword", ref: jn.ref, reason });
         continue;
       }
       if (!t || /\d/.test(t) || NUMBER_WORDS.includes(t)) {
@@ -4037,20 +4130,28 @@
         const known = isKnownWord(t, vocab.known) ?? null;
         const compound = known === false && splitsInTwo(t, vocab.known);
         if (known === false && !compound) {
-          Object.assign(r, { state: "needs_practice", flag: "nonword", reason: `\u201C${seg.text}\u201D n\xE3o parece uma palavra do ingl\xEAs: prov\xE1vel erro do reconhecimento. Ou\xE7a sua grava\xE7\xE3o; se a palavra estiver clara, est\xE1 tudo certo.` });
+          const ref = contextualHypothesis(t, candidates);
+          if (ref) hypotheses.push({ heard: seg.text.replace(/[.,!?;:]+$/, ""), ref });
+          Object.assign(r, {
+            state: "needs_practice",
+            flag: "nonword",
+            ref,
+            category: ref ? "recognition" : "inconclusive",
+            reason: ref ? recognitionReason(seg.text.replace(/[.,!?;:]+$/, ""), ref) : `\u201C${seg.text}\u201D n\xE3o parece uma palavra do ingl\xEAs: prov\xE1vel erro do reconhecimento, mas o contexto n\xE3o indica uma palavra prov\xE1vel. Ou\xE7a sua grava\xE7\xE3o; se a palavra estiver clara, est\xE1 tudo certo.`
+          });
         } else if (!inActivity) {
           const e = missingExpected.find((x) => x[0] === l[0] && x !== l && Math.abs(x.length - l.length) <= 2 && levenshtein(skeleton(x), skeleton(l)) <= 1 && levenshtein(x, l) <= 2 && commonPrefix(x, l) < 5);
           if (e) {
             const ref = exampleWord.get(e) || e;
-            Object.assign(r, { state: "needs_practice", flag: "confusion", ref, reason: `O app ouviu \u201C${seg.text}\u201D. Se voc\xEA quis dizer \u201C${ref}\u201D, vale praticar essa palavra; se disse \u201C${seg.text}\u201D, est\xE1 tudo certo.` });
+            Object.assign(r, { state: "needs_practice", flag: "confusion", ref, category: "recognition", reason: `O app ouviu \u201C${seg.text}\u201D. Se voc\xEA quis dizer \u201C${ref}\u201D, vale praticar essa palavra; se disse \u201C${seg.text}\u201D, est\xE1 tudo certo.` });
           }
         }
       }
       if (r.state === "needs_practice") {
-        const key = (r.ref || t).toLowerCase();
+        const key = (r.flag === "nonword" ? "nw:" + t : r.ref || t).toLowerCase();
         if (!seen.has(key)) {
           seen.add(key);
-          practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ""), heard: seg.text.replace(/[.,!?;:]+$/, ""), ref: r.ref || null, flag: r.flag, reason: r.reason });
+          practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ""), heard: seg.text.replace(/[.,!?;:]+$/, ""), ref: r.ref || null, flag: r.flag, category: r.category, reason: r.reason });
         }
       }
       words2.push(r);
@@ -4066,7 +4167,7 @@
     const low = ` ${tokens.join(" ")} `;
     const strongHits = [...answerLemmas].filter((l) => expected.includes(l) || contentLemmas(question).includes(l));
     const domainHits = [...answerLemmas].filter((l) => vocab.domain.has(l) && !WEAK_TOPIC.has(l));
-    const activities = new Set(tokens.map(lemma).filter((l) => ACTIVITY.has(l)));
+    const activities = new Set(tokens.map(lemma).map((l) => ACTIVITY.has(l + "e") ? l + "e" : l).filter((l) => ACTIVITY.has(l)));
     const satisfied = {
       time: RX.time.test(low),
       frequency: RX.frequency.test(low),
@@ -4105,12 +4206,13 @@
     }
     const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok !== false);
     const unconfirmed = checklist.some((c) => c.unconfirmed);
-    const status3 = relevance === "none" ? "off-topic" : requiredOk && tokens.length >= minToAnswer ? unconfirmed ? "unclear" : "answers" : "partial";
+    const misheard = relevance === "none" && hypotheses.length > 0;
+    const status3 = misheard ? "unclear" : relevance === "none" ? "off-topic" : requiredOk && tokens.length >= minToAnswer ? unconfirmed ? "unclear" : "answers" : "partial";
     const holeText = holes.length ? ` (por exemplo, depois de \u201C${holes[0].after}\u201D)` : "";
     const message = {
       answers: "Sua resposta responde \xE0 pergunta.",
       partial: "Sua resposta tem rela\xE7\xE3o com a pergunta, mas pode ficar mais completa.",
-      unclear: `Sua resposta tem rela\xE7\xE3o com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. N\xE3o d\xE1 para afirmar que faltou algo: ou\xE7a sua grava\xE7\xE3o.`,
+      unclear: misheard ? `O app pode ter reconhecido errado parte da sua fala (${hypotheses.slice(0, 2).map((x) => `\u201C${x.heard}\u201D \u2014 talvez \u201C${x.ref}\u201D`).join("; ")}). Por isso n\xE3o d\xE1 para confirmar se a resposta trata da pergunta: confira o trecho marcado ouvindo sua grava\xE7\xE3o.` : `Sua resposta tem rela\xE7\xE3o com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. N\xE3o d\xE1 para afirmar que faltou algo: ou\xE7a sua grava\xE7\xE3o.`,
       "off-topic": "N\xE3o encontrei rela\xE7\xE3o clara com a pergunta. Pode ser erro do reconhecimento: ou\xE7a sua grava\xE7\xE3o. Se voc\xEA falou de outro assunto, tente responder diretamente."
     }[status3];
     const coherence = findContradictions(text).map((c) => c.kind === "two-times" ? { kind: c.kind, msg: `Voc\xEA mencionou dois hor\xE1rios para \u201C${c.activity}\u201D (${c.times.join(" e ")}) sem dizer quando vale cada um (ex.: \u201Con weekends\u201D). Confira na grava\xE7\xE3o: pode ter sido o reconhecimento.` } : { kind: c.kind, msg: `\u201C${c.times[0]}\u201D e \u201C${c.period}\u201D n\xE3o combinam (p.m. \xE9 tarde/noite; a.m. \xE9 manh\xE3). Confira o hor\xE1rio na grava\xE7\xE3o.` });
@@ -4123,7 +4225,8 @@
       else if (INTENT_TIP[c.id]) tips.push(INTENT_TIP[c.id]);
     }
     if (practice.length) tips.push(practice.length === 1 ? "Confira o trecho marcado: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia." : `Confira os ${practice.length} trechos marcados: ou\xE7a sua grava\xE7\xE3o e as refer\xEAncias.`);
-    const grammarTips = (grammar || []).map((g) => g.msg).filter(Boolean).slice(0, 2);
+    const agreement = agreementIssues(text).filter((a) => !(grammar || []).some((g) => /^E_(THIRD_S|DOESNT_S|DONT_THIRD|AGREEMENT)/.test(g.id || "")));
+    const grammarTips = [...(grammar || []).map((g) => g.msg), ...agreement.map((a) => a.msg)].filter(Boolean).slice(0, 2);
     const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
     return {
       ...base,
@@ -4139,8 +4242,12 @@
       practice,
       coherence,
       holes,
+      hypotheses,
       evidence: { strong: strongHits, domain: domainHits.length, activities: activities.size, words: tokens.length, minWords }
     };
+  }
+  function recognitionReason(heard, ref) {
+    return `A palavra destacada pode ter sido reconhecida incorretamente: o app ouviu \u201C${heard}\u201D, que n\xE3o \xE9 uma palavra do ingl\xEAs. Pelo contexto da pergunta, talvez voc\xEA tenha dito \u201C${ref}\u201D (sugest\xE3o, n\xE3o a transcri\xE7\xE3o). Confira se essa sugest\xE3o corresponde ao que voc\xEA disse; se n\xE3o, ignore esta marca.`;
   }
   function flagReason(f) {
     if (f.kind === "context") {
@@ -4573,7 +4680,7 @@
   };
   var fmt2 = (n) => String(n).replace(".", ",");
   var STATE_LABEL2 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
-  function freeAnswerPanel(App2, { question = "", model = "", modelClips = [], unit = "q" }) {
+  function freeAnswerPanel(App2, { question = "", model = "", alternatives = [], modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
     let w = null, status3 = null, alive = true, last = null, pendingSaved = null;
@@ -4645,7 +4752,7 @@
       const grammar = text && App2.checker ? App2.checker.coverage(text, { keywords: [] }).grammar : [];
       const divergences = text && App2.checker ? findDivergences(text, { checker: App2.checker, pool: contextPool(App2.content, App2.checker), model }) : [];
       const naturalness = text && App2.checker ? App2.checker.naturalness(text) : [];
-      const r = analyseFreeAnswer({ question, model, unit, transcript: text || "", analysis, vocab: vocabOf(App2.content), grammar, divergences, naturalness, frames: frameRefs(App2.content), integrity });
+      const r = analyseFreeAnswer({ question, model, alternatives, unit, transcript: text || "", analysis, vocab: vocabOf(App2.content), grammar, divergences, naturalness, frames: frameRefs(App2.content), integrity });
       render(r, !!saved);
       if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now(), integrity } });
     }
@@ -4757,7 +4864,7 @@
           "div",
           { class: "practice", "data-role": "free-practice", "aria-label": "Palavras para revisar" },
           chips,
-          h("div", { class: "tiny muted practice-hint", text: "Trechos que destoam do contexto: podem ser erro do reconhecimento ou da pron\xFAncia \u2014 o app n\xE3o sabe qual. Toque para conferir." }),
+          h("div", { class: "tiny muted practice-hint", text: r.practice.some((x) => x.flag === "nonword" && x.ref) ? "Trechos que podem ter sido reconhecidos incorretamente: a sugest\xE3o vem do contexto da pergunta, n\xE3o \xE9 a transcri\xE7\xE3o. Toque para conferir se corresponde ao que voc\xEA disse." : "Trechos que destoam do contexto: podem ser erro do reconhecimento ou da pron\xFAncia \u2014 o app n\xE3o sabe qual. Toque para conferir." }),
           panel
         ) : null,
         r.tips.length ? h(
@@ -5548,7 +5655,7 @@
       const input = h("textarea", { class: "field en", rows: unit === "routine" ? 6 : 4, spellcheck: "false", autocapitalize: "sentences", placeholder: "Escreva sua resposta (opcional se voc\xEA gravar)", "aria-label": "Sua resposta" });
       if (isQ && state.myAnswers[ex.q.id]) input.value = state.myAnswers[ex.q.id].text;
       area.append(h("label", { class: "lbl", style: { marginTop: "12px" }, text: "Fale e/ou escreva" }));
-      freePanel = freeAnswerPanel(App2, { question: isQ ? ex.q.q : "", model, modelClips, unit: isQ ? "q" : unit });
+      freePanel = freeAnswerPanel(App2, { question: isQ ? ex.q.q : "", model, alternatives: isQ ? ex.q.altAnswers || [] : [], modelClips, unit: isQ ? "q" : unit });
       widget = recWidget(App2, { targetId, reference: modelClips, expectedWords: model ? model.split(/\s+/).length : 0, maxMs: unit === "routine" ? 3e5 : 12e4, ...freePanel.hooks });
       freePanel.attach(widget);
       area.append(widget.el, freePanel.el, h("div", { style: { height: "10px" } }), input);
@@ -6319,7 +6426,7 @@
       }
       showFb("unavailable", ...parts);
     }
-    const free = !reading && (params.q || params.drill !== void 0) ? freeAnswerPanel(App2, params.q ? { question: content.questions[params.q].q, model: content.questions[params.q].a || "", modelClips: clips, unit: "q" } : { question: "", model: content.drills[Number(params.drill)].prompts.join(" "), modelClips: [], unit: "drill" }) : null;
+    const free = !reading && (params.q || params.drill !== void 0) ? freeAnswerPanel(App2, params.q ? { question: content.questions[params.q].q, model: content.questions[params.q].a || "", alternatives: content.questions[params.q].altAnswers || [], modelClips: clips, unit: "q" } : { question: "", model: content.drills[Number(params.drill)].prompts.join(" "), modelClips: [], unit: "drill" }) : null;
     const w = recWidget(App2, {
       targetId,
       reference: clips,

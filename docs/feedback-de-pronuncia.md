@@ -156,6 +156,35 @@ Nenhuma cor mede os sons; o reconhecedor não dá confiança por palavra e nenhu
 ### Limitações
 - Coerência depende de **molduras do conteúdo** e de **categorias pequenas e explícitas**; fala sobre temas fora do conteúdo tem menos cobertura (cai mais em cinza do que em âmbar).
 - O “som parecido” é uma aproximação pela escrita, não fonética; pode errar em pares não testados.
-- Gramática na fala livre: “my wife go” é detectado; “I goes” não (só nas respostas escritas).
+- Gramática na fala livre: “my wife go” e (desde a correção contextual abaixo) “I gets”, “they watches”, “he always drive” são detectados; outros erros de concordância (sujeito longo: “my friends and I goes”) não.
 - Sem marcas de tempo por palavra, não é possível reproduzir só o trecho suspeito da gravação do aluno: o app oferece a gravação inteira e a referência.
 - A correção do corte da biblioteca exige atualizar o pacote do reconhecimento (download de ~0,7 MB com consentimento) — pendente.
+
+## Correção contextual de transcrições (reconhecimento × inglês × inconclusivo)
+
+Caso de referência (R01.Q2 “What do you do on your way to the office?”): o aluno disse “office” e o reconhecedor escreveu “I arrive in my near-ofcy, near my off-scene”. Antes, “ofcy” ficava âmbar **sem sugestão** e “off-scene” passava como duas palavras válidas; “I go to the offsy.” era classificado como **fora do tema**; “I gets ready…” não recebia nenhuma observação.
+
+Cada trecho agora cai em uma de três classes, sem que a transcrição seja alterada:
+
+| Classe | Quando | O que o app mostra |
+|---|---|---|
+| A. Possível erro do reconhecimento (`category: 'recognition'`) | palavra que não existe em inglês (ou dois pedaços unidos por hífen que, juntos, não são palavra) **e** que soa como uma palavra única da pergunta, do exemplo ou de uma alternativa aceita ainda não dita na resposta | âmbar + “A palavra destacada pode ter sido reconhecida incorretamente… talvez você tenha dito “office” (sugestão, não a transcrição). Confira se essa sugestão corresponde ao que você disse.” |
+| B. Erro de inglês | concordância no Present Simple: I/you/we/they (+ advérbio de frequência) + verbo com -s de uma lista fechada de verbos de rotina; he/she (+ advérbio) + verbo na forma base, fora de pergunta/auxiliar | só em “Gramática e naturalidade”; a palavra **não** fica âmbar (o reconhecedor ouviu certo) |
+| C. Inconclusivo (`category: 'inconclusive'`) | palavra inexistente sem candidata no contexto, empate entre duas candidatas, fala curta, nome próprio | âmbar sem sugestão (“o contexto não indica uma palavra provável”) ou cinza; nada é inventado |
+
+Regras (`engine/freeanswer.js`, `engine/agreement.js`):
+- **Hipótese contextual** (`contextualHypothesis`): esqueleto de sons pela grafia normalizada de `phoneKey` (c→s antes de e/i/y, ph→f, e mudo, letras dobradas) sem vogais, mesma inicial, no máximo 1 consoante de diferença; só palavras de conteúdo com 4+ letras da pergunta, do exemplo e das alternativas. “ofcy”, “offsy”, “office” → `ofs`; “off-scene” → `ofsn`. Empate → nenhuma sugestão. Não é dicionário por exercício: as candidatas vêm do próprio contexto da pergunta.
+- **Status:** sem relação aparente com a pergunta **mas** com uma hipótese de reconhecimento → “Não deu para confirmar tudo” (`unclear`), com a hipótese na mensagem, em vez de “Pouca relação com a pergunta”. Resposta inadequada sem hipótese continua `off-topic`.
+- **Alternativas aceitas** (`altAnswers`) agora chegam ao avaliador (Lab e sessão): contam como contexto do tema, como molduras e como candidatas; nunca são exigidas.
+- **Moldura de outro conteúdo × contexto da pergunta:** uma suspeita de moldura não marca uma palavra que a própria pergunta/exemplo/alternativa usa (“I'm driving for Uber” deixou de ser marcado como “training”, da moldura “I'm training for a Hyrox race”).
+- “driving”/“drive”: o lema aproximado corta o e mudo (“driv”); a comparação com as palavras esperadas e a contagem de atividades toleram esse e.
+- Concordância: a mensagem não se repete quando uma regra do corretor (E_THIRD_S, E_DOESNT_S, E_DONT_THIRD) já cobriu a frase.
+
+Medição: 0 diferenças (status, destaques, sugestões, gramática) nas 109 respostas-modelo, na alternativa aceita e nas 101 transcrições reais do Moonshine, antes × depois; 0 erros de concordância apontados nesses textos e nas 1056 frases do conteúdo. Testes: `tests/unit/transcorrection.test.js` (12 cenários).
+
+Limitações conhecidas:
+- A hipótese só existe para palavras **inexistentes** em inglês; troca por outra palavra real (“off scene” separado por espaço, “of see”) continua dependendo das molduras e da regra de confusão já existentes.
+- Só uma candidata por trecho; se a palavra pretendida não está na pergunta, no exemplo nem nas alternativas, o trecho fica inconclusivo.
+- Palavra correta fora do léxico (gíria, marca, nome próprio em minúsculas) pode receber uma hipótese se soar como uma palavra da pergunta; a mensagem sempre manda conferir e ignorar se não corresponder.
+- A concordância não analisa sujeitos compostos ou longos, nem tempos verbais além do Present Simple.
+

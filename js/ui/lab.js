@@ -283,7 +283,7 @@ function renderTarget(App, params) {
   // perguntas e drills (resposta livre): transcrição + avaliação contextual, como nas missões
   const free = !reading && (params.q || params.drill !== undefined)
     ? freeAnswerPanel(App, params.q
-      ? { question: content.questions[params.q].q, model: content.questions[params.q].a || '', modelClips: clips, unit: 'q' }
+      ? { question: content.questions[params.q].q, model: content.questions[params.q].a || '', alternatives: content.questions[params.q].altAnswers || [], modelClips: clips, unit: 'q' }
       : { question: '', model: content.drills[Number(params.drill)].prompts.join(' '), modelClips: [], unit: 'drill' })
     : null;
   const w = recWidget(App, {

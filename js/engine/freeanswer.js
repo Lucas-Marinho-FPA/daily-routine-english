@@ -17,7 +17,8 @@
 import { wordTokens, levenshtein } from './text.js';
 import { segment, forms } from './wordfeedback.js';
 import { lemma, isKnownWord, lexiconReady } from './lexicon.js';
-import { findSlotSuspicions, findOddCombinations, findHoles, findContradictions, prepRef, categoryOf } from './coherence.js';
+import { findSlotSuspicions, findOddCombinations, findHoles, findContradictions, prepRef, categoryOf, phoneKey } from './coherence.js';
+import { agreementIssues } from './agreement.js';
 import { mayHaveLostSpeech } from './integrity.js';
 
 // palavras funcionais, auxiliares e marcadores de hesitação: não contam como conteúdo
@@ -105,8 +106,31 @@ export function buildVocab(content) {
   return { known, domain };
 }
 
+// lemma() corta o e mudo nas formas em -ing (“driving” → “driv”): “driv” e “drive” contam como o mesmo verbo
+const sameLemma = (a, b) => a === b || a + 'e' === b || b + 'e' === a;
 const contentLemmas = (text) => wordTokens(text).map(lemma).filter((l) => l.length > 1 && !STOP.has(l) && !/^\d/.test(l));
 const skeleton = (w) => w.replace(/(?!^)[aeiouy]/g, '').replace(/(.)\1+/g, '$1');
+// esqueleto de SONS (grafia normalizada por phoneKey: c→s antes de e/i/y, ph→f, e mudo…): “ofcy”, “offsy”, “office” → “ofs”
+const soundSkeleton = (w) => skeleton(phoneKey(w).norm);
+
+/**
+ * Hipótese contextual para um trecho que não é palavra do inglês (“ofcy”, “off-scene”): a palavra da pergunta,
+ * do exemplo ou de uma alternativa aceita (ainda não dita na resposta) com o mesmo som-esqueleto (mesma inicial,
+ * no máximo 1 consoante de diferença). Só devolve uma hipótese quando ela é ÚNICA; empate ou nada → null
+ * (o trecho fica inconclusivo). Não é correção: a transcrição continua como foi reconhecida.
+ */
+export function contextualHypothesis(heard, candidates) {
+  const h = soundSkeleton(heard);
+  if (h.length < 2) return null;
+  let best = null, bestD = 2, tie = false;
+  for (const c of candidates) {
+    const k = soundSkeleton(c);
+    if (k.length < 3 || k[0] !== h[0] || Math.abs(k.length - h.length) > 1) continue;
+    const d = levenshtein(h, k);
+    if (d < bestD) { best = c; bestD = d; tie = false; } else if (d === bestD && best && lemma(best) !== lemma(c)) tie = true;
+  }
+  return best && !tie ? best : null;
+}
 
 /** Transcrição degenerada (laço do modelo) — nada é avaliado. */
 export function degenerateFree(tokens) {
@@ -133,8 +157,9 @@ export const insufficientAudio = (analysis) => !analysis || analysis.silent || a
  * @param p.grammar    dicas de gramática do corretor do app sobre a transcrição (opcional)
  * @param p.frames     frameRefs(content) — molduras do conteúdo para a coerência contextual (opcional)
  * @param p.integrity  transcriptIntegrity(...) do reconhecimento (opcional; null = não verificada)
+ * @param p.alternatives respostas alternativas aceitas (só referência, como o exemplo: nunca exigidas)
  */
-export function analyseFreeAnswer({ question = '', model = '', unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [], divergences = [], naturalness = [], frames = null, integrity = null }) {
+export function analyseFreeAnswer({ question = '', model = '', alternatives = [], unit = 'q', transcript = '', analysis = null, vocab = { known: new Set(), domain: new Set() }, grammar = [], divergences = [], naturalness = [], frames = null, integrity = null }) {
   const text = String(transcript || '').trim();
   const tokens = wordTokens(text);
   const metrics = measure(analysis, tokens.length);
@@ -149,10 +174,13 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
 
   // ---------- A. reconhecimento: possíveis divergências do reconhecedor ----------
   const answerLemmas = new Set(contentLemmas(text));
-  const expected = [...new Set([...contentLemmas(question), ...contentLemmas(model)])].filter((l) => l.length >= 4);
+  const alts = (alternatives || []).filter(Boolean);
+  const expected = [...new Set([...contentLemmas(question), ...contentLemmas(model), ...alts.flatMap(contentLemmas)])].filter((l) => l.length >= 4);
   const missingExpected = expected.filter((l) => !answerLemmas.has(l));
-  const exampleWord = new Map(); // lema → forma escrita no exemplo/pergunta (para o áudio de referência)
-  for (const w of [...wordTokens(model), ...wordTokens(question)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
+  const exampleWord = new Map(); // lema → forma escrita no exemplo/pergunta/alternativa (para o áudio de referência)
+  for (const w of [...wordTokens(model), ...wordTokens(question), ...alts.flatMap(wordTokens)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
+  // candidatas a hipótese contextual: palavras de conteúdo esperadas, na forma escrita do exemplo
+  const candidates = missingExpected.map((l) => exampleWord.get(l) || l);
   const words = [];
   const practice = [];
   const seen = new Set();
@@ -160,12 +188,28 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   // conhecidas (context.js) e combinações estranhas sem referência
   const flags = new Map();
   const mark = (ws, f) => { if (ws.some((k) => flags.has(k))) return; ws.forEach((k) => flags.set(k, f)); };
-  const refs = frames ? [...(model ? [prepRef(model)] : []), ...frames].filter(Boolean) : [];
+  const refs = frames ? [...[model, ...alts].filter(Boolean).map(prepRef), ...frames].filter(Boolean) : [];
   // o alinhamento com uma frase inteira (context.js) explica melhor o trecho (“this nation” ← “my destination”): vem primeiro
   for (const d of divergences || []) mark(d.src, { kind: 'context', ...d });
-  for (const sp of refs.length ? findSlotSuspicions(text, refs) : []) mark(sp.src, { kind: 'frame', ...sp });
+  // uma moldura de OUTRO conteúdo não derruba uma palavra que a própria pergunta/exemplo/alternativa usa
+  // (“I'm driving for Uber” × “I'm training for a race”, pergunta sobre dirigir para a Uber): o contexto apoia o que foi ouvido
+  const supported = (heard) => { const ls = contentLemmas(heard); return ls.length > 0 && ls.every((l) => expected.some((e) => sameLemma(l, e))); };
+  for (const sp of refs.length ? findSlotSuspicions(text, refs) : []) if (!supported(sp.heard)) mark(sp.src, { kind: 'frame', ...sp });
   for (const o of findOddCombinations(text)) mark(o.src, { kind: 'odd', ...o });
-  const segs = segment(text).filter((x) => x.w !== undefined);
+  const allSegs = segment(text);
+  const segs = allSegs.filter((x) => x.w !== undefined);
+  // pedaços unidos por hífen que, juntos, não são palavra (“off-scene”): o reconhecedor pode ter partido uma palavra
+  // esperada. Se o conjunto soa como uma palavra da pergunta/exemplo, os dois pedaços recebem a mesma hipótese.
+  const joined = new Map(); // w → { ws, heard, ref }
+  for (let k = 1; k + 1 < allSegs.length; k++) {
+    const a = allSegs[k - 1], g = allSegs[k], b = allSegs[k + 1];
+    if (a.w === undefined || b.w === undefined || g.text !== '-' || flags.has(a.w) || flags.has(b.w)) continue;
+    const whole = a.norm + b.norm;
+    if (/\d/.test(whole) || isKnownWord(whole, vocab.known) !== false) continue;
+    const ref = contextualHypothesis(whole, candidates);
+    if (ref) { const j = { ws: [a.w, b.w], heard: `${a.text}-${b.text}`, ref }; joined.set(a.w, j); joined.set(b.w, j); }
+  }
+  const hypotheses = []; // { heard, ref } — possíveis erros do reconhecedor com hipótese contextual
   const deferred = [];
   for (const seg of segs) {
     const t = seg.norm;
@@ -175,9 +219,19 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
       const key = 'flag:' + f.src.join(',');
       if (!seen.has(key)) {
         seen.add(key);
-        practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, strength: f.strength || 'possible', reason: r.reason });
+        practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, category: f.expected ? 'recognition' : 'inconclusive', strength: f.strength || 'possible', reason: r.reason });
       }
       words.push(r);
+      continue;
+    }
+    const jn = joined.get(seg.w);
+    if (jn) {
+      const reason = recognitionReason(jn.heard, jn.ref);
+      if (!seen.has('join:' + jn.ws.join(','))) {
+        seen.add('join:' + jn.ws.join(',')); hypotheses.push({ heard: jn.heard, ref: jn.ref });
+        practice.push({ w: jn.ws[0], ws: jn.ws, text: jn.heard, heard: jn.heard, ref: jn.ref, flag: 'nonword', category: 'recognition', reason });
+      }
+      words.push({ w: seg.w, text: seg.text, state: 'needs_practice', flag: 'nonword', ref: jn.ref, reason });
       continue;
     }
     if (!t || /\d/.test(t) || NUMBER_WORDS.includes(t)) { words.push({ w: seg.w, text: seg.text, state: 'good', reason: 'Número ou horário reconhecido.' }); continue; }
@@ -197,7 +251,11 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
       const known = isKnownWord(t, vocab.known) ?? null;
       const compound = known === false && splitsInTwo(t, vocab.known);
       if (known === false && !compound) {
-        Object.assign(r, { state: 'needs_practice', flag: 'nonword', reason: `“${seg.text}” não parece uma palavra do inglês: provável erro do reconhecimento. Ouça sua gravação; se a palavra estiver clara, está tudo certo.` });
+        const ref = contextualHypothesis(t, candidates);
+        if (ref) hypotheses.push({ heard: seg.text.replace(/[.,!?;:]+$/, ''), ref });
+        Object.assign(r, { state: 'needs_practice', flag: 'nonword', ref, category: ref ? 'recognition' : 'inconclusive',
+          reason: ref ? recognitionReason(seg.text.replace(/[.,!?;:]+$/, ''), ref)
+            : `“${seg.text}” não parece uma palavra do inglês: provável erro do reconhecimento, mas o contexto não indica uma palavra provável. Ouça sua gravação; se a palavra estiver clara, está tudo certo.` });
       } else if (!inActivity) {
         // palavra fora do tema parecida com uma palavra esperada que não apareceu: possível troca do reconhecedor
         // critério estrito (melhor deixar de marcar do que marcar uma palavra válida): mesma inicial,
@@ -207,13 +265,14 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
           && levenshtein(skeleton(x), skeleton(l)) <= 1 && levenshtein(x, l) <= 2 && commonPrefix(x, l) < 5);
         if (e) {
           const ref = exampleWord.get(e) || e;
-          Object.assign(r, { state: 'needs_practice', flag: 'confusion', ref, reason: `O app ouviu “${seg.text}”. Se você quis dizer “${ref}”, vale praticar essa palavra; se disse “${seg.text}”, está tudo certo.` });
+          Object.assign(r, { state: 'needs_practice', flag: 'confusion', ref, category: 'recognition', reason: `O app ouviu “${seg.text}”. Se você quis dizer “${ref}”, vale praticar essa palavra; se disse “${seg.text}”, está tudo certo.` });
         }
       }
     }
     if (r.state === 'needs_practice') {
-      const key = (r.ref || t).toLowerCase();
-      if (!seen.has(key)) { seen.add(key); practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ''), heard: seg.text.replace(/[.,!?;:]+$/, ''), ref: r.ref || null, flag: r.flag, reason: r.reason }); }
+      // palavra inexistente: uma marca por trecho ouvido (duas grafias com a mesma sugestão continuam com a sua marca)
+      const key = (r.flag === 'nonword' ? 'nw:' + t : r.ref || t).toLowerCase();
+      if (!seen.has(key)) { seen.add(key); practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ''), heard: seg.text.replace(/[.,!?;:]+$/, ''), ref: r.ref || null, flag: r.flag, category: r.category, reason: r.reason }); }
     }
     words.push(r);
   }
@@ -232,7 +291,7 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   const low = ` ${tokens.join(' ')} `;
   const strongHits = [...answerLemmas].filter((l) => expected.includes(l) || contentLemmas(question).includes(l));
   const domainHits = [...answerLemmas].filter((l) => vocab.domain.has(l) && !WEAK_TOPIC.has(l));
-  const activities = new Set(tokens.map(lemma).filter((l) => ACTIVITY.has(l)));
+  const activities = new Set(tokens.map(lemma).map((l) => (ACTIVITY.has(l + 'e') ? l + 'e' : l)).filter((l) => ACTIVITY.has(l)));
   const satisfied = {
     time: RX.time.test(low), frequency: RX.frequency.test(low), reason: RX.reason.test(low), duration: RX.duration.test(low),
     place: RX.place.test(low) && domainHits.length > 0, meaning: RX.meaning.test(low), like: RX.like.test(low) || RX.yesno.test(low),
@@ -265,12 +324,17 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
   if (lostSpeech) for (const c of checklist) if (c.required && c.id !== 'topic' && !c.ok) { c.ok = null; c.unconfirmed = true; }
   const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok !== false);
   const unconfirmed = checklist.some((c) => c.unconfirmed);
-  const status = relevance === 'none' ? 'off-topic' : requiredOk && tokens.length >= minToAnswer ? (unconfirmed ? 'unclear' : 'answers') : 'partial';
+  // sem relação aparente, mas com trecho que soa como palavra da pergunta/exemplo (“offsy” ~ “office”): pode ser
+  // o reconhecimento, não uma resposta fora do tema → “não deu para confirmar”, nunca “fora do tema”
+  const misheard = relevance === 'none' && hypotheses.length > 0;
+  const status = misheard ? 'unclear' : relevance === 'none' ? 'off-topic' : requiredOk && tokens.length >= minToAnswer ? (unconfirmed ? 'unclear' : 'answers') : 'partial';
   const holeText = holes.length ? ` (por exemplo, depois de “${holes[0].after}”)` : '';
   const message = {
     answers: 'Sua resposta responde à pergunta.',
     partial: 'Sua resposta tem relação com a pergunta, mas pode ficar mais completa.',
-    unclear: `Sua resposta tem relação com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. Não dá para afirmar que faltou algo: ouça sua gravação.`,
+    unclear: misheard
+      ? `O app pode ter reconhecido errado parte da sua fala (${hypotheses.slice(0, 2).map((x) => `“${x.heard}” — talvez “${x.ref}”`).join('; ')}). Por isso não dá para confirmar se a resposta trata da pergunta: confira o trecho marcado ouvindo sua gravação.`
+      : `Sua resposta tem relação com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. Não dá para afirmar que faltou algo: ouça sua gravação.`,
     'off-topic': 'Não encontrei relação clara com a pergunta. Pode ser erro do reconhecimento: ouça sua gravação. Se você falou de outro assunto, tente responder diretamente.',
   }[status];
 
@@ -288,12 +352,20 @@ export function analyseFreeAnswer({ question = '', model = '', unit = 'q', trans
     else if (INTENT_TIP[c.id]) tips.push(INTENT_TIP[c.id]);
   }
   if (practice.length) tips.push(practice.length === 1 ? 'Confira o trecho marcado: ouça sua gravação e a referência.' : `Confira os ${practice.length} trechos marcados: ouça sua gravação e as referências.`);
-  const grammarTips = (grammar || []).map((g) => g.msg).filter(Boolean).slice(0, 2);
+  // concordância (I gets / she go): erro de inglês, não do reconhecimento — vai para a gramática, sem marcar palavra.
+  // As regras do corretor vêm primeiro; a concordância só entra se nenhuma regra já cobriu o mesmo trecho (E_THIRD_S).
+  const agreement = agreementIssues(text).filter((a) => !(grammar || []).some((g) => /^E_(THIRD_S|DOESNT_S|DONT_THIRD|AGREEMENT)/.test(g.id || '')));
+  const grammarTips = [...(grammar || []).map((g) => g.msg), ...agreement.map((a) => a.msg)].filter(Boolean).slice(0, 2);
   // B. correção linguística (pela transcrição): gramática e naturalidade, separadas da adequação e do reconhecimento
   const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
 
-  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, language, words, practice, coherence, holes,
+  return { ...base, status, message, intent, relevance, checklist, tips: tips.slice(0, 4), grammarTips, language, words, practice, coherence, holes, hypotheses,
     evidence: { strong: strongHits, domain: domainHits.length, activities: activities.size, words: tokens.length, minWords } };
+}
+
+/** Hipótese do reconhecimento: o que foi ouvido + palavra provável pelo contexto, rotulada como sugestão. */
+function recognitionReason(heard, ref) {
+  return `A palavra destacada pode ter sido reconhecida incorretamente: o app ouviu “${heard}”, que não é uma palavra do inglês. Pelo contexto da pergunta, talvez você tenha dito “${ref}” (sugestão, não a transcrição). Confira se essa sugestão corresponde ao que você disse; se não, ignore esta marca.`;
 }
 
 /** Explicação de uma marca: o que foi ouvido, por que destoa, sugestão (rotulada) e as duas hipóteses. */
