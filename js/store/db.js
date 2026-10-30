@@ -6,6 +6,7 @@
 // numa única transação: se algo falhar, a gravação anterior fica intacta.
 // Se o IndexedDB falhar (ex.: file:// restrito), usa localStorage para o estado e desativa as gravações.
 import { freshState, migrate } from '../engine/progress.js';
+import { toStored } from '../engine/profiles.js';
 import { retentionStatus, RETENTION_MS } from '../engine/retention.js';
 
 const DB_NAME = 'drg';
@@ -62,8 +63,11 @@ function tx(store, mode, fn) {
 }
 const reqP = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
 
-/** Carrega o estado (migrando se preciso). Nunca lança: em último caso começa do zero e informa. */
-export async function loadState(contentVersion) {
+/**
+ * Carrega o estado (migrando se preciso). Nunca lança: em último caso começa do zero e informa.
+ * opts.ownerOf: dono de cada cartão na migração do progresso único (esquema 1) para perfis.
+ */
+export async function loadState(contentVersion, opts = {}) {
   let raw = null;
   let problem = null;
   try {
@@ -75,7 +79,7 @@ export async function loadState(contentVersion) {
   }
   if (!raw) return { state: freshState(contentVersion), isNew: true, problem };
   try {
-    const state = migrate(raw, contentVersion);
+    const state = migrate(raw, contentVersion, opts);
     if (raw.contentVersion !== contentVersion || raw.schema !== state.schema) await saveCopy('state.prev', raw);
     if (state._repairs) {
       await saveCopy('state.corrupt', raw);
@@ -97,7 +101,7 @@ let saving = Promise.resolve();
 /** Salva já (retorna promessa). */
 export function saveState(state) {
   state.updatedAt = Date.now();
-  const snapshot = JSON.parse(JSON.stringify(state));
+  const snapshot = JSON.parse(JSON.stringify(toStored(state))); // perfis; o topo do perfil ativo não é duplicado
   saving = saving.then(async () => {
     if (backend === 'indexeddb') {
       try { await tx('kv', 'readwrite', (s) => s.put(snapshot, 'state')); return; } catch (e) { backend = 'localstorage'; }
@@ -229,18 +233,18 @@ export async function kvUsage() {
 
 // ---------- backup ----------
 export function exportBackup(state) {
-  const data = { app: 'daily-routine-english-game', schema: state.schema, exportedAt: new Date().toISOString(), state };
+  const data = { app: 'daily-routine-english-game', schema: state.schema, exportedAt: new Date().toISOString(), state: toStored(state) };
   return new Blob([JSON.stringify(data)], { type: 'application/json' });
 }
 /** Valida o arquivo de backup; retorna o estado migrado (não salva). */
-export async function parseBackup(file, contentVersion) {
+export async function parseBackup(file, contentVersion, opts = {}) {
   const text = await file.text();
   let data;
   try { data = JSON.parse(text); } catch (e) { throw new Error('O arquivo não é um JSON válido.'); }
   if (data.app !== 'daily-routine-english-game' || !data.state) throw new Error('Este arquivo não é um backup deste app.');
-  return migrate(data.state, contentVersion);
+  return migrate(data.state, contentVersion, opts);
 }
-export async function keepPrevious(state) { await saveCopy('state.beforeImport', JSON.parse(JSON.stringify(state))); }
+export async function keepPrevious(state) { await saveCopy('state.beforeImport', JSON.parse(JSON.stringify(toStored(state)))); }
 
 export async function requestPersistence() {
   try {

@@ -3,7 +3,8 @@
 // Habilidades: rec (reconhecer), rcl (recuperar), bld (completar na frase), ord (ordenar palavras),
 //              wrt (escrever a frase), seq (ordenar frases do bloco), tell (contar o bloco),
 //              retell (contar a rotina), conv (responder pergunta), vb3 (3ª pessoa),
-//              lis (ouvir um trecho sem ver o texto e responder — unidade lq), rdq (ler e responder — unidade rq).
+//              lis (ouvir um trecho sem ver o texto e responder — unidade lq; na etapa “Ouvir e entender” de módulos
+//              sem trechos de diálogo, ouvir uma frase do módulo e reconhecê-la — unidade sent), rdq (ler e responder — unidade rq).
 // lq/rq só existem em conteúdos que trazem listening/reading (jornadas); os demais não mudam.
 
 export const INTERVALS = [0, 1, 3, 7, 16, 35, 90]; // dias por caixa
@@ -101,6 +102,15 @@ export function unlockedNew(content, cards, focus) {
     const listened = !(r.listening || []).length || r.listening.some((l) => cards[cardKey('lq', l, 'lis')] && cards[cardKey('lq', l, 'lis')].reps > 0);
     if (!cards[k] && listened) out.push({ k, unit: 'rq', id: x.id, skill: 'rdq' });
   }
+  // etapa “Ouvir e entender” de um módulo sem trechos de diálogo: reconhecer pelo som as frases do módulo
+  // (só nessa etapa; a sessão do dia não muda)
+  if (focus.stage === 'listen') {
+    for (const r of content.routines.filter((x) => inFocus.routines.has(x.id) && !(x.listening || []).length)) {
+      const sids = r.blocks.flatMap((b) => content.blocks[b].sentences);
+      if (sids.length < 2) continue; // sem outra frase do módulo para comparar
+      for (const sid of sids) { const k = cardKey('sent', sid, 'lis'); if (!cards[k]) out.push({ k, unit: 'sent', id: sid, skill: 'lis' }); }
+    }
+  }
   if (inFocus.verbs) {
     for (const v of content.verbs) {
       const k = cardKey('verb', v.id, 'vb3');
@@ -133,7 +143,7 @@ export function focusFilter(content, focus = {}) {
     if (all || inCat || inCtx || inRoutine) items.add(it.id);
   }
   for (const q of Object.values(content.questions)) {
-    if (q.openPersonal && !all && !focus.category && !content.journey) continue; // nas jornadas, a transferência faz parte da unidade
+    if (q.openPersonal && !all && !focus.category && !content.journey && focus.stage !== 'apply') continue; // nas jornadas e na etapa “Aplicar”, a transferência faz parte do módulo
     if (all || (focus.routine && q.routine === focus.routine) || focus.category === 'qa' ||
         (focus.context && q.routine && content.routines.find((r) => r.id === q.routine).blocks.some((b) => content.blocks[b].ctx.includes(focus.context)))) {
       questions.add(q.id);
@@ -178,7 +188,8 @@ export function cardInContent(content, k) {
     : unit === 'lq' ? !!(content.listening && content.listening[id]) : unit === 'rq' ? !!(content.reading && content.reading[id]) : content.verbs.some((v) => v.id === id);
 }
 
-export function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
+export function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random, filter = null } = {}) {
+  if (focus.stage && filter) return stageSession(content, cards, { focus, size, maxNewItems: Math.max(maxNewItems, 6), today, rand, filter }); // na etapa, aprender os itens dela é o objetivo
   const inFocus = focusFilter(content, focus);
   const unitInFocus = (k) => {
     const [unit, id] = k.split(':');
@@ -222,6 +233,29 @@ export function buildSession(content, cards, { focus = {}, size = 12, maxNewItem
   take(higher, size - queue.length);
   take(newItems, Math.min(size - queue.length, Math.max(0, maxNewItems + 2 - queue.filter((q) => q.learn).length)));
   return interleave(queue, rand);
+}
+
+/**
+ * Sessão de uma etapa de módulo (engine/modules.js#stageFilter): só o conteúdo e as habilidades da etapa.
+ * Revisões vencidas da etapa primeiro (até metade), depois o que a etapa ainda não praticou — todas as perguntas
+ * da etapa podem vir na mesma sessão (na sessão do dia, uma por vez). Mesmos cartões, XP e intervalos de sempre.
+ */
+function stageSession(content, cards, { focus, size, maxNewItems, today, rand, filter }) {
+  const exists = (k) => cardInContent(content, k);
+  const due = Object.values(cards).filter((c) => c.due <= today && exists(c.k))
+    .map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true, due: c.due, box: c.box }; })
+    .filter(filter).sort((a, b) => (a.due - b.due) || (a.box - b.box) || (rand() - 0.5));
+  const fresh = unlockedNew(content, cards, focus).filter(filter);
+  const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
+  const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ['lis', 'rdq', 'conv', 'ord', 'wrt', 'seq', 'tell', 'retell', 'rcl', 'bld']);
+  const queue = [];
+  const take = (list, n) => queue.push(...list.splice(0, Math.max(0, n)));
+  take(due, Math.round(size / 2));
+  take(higher, size - queue.length - Math.min(newItems.length, maxNewItems + 2));
+  take(newItems, Math.min(maxNewItems + 2, size - queue.length));
+  take(due, size - queue.length);
+  take(higher, size - queue.length);
+  return interleave(queue.map(({ due: _d, box: _b, ...e }) => e), rand);
 }
 
 /** Intercala grupos (um de cada por rodada), na ordem de prioridade dada. */

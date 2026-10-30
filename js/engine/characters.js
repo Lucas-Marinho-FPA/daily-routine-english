@@ -27,6 +27,9 @@ export function assetFor(character, state) {
   return `${v.dir}/${s.file}.${v.ext || 'png'}`;
 }
 
+/** Persona prevista, ainda sem conteúdo próprio (a Daily Routine dela aparece “em preparação”). */
+export const isPlanned = (character) => !!character && character.status === 'planned';
+
 /** Situação dos seis estados: { ready: [...], pending: [...] } — a existência do cadastro não significa imagens prontas. */
 export function visualStatus(character) {
   const st = (character && character.visual && character.visual.states) || {};
@@ -42,10 +45,16 @@ const views = new WeakMap(); // base → Map(id → visão): a mesma visão semp
  */
 export function contentFor(base, id, reg) {
   const ch = characterById(id, reg);
-  if (!ch || ch.content === 'base' || !ch.content) return base;
+  if (!ch || ch.content === 'base') return base;
   if (!views.has(base)) views.set(base, new Map());
   const cache = views.get(base);
   if (cache.has(ch.id)) return cache.get(ch.id);
+  if (!ch.content) { // persona prevista, sem pacote ainda: visão vazia (nunca o conteúdo de outra persona)
+    const empty = { ...base, character: ch.id, planned: true, meta: { ...base.meta, intro: [] }, routines: [], blocks: {}, sentences: {}, questions: {}, items: {},
+      verbs: [], drills: [], checklist: [], review: { ...base.review, rev: [], gap: [] } };
+    cache.set(ch.id, empty);
+    return empty;
+  }
   const pack = ch.content;
   const items = { ...pack.items };
   for (const [iid, ref] of Object.entries(pack.sharedItems || {})) {

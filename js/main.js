@@ -12,10 +12,11 @@ import { renderLab } from './ui/lab.js';
 import { renderReview } from './ui/review.js';
 import { renderStats } from './ui/stats.js';
 import { renderSettings, renderChecklist } from './ui/settings.js';
-import { contentFor, characterById } from './engine/characters.js';
+import { contentFor, characterById, registry, isPlanned } from './engine/characters.js';
+import { activate, profileIdFor, journeyProfile, makeOwnerOf } from './engine/profiles.js';
 import { renderCharacterPick } from './ui/character.js';
-import { journeyById, journeyView } from './engine/journeys.js';
-import { renderJourneyHome } from './ui/journey.js';
+import { journeyById, journeyView, journeyRegistry } from './engine/journeys.js';
+import { renderModules, renderModule, renderWords, plannedNotice } from './ui/modules.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -33,11 +34,12 @@ const App = {
   flush() { return db.flush(App.state); },
   go(hash) { if (location.hash === hash) route(); else location.hash = hash; },
   rebuildChecker() { App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants }); },
-  /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
+  /** Troca a persona ativa: visão de conteúdo e perfil de progresso dela; o progresso das outras fica intacto. */
   setCharacter(id) {
     App.character = characterById(id);
     App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
     if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id; // quem chama grava
+    if (App.state) activate(App.state, profileIdFor(App.character.id, App.journey && App.journey.id), App.today());
   },
   /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
   chooseCharacter(id) {
@@ -51,8 +53,23 @@ const App = {
     App.journey = id ? journeyById(id) : null;
     if (App.state) App.state.settings.journey = App.journey ? App.journey.id : null;
     App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
+    if (App.state) activate(App.state, profileIdFor(App.character.id, App.journey && App.journey.id), App.today());
     App.rebuildChecker();
     return App.flush().catch(() => {});
+  },
+  /** Passa a usar um estado inteiro (carregado, importado ou recém-criado): persona, jornada e perfil salvos nele. */
+  adoptState(state) {
+    App.state = state;
+    App.journey = journeyById(state.settings.journey);
+    App.setCharacter(state.settings.character);
+    App.rebuildChecker();
+    App.applySettings();
+  },
+  /** Visões de conteúdo de cada perfil (Lucas primeiro: dono dos itens genéricos compartilhados). */
+  profileViews() {
+    const chars = registry().characters.map((c) => ({ profile: c.id, content: c.content === 'base' ? App.baseContent : c.content ? contentFor(App.baseContent, c.id) : null }));
+    const js = journeyRegistry().map((j) => ({ profile: journeyProfile(j.id), content: journeyView(App.baseContent, j.id) }));
+    return [...chars.sort((a, b) => (a.profile === 'lucas' ? -1 : b.profile === 'lucas' ? 1 : 0)), ...js];
   },
   applySettings() {
     const s = App.state.settings;
@@ -68,7 +85,7 @@ globalThis.DRG_APP = App; // usado pelos testes automatizados
 
 const TABS = [
   { hash: '#/', label: 'Início', icon: 'home', match: (r) => r === '' },
-  { hash: '#/explore', label: 'Estudar', icon: 'book', match: (r) => ['explore', 'routine', 'context', 'category', 'checklist'].includes(r) },
+  { hash: '#/modules', label: 'Estudar', icon: 'book', match: (r) => ['modules', 'module', 'words', 'explore', 'routine', 'context', 'category', 'checklist'].includes(r) },
   { hash: '#/lab', label: 'Falar', icon: 'mic', match: (r) => r === 'lab' },
   { hash: '#/stats', label: 'Progresso', icon: 'chart', match: (r) => ['stats', 'review'].includes(r) },
 ];
@@ -110,10 +127,16 @@ function route() {
     const screens = {
       '': renderHome, explore: renderExplore, routine: renderRoutine, context: renderContext, category: renderCategory,
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
+      modules: renderModules, module: renderModule, words: renderWords,
     };
+    // persona prevista (sem conteúdo ainda): telas de estudo da Daily Routine mostram “em preparação”
+    const needsContent = ['explore', 'routine', 'context', 'category', 'session', 'lab', 'review', 'checklist', 'module', 'words'];
+    if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {
+      layout(`Daily Routine · ${App.character.name}`, { back: '#/' }).append(plannedNotice(App));
+      return;
+    }
     // primeira abertura (estado novo, sem escolha salva): Início mostra antes a escolha do personagem
-    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick
-      : r.name === '' && App.journey ? renderJourneyHome : (screens[r.name] || renderHome);
+    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick : (screens[r.name] || renderHome);
     cleanup = fn(App, r) || null;
   } catch (e) {
     console.error(e);
@@ -127,14 +150,11 @@ async function boot() {
     root.append(h('div', { class: 'view' }, h('div', { class: 'notice bad' }, 'Conteúdo não encontrado (data/content.js). Reinstale o app.')));
     return;
   }
-  const { state, isNew, problem } = await db.loadState(App.content.version);
-  App.state = state;
+  // progresso único de versões anteriores (esquema 1) é dividido por dono do conteúdo, sem perdas (engine/profiles.js)
+  const { state, isNew, problem } = await db.loadState(App.content.version, { ownerOf: makeOwnerOf(App.profileViews()) });
   App.isNew = isNew;
   App.storageProblem = problem;
-  App.journey = journeyById(state.settings.journey); // jornada aberta da última vez (ausente/inválida → rotinas)
-  App.setCharacter(state.settings.character); // estados antigos não têm a preferência: Lucas (padrão)
-  App.rebuildChecker();
-  App.applySettings();
+  App.adoptState(state); // persona e jornada abertas da última vez (ausentes/inválidas → Lucas, rotinas)
   if (isNew) await db.saveState(state).catch(() => {});
   window.addEventListener('hashchange', route);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') App.flush().catch(() => {}); });

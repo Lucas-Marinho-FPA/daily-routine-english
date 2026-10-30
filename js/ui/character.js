@@ -26,6 +26,7 @@ export function characterBadge(ch, state = 'idle', { size = 44 } = {}) {
 /** Linha curta sob o nome na escolha (só texto do cadastro; nada inventado). */
 function choiceSub(c) {
   const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : (c.profile && c.profile.summary) || '';
+  if (c.status === 'planned') return 'Jornada em preparação · progresso próprio desde já';
   return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === 'preview' ? ' · em preparação' : ''}`;
 }
 

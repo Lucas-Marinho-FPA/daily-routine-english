@@ -65,6 +65,7 @@ export function openItem(App, item) {
 }
 
 export function focusTitle(App, focus) {
+  if (focus.routine && focus.stage) { const st = { vocab: 'Palavras-chave', expr: 'Expressões práticas', listen: 'Ouvir e entender', apply: 'Aplicar e conversar' }[focus.stage]; return `${focus.routine} · ${st || focus.stage}`; }
   if (focus.routine && !focus.mode) { const r = App.content.routines.find((x) => x.id === focus.routine); return r ? `${r.id} · ${r.pt}` : focus.routine; }
   if (focus.context) { const c = App.content.contexts.find((x) => x.id === focus.context); return c ? c.pt : focus.context; }
   if (focus.category) { const c = App.content.categories.find((x) => x.id === focus.category); return c ? c.pt : focus.category; }

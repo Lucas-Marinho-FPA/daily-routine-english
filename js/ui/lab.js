@@ -24,8 +24,18 @@ export function renderLab(App, { params }) {
   if (params.routine) labRoutine = params.routine;
   const { content, state } = App;
   if (!content.routines.some((r) => r.id === labRoutine)) labRoutine = content.routines[0].id; // personagem trocado
-  const view = App.layout('Speaking Lab');
-  view.append(h('p', { class: 'small muted', text: 'Escolha uma frase, ouça, grave e pratique as palavras que o app sinalizar.' }));
+  // vindo de um módulo (etapa “Falar na prática”): só as frases e perguntas daquele módulo, com volta ao módulo
+  const fromModule = !!params.module && content.routines.some((r) => r.id === params.routine);
+  const view = App.layout('Speaking Lab', fromModule ? { back: `#/module/${labRoutine}` } : {});
+  if (fromModule) {
+    const r = content.routines.find((x) => x.id === labRoutine);
+    const recs = [...r.blocks.flatMap((b) => content.blocks[b].sentences).map((s) => `sent:${s}`), ...r.blocks.map((b) => `block:${b}`), `routine:${r.id}`, ...r.questions.map((q) => `q:${q}`)].filter((t) => state.recordingsMeta[t]).length;
+    view.append(h('section', { class: 'card module-head', 'data-role': 'lab-module' },
+      h('div', { class: 'small muted', text: `Falar na prática · ${r.id}` }), h('b', { text: r.title && r.title !== r.pt ? r.title : r.pt }),
+      h('p', { class: 'small', style: { margin: '6px 0 0' }, text: `Pronúncia: leia em voz alta as frases do módulo. Conversa: responda às perguntas com suas palavras. ${recs} gravação(ões) neste módulo (3 concluem a etapa).` })));
+    if (labTab === 'drills') labTab = 'sentences';
+  }
+  view.append(h('p', { class: 'small muted', text: 'Pronunciation Lab (Frases, Blocos): ouça, grave e compare. Conversation Lab (Perguntas, Drills): responda livremente e receba retorno sobre adequação, gramática, naturalidade e confiabilidade da transcrição.' }));
   // primeira entrada: convite para instalar o reconhecimento local (não baixa nada sem o toque do aluno)
   const setupSlot = h('div', {});
   view.append(setupSlot);
@@ -38,13 +48,13 @@ export function renderLab(App, { params }) {
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Tipo de prática' });
   const filter = h('div', { class: 'chips scroll', style: { margin: '12px 0' } });
   const body = h('div', {});
-  const tabs = [['sentences', 'Frases'], ['blocks', 'Blocos'], ['questions', 'Perguntas'], ['drills', 'Drills']];
+  const tabs = [['sentences', 'Frases'], ['blocks', 'Blocos'], ['questions', 'Perguntas'], ...(fromModule || !content.drills.length ? [] : [['drills', 'Drills']])];
   const rec = (id) => state.recordingsMeta[id] ? h('span', { class: 'chip ok', text: 'gravado' }) : null;
 
   const draw = () => {
     clear(seg).append(...tabs.map(([id, label]) => h('button', { 'aria-pressed': String(labTab === id), onclick: () => { labTab = id; draw(); } }, label)));
     clear(filter);
-    if (labTab === 'sentences' || labTab === 'blocks') {
+    if ((labTab === 'sentences' || labTab === 'blocks') && !fromModule) {
       filter.append(...content.routines.map((r) => h('button', { class: 'chip', 'aria-pressed': String(labRoutine === r.id), onclick: () => { labRoutine = r.id; draw(); } }, r.id)));
     }
     clear(body);
@@ -63,7 +73,11 @@ export function renderLab(App, { params }) {
           h('p', { class: 'en small', style: { marginTop: '8px' }, text: b.en.slice(0, 140) + (b.en.length > 140 ? '…' : '') }));
       }), h('a', { class: 'btn block', href: `#/lab?routine=${r.id}&full=1` }, icon('mic'), `Gravar a ${r.id} completa`));
     }
-    if (labTab === 'questions') {
+    if (labTab === 'questions' && fromModule) {
+      const qs = r.questions.map((id) => content.questions[id]).filter(Boolean);
+      body.append(qs.length ? h('ul', { class: 'list card' }, qs.map((q) => h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q })), rec(`q:${q.id}`), icon('mic')))))
+        : h('p', { class: 'small muted', text: 'Este módulo não tem perguntas; pratique as frases e os blocos.' }));
+    } else if (labTab === 'questions') {
       const r1 = content.routines[0].id;
       const groups = [['Rotina 1 (prioritária)', (q) => q.routine === r1], ['Gerais (Word)', (q) => q.source === 'word' && !q.routine], ['Outras rotinas', (q) => q.routine && q.routine !== r1], ['Inesperadas (novas)', (q) => q.source === 'new']];
       for (const [title, pred] of groups) {

@@ -66,7 +66,10 @@
     target: "M12 12m-9 0a9 9 0 1018 0 9 9 0 10-18 0M12 12m-5 0a5 5 0 1010 0 5 5 0 10-10 0M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0",
     timer: "M12 8v5l3 2M9 2h6M12 22a8 8 0 100-16 8 8 0 000 16z",
     trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
-    slow: "M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z"
+    slow: "M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z",
+    lock: "M6 11h12v10H6zM8 11V7a4 4 0 018 0v4",
+    star: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z",
+    chat: "M4 5h16v11H9l-5 4z"
   };
   function icon(name, extra = "") {
     const ns = "http://www.w3.org/2000/svg";
@@ -778,6 +781,16 @@
       const listened = !(r.listening || []).length || r.listening.some((l) => cards[cardKey("lq", l, "lis")] && cards[cardKey("lq", l, "lis")].reps > 0);
       if (!cards[k] && listened) out.push({ k, unit: "rq", id: x.id, skill: "rdq" });
     }
+    if (focus.stage === "listen") {
+      for (const r of content.routines.filter((x) => inFocus.routines.has(x.id) && !(x.listening || []).length)) {
+        const sids = r.blocks.flatMap((b) => content.blocks[b].sentences);
+        if (sids.length < 2) continue;
+        for (const sid of sids) {
+          const k = cardKey("sent", sid, "lis");
+          if (!cards[k]) out.push({ k, unit: "sent", id: sid, skill: "lis" });
+        }
+      }
+    }
     if (inFocus.verbs) {
       for (const v of content.verbs) {
         const k = cardKey("verb", v.id, "vb3");
@@ -806,7 +819,7 @@
       if (all || inCat || inCtx || inRoutine) items.add(it.id);
     }
     for (const q of Object.values(content.questions)) {
-      if (q.openPersonal && !all && !focus.category && !content.journey) continue;
+      if (q.openPersonal && !all && !focus.category && !content.journey && focus.stage !== "apply") continue;
       if (all || focus.routine && q.routine === focus.routine || focus.category === "qa" || focus.context && q.routine && content.routines.find((r) => r.id === q.routine).blocks.some((b) => content.blocks[b].ctx.includes(focus.context))) {
         questions.add(q.id);
       }
@@ -839,7 +852,8 @@
     const [unit, id] = k.split(":");
     return unit === "item" ? !!content.items[id] : unit === "sent" ? !!content.sentences[id] : unit === "block" ? !!content.blocks[id] : unit === "routine" ? content.routines.some((r) => r.id === id) : unit === "q" ? !!content.questions[id] : unit === "lq" ? !!(content.listening && content.listening[id]) : unit === "rq" ? !!(content.reading && content.reading[id]) : content.verbs.some((v) => v.id === id);
   }
-  function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random } = {}) {
+  function buildSession(content, cards, { focus = {}, size = 12, maxNewItems = 4, today = dayNumber(), rand = Math.random, filter = null } = {}) {
+    if (focus.stage && filter) return stageSession(content, cards, { focus, size, maxNewItems: Math.max(maxNewItems, 6), today, rand, filter });
     const inFocus = focusFilter(content, focus);
     const unitInFocus = (k) => {
       const [unit, id] = k.split(":");
@@ -886,6 +900,24 @@
     take(newItems, Math.min(size - queue.length, Math.max(0, maxNewItems + 2 - queue.filter((q) => q.learn).length)));
     return interleave(queue, rand);
   }
+  function stageSession(content, cards, { focus, size, maxNewItems, today, rand, filter }) {
+    const exists = (k) => cardInContent(content, k);
+    const due = Object.values(cards).filter((c) => c.due <= today && exists(c.k)).map((c) => {
+      const [unit, id, skill] = c.k.split(":");
+      return { k: c.k, unit, id, skill, review: true, due: c.due, box: c.box };
+    }).filter(filter).sort((a, b) => a.due - b.due || a.box - b.box || rand() - 0.5);
+    const fresh = unlockedNew(content, cards, focus).filter(filter);
+    const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
+    const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ["lis", "rdq", "conv", "ord", "wrt", "seq", "tell", "retell", "rcl", "bld"]);
+    const queue = [];
+    const take = (list, n) => queue.push(...list.splice(0, Math.max(0, n)));
+    take(due, Math.round(size / 2));
+    take(higher, size - queue.length - Math.min(newItems.length, maxNewItems + 2));
+    take(newItems, Math.min(maxNewItems + 2, size - queue.length));
+    take(due, size - queue.length);
+    take(higher, size - queue.length);
+    return interleave(queue.map(({ due: _d, box: _b, ...e }) => e), rand);
+  }
   function roundRobin(list, keyFn, priority = []) {
     const groups = /* @__PURE__ */ new Map();
     for (const x of list) {
@@ -917,8 +949,93 @@
     return { seen, mastered, total: keys.length, ratio: (seen * 0.3 + mastered * 0.7) / keys.length };
   }
 
+  // app/js/engine/profiles.js
+  var PROGRESS_KEYS = ["cards", "log", "days", "xp", "achievements", "myAnswers", "pending", "recordingsMeta", "checklist", "difficultWords", "favorites", "firstDay"];
+  var OBJ = ["cards", "days", "achievements", "myAnswers", "recordingsMeta", "checklist", "difficultWords", "favorites"];
+  var ARR = ["log", "pending"];
+  var journeyProfile = (journeyId) => `journey:${journeyId}`;
+  var profileIdFor = (characterId, journeyId) => journeyId ? journeyProfile(journeyId) : characterId || "lucas";
+  function emptyProgress(today) {
+    return { cards: {}, log: [], days: {}, xp: 0, achievements: {}, myAnswers: {}, pending: [], recordingsMeta: {}, checklist: {}, difficultWords: {}, favorites: {}, firstDay: today };
+  }
+  function cleanProgress(p, today, repairs = []) {
+    const out = { ...emptyProgress(today), ...p && typeof p === "object" ? p : {} };
+    for (const k of OBJ) if (!out[k] || typeof out[k] !== "object" || Array.isArray(out[k])) {
+      repairs.push(k);
+      out[k] = {};
+    }
+    for (const k of ARR) if (!Array.isArray(out[k])) {
+      repairs.push(k);
+      out[k] = [];
+    }
+    if (typeof out.xp !== "number" || !isFinite(out.xp) || out.xp < 0) {
+      repairs.push("xp");
+      out.xp = Object.values(out.days).reduce((n, d) => n + (d && d.xp || 0), 0);
+    }
+    if (typeof out.firstDay !== "number") out.firstDay = today;
+    for (const [k, c] of Object.entries(out.cards)) {
+      if (!c || typeof c.box !== "number" || typeof c.due !== "number") {
+        delete out.cards[k];
+        repairs.push("card");
+      } else c.k = k;
+    }
+    return out;
+  }
+  function syncActive(state) {
+    const id = state.activeProfile;
+    if (!id) return state;
+    const p = state.profiles[id] || (state.profiles[id] = {});
+    for (const k of PROGRESS_KEYS) if (k in state) p[k] = state[k];
+    return state;
+  }
+  function activate(state, id, today) {
+    syncActive(state);
+    if (!state.profiles[id]) state.profiles[id] = emptyProgress(today ?? state.firstDay ?? 0);
+    const p = state.profiles[id];
+    for (const k of PROGRESS_KEYS) state[k] = p[k];
+    state.activeProfile = id;
+    return state;
+  }
+  function progressOf(state, id) {
+    if (id === state.activeProfile) return Object.fromEntries(PROGRESS_KEYS.map((k) => [k, state[k]]));
+    return state.profiles[id] || null;
+  }
+  function toStored(state) {
+    syncActive(state);
+    const out = {};
+    for (const [k, v] of Object.entries(state)) if (!PROGRESS_KEYS.includes(k)) out[k] = v;
+    return out;
+  }
+  function splitLegacy(raw, { ownerOf = () => "lucas", today = 0 } = {}) {
+    const repairs = [];
+    const legacy = cleanProgress(Object.fromEntries(PROGRESS_KEYS.filter((k) => k in raw).map((k) => [k, raw[k]])), raw.firstDay ?? today, repairs);
+    const profiles = { lucas: { ...legacy, cards: {}, log: [], myAnswers: {}, recordingsMeta: {}, pending: [], favorites: {} } };
+    const get = (id) => profiles[id] || (profiles[id] = emptyProgress(legacy.firstDay));
+    const idOf = (key) => {
+      const parts = String(key).split(":");
+      return parts.length >= 2 ? parts[1] : parts[0];
+    };
+    for (const [k, c] of Object.entries(legacy.cards)) get(ownerOf(k, idOf(k)) || "lucas").cards[k] = c;
+    for (const e of legacy.log) get(e && e.k && ownerOf(e.k, idOf(e.k)) || "lucas").log.push(e);
+    for (const [qid, a] of Object.entries(legacy.myAnswers)) get(ownerOf(`q:${qid}:conv`, qid) || "lucas").myAnswers[qid] = a;
+    for (const [t, m] of Object.entries(legacy.recordingsMeta)) get(ownerOf(t, idOf(t)) || "lucas").recordingsMeta[t] = m;
+    for (const p of legacy.pending) get(p && p.key && ownerOf(p.key, idOf(p.key)) || "lucas").pending.push(p);
+    return { profiles, repairs };
+  }
+  var UNIT_FIELD = { item: "items", sent: "sentences", block: "blocks", q: "questions", lq: "listening", rq: "reading" };
+  function makeOwnerOf(views3) {
+    return (key, id) => {
+      const unit = String(key).split(":")[0];
+      for (const { profile, content } of views3) {
+        if (!content) continue;
+        if (unit === "routine" ? (content.routines || []).some((r) => r.id === id) : UNIT_FIELD[unit] && content[UNIT_FIELD[unit]] && content[UNIT_FIELD[unit]][id]) return profile;
+      }
+      return "lucas";
+    };
+  }
+
   // app/js/engine/progress.js
-  var SCHEMA = 1;
+  var SCHEMA = 2;
   var SKILL_XP = { rec: 6, rcl: 10, bld: 10, ord: 8, wrt: 14, seq: 10, tell: 20, retell: 35, conv: 18, vb3: 6, learn: 2 };
   var MAX_REWARDS_PER_CARD_DAY = 2;
   var RECORDING_XP = 5;
@@ -927,25 +1044,18 @@
   var SESSION_BONUS_PER_DAY = 3;
   function freshState(contentVersion) {
     const today = dayNumber();
-    return {
+    const state = {
       schema: SCHEMA,
       contentVersion,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      cards: {},
-      log: [],
-      days: {},
-      xp: 0,
-      achievements: {},
-      myAnswers: {},
-      pending: [],
       userVariants: {},
-      recordingsMeta: {},
-      checklist: {},
       lastBackupAt: null,
-      firstDay: today,
+      profiles: { lucas: emptyProgress(today) },
+      activeProfile: null,
       settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false, journey: null }
     };
+    return activate(state, "lucas", today);
   }
   function day(state, today) {
     if (!state.days[today]) state.days[today] = { xp: 0, ex: 0, good: 0, bad: 0, sessions: 0, rec: 0, recXp: 0, rewarded: {}, effort: {} };
@@ -1108,40 +1218,50 @@
     if (summary && summary.count >= 10 && summary.bad === 0) unlock("perfect");
     return got.filter(Boolean);
   }
-  function migrate(raw, contentVersion) {
+  function migrate(raw, contentVersion, { ownerOf } = {}) {
     if (!raw || typeof raw !== "object") throw new Error("Estado ausente ou inv\xE1lido");
     if (typeof raw.schema !== "number") throw new Error("Arquivo sem vers\xE3o de esquema");
     if (raw.schema > SCHEMA) throw new Error(`Backup de uma vers\xE3o mais nova do app (esquema ${raw.schema})`);
+    const today = dayNumber();
     const base = freshState(contentVersion);
     const rawSettings = raw.settings && typeof raw.settings === "object" && !Array.isArray(raw.settings) ? raw.settings : {};
-    const s = { ...base, ...raw, settings: { ...base.settings, ...rawSettings } };
     const repairs = [];
     if ("settings" in raw && rawSettings !== raw.settings) repairs.push("settings");
+    const s = {
+      schema: SCHEMA,
+      contentVersion,
+      createdAt: raw.createdAt || base.createdAt,
+      updatedAt: raw.updatedAt || base.updatedAt,
+      userVariants: raw.userVariants,
+      lastBackupAt: raw.lastBackupAt ?? null,
+      settings: { ...base.settings, ...rawSettings }
+    };
+    for (const [k, v] of Object.entries(raw)) if (!(k in s) && !["profiles", "activeProfile"].includes(k) && !PROGRESS_KEYS.includes(k)) s[k] = v;
     if (typeof rawSettings.characterChosen !== "boolean") s.settings.characterChosen = true;
     if (typeof s.settings.character !== "string") s.settings.character = "lucas";
-    for (const key of ["cards", "days", "achievements", "myAnswers", "userVariants", "recordingsMeta", "checklist"]) {
-      if (!s[key] || typeof s[key] !== "object" || Array.isArray(s[key])) {
-        if (key in raw) repairs.push(key);
-        s[key] = {};
+    if (!s.userVariants || typeof s.userVariants !== "object" || Array.isArray(s.userVariants)) {
+      if ("userVariants" in raw) repairs.push("userVariants");
+      s.userVariants = {};
+    }
+    if (raw.schema === 1) {
+      const split = splitLegacy(raw, { ownerOf, today });
+      repairs.push(...split.repairs);
+      s.profiles = split.profiles;
+      s.migratedFrom = 1;
+    } else {
+      let ps = raw.profiles && typeof raw.profiles === "object" && !Array.isArray(raw.profiles) ? raw.profiles : null;
+      if (!ps) repairs.push("profiles");
+      const live = PROGRESS_KEYS.filter((k) => k in raw);
+      if (live.length && typeof raw.activeProfile === "string") {
+        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live.map((k) => [k, raw[k]])) } };
       }
+      s.profiles = {};
+      for (const [id, p] of Object.entries(ps || {})) s.profiles[id] = cleanProgress(p, today, repairs);
+      if (!s.profiles.lucas) s.profiles.lucas = emptyProgress(today);
     }
-    for (const key of ["log", "pending"]) if (!Array.isArray(s[key])) {
-      if (key in raw) repairs.push(key);
-      s[key] = [];
-    }
-    if (typeof s.xp !== "number" || !isFinite(s.xp) || s.xp < 0) {
-      repairs.push("xp");
-      s.xp = Object.values(s.days).reduce((n, d) => n + (d.xp || 0), 0);
-    }
-    for (const [k, c] of Object.entries(s.cards)) {
-      if (!c || typeof c.box !== "number" || typeof c.due !== "number") {
-        delete s.cards[k];
-        repairs.push("card");
-      } else c.k = k;
-    }
+    s.activeProfile = null;
+    activate(s, profileIdFor(s.settings.character, s.settings.journey), today);
     if (repairs.length) Object.defineProperty(s, "_repairs", { value: [...new Set(repairs)], enumerable: false });
-    s.schema = SCHEMA;
-    s.contentVersion = contentVersion;
     return s;
   }
 
@@ -1209,7 +1329,7 @@
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
-  async function loadState(contentVersion) {
+  async function loadState(contentVersion, opts = {}) {
     let raw = null;
     let problem = null;
     try {
@@ -1225,7 +1345,7 @@
     }
     if (!raw) return { state: freshState(contentVersion), isNew: true, problem };
     try {
-      const state = migrate(raw, contentVersion);
+      const state = migrate(raw, contentVersion, opts);
       if (raw.contentVersion !== contentVersion || raw.schema !== state.schema) await saveCopy("state.prev", raw);
       if (state._repairs) {
         await saveCopy("state.corrupt", raw);
@@ -1247,7 +1367,7 @@
   var saving = Promise.resolve();
   function saveState(state) {
     state.updatedAt = Date.now();
-    const snapshot = JSON.parse(JSON.stringify(state));
+    const snapshot = JSON.parse(JSON.stringify(toStored(state)));
     saving = saving.then(async () => {
       if (backend === "indexeddb") {
         try {
@@ -1404,10 +1524,10 @@
     }
   }
   function exportBackup(state) {
-    const data = { app: "daily-routine-english-game", schema: state.schema, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), state };
+    const data = { app: "daily-routine-english-game", schema: state.schema, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), state: toStored(state) };
     return new Blob([JSON.stringify(data)], { type: "application/json" });
   }
-  async function parseBackup(file, contentVersion) {
+  async function parseBackup(file, contentVersion, opts = {}) {
     const text = await file.text();
     let data;
     try {
@@ -1416,10 +1536,10 @@
       throw new Error("O arquivo n\xE3o \xE9 um JSON v\xE1lido.");
     }
     if (data.app !== "daily-routine-english-game" || !data.state) throw new Error("Este arquivo n\xE3o \xE9 um backup deste app.");
-    return migrate(data.state, contentVersion);
+    return migrate(data.state, contentVersion, opts);
   }
   async function keepPrevious(state) {
-    await saveCopy("state.beforeImport", JSON.parse(JSON.stringify(state)));
+    await saveCopy("state.beforeImport", JSON.parse(JSON.stringify(toStored(state))));
   }
   async function requestPersistence() {
     try {
@@ -1985,6 +2105,316 @@
     return { text: texts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim(), confidence: 0, engine: "local-model", ms, secs, parts: segs.length, segments: info };
   }
 
+  // app/js/engine/characters.js
+  var STATES = ["idle", "thinking", "correct", "wrong", "celebrate", "levelup"];
+  var DEFAULT_CHARACTER = "lucas";
+  var FALLBACK = { version: 1, states: STATES, characters: [{ id: "lucas", name: "Lucas", status: "active", content: "base", profile: {}, visual: { states: {} } }] };
+  var registry = (reg = globalThis.DRG_CHARACTERS) => reg && Array.isArray(reg.characters) && reg.characters.length ? reg : FALLBACK;
+  function characterById(id, reg) {
+    const list = registry(reg).characters;
+    return list.find((c) => c.id === id) || list.find((c) => c.id === DEFAULT_CHARACTER) || list[0];
+  }
+  function assetFor(character, state) {
+    const v = character && character.visual;
+    const s = v && v.states && (v.states[state] || v.states.idle);
+    if (!s || s.status !== "ready") return null;
+    return `${v.dir}/${s.file}.${v.ext || "png"}`;
+  }
+  var isPlanned = (character) => !!character && character.status === "planned";
+  function visualStatus(character) {
+    const st = character && character.visual && character.visual.states || {};
+    return { ready: STATES.filter((s) => st[s] && st[s].status === "ready"), pending: STATES.filter((s) => !st[s] || st[s].status !== "ready") };
+  }
+  var views = /* @__PURE__ */ new WeakMap();
+  function contentFor(base, id, reg) {
+    const ch = characterById(id, reg);
+    if (!ch || ch.content === "base") return base;
+    if (!views.has(base)) views.set(base, /* @__PURE__ */ new Map());
+    const cache = views.get(base);
+    if (cache.has(ch.id)) return cache.get(ch.id);
+    if (!ch.content) {
+      const empty = {
+        ...base,
+        character: ch.id,
+        planned: true,
+        meta: { ...base.meta, intro: [] },
+        routines: [],
+        blocks: {},
+        sentences: {},
+        questions: {},
+        items: {},
+        verbs: [],
+        drills: [],
+        checklist: [],
+        review: { ...base.review, rev: [], gap: [] }
+      };
+      cache.set(ch.id, empty);
+      return empty;
+    }
+    const pack = ch.content;
+    const items = { ...pack.items };
+    for (const [iid, ref] of Object.entries(pack.sharedItems || {})) {
+      const it = base.items[iid];
+      if (it) items[iid] = { ...it, ex: ref.ex, routines: ref.routines, blocks: ref.blocks, sentences: ref.sentences };
+    }
+    const view = {
+      ...base,
+      character: ch.id,
+      meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
+      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", episode: "Epis\xF3dio", ...base.dayTypes },
+      routines: pack.routines,
+      blocks: pack.blocks,
+      sentences: pack.sentences,
+      questions: pack.questions,
+      items,
+      verbs: [],
+      drills: [],
+      checklist: [],
+      review: { ...base.review, rev: [], gap: [] }
+    };
+    cache.set(ch.id, view);
+    return view;
+  }
+
+  // app/js/engine/journeys.js
+  var journeyRegistry = (reg = globalThis.DRG_JOURNEYS) => reg && Array.isArray(reg.journeys) ? reg.journeys : [];
+  var journeyById = (id, reg) => journeyRegistry(reg).find((j) => j.id === id) || null;
+  var views2 = /* @__PURE__ */ new WeakMap();
+  function journeyView(base, id, reg) {
+    const j = journeyById(id, reg);
+    if (!j) return null;
+    if (!views2.has(base)) views2.set(base, /* @__PURE__ */ new Map());
+    const cache = views2.get(base);
+    if (cache.has(j.id)) return cache.get(j.id);
+    const c = j.content;
+    const view = {
+      ...base,
+      journey: j.id,
+      meta: { ...base.meta, intro: [j.name] },
+      dayTypes: { ...base.dayTypes, conversation: "Conversa" },
+      routines: c.routines,
+      blocks: c.blocks,
+      sentences: c.sentences,
+      questions: c.questions,
+      items: c.items,
+      listening: c.listening || {},
+      reading: c.reading || {},
+      verbs: [],
+      drills: [],
+      checklist: [],
+      review: { ...base.review, rev: [], gap: [] }
+    };
+    cache.set(j.id, view);
+    return view;
+  }
+
+  // app/js/engine/modules.js
+  var STAGES = [
+    { id: "vocab", n: 1, title: "Palavras-chave", en: "Vocabulary", icon: "book" },
+    { id: "expr", n: 2, title: "Express\xF5es pr\xE1ticas", en: "Phrasal verbs & expressions", icon: "chat" },
+    { id: "listen", n: 3, title: "Ouvir e entender", en: "Listening", icon: "speaker" },
+    { id: "speak", n: 4, title: "Falar na pr\xE1tica", en: "Speaking Lab", icon: "mic" },
+    { id: "apply", n: 5, title: "Aplicar e conversar", en: "Conversation practice", icon: "target" }
+  ];
+  var stageById = (id) => STAGES.find((s) => s.id === id) || null;
+  var VOCAB_CATS = /* @__PURE__ */ new Set(["word", "verb", "professional"]);
+  var RATIO = 0.8;
+  var LISTEN_MIN = 6;
+  var SPEAK_MIN = 3;
+  var WRITE_MAX = 6;
+  var everRight = (c) => !!c && c.reps > c.lapses;
+  var answered = (c) => !!c && c.reps > 0;
+  var moduleOf = (view, id) => view.routines.find((r) => r.id === id) || null;
+  var moduleSentences = (view, r) => r.blocks.flatMap((b) => view.blocks[b] ? view.blocks[b].sentences : []);
+  function moduleItems(view, r, kind) {
+    const ids = r.items && r.items.length ? r.items : [...new Set(moduleSentences(view, r).flatMap((s) => view.sentences[s] ? view.sentences[s].items : []))];
+    return ids.map((i) => view.items[i]).filter((it) => it && !(it.tags || []).includes("grammar-model")).filter((it) => kind === "vocab" ? VOCAB_CATS.has(it.c) : !VOCAB_CATS.has(it.c));
+  }
+  var hasListening = (r) => !!(r.listening && r.listening.length);
+  function stageKeys(view, r) {
+    const sents = moduleSentences(view, r);
+    const qs = (r.questions || []).map((id) => view.questions[id]).filter(Boolean);
+    return {
+      vocab: moduleItems(view, r, "vocab").map((it) => cardKey("item", it.id, "rec")),
+      expr: moduleItems(view, r, "expr").map((it) => cardKey("item", it.id, "rec")),
+      listen: hasListening(r) ? r.listening.map((id) => cardKey("lq", id, "lis")) : sents.map((s) => cardKey("sent", s, "lis")),
+      speak: [...sents.map((s) => `sent:${s}`), ...r.blocks.map((b) => `block:${b}`), `routine:${r.id}`, ...qs.map((q) => `q:${q.id}`)],
+      questions: qs.filter((q) => q.kind !== "transfer" && !q.openPersonal).map((q) => cardKey("q", q.id, "conv")),
+      transfer: qs.filter((q) => q.kind === "transfer" || q.openPersonal).map((q) => cardKey("q", q.id, "conv")),
+      reading: (r.reading || []).map((id) => cardKey("rq", id, "rdq")),
+      writing: sents
+    };
+  }
+  function moduleStatus(view, moduleId, progress) {
+    const r = moduleOf(view, moduleId);
+    if (!r) return null;
+    const cards = progress && progress.cards || {};
+    const recs = progress && progress.recordingsMeta || {};
+    const K = stageKeys(view, r);
+    const count = (keys, f) => keys.filter((k) => f(cards[k])).length;
+    const st = {};
+    const ratio = (keys) => ({ done: count(keys, everRight), total: keys.length, need: Math.ceil(keys.length * RATIO) });
+    st.vocab = ratio(K.vocab);
+    st.expr = ratio(K.expr);
+    st.listen = hasListening(r) ? { done: count(K.listen, everRight), total: K.listen.length, need: Math.ceil(K.listen.length * 0.75) } : { done: count(K.listen, everRight), total: K.listen.length, need: Math.min(K.listen.length, LISTEN_MIN) };
+    st.speak = { done: K.speak.filter((t) => recs[t]).length, total: K.speak.length, need: Math.min(SPEAK_MIN, K.speak.length) };
+    const written = K.writing.filter((s) => answered(cards[cardKey("sent", s, "ord")]) || answered(cards[cardKey("sent", s, "wrt")])).length;
+    const parts = [
+      { id: "questions", label: "Responder \xE0s perguntas", done: count(K.questions, answered), total: K.questions.length, need: K.questions.length },
+      { id: "reading", label: "Ler e responder", done: count(K.reading, everRight), total: K.reading.length, need: K.reading.length },
+      { id: "writing", label: "Montar ou escrever falas", done: written, total: K.writing.length, need: hasListening(r) ? Math.ceil(K.writing.length / 2) : Math.min(WRITE_MAX, Math.ceil(K.writing.length / 2)) },
+      { id: "transfer", label: "Falar de voc\xEA (situa\xE7\xE3o nova)", done: count(K.transfer, answered), total: K.transfer.length, need: Math.min(1, K.transfer.length) }
+    ].filter((p) => p.total > 0);
+    st.apply = { done: parts.reduce((n, p) => n + Math.min(p.done, p.need), 0), need: parts.reduce((n, p) => n + p.need, 0), total: parts.reduce((n, p) => n + p.total, 0), parts };
+    let open = true;
+    const stages = STAGES.map((s) => {
+      const x = st[s.id];
+      const complete = x.done >= x.need;
+      const state = !open ? "locked" : complete ? "done" : "open";
+      if (!complete) open = false;
+      return { ...s, ...x, complete, state };
+    });
+    const next = stages.find((s) => s.state === "open") || null;
+    return { id: r.id, stages, complete: stages.every((s) => s.complete), next, doneCount: stages.filter((s) => s.complete).length };
+  }
+  function trackStatus(view, progress) {
+    const mods = view.routines.map((r) => moduleStatus(view, r.id, progress));
+    const total = mods.length * STAGES.length;
+    const done = mods.reduce((n, m) => n + m.doneCount, 0);
+    const current2 = mods.find((m) => !m.complete) || null;
+    return { modules: mods, done, total, ratio: total ? done / total : 0, current: current2, next: current2 ? current2.next : null };
+  }
+  function stageOpen(view, moduleId, stageId, progress) {
+    const m = moduleStatus(view, moduleId, progress);
+    const s = m && m.stages.find((x) => x.id === stageId);
+    return !!s && s.state !== "locked";
+  }
+  function stageFilter(view, moduleId, stageId) {
+    const r = moduleOf(view, moduleId);
+    if (!r) return () => false;
+    const ids = (kind) => new Set(moduleItems(view, r, kind).map((it) => it.id));
+    const sents = new Set(moduleSentences(view, r));
+    if (stageId === "vocab" || stageId === "expr") {
+      const set2 = ids(stageId);
+      const skills = stageId === "vocab" ? ["rec", "rcl"] : ["rec", "rcl", "bld"];
+      return (e) => e.unit === "item" && set2.has(e.id) && skills.includes(e.skill);
+    }
+    if (stageId === "listen") {
+      const lq = new Set(r.listening || []);
+      return hasListening(r) ? (e) => e.unit === "lq" && lq.has(e.id) : (e) => e.unit === "sent" && e.skill === "lis" && sents.has(e.id);
+    }
+    if (stageId === "apply") {
+      const qs = new Set(r.questions || []), rq = new Set(r.reading || []), blocks = new Set(r.blocks);
+      return (e) => e.unit === "q" && qs.has(e.id) || e.unit === "rq" && rq.has(e.id) || e.unit === "sent" && ["ord", "wrt"].includes(e.skill) && sents.has(e.id) || e.unit === "block" && blocks.has(e.id) || e.unit === "routine" && e.id === r.id;
+    }
+    return () => false;
+  }
+
+  // app/js/ui/character.js
+  var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
+  function characterImage(ch, state, { size = 56 } = {}) {
+    if (!ch || !STATES.includes(state)) return null;
+    const src = assetFor(ch, state);
+    if (!src) return null;
+    return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
+  }
+  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
+    const img = characterImage(ch, state, { size });
+    if (img) return img;
+    return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
+  }
+  function choiceSub(c) {
+    const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : c.profile && c.profile.summary || "";
+    if (c.status === "planned") return "Jornada em prepara\xE7\xE3o \xB7 progresso pr\xF3prio desde j\xE1";
+    return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === "preview" ? " \xB7 em prepara\xE7\xE3o" : ""}`;
+  }
+  function characterChoices({ selected, current: current2 = null, onSelect, role = "character-choices" }) {
+    const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
+    const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
+      const on = c.id === sel;
+      return h(
+        "button",
+        {
+          type: "button",
+          class: "char-choice",
+          role: "radio",
+          "aria-checked": String(on),
+          "data-character": c.id,
+          onclick: () => {
+            draw(c.id);
+            onSelect(c.id);
+          }
+        },
+        h("span", { class: "char-name", text: c.name }),
+        c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
+        h("span", { class: "char-sub small muted", text: choiceSub(c) })
+      );
+    }));
+    draw(selected);
+    return box2;
+  }
+  function renderCharacterPick(App2) {
+    const view = App2.layout("Daily Routine English", { nav: false });
+    let pick = App2.character.id;
+    const go = h("button", { class: "btn primary block lg", "data-role": "confirm-character", onclick: async () => {
+      go.disabled = true;
+      await App2.chooseCharacter(pick);
+      App2.go("#/");
+    } });
+    const label = () => {
+      go.textContent = `Continuar com ${registry().characters.find((c) => c.id === pick).name}`;
+    };
+    view.append(h(
+      "section",
+      { class: "char-pick", "data-role": "character-pick" },
+      h("h2", { text: "Quem vai acompanhar voc\xEA?" }),
+      h("p", { class: "small muted", text: "Cada personagem tem a pr\xF3pria rotina para voc\xEA praticar. D\xE1 para trocar depois, na tela inicial, sem perder o progresso." }),
+      characterChoices({ selected: pick, onSelect: (id) => {
+        pick = id;
+        label();
+      } }),
+      go
+    ));
+    label();
+  }
+  function characterSwitcher(App2) {
+    const wrap = h("section", { class: "card char-switch", "data-role": "active-character" });
+    const closed = () => clear(wrap).append(h(
+      "div",
+      { class: "row nowrap" },
+      h("div", { class: "grow" }, h("span", { class: "small muted", text: "Personagem atual: " }), h("b", { "data-role": "active-name", text: App2.character.name })),
+      h("button", { class: "btn small", "aria-expanded": "false", "data-role": "switch-character", onclick: open, text: "Trocar personagem" })
+    ));
+    function open() {
+      let pick = App2.character.id;
+      const ok = h("button", { class: "btn primary", "data-role": "confirm-character", disabled: true, onclick: async () => {
+        ok.disabled = true;
+        const name = registry().characters.find((c) => c.id === pick).name;
+        await App2.chooseCharacter(pick);
+        toast(`Agora com ${name}. O progresso com cada personagem continua salvo.`);
+        App2.go("#/");
+      } }, "Confirmar");
+      clear(wrap).append(
+        h("div", { class: "small muted", text: "Escolha quem vai acompanhar voc\xEA:" }),
+        characterChoices({ selected: pick, current: App2.character.id, onSelect: (id) => {
+          pick = id;
+          ok.disabled = id === App2.character.id;
+          ok.textContent = id === App2.character.id ? "Confirmar" : `Usar ${registry().characters.find((c) => c.id === id).name}`;
+        } }),
+        h(
+          "div",
+          { class: "row nowrap", style: { justifyContent: "flex-end", gap: "8px" } },
+          h("button", { class: "btn ghost", "data-role": "cancel-character", onclick: closed, text: "Cancelar" }),
+          ok
+        )
+      );
+      const first = wrap.querySelector("[aria-checked=true]");
+      if (first) first.focus();
+    }
+    closed();
+    return wrap;
+  }
+
   // app/js/engine/exercises.js
   var CAT_LABEL = {
     word: "palavra",
@@ -2074,6 +2504,13 @@
         let shuffled = shuffle(pieces, rand);
         for (let i = 0; i < 5 && shuffled.join(" ") === pieces.join(" ") && pieces.length > 1; i++) shuffled = shuffle(pieces, rand);
         return { type: "order", entry, sentence: s, pieces, shuffled };
+      }
+      if (skill === "lis") {
+        const r = content.routines.find((x) => x.id === s.routine);
+        const pool = (r ? r.blocks.flatMap((b) => content.blocks[b].sentences) : []).filter((x) => x !== s.id).map((x) => content.sentences[x]).filter((x) => x.en !== s.en);
+        const others = shuffle(pool, rand).slice(0, 3);
+        const options = shuffle([{ text: s.en, correct: true }, ...others.map((x) => ({ text: x.en, correct: false }))], rand);
+        return { type: "listen", entry, item: { q: "Qual destas frases voc\xEA ouviu?", explain: s.pt }, options, clips: [{ key: s.au, text: s.en, speaker: s.speaker || null, sid: s.id }] };
       }
       if (skill === "wrt") {
         const items = s.items.map((i) => content.items[i]).filter((it) => it.c !== "connector").slice(0, 4);
@@ -2211,6 +2648,10 @@
     sheet(body, { label: item.en, onClose: () => stopAll() });
   }
   function focusTitle(App2, focus) {
+    if (focus.routine && focus.stage) {
+      const st = { vocab: "Palavras-chave", expr: "Express\xF5es pr\xE1ticas", listen: "Ouvir e entender", apply: "Aplicar e conversar" }[focus.stage];
+      return `${focus.routine} \xB7 ${st || focus.stage}`;
+    }
     if (focus.routine && !focus.mode) {
       const r = App2.content.routines.find((x) => x.id === focus.routine);
       return r ? `${r.id} \xB7 ${r.pt}` : focus.routine;
@@ -2233,375 +2674,353 @@
     return `#/session${q ? "?" + q : ""}`;
   }
 
-  // app/js/engine/characters.js
-  var STATES = ["idle", "thinking", "correct", "wrong", "celebrate", "levelup"];
-  var DEFAULT_CHARACTER = "lucas";
-  var FALLBACK = { version: 1, states: STATES, characters: [{ id: "lucas", name: "Lucas", status: "active", content: "base", profile: {}, visual: { states: {} } }] };
-  var registry = (reg = globalThis.DRG_CHARACTERS) => reg && Array.isArray(reg.characters) && reg.characters.length ? reg : FALLBACK;
-  function characterById(id, reg) {
-    const list = registry(reg).characters;
-    return list.find((c) => c.id === id) || list.find((c) => c.id === DEFAULT_CHARACTER) || list[0];
+  // app/js/ui/modules.js
+  var STATE_LABEL2 = { done: "conclu\xEDda", open: "dispon\xEDvel", locked: "bloqueada" };
+  var trackName = (App2) => App2.journey ? App2.journey.name : `Daily Routine \xB7 ${App2.character.short || App2.character.name}`;
+  function stageHref(moduleId, stageId) {
+    if (stageId === "vocab" || stageId === "expr") return `#/words/${moduleId}?kind=${stageId}`;
+    if (stageId === "speak") return `#/lab?routine=${moduleId}&module=1`;
+    return sessionHref({ routine: moduleId, stage: stageId });
   }
-  function assetFor(character, state) {
-    const v = character && character.visual;
-    const s = v && v.states && (v.states[state] || v.states.idle);
-    if (!s || s.status !== "ready") return null;
-    return `${v.dir}/${s.file}.${v.ext || "png"}`;
-  }
-  function visualStatus(character) {
-    const st = character && character.visual && character.visual.states || {};
-    return { ready: STATES.filter((s) => st[s] && st[s].status === "ready"), pending: STATES.filter((s) => !st[s] || st[s].status !== "ready") };
-  }
-  var views = /* @__PURE__ */ new WeakMap();
-  function contentFor(base, id, reg) {
-    const ch = characterById(id, reg);
-    if (!ch || ch.content === "base" || !ch.content) return base;
-    if (!views.has(base)) views.set(base, /* @__PURE__ */ new Map());
-    const cache = views.get(base);
-    if (cache.has(ch.id)) return cache.get(ch.id);
-    const pack = ch.content;
-    const items = { ...pack.items };
-    for (const [iid, ref] of Object.entries(pack.sharedItems || {})) {
-      const it = base.items[iid];
-      if (it) items[iid] = { ...it, ex: ref.ex, routines: ref.routines, blocks: ref.blocks, sentences: ref.sentences };
-    }
-    const view = {
-      ...base,
-      character: ch.id,
-      meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
-      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", episode: "Epis\xF3dio", ...base.dayTypes },
-      routines: pack.routines,
-      blocks: pack.blocks,
-      sentences: pack.sentences,
-      questions: pack.questions,
-      items,
-      verbs: [],
-      drills: [],
-      checklist: [],
-      review: { ...base.review, rev: [], gap: [] }
-    };
-    cache.set(ch.id, view);
-    return view;
-  }
-
-  // app/js/ui/character.js
-  var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
-  function characterImage(ch, state, { size = 56 } = {}) {
-    if (!ch || !STATES.includes(state)) return null;
-    const src = assetFor(ch, state);
-    if (!src) return null;
-    return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
-  }
-  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
-    const img = characterImage(ch, state, { size });
-    if (img) return img;
-    return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
-  }
-  function choiceSub(c) {
-    const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : c.profile && c.profile.summary || "";
-    return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === "preview" ? " \xB7 em prepara\xE7\xE3o" : ""}`;
-  }
-  function characterChoices({ selected, current: current2 = null, onSelect, role = "character-choices" }) {
-    const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
-    const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
-      const on = c.id === sel;
-      return h(
-        "button",
-        {
-          type: "button",
-          class: "char-choice",
-          role: "radio",
-          "aria-checked": String(on),
-          "data-character": c.id,
-          onclick: () => {
-            draw(c.id);
-            onSelect(c.id);
-          }
-        },
-        h("span", { class: "char-name", text: c.name }),
-        c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
-        h("span", { class: "char-sub small muted", text: choiceSub(c) })
-      );
-    }));
-    draw(selected);
-    return box2;
-  }
-  function renderCharacterPick(App2) {
-    const view = App2.layout("Daily Routine English", { nav: false });
-    let pick = App2.character.id;
-    const go = h("button", { class: "btn primary block lg", "data-role": "confirm-character", onclick: async () => {
-      go.disabled = true;
-      await App2.chooseCharacter(pick);
-      App2.go("#/");
-    } });
-    const label = () => {
-      go.textContent = `Continuar com ${registry().characters.find((c) => c.id === pick).name}`;
-    };
-    view.append(h(
-      "section",
-      { class: "char-pick", "data-role": "character-pick" },
-      h("h2", { text: "Quem vai acompanhar voc\xEA?" }),
-      h("p", { class: "small muted", text: "Cada personagem tem a pr\xF3pria rotina para voc\xEA praticar. D\xE1 para trocar depois, na tela inicial, sem perder o progresso." }),
-      characterChoices({ selected: pick, onSelect: (id) => {
-        pick = id;
-        label();
-      } }),
-      go
-    ));
-    label();
-  }
-  function characterSwitcher(App2) {
-    const wrap = h("section", { class: "card char-switch", "data-role": "active-character" });
-    const closed = () => clear(wrap).append(h(
-      "div",
-      { class: "row nowrap" },
-      h("div", { class: "grow" }, h("span", { class: "small muted", text: "Personagem atual: " }), h("b", { "data-role": "active-name", text: App2.character.name })),
-      h("button", { class: "btn small", "aria-expanded": "false", "data-role": "switch-character", onclick: open, text: "Trocar personagem" })
-    ));
-    function open() {
-      let pick = App2.character.id;
-      const ok = h("button", { class: "btn primary", "data-role": "confirm-character", disabled: true, onclick: async () => {
-        ok.disabled = true;
-        const name = registry().characters.find((c) => c.id === pick).name;
-        await App2.chooseCharacter(pick);
-        toast(`Agora com ${name}. O progresso com cada personagem continua salvo.`);
-        App2.go("#/");
-      } }, "Confirmar");
-      clear(wrap).append(
-        h("div", { class: "small muted", text: "Escolha quem vai acompanhar voc\xEA:" }),
-        characterChoices({ selected: pick, current: App2.character.id, onSelect: (id) => {
-          pick = id;
-          ok.disabled = id === App2.character.id;
-          ok.textContent = id === App2.character.id ? "Confirmar" : `Usar ${registry().characters.find((c) => c.id === id).name}`;
-        } }),
-        h(
-          "div",
-          { class: "row nowrap", style: { justifyContent: "flex-end", gap: "8px" } },
-          h("button", { class: "btn ghost", "data-role": "cancel-character", onclick: closed, text: "Cancelar" }),
-          ok
-        )
-      );
-      const first = wrap.querySelector("[aria-checked=true]");
-      if (first) first.focus();
-    }
-    closed();
-    return wrap;
-  }
-
-  // app/js/engine/journeys.js
-  var journeyRegistry = (reg = globalThis.DRG_JOURNEYS) => reg && Array.isArray(reg.journeys) ? reg.journeys : [];
-  var journeyById = (id, reg) => journeyRegistry(reg).find((j) => j.id === id) || null;
-  var views2 = /* @__PURE__ */ new WeakMap();
-  function journeyView(base, id, reg) {
-    const j = journeyById(id, reg);
-    if (!j) return null;
-    if (!views2.has(base)) views2.set(base, /* @__PURE__ */ new Map());
-    const cache = views2.get(base);
-    if (cache.has(j.id)) return cache.get(j.id);
-    const c = j.content;
-    const view = {
-      ...base,
-      journey: j.id,
-      meta: { ...base.meta, intro: [j.name] },
-      dayTypes: { ...base.dayTypes, conversation: "Conversa" },
-      routines: c.routines,
-      blocks: c.blocks,
-      sentences: c.sentences,
-      questions: c.questions,
-      items: c.items,
-      listening: c.listening || {},
-      reading: c.reading || {},
-      verbs: [],
-      drills: [],
-      checklist: [],
-      review: { ...base.review, rev: [], gap: [] }
-    };
-    cache.set(j.id, view);
-    return view;
-  }
-  function unitStatus(view, unitId, cards) {
-    const r = view.routines.find((x) => x.id === unitId);
-    const c = (k) => cards[k];
-    const done = (k) => !!c(k) && c(k).reps > 0;
-    const right = (k) => !!c(k) && c(k).box >= 1;
-    const listen2 = r.listening.map((id) => `lq:${id}:lis`), read = r.reading.map((id) => `rq:${id}:rdq`);
-    const qs = r.questions.map((id) => view.questions[id]);
-    const speak2 = qs.filter((q) => q.kind !== "transfer").map((q) => `q:${q.id}:conv`);
-    const transfer = qs.filter((q) => q.kind === "transfer").map((q) => `q:${q.id}:conv`);
-    const sents = r.blocks.flatMap((b) => view.blocks[b].sentences);
-    const written = sents.filter((s) => done(`sent:${s}:ord`) || done(`sent:${s}:wrt`)).length;
-    const skills = {
-      listening: { done: listen2.filter(right).length, total: listen2.length },
-      reading: { done: read.filter(right).length, total: read.length },
-      writing: { done: written, total: sents.length, need: Math.ceil(sents.length / 2) },
-      speaking: { done: speak2.filter(done).length, total: speak2.length },
-      transfer: { done: transfer.filter(done).length, total: transfer.length, need: Math.min(1, transfer.length) }
-    };
-    const complete = skills.listening.done === skills.listening.total && skills.reading.done === skills.reading.total && skills.speaking.done === skills.speaking.total && skills.writing.done >= skills.writing.need && skills.transfer.done >= skills.transfer.need;
-    return { id: unitId, skills, complete };
-  }
-
-  // app/js/ui/journey.js
-  var SKILLS = [
-    ["listening", "Listening", "ouvir e responder"],
-    ["reading", "Reading", "ler e responder"],
-    ["writing", "Writing", "montar e escrever falas"],
-    ["speaking", "Speaking", "responder falando ou escrevendo"],
-    ["transfer", "Transfer\xEAncia", "falar de voc\xEA"]
-  ];
-  function journeyEntry(App2) {
-    const j = journeyRegistry()[0];
-    if (!j) return null;
+  var moduleTitle = (r) => r.title && r.title !== r.pt ? r.title : r.pt;
+  function stageDots(m) {
     return h(
-      "section",
-      { class: "card", "data-role": "journey-entry", style: { marginTop: "16px" } },
-      h("div", { class: "chips" }, h("span", { class: "chip accent", text: "Nova jornada" }), h("span", { class: "chip", text: "piloto" })),
-      h("h3", { style: { marginTop: "8px" }, text: j.name }),
-      h("p", { class: "small muted", text: `Di\xE1logos do Conversation Book para ouvir, ler, escrever e falar (${j.content.routines.map((r) => r.id).join(", ")}). Progresso pr\xF3prio, separado das rotinas.` }),
-      h("button", { class: "btn block", "data-role": "open-journey", onclick: async () => {
-        await App2.setJourney(j.id);
-        App2.go("#/");
-      } }, icon("play"), "Abrir Conversation Practice")
+      "div",
+      { class: "stage-dots", "aria-label": `${m.doneCount} de ${STAGES.length} etapas conclu\xEDdas` },
+      m.stages.map((s) => h(
+        "span",
+        { class: `sdot ${s.state}`, title: `${s.n}. ${s.title} \u2014 ${STATE_LABEL2[s.state]}`, "aria-hidden": "true" },
+        s.state === "locked" ? icon("lock") : s.state === "done" ? icon("check") : String(s.n)
+      ))
     );
   }
-  function renderJourneyHome(App2) {
+  function renderModules(App2) {
     const { content, state } = App2;
-    const view = App2.layout(App2.journey.name, { actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))] });
-    view.append(h("section", { class: "card char-switch", "data-role": "journey-bar" }, h(
-      "div",
-      { class: "row nowrap" },
-      h("div", { class: "grow small" }, "Jornada: ", h("b", { text: App2.journey.name })),
-      h("button", { class: "btn small", "data-role": "leave-journey", onclick: async () => {
-        await App2.setJourney(null);
-        App2.go("#/");
-      } }, `Voltar \xE0s rotinas (${App2.character.name})`)
-    )));
-    view.append(h("p", { class: "small muted", style: { marginTop: "10px" }, text: "Cada unidade parte de um di\xE1logo original do livro. Primeiro voc\xEA ouve, depois l\xEA, monta e escreve as falas, responde e por fim fala de voc\xEA." }));
-    for (const r of content.routines) {
-      const st = unitStatus(content, r.id, state.cards);
-      view.append(h(
-        "section",
-        { class: "card", "data-role": "journey-unit", "data-unit": r.id, "data-complete": String(st.complete) },
-        h("div", { class: "chips" }, h("span", { class: "chip", text: r.id }), st.complete ? h("span", { class: "chip ok", text: "Conclu\xEDda \u2713" }) : h("span", { class: "chip", text: "Em andamento" })),
-        h("h3", { style: { marginTop: "8px" }, text: r.title }),
-        h("div", { class: "small muted", text: r.pt }),
-        h("p", { class: "small", text: r.goal }),
-        h("ul", { class: "list skills small" }, SKILLS.map(([k, label, sub]) => {
-          const s = st.skills[k];
-          const need = s.need ?? s.total;
-          const ok = s.done >= need;
-          return h("li", { "data-skill": k }, h(
-            "div",
-            { class: "row nowrap", style: { gap: "8px", padding: "6px 0" } },
-            h("span", { text: ok ? "\u2705" : "\u2B1C" }),
-            h("div", { class: "grow" }, h("b", { text: label }), ` \u2014 ${sub}`),
-            h("span", { class: "muted", text: k === "writing" ? `${s.done}/${s.total} (meta ${need})` : `${s.done}/${s.total}` })
-          ));
-        })),
-        h(
-          "div",
-          { class: "row", style: { marginTop: "10px" } },
-          h("a", { class: "btn primary", href: sessionHref({ routine: r.id }) }, icon("play"), "Praticar"),
-          h("a", { class: "btn", href: `#/routine/${r.id}` }, icon("book"), "Di\xE1logo"),
-          h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
-        )
-      ));
+    const view = App2.layout(trackName(App2), { back: "#/" });
+    if (!App2.journey && isPlanned(App2.character)) {
+      view.append(plannedNotice(App2));
+      return;
     }
-    view.append(h("p", { class: "tiny muted", style: { marginTop: "12px" }, text: "Conclus\xE3o: ouvir e ler acertados ao menos uma vez, perguntas respondidas, metade das falas montadas ou escritas e uma transfer\xEAncia. XP, sequ\xEAncia e revis\xE3o s\xE3o os mesmos do app; o dom\xEDnio das express\xF5es \xE9 desta jornada." }));
-  }
-
-  // app/js/ui/home.js
-  function renderHome(App2) {
-    const { state, content } = App2;
-    const view = App2.layout("Daily Routine English", {
-      actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))]
-    });
-    const today = App2.today();
-    const d = state.days[today] || { ex: 0, xp: 0 };
-    const goal = state.settings.dailyGoal || 12;
-    const st = streak(state, today);
-    const lvl = levelForXp(state.xp);
-    const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).length;
-    const pct = Math.min(100, Math.round(d.ex / goal * 100));
-    if (App2.isNew && !state.welcomed) view.append(welcome(App2));
-    if (registry().characters.length > 1) view.append(characterSwitcher(App2));
+    const tr = trackStatus(content, state);
     view.append(h(
       "section",
-      { class: "hero", style: { marginTop: "8px" } },
+      { class: "card track-head", "data-role": App2.journey ? "journey-bar" : "track-bar" },
       h(
         "div",
         { class: "row nowrap" },
         h(
           "div",
-          { style: { flex: 1, minWidth: 0 } },
-          h("div", { class: "small muted", text: greeting() }),
-          h("div", { style: { fontSize: "1.35rem", fontWeight: 800, lineHeight: 1.25 }, text: d.ex >= goal ? "Meta de hoje cumprida \u{1F389}" : "Pronto para praticar?" }),
-          h("div", { class: "small muted", text: `${d.ex}/${goal} exerc\xEDcios hoje \xB7 ${due} revis\xE3o(\xF5es) pendente(s)` })
+          { class: "grow" },
+          h("div", { class: "small muted", text: App2.journey ? "Jornada comunicativa \xB7 progresso pr\xF3prio" : `Jornada pessoal de ${App2.character.short || App2.character.name}` }),
+          h("b", { text: `${tr.done} de ${tr.total} etapas conclu\xEDdas` })
         ),
-        h("div", { class: "ring", style: { "--p": pct }, "aria-label": `${pct}% da meta di\xE1ria` }, h("span", { text: `${pct}%` }))
+        App2.journey ? h("button", { class: "btn small", "data-role": "leave-journey", onclick: async () => {
+          await App2.setJourney(null);
+          App2.go("#/modules");
+        } }, `Daily Routine (${App2.character.short || App2.character.name})`) : null
       ),
-      h("a", { class: "btn primary block lg", href: sessionHref({}), style: { marginTop: "16px" } }, icon("play"), d.ex ? "Continuar sess\xE3o" : "Come\xE7ar sess\xE3o do dia"),
-      h("div", { class: "small muted center", style: { marginTop: "8px" }, text: "\u2248 6 minutos \xB7 revis\xF5es + itens novos da Rotina 1" })
+      h("div", { style: { marginTop: "8px" } }, bar(tr.ratio))
     ));
-    view.append(h(
-      "div",
-      { class: "stat-grid", style: { marginTop: "12px" } },
-      h("div", { class: "stat" }, h("b", {}, h("span", { class: "flame", text: "\u{1F525}" }), ` ${st.days}`), h("span", { text: st.days === 1 ? "dia seguido" : "dias seguidos" })),
-      h("div", { class: "stat" }, h("b", { text: `Nv ${lvl.level}` }), h("span", { text: `${state.xp} XP` })),
-      h("div", { class: "stat" }, h("b", { text: String(due) }), h("span", { text: "para revisar" }))
-    ));
-    const r1 = content.routines[0];
-    const r1Keys = r1.items.map((i) => cardKey("item", i, "rec"));
-    const m1 = mastery(state.cards, r1Keys);
-    const blocksTold = r1.blocks.filter((b) => state.cards[cardKey("block", b, "tell")]).length;
-    view.append(
-      h("h2", { text: "Para a pr\xF3xima aula" }),
-      h(
+    if (App2.journey) view.append(h("p", { class: "small muted", style: { marginTop: "10px" }, text: "Di\xE1logos originais do app em situa\xE7\xF5es do dia a dia: voc\xEA aprende as palavras e express\xF5es, ouve, fala e depois usa tudo numa conversa." }));
+    for (const m of tr.modules) {
+      const r = moduleOf(content, m.id);
+      const isNext = tr.current && tr.current.id === m.id;
+      view.append(h(
         "a",
-        { class: "card link", href: `#/routine/${r1.id}` },
+        { class: `card link module-card${isNext ? " current" : ""}`, href: `#/module/${r.id}`, "data-role": App2.journey ? "journey-unit" : "module-card", "data-unit": r.id, "data-complete": String(m.complete) },
         h(
           "div",
           { class: "row nowrap" },
           h(
             "div",
-            { style: { flex: 1, minWidth: 0 } },
-            h("div", { class: "chips" }, h("span", { class: "chip accent", text: "Priorit\xE1ria" }), h("span", { class: "chip", text: "Presencial" })),
-            h("h3", { style: { marginTop: "8px" }, text: `Rotina 1 \xB7 ${r1.pt}` }),
-            h("div", { class: "small muted", text: `${m1.seen}/${m1.total} express\xF5es vistas \xB7 ${blocksTold}/${r1.blocks.length} blocos contados` })
+            { class: "grow" },
+            h("div", { class: "chips" }, h("span", { class: "chip", text: r.id }), m.complete ? h("span", { class: "chip ok", text: "Conclu\xEDdo \u2713" }) : isNext ? h("span", { class: "chip accent", text: "Continue aqui" }) : null),
+            h("h3", { style: { marginTop: "6px" }, text: moduleTitle(r) }),
+            r.title && r.title !== r.pt ? h("div", { class: "small muted", text: r.pt }) : null
           ),
           icon("next")
         ),
-        h("div", { style: { marginTop: "10px" } }, bar(m1.ratio))
-      ),
-      h("a", { class: "btn block", href: sessionHref({ routine: r1.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula")
-    );
-    view.append(
-      h("h2", { text: "Praticar por momento do dia" }),
-      h("div", { class: "chips scroll" }, content.contexts.filter((c) => c.id !== "full").map((c) => h("a", { class: "chip", href: `#/context/${c.id}`, style: { minHeight: "40px", padding: "8px 14px", fontSize: ".88rem", textDecoration: "none" } }, `${c.icon} ${c.pt}`)))
-    );
-    view.append(h(
-      "div",
-      { class: "stack", style: { marginTop: "16px" } },
-      shortcut("#/lab", "mic", "Speaking Lab", "Ou\xE7a, grave e compare sua voz"),
-      shortcut("#/review", "refresh", "Revisar erros", due ? `${due} pendente(s) para hoje` : "Dificuldades e respostas para revis\xE3o"),
-      content.checklist.length ? shortcut("#/checklist", "check", "Checklist antes da aula", `Os ${content.checklist.length} pontos do material`) : null
-    ));
-    view.append(journeyEntry(App2));
-    if (state.lastBackupAt === null && Object.keys(state.cards).length > 30) {
-      view.append(h("div", { class: "notice warn", style: { marginTop: "16px" } }, "Seu progresso fica s\xF3 neste aparelho. ", h("a", { href: "#/settings", text: "Fa\xE7a um backup" }), " de vez em quando."));
+        stageDots(m)
+      ));
     }
+    if (!App2.journey) view.append(h("a", { class: "btn block ghost", href: "#/explore", style: { marginTop: "12px" } }, icon("list"), "Explorar por momento do dia ou categoria"));
   }
-  function shortcut(href, ic, title, sub) {
+  function renderModule(App2, { arg }) {
+    const { content, state } = App2;
+    const r = moduleOf(content, arg);
+    if (!r) {
+      App2.go("#/modules");
+      return;
+    }
+    const m = moduleStatus(content, r.id, state);
+    const view = App2.layout(`${r.id} \xB7 ${moduleTitle(r)}`, { back: "#/modules" });
+    view.append(h(
+      "section",
+      { class: "card module-head" },
+      h("div", { class: "small muted", text: trackName(App2) }),
+      h("h2", { style: { margin: "4px 0" }, text: moduleTitle(r) }),
+      r.title && r.title !== r.pt ? h("div", { class: "small", text: r.pt }) : null,
+      r.goal ? h("p", { class: "small", style: { marginTop: "6px" } }, h("b", { text: "Objetivo: " }), r.goal) : null,
+      h("div", { class: "row nowrap", style: { marginTop: "8px" } }, h("div", { class: "grow" }, bar(m.doneCount / STAGES.length)), h("span", { class: "small muted", text: `${m.doneCount}/${STAGES.length}` }))
+    ));
+    const list = h("ol", { class: "stages", "data-role": "stages" });
+    for (const s of m.stages) list.append(stageRow(App2, r, s));
+    view.append(list);
+    if (m.stages.find((s) => s.id === "listen").complete) {
+      view.append(h("a", { class: "btn block", "data-role": "module-text", href: `#/routine/${r.id}`, style: { marginTop: "12px" } }, icon("book"), App2.journey ? "Ver o di\xE1logo completo" : "Ver o texto completo"));
+    } else {
+      view.append(h("p", { class: "tiny muted", style: { marginTop: "12px" }, text: "O texto completo fica dispon\xEDvel depois de \u201COuvir e entender\u201D, para voc\xEA treinar o ouvido antes de ler." }));
+    }
+    view.append(h("p", { class: "tiny muted", text: "Uma etapa abre quando a anterior \xE9 conclu\xEDda: basta acertar a maior parte ao menos uma vez \u2014 o que voc\xEA errar volta na revis\xE3o. Abrir uma etapa n\xE3o a conclui." }));
+  }
+  function stageRow(App2, r, s) {
+    const locked = s.state === "locked";
+    const counter = s.total === 0 ? "sem itens neste m\xF3dulo" : s.id === "speak" ? `${Math.min(s.done, s.need)}/${s.need} grava\xE7\xF5es` : `${Math.min(s.done, s.need)}/${s.need}`;
+    const mark = h("span", { class: `stage-mark ${s.state}`, "aria-hidden": "true" }, locked ? icon("lock") : s.state === "done" ? icon("check") : String(s.n));
+    const body = h(
+      "div",
+      { class: "grow" },
+      h("div", { class: "stage-title" }, h("b", { text: `${String(s.n).padStart(2, "0")}. ${s.title}` }), h("span", { class: "small muted", text: ` \xB7 ${s.en}` })),
+      h("div", { class: "small muted", text: locked ? "Bloqueada \u2014 conclua a etapa anterior" : `${STATE_LABEL2[s.state][0].toUpperCase()}${STATE_LABEL2[s.state].slice(1)} \xB7 ${counter}` }),
+      s.parts && !locked ? h("ul", { class: "tiny muted parts" }, s.parts.map((p) => h("li", { text: `${p.done >= p.need ? "\u2713" : "\u25CB"} ${p.label}: ${Math.min(p.done, p.need)}/${p.need}` }))) : null
+    );
+    const attrs = { class: `stage ${s.state}`, "data-role": "stage", "data-stage": s.id, "data-state": s.state };
+    if (locked) return h("li", attrs, h("div", { class: "stage-row", "aria-disabled": "true" }, mark, body, icon("lock")));
+    return h("li", attrs, h("a", { class: "stage-row", href: stageHref(r.id, s.id), "aria-label": `${s.title}: ${STATE_LABEL2[s.state]}` }, mark, body, icon("next")));
+  }
+  function renderWords(App2, { arg, params }) {
+    const { content, state } = App2;
+    const r = moduleOf(content, arg);
+    const kind = params.kind === "expr" ? "expr" : "vocab";
+    if (!r) {
+      App2.go("#/modules");
+      return;
+    }
+    const stage = moduleStatus(content, r.id, state).stages.find((s) => s.id === kind);
+    if (stage.state === "locked") {
+      App2.go(`#/module/${r.id}`);
+      return;
+    }
+    const view = App2.layout(kind === "vocab" ? "Palavras-chave" : "Express\xF5es pr\xE1ticas", { back: `#/module/${r.id}` });
+    const items = moduleItems(content, r, kind);
+    const today = App2.today();
+    const favs = state.favorites || (state.favorites = {});
+    let onlyMarked = false;
+    view.append(
+      h("p", { class: "small muted", text: kind === "vocab" ? `Palavras de que voc\xEA precisa em \u201C${moduleTitle(r)}\u201D. Ou\xE7a, veja o exemplo e pratique.` : `Phrasal verbs, collocations e express\xF5es naturais de \u201C${moduleTitle(r)}\u201D, sempre num exemplo da situa\xE7\xE3o.` }),
+      h(
+        "div",
+        { class: "row", style: { margin: "8px 0 12px" } },
+        h("a", { class: "btn primary", "data-role": "stage-practice", href: sessionHref({ routine: r.id, stage: kind }) }, icon("play"), "Praticar"),
+        h("span", { class: "small muted", text: `${Math.min(stage.done, stage.need)}/${stage.need} para concluir` })
+      )
+    );
+    const list = h("div", { class: "stack", "data-role": "word-list" });
+    const filterBtn = h("button", { class: "chip", "aria-pressed": "false", onclick: () => {
+      onlyMarked = !onlyMarked;
+      filterBtn.setAttribute("aria-pressed", String(onlyMarked));
+      draw();
+    } }, icon("star"), " S\xF3 as marcadas");
+    view.append(h("div", { class: "row" }, filterBtn), list);
+    const draw = () => {
+      list.replaceChildren(...items.filter((it) => !onlyMarked || favs[it.id]).map((it) => wordCard(App2, r, it, today)));
+      if (!list.children.length) list.append(h("p", { class: "small muted", text: "Nenhuma marcada ainda: toque na estrela de um item para marc\xE1-lo para revis\xE3o." }));
+    };
+    draw();
+  }
+  function itemLearnState(cards, itemId, today) {
+    const c = cards[cardKey("item", itemId, "rec")];
+    if (!c || !c.reps) return "new";
+    if (c.lastResult === "bad" || c.due <= today) return "review";
+    return "learned";
+  }
+  var LEARN_LABEL = { new: ["Novo", "chip"], learned: ["Aprendido", "chip ok"], review: ["Para revisar", "chip warn"] };
+  var noteOf = (it) => {
+    const n = Array.isArray(it.notes) ? it.notes[0] : it.notes;
+    return String((n && typeof n === "object" ? n.text : n) || "").trim();
+  };
+  function wordCard(App2, r, it, today) {
+    const { content, state } = App2;
+    const sents = new Set(moduleSentences(content, r));
+    const ex = (it.ex || []).find((x) => x.src && sents.has(x.src)) || (it.ex || [])[0] || null;
+    const sid = ex && ex.src && content.sentences[ex.src] ? ex.src : (it.sentences || []).find((s) => sents.has(s));
+    const ls = itemLearnState(state.cards, it.id, today);
+    const [lab, cls] = LEARN_LABEL[ls];
+    const marked = () => !!state.favorites[it.id];
+    const star = h("button", {
+      class: `icon-btn ghost star${marked() ? " on" : ""}`,
+      "aria-pressed": String(marked()),
+      "aria-label": "Marcar para revis\xE3o",
+      "data-role": "mark",
+      onclick: () => {
+        if (marked()) delete state.favorites[it.id];
+        else state.favorites[it.id] = Date.now();
+        star.classList.toggle("on", marked());
+        star.setAttribute("aria-pressed", String(marked()));
+        App2.save();
+        toast(marked() ? "Marcado para revis\xE3o." : "Marca\xE7\xE3o removida.");
+      }
+    }, icon("star"));
+    const loc = ex ? locate(it, ex.en) : null;
     return h(
-      "a",
-      { class: "card link flat", href },
+      "article",
+      { class: "card word", "data-role": "word", "data-item": it.id, "data-state": ls },
       h(
         "div",
         { class: "row nowrap" },
-        h("span", { class: "icon-btn accent" }, icon(ic)),
-        h("div", { style: { flex: 1, minWidth: 0 } }, h("div", { style: { fontWeight: 700 }, text: title }), h("div", { class: "small muted", text: sub }))
+        h(
+          "div",
+          { class: "grow" },
+          h("div", { class: "word-en en", text: it.en }),
+          h("div", { class: "small muted" }, h("span", { text: categoryLabel(it.c) }), " \xB7 ", h("span", { class: "word-pt", text: it.pt }))
+        ),
+        it.au ? speakerButton({ key: it.au, text: it.en.replace(/…$/, "") }, { label: `Ouvir \u201C${it.en}\u201D` }) : null,
+        star
+      ),
+      ex ? h("p", { class: "small en ex", style: { margin: "8px 0 2px" } }, ...loc ? [loc.before, h("b", { text: loc.target }), loc.after] : [ex.en]) : null,
+      ex && ex.pt ? h("div", { class: "tiny muted", text: ex.pt }) : null,
+      noteOf(it) ? h("div", { class: "tiny", style: { marginTop: "4px" }, text: `Uso: ${noteOf(it)}` }) : null,
+      it.tip ? h("div", { class: "tiny muted", text: `Dica: ${it.tip}` }) : null,
+      h(
+        "div",
+        { class: "row", style: { marginTop: "8px" } },
+        h("span", { class: cls, text: lab }),
+        sid ? h("a", { class: "btn small ghost", href: `#/lab?sentence=${sid}` }, icon("mic"), "Falar no exemplo") : null
       )
     );
+  }
+  function plannedNotice(App2) {
+    return h(
+      "section",
+      { class: "card", "data-role": "planned" },
+      h("h3", { text: `Jornada de ${App2.character.name} em prepara\xE7\xE3o` }),
+      h("p", { class: "small", text: "As rotinas desta persona ainda n\xE3o foram criadas. O progresso dela j\xE1 \xE9 separado: quando o conte\xFAdo chegar, come\xE7a do zero, sem misturar com as outras personas." }),
+      h("a", { class: "btn primary block", href: "#/", "data-role": "planned-home" }, icon("home"), "Voltar ao In\xEDcio")
+    );
+  }
+
+  // app/js/ui/home.js
+  var EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
+  function renderHome(App2) {
+    const { state } = App2;
+    const view = App2.layout("Daily Routine English", {
+      actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))]
+    });
+    const today = App2.today();
+    const ch = App2.character;
+    const name = ch.short || ch.name;
+    const planned = isPlanned(ch);
+    const drView = contentFor(App2.baseContent, ch.id);
+    const drProg = progressOf(state, ch.id) || EMPTY;
+    const dr = planned ? null : trackStatus(drView, drProg);
+    const j = journeyRegistry()[0] || null;
+    const cpView = j ? journeyView(App2.baseContent, j.id) : null;
+    const cpProg = j ? progressOf(state, journeyProfile(j.id)) || EMPTY : EMPTY;
+    const cp = j ? trackStatus(cpView, cpProg) : null;
+    if (App2.isNew && !state.welcomed) view.append(welcome(App2));
+    const lvl = levelForXp(drProg.xp || 0);
+    const st = streak({ days: drProg.days || {}, firstDay: drProg.firstDay ?? today }, today);
+    const resume = App2.journey && cp ? { track: "journey", t: cp } : dr && dr.next ? { track: "dr", t: dr } : cp ? { track: "journey", t: cp } : null;
+    const resumeHref = resume && resume.t.current && resume.t.next ? stageHref(resume.t.current.id, resume.t.next.id) : null;
+    const resumeLabel = resumeHref ? `${resume.track === "journey" ? j.name : "Daily Routine"} \xB7 ${resume.t.current.id} \xB7 ${resume.t.next.title}` : "";
+    const continueBtn = h("button", {
+      class: "btn primary block lg",
+      "data-role": "continue",
+      disabled: !resumeHref,
+      onclick: async () => {
+        await App2.setJourney(resume.track === "journey" ? j.id : null);
+        App2.go(resumeHref);
+      }
+    }, icon("play"), "Continuar de onde parou");
+    view.append(h(
+      "section",
+      { class: "hero persona", "data-role": "persona", "data-character": ch.id },
+      h(
+        "div",
+        { class: "row nowrap" },
+        characterBadge(ch, "idle", { size: 56 }),
+        h(
+          "div",
+          { class: "grow", style: { minWidth: 0 } },
+          h("div", { class: "small muted", text: greeting() }),
+          h("div", { class: "persona-name", text: name }),
+          h("div", { class: "small muted", "data-role": "persona-stats", text: planned ? "Jornada em prepara\xE7\xE3o" : `N\xEDvel ${lvl.level} \xB7 ${drProg.xp || 0} XP \xB7 ${st.days} ${st.days === 1 ? "dia seguido" : "dias seguidos"}` })
+        )
+      ),
+      dr ? h(
+        "div",
+        { style: { marginTop: "12px" } },
+        h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: "Progresso da Daily Routine" }), h("b", { text: `${Math.round(dr.ratio * 100)}%` })),
+        bar(dr.ratio)
+      ) : null,
+      h("div", { style: { marginTop: "14px" } }, continueBtn),
+      resumeLabel ? h("div", { class: "small muted center", style: { marginTop: "6px" }, "data-role": "continue-where", text: resumeLabel }) : null
+    ));
+    if (registry().characters.length > 1) view.append(characterSwitcher(App2));
+    view.append(h("h2", { text: "Minhas jornadas" }));
+    view.append(trackCard({
+      role: "track-dr",
+      title: `Daily Routine \xB7 ${name}`,
+      desc: planned ? "As rotinas desta persona ainda est\xE3o em prepara\xE7\xE3o. O progresso dela j\xE1 \xE9 separado." : "A rotina da persona em m\xF3dulos: palavras, express\xF5es, ouvir, falar e conversar.",
+      t: dr,
+      view: drView,
+      planned,
+      onOpen: async () => {
+        await App2.setJourney(null);
+        App2.go("#/modules");
+      }
+    }));
+    if (j) {
+      view.append(trackCard({
+        role: "journey-entry",
+        title: j.name,
+        desc: "Jornada comunicativa: entender e participar de conversas reais, com progresso pr\xF3prio (o mesmo para todas as personas).",
+        t: cp,
+        view: cpView,
+        button: "open-journey",
+        onOpen: async () => {
+          await App2.setJourney(j.id);
+          App2.go("#/modules");
+        }
+      }));
+    }
+    const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App2.content, c.k)).length;
+    if (due) view.append(h(
+      "a",
+      { class: "card link flat", href: "#/review", style: { marginTop: "12px" }, "data-role": "due" },
+      h(
+        "div",
+        { class: "row nowrap" },
+        h("span", { class: "icon-btn accent" }, icon("refresh")),
+        h("div", { class: "grow" }, h("b", { text: `${due} para revisar` }), h("div", { class: "small muted", text: App2.journey ? j.name : `Daily Routine \xB7 ${name}` })),
+        icon("next")
+      )
+    ));
+    const allCards = Object.values(state.profiles).reduce((n, p) => n + Object.keys(p && p.cards || {}).length, 0);
+    if (state.lastBackupAt === null && allCards > 30) {
+      view.append(h("div", { class: "notice warn", style: { marginTop: "16px" } }, "Seu progresso fica s\xF3 neste aparelho. ", h("a", { href: "#/settings", text: "Fa\xE7a um backup" }), " de vez em quando."));
+    }
+  }
+  function trackCard({ role, title, desc, t, view, planned = false, onOpen, button = "open-track" }) {
+    const next = t && t.current && t.next ? `${t.current.id} \xB7 ${moduleTitleOf(view, t.current.id)} \u2014 ${t.next.title}` : t && t.total ? "Todas as etapas conclu\xEDdas \u{1F389}" : null;
+    return h(
+      "section",
+      { class: "card track", "data-role": role },
+      h("h3", { text: title }),
+      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: desc }),
+      t && t.total ? h("div", {}, h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: `${t.done} de ${t.total} etapas` }), h("b", { text: `${Math.round(t.ratio * 100)}%` })), bar(t.ratio)) : null,
+      next ? h("div", { class: "small", style: { marginTop: "6px" }, "data-role": "next-step" }, h("span", { class: "muted", text: "Pr\xF3xima etapa: " }), next) : null,
+      h(
+        "button",
+        { class: `btn block${planned ? "" : " primary"}`, "data-role": button, style: { marginTop: "10px" }, disabled: planned, onclick: onOpen },
+        icon(planned ? "lock" : "play"),
+        planned ? "Em prepara\xE7\xE3o" : t && t.done ? "Continuar" : "Come\xE7ar"
+      )
+    );
+  }
+  function moduleTitleOf(view, id) {
+    const r = moduleOf(view, id);
+    return r ? r.title && r.title !== r.pt ? r.title : r.pt : id;
   }
   function greeting() {
     const hr = (/* @__PURE__ */ new Date()).getHours();
@@ -2615,9 +3034,9 @@
       h(
         "ul",
         { class: "small", style: { paddingLeft: "18px", margin: "6px 0 10px" } },
-        h("li", { text: "Sess\xF5es curtas: reconhecer \u2192 lembrar \u2192 construir frases \u2192 falar." }),
-        h("li", { text: "A Rotina 1 vem primeiro; as outras nove s\xE3o varia\xE7\xF5es de tipo de dia." }),
-        h("li", { text: "Erros voltam para revis\xE3o. Respostas equivalentes s\xE3o aceitas." }),
+        h("li", { text: "Cada jornada \xE9 feita de m\xF3dulos com cinco etapas: palavras, express\xF5es, ouvir, falar e conversar." }),
+        h("li", { text: "Uma etapa abre quando a anterior \xE9 conclu\xEDda. Erros voltam para revis\xE3o; n\xE3o \xE9 preciso acertar tudo." }),
+        h("li", { text: "Cada persona e o Conversation Practice t\xEAm progresso pr\xF3prio." }),
         h("li", { text: "Tudo funciona sem internet e fica s\xF3 neste aparelho." })
       ),
       h("button", { class: "btn primary block", onclick: async () => {
@@ -4679,7 +5098,7 @@
     return vocabCache.get(content);
   };
   var fmt2 = (n) => String(n).replace(".", ",");
-  var STATE_LABEL2 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
+  var STATE_LABEL3 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
   function freeAnswerPanel(App2, { question = "", model = "", alternatives = [], modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
@@ -4933,7 +5352,7 @@
           continue;
         }
         const info = states.get(seg.w) || { state: "uncertain", reason: "" };
-        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL2[info.state]}`, text: seg.text });
+        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL3[info.state]}`, text: seg.text });
         const pick = () => {
           spans.forEach((s) => s.classList.toggle("w-focus", s === span));
           if (onPick && info.state === "needs_practice") {
@@ -4947,7 +5366,7 @@
               "div",
               { class: "row nowrap" },
               h("b", { class: "en", text: seg.text }),
-              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL2[info.state] }),
+              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL3[info.state] }),
               h("span", { class: "spacer" }),
               hasEmbedded(key) ? h("button", { class: "btn small", type: "button", onclick: () => play({ key, text: clean }) }, icon("speaker"), "Ouvir") : null
             ),
@@ -4968,7 +5387,7 @@
       }
       const lg = legend();
       lg.querySelectorAll(".lg").forEach((el2, i) => {
-        el2.lastChild.textContent = [STATE_LABEL2.good, STATE_LABEL2.needs_practice, STATE_LABEL2.uncertain][i];
+        el2.lastChild.textContent = [STATE_LABEL3.good, STATE_LABEL3.needs_practice, STATE_LABEL3.uncertain][i];
       });
       const box2 = h(
         "div",
@@ -5035,6 +5454,13 @@
     const { content, state } = App2;
     const routineOk = !params.routine || content.routines.some((x) => x.id === params.routine);
     const focus = { routine: routineOk ? params.routine : void 0, context: params.context, category: params.category, mode: routineOk ? params.mode : void 0 };
+    if (routineOk && params.routine && stageById(params.stage) && params.stage !== "speak") {
+      if (!stageOpen(content, params.routine, params.stage, state)) {
+        App2.go(`#/module/${params.routine}`);
+        return;
+      }
+      focus.stage = params.stage;
+    }
     const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
     let queue;
     const today = App2.today();
@@ -5058,7 +5484,7 @@
         return { k: c.k, unit, id, skill, review: true };
       });
     } else {
-      queue = buildSession(content, state.cards, { focus, size, today });
+      queue = buildSession(content, state.cards, { focus, size, today, filter: focus.stage ? stageFilter(content, focus.routine, focus.stage) : null });
     }
     queue = queue.filter((q) => validEntry(content, q));
     if (focus.mode !== "present") queue = maybePairs(queue, content);
@@ -5089,7 +5515,8 @@
         h("h3", { text: "Nada pendente por aqui agora" }),
         h("p", { class: "muted small", text: "Voc\xEA est\xE1 em dia neste foco. Escolha outra rotina ou momento do dia, ou pratique a fala." })
       ));
-      actions(h("a", { class: "btn", href: "#/explore" }, "Explorar"), h("a", { class: "btn primary", href: "#/lab" }, "Speaking Lab"));
+      if (focus.stage) actions(h("a", { class: "btn primary", href: `#/module/${focus.routine}` }, "Voltar ao m\xF3dulo"));
+      else actions(h("a", { class: "btn", href: "#/explore" }, "Explorar"), h("a", { class: "btn primary", href: "#/lab" }, "Speaking Lab"));
       return () => actionbar.remove();
     }
     async function leave() {
@@ -5794,7 +6221,10 @@
         ) : null
       );
       if (events.length) toast(`Conquista: ${events[0].title}`);
-      actions(h("a", { class: "btn", href: "#/" }, "In\xEDcio"), h("button", { class: "btn primary", onclick: () => App2.go(sessionHref(focus.mode ? {} : focus)) }, "Nova sess\xE3o"));
+      actions(
+        focus.stage ? h("a", { class: "btn", "data-role": "back-module", href: `#/module/${focus.routine}` }, "Voltar ao m\xF3dulo") : h("a", { class: "btn", href: "#/" }, "In\xEDcio"),
+        h("button", { class: "btn primary", onclick: () => App2.go(sessionHref(focus.mode ? {} : focus)) }, focus.stage ? "Praticar de novo" : "Nova sess\xE3o")
+      );
     }
     next();
     return () => {
@@ -6114,8 +6544,21 @@
     if (params.routine) labRoutine = params.routine;
     const { content, state } = App2;
     if (!content.routines.some((r) => r.id === labRoutine)) labRoutine = content.routines[0].id;
-    const view = App2.layout("Speaking Lab");
-    view.append(h("p", { class: "small muted", text: "Escolha uma frase, ou\xE7a, grave e pratique as palavras que o app sinalizar." }));
+    const fromModule = !!params.module && content.routines.some((r) => r.id === params.routine);
+    const view = App2.layout("Speaking Lab", fromModule ? { back: `#/module/${labRoutine}` } : {});
+    if (fromModule) {
+      const r = content.routines.find((x) => x.id === labRoutine);
+      const recs = [...r.blocks.flatMap((b) => content.blocks[b].sentences).map((s) => `sent:${s}`), ...r.blocks.map((b) => `block:${b}`), `routine:${r.id}`, ...r.questions.map((q) => `q:${q}`)].filter((t) => state.recordingsMeta[t]).length;
+      view.append(h(
+        "section",
+        { class: "card module-head", "data-role": "lab-module" },
+        h("div", { class: "small muted", text: `Falar na pr\xE1tica \xB7 ${r.id}` }),
+        h("b", { text: r.title && r.title !== r.pt ? r.title : r.pt }),
+        h("p", { class: "small", style: { margin: "6px 0 0" }, text: `Pron\xFAncia: leia em voz alta as frases do m\xF3dulo. Conversa: responda \xE0s perguntas com suas palavras. ${recs} grava\xE7\xE3o(\xF5es) neste m\xF3dulo (3 concluem a etapa).` })
+      ));
+      if (labTab === "drills") labTab = "sentences";
+    }
+    view.append(h("p", { class: "small muted", text: "Pronunciation Lab (Frases, Blocos): ou\xE7a, grave e compare. Conversation Lab (Perguntas, Drills): responda livremente e receba retorno sobre adequa\xE7\xE3o, gram\xE1tica, naturalidade e confiabilidade da transcri\xE7\xE3o." }));
     const setupSlot = h("div", {});
     view.append(setupSlot);
     if (state.settings.asrPrompt !== "later") {
@@ -6129,7 +6572,7 @@
     const seg = h("div", { class: "seg", role: "group", "aria-label": "Tipo de pr\xE1tica" });
     const filter = h("div", { class: "chips scroll", style: { margin: "12px 0" } });
     const body = h("div", {});
-    const tabs = [["sentences", "Frases"], ["blocks", "Blocos"], ["questions", "Perguntas"], ["drills", "Drills"]];
+    const tabs = [["sentences", "Frases"], ["blocks", "Blocos"], ["questions", "Perguntas"], ...fromModule || !content.drills.length ? [] : [["drills", "Drills"]]];
     const rec = (id) => state.recordingsMeta[id] ? h("span", { class: "chip ok", text: "gravado" }) : null;
     const draw = () => {
       clear(seg).append(...tabs.map(([id, label]) => h("button", { "aria-pressed": String(labTab === id), onclick: () => {
@@ -6137,7 +6580,7 @@
         draw();
       } }, label)));
       clear(filter);
-      if (labTab === "sentences" || labTab === "blocks") {
+      if ((labTab === "sentences" || labTab === "blocks") && !fromModule) {
         filter.append(...content.routines.map((r2) => h("button", { class: "chip", "aria-pressed": String(labRoutine === r2.id), onclick: () => {
           labRoutine = r2.id;
           draw();
@@ -6162,7 +6605,10 @@
           );
         }), h("a", { class: "btn block", href: `#/lab?routine=${r.id}&full=1` }, icon("mic"), `Gravar a ${r.id} completa`));
       }
-      if (labTab === "questions") {
+      if (labTab === "questions" && fromModule) {
+        const qs = r.questions.map((id) => content.questions[id]).filter(Boolean);
+        body.append(qs.length ? h("ul", { class: "list card" }, qs.map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q })), rec(`q:${q.id}`), icon("mic"))))) : h("p", { class: "small muted", text: "Este m\xF3dulo n\xE3o tem perguntas; pratique as frases e os blocos." }));
+      } else if (labTab === "questions") {
         const r1 = content.routines[0].id;
         const groups = [["Rotina 1 (priorit\xE1ria)", (q) => q.routine === r1], ["Gerais (Word)", (q) => q.source === "word" && !q.routine], ["Outras rotinas", (q) => q.routine && q.routine !== r1], ["Inesperadas (novas)", (q) => q.source === "new"]];
         for (const [title, pred] of groups) {
@@ -6769,6 +7215,10 @@
   }
 
   // app/js/ui/settings.js
+  var totalCards = (st) => {
+    syncActive(st);
+    return Object.values(st.profiles).reduce((n, p) => n + Object.keys(p.cards || {}).length, 0);
+  };
   function renderSettings(App2) {
     const { state } = App2;
     const s = state.settings;
@@ -6807,8 +7257,8 @@
         h(
           "div",
           { class: "grow" },
-          h("div", { class: "title" }, c.name, c.status === "preview" ? h("span", { class: "chip", style: { marginLeft: "8px" }, text: "em prepara\xE7\xE3o" }) : null),
-          h("div", { class: "small muted", text: `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` }),
+          h("div", { class: "title" }, c.name, c.status === "preview" || c.status === "planned" ? h("span", { class: "chip", style: { marginLeft: "8px" }, text: "em prepara\xE7\xE3o" }) : null),
+          h("div", { class: "small muted", text: pack ? `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` : "Conte\xFAdo em prepara\xE7\xE3o \xB7 progresso pr\xF3prio" }),
           h("div", { class: "tiny muted", text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === "preview" ? " \xB7 \xE1udio de refer\xEAncia: voz do aparelho" : ""}` })
         ),
         on ? icon("check") : null
@@ -6950,15 +7400,13 @@
     async function importFile(file) {
       if (!file) return;
       try {
-        const incoming = await parseBackup(file, App2.content.version);
-        const n = Object.keys(incoming.cards).length;
-        const ok = await confirmSheet("Restaurar backup?", `O progresso atual (${Object.keys(state.cards).length} cart\xF5es) ser\xE1 substitu\xEDdo pelo do backup (${n} cart\xF5es, ${incoming.xp} XP). Uma c\xF3pia do atual fica guardada no aparelho.`, { ok: "Restaurar" });
+        const incoming = await parseBackup(file, App2.content.version, { ownerOf: makeOwnerOf(App2.profileViews()) });
+        const n = totalCards(incoming);
+        const ok = await confirmSheet("Restaurar backup?", `O progresso atual de todas as personas e jornadas (${totalCards(state)} cart\xF5es) ser\xE1 substitu\xEDdo pelo do backup (${n} cart\xF5es). Cada persona e jornada fica com o pr\xF3prio progresso. Uma c\xF3pia do atual fica guardada no aparelho.`, { ok: "Restaurar" });
         if (!ok) return;
         await keepPrevious(state);
-        App2.state = incoming;
+        App2.adoptState(incoming);
         await saveState(incoming);
-        App2.rebuildChecker();
-        App2.applySettings();
         toast("Backup restaurado.");
         App2.go("#/");
       } catch (e) {
@@ -6972,10 +7420,10 @@
       const sure = await confirmSheet("Confirmar exclus\xE3o", "O backup foi baixado. Apagar agora?", { ok: "Apagar", danger: true });
       if (!sure) return;
       await wipeState();
-      App2.state = freshState(App2.content.version);
-      App2.state.settings = { ...App2.state.settings, ...s };
+      const fresh = freshState(App2.content.version);
+      fresh.settings = { ...fresh.settings, ...s };
+      App2.adoptState(fresh);
       await saveState(App2.state);
-      App2.rebuildChecker();
       toast("Progresso apagado.");
       App2.go("#/");
     }
@@ -7054,11 +7502,12 @@
     rebuildChecker() {
       App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants });
     },
-    /** Troca o personagem ativo: só muda a visão de conteúdo e a preferência salva; progresso e XP ficam intactos. */
+    /** Troca a persona ativa: visão de conteúdo e perfil de progresso dela; o progresso das outras fica intacto. */
     setCharacter(id) {
       App.character = characterById(id);
       App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
       if (App.state && App.state.settings.character !== App.character.id) App.state.settings.character = App.character.id;
+      if (App.state) activate(App.state, profileIdFor(App.character.id, App.journey && App.journey.id), App.today());
     },
     /** Escolha feita pela pessoa (primeira escolha, Início ou Ajustes): troca, marca como escolhido e grava já. */
     chooseCharacter(id) {
@@ -7073,9 +7522,24 @@
       App.journey = id ? journeyById(id) : null;
       if (App.state) App.state.settings.journey = App.journey ? App.journey.id : null;
       App.content = App.journey ? journeyView(App.baseContent, App.journey.id) : contentFor(App.baseContent, App.character.id);
+      if (App.state) activate(App.state, profileIdFor(App.character.id, App.journey && App.journey.id), App.today());
       App.rebuildChecker();
       return App.flush().catch(() => {
       });
+    },
+    /** Passa a usar um estado inteiro (carregado, importado ou recém-criado): persona, jornada e perfil salvos nele. */
+    adoptState(state) {
+      App.state = state;
+      App.journey = journeyById(state.settings.journey);
+      App.setCharacter(state.settings.character);
+      App.rebuildChecker();
+      App.applySettings();
+    },
+    /** Visões de conteúdo de cada perfil (Lucas primeiro: dono dos itens genéricos compartilhados). */
+    profileViews() {
+      const chars = registry().characters.map((c) => ({ profile: c.id, content: c.content === "base" ? App.baseContent : c.content ? contentFor(App.baseContent, c.id) : null }));
+      const js = journeyRegistry().map((j) => ({ profile: journeyProfile(j.id), content: journeyView(App.baseContent, j.id) }));
+      return [...chars.sort((a, b) => a.profile === "lucas" ? -1 : b.profile === "lucas" ? 1 : 0), ...js];
     },
     applySettings() {
       const s = App.state.settings;
@@ -7091,7 +7555,7 @@
   globalThis.DRG_APP = App;
   var TABS = [
     { hash: "#/", label: "In\xEDcio", icon: "home", match: (r) => r === "" },
-    { hash: "#/explore", label: "Estudar", icon: "book", match: (r) => ["explore", "routine", "context", "category", "checklist"].includes(r) },
+    { hash: "#/modules", label: "Estudar", icon: "book", match: (r) => ["modules", "module", "words", "explore", "routine", "context", "category", "checklist"].includes(r) },
     { hash: "#/lab", label: "Falar", icon: "mic", match: (r) => r === "lab" },
     { hash: "#/stats", label: "Progresso", icon: "chart", match: (r) => ["stats", "review"].includes(r) }
   ];
@@ -7149,9 +7613,17 @@
         review: renderReview,
         stats: renderStats,
         settings: renderSettings,
-        checklist: renderChecklist
+        checklist: renderChecklist,
+        modules: renderModules,
+        module: renderModule,
+        words: renderWords
       };
-      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : r.name === "" && App.journey ? renderJourneyHome : screens[r.name] || renderHome;
+      const needsContent = ["explore", "routine", "context", "category", "session", "lab", "review", "checklist", "module", "words"];
+      if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {
+        layout(`Daily Routine \xB7 ${App.character.name}`, { back: "#/" }).append(plannedNotice(App));
+        return;
+      }
+      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : screens[r.name] || renderHome;
       cleanup = fn(App, r) || null;
     } catch (e) {
       console.error(e);
@@ -7164,14 +7636,10 @@
       root.append(h("div", { class: "view" }, h("div", { class: "notice bad" }, "Conte\xFAdo n\xE3o encontrado (data/content.js). Reinstale o app.")));
       return;
     }
-    const { state, isNew, problem } = await loadState(App.content.version);
-    App.state = state;
+    const { state, isNew, problem } = await loadState(App.content.version, { ownerOf: makeOwnerOf(App.profileViews()) });
     App.isNew = isNew;
     App.storageProblem = problem;
-    App.journey = journeyById(state.settings.journey);
-    App.setCharacter(state.settings.character);
-    App.rebuildChecker();
-    App.applySettings();
+    App.adoptState(state);
     if (isNew) await saveState(state).catch(() => {
     });
     window.addEventListener("hashchange", route);

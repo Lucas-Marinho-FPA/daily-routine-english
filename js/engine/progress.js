@@ -2,8 +2,10 @@
 // Regras anti-farm: cada cartão rende XP no máximo 2 vezes por dia; gravações têm teto diário;
 // erro rende XP de esforço só uma vez por cartão/dia. Nada é penalizado com perda de XP.
 import { dayNumber, grade, newCard, MASTERED_BOX } from './scheduler.js';
+import { emptyProgress, cleanProgress, splitLegacy, activate, profileIdFor, PROGRESS_KEYS } from './profiles.js';
 
-export const SCHEMA = 1;
+// esquema 2: progresso por perfil (engine/profiles.js); o esquema 1 (progresso único) é migrado sem perdas
+export const SCHEMA = 2;
 
 const SKILL_XP = { rec: 6, rcl: 10, bld: 10, ord: 8, wrt: 14, seq: 10, tell: 20, retell: 35, conv: 18, vb3: 6, learn: 2 };
 const MAX_REWARDS_PER_CARD_DAY = 2;
@@ -12,12 +14,12 @@ const SESSION_XP = 20, SESSION_BONUS_PER_DAY = 3;
 
 export function freshState(contentVersion) {
   const today = dayNumber();
-  return {
+  const state = {
     schema: SCHEMA, contentVersion, createdAt: Date.now(), updatedAt: Date.now(),
-    cards: {}, log: [], days: {}, xp: 0, achievements: {}, myAnswers: {}, pending: [], userVariants: {},
-    recordingsMeta: {}, checklist: {}, lastBackupAt: null, firstDay: today,
+    userVariants: {}, lastBackupAt: null, profiles: { lucas: emptyProgress(today) }, activeProfile: null,
     settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12, character: 'lucas', characterChosen: false, journey: null },
   };
+  return activate(state, 'lucas', today);
 }
 
 function day(state, today) {
@@ -192,33 +194,48 @@ function checkAchievements(state, today, summary) {
   return got.filter(Boolean);
 }
 
-/** Valida e migra um estado salvo/importado. Lança erro se não for recuperável. */
-export function migrate(raw, contentVersion) {
+/**
+ * Valida e migra um estado salvo/importado (esquema 1 ou 2). Lança erro se não for recuperável.
+ * opts.ownerOf(chave, id) → perfil dono do conteúdo (só para o esquema 1); sem ele, tudo fica com 'lucas'.
+ * O estado devolvido já tem o perfil da persona/jornada salva ativo.
+ */
+export function migrate(raw, contentVersion, { ownerOf } = {}) {
   if (!raw || typeof raw !== 'object') throw new Error('Estado ausente ou inválido');
   if (typeof raw.schema !== 'number') throw new Error('Arquivo sem versão de esquema');
   if (raw.schema > SCHEMA) throw new Error(`Backup de uma versão mais nova do app (esquema ${raw.schema})`);
+  const today = dayNumber();
   const base = freshState(contentVersion);
   const rawSettings = raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings) ? raw.settings : {};
-  const s = { ...base, ...raw, settings: { ...base.settings, ...rawSettings } };
   const repairs = [];
   if ('settings' in raw && rawSettings !== raw.settings) repairs.push('settings');
+  const s = { schema: SCHEMA, contentVersion, createdAt: raw.createdAt || base.createdAt, updatedAt: raw.updatedAt || base.updatedAt,
+    userVariants: raw.userVariants, lastBackupAt: raw.lastBackupAt ?? null, settings: { ...base.settings, ...rawSettings } };
+  for (const [k, v] of Object.entries(raw)) if (!(k in s) && !['profiles', 'activeProfile'].includes(k) && !PROGRESS_KEYS.includes(k)) s[k] = v; // welcomed etc.
   // escolha de personagem: só um estado criado por esta versão e ainda sem escolha guarda false (o app mostra a tela de
   // escolha); estados e backups anteriores já estavam em uso com o Lucas e não são interrompidos
   if (typeof rawSettings.characterChosen !== 'boolean') s.settings.characterChosen = true;
   if (typeof s.settings.character !== 'string') s.settings.character = 'lucas';
-  for (const key of ['cards', 'days', 'achievements', 'myAnswers', 'userVariants', 'recordingsMeta', 'checklist']) {
-    if (!s[key] || typeof s[key] !== 'object' || Array.isArray(s[key])) { if (key in raw) repairs.push(key); s[key] = {}; }
+  if (!s.userVariants || typeof s.userVariants !== 'object' || Array.isArray(s.userVariants)) { if ('userVariants' in raw) repairs.push('userVariants'); s.userVariants = {}; }
+  if (raw.schema === 1) {
+    const split = splitLegacy(raw, { ownerOf, today });
+    repairs.push(...split.repairs);
+    s.profiles = split.profiles;
+    s.migratedFrom = 1;
+  } else {
+    let ps = raw.profiles && typeof raw.profiles === 'object' && !Array.isArray(raw.profiles) ? raw.profiles : null;
+    if (!ps) repairs.push('profiles');
+    // cópia de um estado em uso (topo = perfil ativo, ainda não devolvido): o topo é o mais recente
+    const live = PROGRESS_KEYS.filter((k) => k in raw);
+    if (live.length && typeof raw.activeProfile === 'string') {
+      ps = { ...(ps || {}), [raw.activeProfile]: { ...((ps || {})[raw.activeProfile] || {}), ...Object.fromEntries(live.map((k) => [k, raw[k]])) } };
+    }
+    s.profiles = {};
+    for (const [id, p] of Object.entries(ps || {})) s.profiles[id] = cleanProgress(p, today, repairs);
+    if (!s.profiles.lucas) s.profiles.lucas = emptyProgress(today);
   }
-  for (const key of ['log', 'pending']) if (!Array.isArray(s[key])) { if (key in raw) repairs.push(key); s[key] = []; }
-  if (typeof s.xp !== 'number' || !isFinite(s.xp) || s.xp < 0) { repairs.push('xp'); s.xp = Object.values(s.days).reduce((n, d) => n + (d.xp || 0), 0); }
-  // cartões: descarta entradas corrompidas
-  for (const [k, c] of Object.entries(s.cards)) {
-    if (!c || typeof c.box !== 'number' || typeof c.due !== 'number') { delete s.cards[k]; repairs.push('card'); }
-    else c.k = k;
-  }
+  s.activeProfile = null;
+  activate(s, profileIdFor(s.settings.character, s.settings.journey), today);
   if (repairs.length) Object.defineProperty(s, '_repairs', { value: [...new Set(repairs)], enumerable: false });
-  // (futuras migrações de esquema entram aqui: if (s.schema === 1) {...; s.schema = 2})
-  s.schema = SCHEMA;
-  s.contentVersion = contentVersion;
   return s;
 }
+

@@ -88,6 +88,14 @@ export function makeExercise(content, entry, rand = Math.random) {
       for (let i = 0; i < 5 && shuffled.join(' ') === pieces.join(' ') && pieces.length > 1; i++) shuffled = shuffle(pieces, rand);
       return { type: 'order', entry, sentence: s, pieces, shuffled };
     }
+    if (skill === 'lis') {
+      // ouvir e reconhecer: a frase só aparece depois da resposta; as alternativas são outras frases do mesmo módulo
+      const r = content.routines.find((x) => x.id === s.routine);
+      const pool = (r ? r.blocks.flatMap((b) => content.blocks[b].sentences) : []).filter((x) => x !== s.id).map((x) => content.sentences[x]).filter((x) => x.en !== s.en);
+      const others = shuffle(pool, rand).slice(0, 3);
+      const options = shuffle([{ text: s.en, correct: true }, ...others.map((x) => ({ text: x.en, correct: false }))], rand);
+      return { type: 'listen', entry, item: { q: 'Qual destas frases você ouviu?', explain: s.pt }, options, clips: [{ key: s.au, text: s.en, speaker: s.speaker || null, sid: s.id }] };
+    }
     if (skill === 'wrt') {
       const items = s.items.map((i) => content.items[i]).filter((it) => it.c !== 'connector').slice(0, 4);
       return { type: 'write', entry, sentence: s, targets: [s.en], hints: items.map((it) => ({ en: it.en, pt: it.pt })) };

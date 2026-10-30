@@ -1,6 +1,7 @@
 // Sessão de estudo: executa a fila, renderiza cada tipo de exercício, corrige, dá feedback e registra o progresso.
 import { h, icon, clear, toast, confirmSheet } from './dom.js';
 import { buildSession, cardKey, cardInContent } from '../engine/scheduler.js';
+import { stageById, stageOpen, stageFilter } from '../engine/modules.js';
 import { makeExercise, maybePairs, makePairs, hint, categoryLabel } from '../engine/exercises.js';
 import { recordAnswer, recordLearn, recordSession, levelForXp } from '../engine/progress.js';
 import * as player from '../audio/player.js';
@@ -21,6 +22,11 @@ export function renderSession(App, { params }) {
   // rotina de outro personagem (link antigo): ignora o foco em vez de quebrar
   const routineOk = !params.routine || content.routines.some((x) => x.id === params.routine);
   const focus = { routine: routineOk ? params.routine : undefined, context: params.context, category: params.category, mode: routineOk ? params.mode : undefined };
+  // etapa de um módulo (Palavras-chave, Expressões, Ouvir, Aplicar): só abre se liberada; senão, volta ao módulo
+  if (routineOk && params.routine && stageById(params.stage) && params.stage !== 'speak') {
+    if (!stageOpen(content, params.routine, params.stage, state)) { App.go(`#/module/${params.routine}`); return; }
+    focus.stage = params.stage;
+  }
   const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
   let queue;
   const today = App.today();
@@ -40,7 +46,7 @@ export function renderSession(App, { params }) {
   } else if (focus.mode === 'difficult') {
     queue = difficultCards(state, content).slice(0, 15).map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true }; });
   } else {
-    queue = buildSession(content, state.cards, { focus, size, today });
+    queue = buildSession(content, state.cards, { focus, size, today, filter: focus.stage ? stageFilter(content, focus.routine, focus.stage) : null });
   }
   queue = queue.filter((q) => validEntry(content, q));
   if (focus.mode !== 'present') queue = maybePairs(queue, content);
@@ -70,7 +76,8 @@ export function renderSession(App, { params }) {
       h('div', { style: { fontSize: '2rem' }, text: '🎉' }),
       h('h3', { text: 'Nada pendente por aqui agora' }),
       h('p', { class: 'muted small', text: 'Você está em dia neste foco. Escolha outra rotina ou momento do dia, ou pratique a fala.' })));
-    actions(h('a', { class: 'btn', href: '#/explore' }, 'Explorar'), h('a', { class: 'btn primary', href: '#/lab' }, 'Speaking Lab'));
+    if (focus.stage) actions(h('a', { class: 'btn primary', href: `#/module/${focus.routine}` }, 'Voltar ao módulo'));
+    else actions(h('a', { class: 'btn', href: '#/explore' }, 'Explorar'), h('a', { class: 'btn primary', href: '#/lab' }, 'Speaking Lab'));
     return () => actionbar.remove();
   }
 
@@ -628,7 +635,8 @@ export function renderSession(App, { params }) {
       wrongUnits.length ? h('div', { class: 'card' }, h('h3', { text: 'Vai voltar para revisão' }),
         ...wrongUnits.map((e) => h('div', { class: 'small en', text: '• ' + unitLabel(content, e) }))) : null);
     if (events.length) toast(`Conquista: ${events[0].title}`);
-    actions(h('a', { class: 'btn', href: '#/' }, 'Início'), h('button', { class: 'btn primary', onclick: () => App.go(sessionHref(focus.mode ? {} : focus)) }, 'Nova sessão'));
+    actions(focus.stage ? h('a', { class: 'btn', 'data-role': 'back-module', href: `#/module/${focus.routine}` }, 'Voltar ao módulo') : h('a', { class: 'btn', href: '#/' }, 'Início'),
+      h('button', { class: 'btn primary', onclick: () => App.go(sessionHref(focus.mode ? {} : focus)) }, focus.stage ? 'Praticar de novo' : 'Nova sessão'));
   }
 
   next();

@@ -58,6 +58,9 @@ const PATHS = {
   timer: 'M12 8v5l3 2M9 2h6M12 22a8 8 0 100-16 8 8 0 000 16z',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   slow: 'M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',
+  star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z',
+  chat: 'M4 5h16v11H9l-5 4z',
 };
 
 export function icon(name, extra = '') {

@@ -7,6 +7,10 @@ import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
 import { storageReport } from '../store/storage.js';
 import { freshState } from '../engine/progress.js';
+import { makeOwnerOf, syncActive } from '../engine/profiles.js';
+
+/** Cartões de todos os perfis (persona e jornadas) de um estado. */
+const totalCards = (st) => { syncActive(st); return Object.values(st.profiles).reduce((n, p) => n + Object.keys(p.cards || {}).length, 0); };
 import { registry, visualStatus } from '../engine/characters.js';
 import { characterBadge } from './character.js';
 
@@ -41,8 +45,8 @@ export function renderSettings(App) {
     const btn = h('button', { class: 'list-btn char-opt', type: 'button', role: 'radio', 'aria-checked': String(on), 'data-character': c.id },
       characterBadge(c, 'idle'),
       h('div', { class: 'grow' },
-        h('div', { class: 'title' }, c.name, c.status === 'preview' ? h('span', { class: 'chip', style: { marginLeft: '8px' }, text: 'em preparação' }) : null),
-        h('div', { class: 'small muted', text: `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` }),
+        h('div', { class: 'title' }, c.name, c.status === 'preview' || c.status === 'planned' ? h('span', { class: 'chip', style: { marginLeft: '8px' }, text: 'em preparação' }) : null),
+        h('div', { class: 'small muted', text: pack ? `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` : 'Conteúdo em preparação · progresso próprio' }),
         h('div', { class: 'tiny muted', text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === 'preview' ? ' · áudio de referência: voz do aparelho' : ''}` })),
       on ? icon('check') : null);
     btn.onclick = () => {
@@ -143,15 +147,13 @@ export function renderSettings(App) {
   async function importFile(file) {
     if (!file) return;
     try {
-      const incoming = await db.parseBackup(file, App.content.version);
-      const n = Object.keys(incoming.cards).length;
-      const ok = await confirmSheet('Restaurar backup?', `O progresso atual (${Object.keys(state.cards).length} cartões) será substituído pelo do backup (${n} cartões, ${incoming.xp} XP). Uma cópia do atual fica guardada no aparelho.`, { ok: 'Restaurar' });
+      const incoming = await db.parseBackup(file, App.content.version, { ownerOf: makeOwnerOf(App.profileViews()) });
+      const n = totalCards(incoming);
+      const ok = await confirmSheet('Restaurar backup?', `O progresso atual de todas as personas e jornadas (${totalCards(state)} cartões) será substituído pelo do backup (${n} cartões). Cada persona e jornada fica com o próprio progresso. Uma cópia do atual fica guardada no aparelho.`, { ok: 'Restaurar' });
       if (!ok) return;
       await db.keepPrevious(state);
-      App.state = incoming;
+      App.adoptState(incoming);
       await db.saveState(incoming);
-      App.rebuildChecker();
-      App.applySettings();
       toast('Backup restaurado.');
       App.go('#/');
     } catch (e) {
@@ -166,10 +168,10 @@ export function renderSettings(App) {
     const sure = await confirmSheet('Confirmar exclusão', 'O backup foi baixado. Apagar agora?', { ok: 'Apagar', danger: true });
     if (!sure) return;
     await db.wipeState();
-    App.state = freshState(App.content.version);
-    App.state.settings = { ...App.state.settings, ...s };
+    const fresh = freshState(App.content.version);
+    fresh.settings = { ...fresh.settings, ...s };
+    App.adoptState(fresh);
     await db.saveState(App.state);
-    App.rebuildChecker();
     toast('Progresso apagado.');
     App.go('#/');
   }
