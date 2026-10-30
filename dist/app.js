@@ -1251,9 +1251,9 @@
     } else {
       let ps = raw.profiles && typeof raw.profiles === "object" && !Array.isArray(raw.profiles) ? raw.profiles : null;
       if (!ps) repairs.push("profiles");
-      const live = PROGRESS_KEYS.filter((k) => k in raw);
-      if (live.length && typeof raw.activeProfile === "string") {
-        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live.map((k) => [k, raw[k]])) } };
+      const live2 = PROGRESS_KEYS.filter((k) => k in raw);
+      if (live2.length && typeof raw.activeProfile === "string") {
+        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live2.map((k) => [k, raw[k]])) } };
       }
       s.profiles = {};
       for (const [id, p] of Object.entries(ps || {})) s.profiles[id] = cleanProgress(p, today, repairs);
@@ -2899,6 +2899,321 @@
     );
   }
 
+  // app/js/ui/pwa.js
+  var CHECK_EVERY_MS = 15 * 60 * 1e3;
+  var NO_BANNER = ["session"];
+  var LS_INSTALLED = "drg.installed";
+  var listeners2 = /* @__PURE__ */ new Set();
+  var notify = () => listeners2.forEach((fn) => {
+    try {
+      fn();
+    } catch (e) {
+    }
+  });
+  var lsGet = (k) => {
+    try {
+      return localStorage.getItem(k);
+    } catch (e) {
+      return null;
+    }
+  };
+  var lsSet = (k, v) => {
+    try {
+      if (v === null) localStorage.removeItem(k);
+      else localStorage.setItem(k, v);
+    } catch (e) {
+    }
+  };
+  var early = { deferred: null, installed: false, app: null };
+  if (typeof window !== "undefined") {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      early.deferred = e;
+      lsSet(LS_INSTALLED, null);
+      if (early.app) early.app();
+    });
+    window.addEventListener("appinstalled", () => {
+      early.deferred = null;
+      early.installed = true;
+      lsSet(LS_INSTALLED, "1");
+      if (early.app) early.app("installed");
+    });
+  }
+  function isStandalone() {
+    try {
+      return ["standalone", "fullscreen", "minimal-ui", "window-controls-overlay"].some((m) => matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function initPwa(App2) {
+    const pwa = App2.pwa = { install: "manual", update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, postponed: false };
+    const refreshInstall = () => {
+      pwa.install = isStandalone() ? "standalone" : pwa.deferred ? "available" : lsGet(LS_INSTALLED) ? "installed-elsewhere" : "manual";
+    };
+    refreshInstall();
+    early.app = (what) => {
+      pwa.deferred = early.deferred;
+      refreshInstall();
+      notify();
+      if (what === "installed") {
+        requestPersistence().catch(() => {
+        });
+        toast("Aplicativo instalado. Abra pelo \xEDcone \u201CDaily English\u201D na tela inicial ou na gaveta de aplicativos.", 6e3);
+      }
+    };
+    try {
+      matchMedia("(display-mode: standalone)").addEventListener("change", () => {
+        refreshInstall();
+        notify();
+      });
+    } catch (e) {
+    }
+    if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) {
+      pwa.install = isStandalone() ? "standalone" : "unsupported";
+      return pwa;
+    }
+    const sw = navigator.serviceWorker;
+    const firstInstall = !sw.controller;
+    let reloading = false;
+    sw.addEventListener("controllerchange", () => {
+      if (pwa.update === "applying") {
+        if (!reloading) {
+          reloading = true;
+          location.reload();
+        }
+        return;
+      }
+      if (firstInstall) toast("Pronto para uso offline: todo o conte\xFAdo e o \xE1udio est\xE3o salvos no aparelho.", 5e3);
+    });
+    const watch = (worker2) => {
+      if (!worker2) return;
+      if (sw.controller) {
+        pwa.update = "downloading";
+        notify();
+      }
+      worker2.addEventListener("statechange", () => {
+        if (worker2.state === "installed" && sw.controller) {
+          pwa.update = "ready";
+          notify();
+        }
+        if (worker2.state === "redundant" && pwa.update === "downloading") {
+          pwa.update = "failed";
+          notify();
+        }
+      });
+    };
+    sw.register("sw.js").then((reg) => {
+      pwa.reg = reg;
+      if (reg.waiting && sw.controller) {
+        pwa.update = "ready";
+        notify();
+      }
+      if (reg.installing) watch(reg.installing);
+      reg.addEventListener("updatefound", () => watch(reg.installing));
+      pwa.lastCheck = Date.now();
+    }).catch((e) => console.warn("SW n\xE3o registrado", e));
+    const check = () => {
+      if (!pwa.reg || document.visibilityState !== "visible" || Date.now() - pwa.lastCheck < CHECK_EVERY_MS) return;
+      pwa.lastCheck = Date.now();
+      if (pwa.update === "failed") pwa.update = null;
+      pwa.reg.update().catch(() => {
+      });
+    };
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return pwa;
+  }
+  function confirmBoot(App2) {
+    const ctrl = "serviceWorker" in navigator && navigator.serviceWorker.controller;
+    if (!ctrl) return;
+    const ask = (type) => new Promise((resolve) => {
+      const ch = new MessageChannel();
+      const t = setTimeout(() => resolve(null), 5e3);
+      ch.port1.onmessage = (e) => {
+        clearTimeout(t);
+        resolve(e.data);
+      };
+      ctrl.postMessage({ type }, [ch.port2]);
+    });
+    ask("CLEANUP").then((r) => {
+      if (r && App2.pwa) {
+        App2.pwa.version = r.version;
+        App2.pwa.cleaned = r.removed;
+        notify();
+      }
+    });
+  }
+  async function applyUpdate(App2) {
+    const pwa = App2.pwa;
+    const waiting = pwa && pwa.reg && pwa.reg.waiting;
+    if (!waiting) {
+      pwa.update = null;
+      notify();
+      return false;
+    }
+    try {
+      await App2.flush();
+    } catch (e) {
+      toast("N\xE3o foi poss\xEDvel gravar o progresso agora. A atualiza\xE7\xE3o foi adiada.", 6e3);
+      return false;
+    }
+    pwa.update = "applying";
+    notify();
+    waiting.postMessage({ type: "SKIP_WAITING" });
+    setTimeout(() => {
+      if (pwa.update === "applying") {
+        pwa.update = "ready";
+        notify();
+        toast("A atualiza\xE7\xE3o n\xE3o foi conclu\xEDda. Seu progresso est\xE1 salvo; tente de novo.", 6e3);
+      }
+    }, 1e4);
+    return true;
+  }
+  var currentRoute = () => location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
+  function updateBanner(App2) {
+    const pwa = App2.pwa;
+    if (!pwa || NO_BANNER.includes(currentRoute())) return null;
+    const st = pwa.update;
+    if (st === "failed") {
+      return h(
+        "div",
+        { class: "update-bar warn", role: "status", "data-role": "update-failed" },
+        h("span", { class: "grow", text: "N\xE3o foi poss\xEDvel baixar a nova vers\xE3o agora. O app continua funcionando; tentaremos de novo mais tarde." }),
+        h("button", { class: "btn small ghost", onclick: () => {
+          pwa.update = null;
+          notify();
+        } }, "OK")
+      );
+    }
+    if (st !== "ready" && st !== "applying" || pwa.postponed) return null;
+    const now = h("button", { class: "btn small primary", "data-role": "update-now", disabled: st === "applying", onclick: () => applyUpdate(App2) }, st === "applying" ? "Atualizando\u2026" : "Atualizar agora");
+    return h(
+      "div",
+      { class: "update-bar", role: "status", "data-role": "update-banner" },
+      icon("refresh"),
+      h("span", { class: "grow", text: "Nova vers\xE3o dispon\xEDvel. Seu progresso fica salvo." }),
+      h("button", { class: "btn small ghost", "data-role": "update-later", onclick: () => {
+        pwa.postponed = true;
+        notify();
+      } }, "Depois"),
+      now
+    );
+  }
+  function live(render) {
+    const slot = h("div", { class: "pwa-slot" });
+    const draw = () => {
+      if (!slot.isConnected && slot.dataset.drawn) {
+        listeners2.delete(draw);
+        return;
+      }
+      slot.dataset.drawn = "1";
+      slot.replaceChildren(...[render()].filter(Boolean));
+    };
+    listeners2.add(draw);
+    draw();
+    return slot;
+  }
+  function manualSteps() {
+    return h(
+      "div",
+      { class: "small", "data-role": "install-manual" },
+      h("p", { style: { margin: "6px 0 4px" } }, h("b", { text: "No Google Chrome: " }), "toque em \u22EE (canto superior direito) \u2192 \u201CInstalar app\u201D (ou \u201CAdicionar \xE0 tela inicial\u201D \u2192 \u201CInstalar\u201D)."),
+      h("p", { style: { margin: "4px 0" } }, h("b", { text: "No Samsung Internet: " }), "toque em \u2261 (canto inferior direito) \u2192 \u201CAdicionar p\xE1gina a\u201D \u2192 \u201CTela inicial\u201D."),
+      h("p", { class: "muted", style: { margin: "4px 0 0" }, text: "Depois, abra o Daily English pelo \xEDcone. Instale pelo mesmo navegador que voc\xEA j\xE1 usa: cada navegador guarda o seu pr\xF3prio progresso." })
+    );
+  }
+  function installCard(App2, { compact = false } = {}) {
+    return live(() => {
+      const pwa = App2.pwa || { install: "unsupported" };
+      const st = pwa.install;
+      if (st === "standalone") return compact ? null : h("div", { class: "card flat small", "data-role": "install-status", "data-state": st }, "\u2713 Aberto como aplicativo instalado.");
+      if (st === "installed-elsewhere") {
+        return h(
+          "div",
+          { class: "card flat small", "data-role": "install-status", "data-state": st },
+          "O aplicativo j\xE1 est\xE1 instalado neste aparelho. Abra pelo \xEDcone \u201CDaily English\u201D."
+        );
+      }
+      if (st === "available") {
+        const btn = h("button", { class: "btn primary block", "data-role": "install-app", onclick: async () => {
+          const ev = pwa.deferred;
+          if (!ev) return;
+          btn.disabled = true;
+          try {
+            await ev.prompt();
+            const choice = await ev.userChoice;
+            pwa.deferred = null;
+            early.deferred = null;
+            if (choice && choice.outcome === "accepted") {
+              pwa.install = "installed-elsewhere";
+              lsSet(LS_INSTALLED, "1");
+            } else {
+              pwa.install = "manual";
+              toast("Instala\xE7\xE3o cancelada. Voc\xEA pode instalar depois pelo menu do navegador.", 5e3);
+            }
+          } catch (e) {
+            pwa.deferred = null;
+            early.deferred = null;
+            pwa.install = "manual";
+          }
+          notify();
+        } }, icon("download"), "Instalar aplicativo");
+        return h(
+          "section",
+          { class: "card install-card", "data-role": "install-card", "data-state": st },
+          h("b", { text: "Instale o Daily English" }),
+          h("p", { class: "small muted", style: { margin: "4px 0 10px" }, text: "Fica na gaveta de aplicativos, abre em janela pr\xF3pria e funciona sem internet." }),
+          btn
+        );
+      }
+      if (st === "unsupported") return compact ? null : h("div", { class: "card flat small", "data-role": "install-status", "data-state": st }, "Este modo de abertura n\xE3o permite instalar. Abra o endere\xE7o do app no Chrome do celular.");
+      if (compact) {
+        return h(
+          "details",
+          { class: "card flat install-card", "data-role": "install-card", "data-state": st },
+          h("summary", { class: "small" }, h("b", { text: "Instalar como aplicativo" })),
+          manualSteps(),
+          h("a", { class: "small", href: "install.html", text: "P\xE1gina de instala\xE7\xE3o" })
+        );
+      }
+      return h(
+        "section",
+        { class: "card install-card", "data-role": "install-card", "data-state": st },
+        h("b", { text: "Instalar como aplicativo" }),
+        manualSteps(),
+        h("a", { class: "btn small", href: "install.html", style: { marginTop: "8px" } }, "P\xE1gina de instala\xE7\xE3o")
+      );
+    });
+  }
+  function updateStatus(App2) {
+    return live(() => {
+      const pwa = App2.pwa || {};
+      const ver = pwa.version ? `Vers\xE3o ${pwa.version}` : "Vers\xE3o em uso";
+      const st = pwa.update;
+      const action = st === "ready" || st === "applying" ? h("button", { class: "btn small primary", "data-role": "update-now", disabled: st === "applying", onclick: () => applyUpdate(App2) }, st === "applying" ? "Atualizando\u2026" : "Atualizar agora") : h("button", { class: "btn small", "data-role": "update-check", onclick: async () => {
+        if (!pwa.reg) {
+          toast("Atualiza\xE7\xE3o indispon\xEDvel neste modo de abertura.");
+          return;
+        }
+        pwa.lastCheck = Date.now();
+        try {
+          await pwa.reg.update();
+          toast(pwa.reg.installing || pwa.reg.waiting ? "Baixando a nova vers\xE3o\u2026" : "Voc\xEA j\xE1 est\xE1 na vers\xE3o mais recente.");
+        } catch (e) {
+          toast("Sem conex\xE3o: n\xE3o foi poss\xEDvel procurar atualiza\xE7\xF5es agora.");
+        }
+      } }, "Procurar atualiza\xE7\xE3o");
+      const text = st === "ready" ? "Nova vers\xE3o pronta para instalar." : st === "downloading" ? "Baixando a nova vers\xE3o em segundo plano\u2026" : st === "failed" ? "O \xFAltimo download da atualiza\xE7\xE3o falhou; o app tentar\xE1 de novo." : "O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele.";
+      return h(
+        "div",
+        { class: "card flat small", "data-role": "update-status", "data-state": st || "idle" },
+        h("div", { class: "row nowrap" }, h("div", { class: "grow" }, h("b", { text: ver }), h("div", { class: "muted", text })), action),
+        h("div", { class: "tiny muted", style: { marginTop: "6px" }, text: "Atualizar n\xE3o apaga seu progresso. O reconhecimento de fala baixado continua guardado." })
+      );
+    });
+  }
+
   // app/js/ui/home.js
   var EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
   function renderHome(App2) {
@@ -3000,6 +3315,7 @@
     if (state.lastBackupAt === null && allCards > 30) {
       view.append(h("div", { class: "notice warn", style: { marginTop: "16px" } }, "Seu progresso fica s\xF3 neste aparelho. ", h("a", { href: "#/settings", text: "Fa\xE7a um backup" }), " de vez em quando."));
     }
+    view.append(h("div", { style: { marginTop: "16px" } }, installCard(App2, { compact: true })));
   }
   function trackCard({ role, title, desc, t, view, planned = false, onOpen, button = "open-track" }) {
     const next = t && t.current && t.next ? `${t.current.id} \xB7 ${moduleTitleOf(view, t.current.id)} \u2014 ${t.next.title}` : t && t.total ? "Todas as etapas conclu\xEDdas \u{1F389}" : null;
@@ -7427,6 +7743,7 @@
       toast("Progresso apagado.");
       App2.go("#/");
     }
+    view.append(h("h2", { text: "Aplicativo" }), h("div", { class: "stack", "data-role": "app-section" }, installCard(App2), updateStatus(App2)));
     view.append(h("h2", { text: "Sobre" }), h(
       "div",
       { class: "card small" },
@@ -7572,6 +7889,7 @@
     );
     const view = h("main", { class: `view${nav ? "" : " no-nav"}`, id: "view" });
     root.append(top, view);
+    if (App.pwa) view.append(live(() => updateBanner(App)));
     if (nav) {
       const r = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
       root.append(h(
@@ -7651,9 +7969,10 @@
       App.flush().catch(() => {
       });
     });
+    initPwa(App);
     route();
     if (problem) toast(problem, 6e3);
-    registerServiceWorker();
+    confirmBoot(App);
     scheduleRetention();
   }
   var retentionRunning = null;
@@ -7674,21 +7993,6 @@
       if (document.visibilityState === "visible") App.runRetention();
     });
     setInterval(() => App.runRetention(), 60 * 60 * 1e3);
-  }
-  function registerServiceWorker() {
-    if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
-    const firstInstall = !navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (firstInstall) toast("Pronto para uso offline: todo o conte\xFAdo e o \xE1udio est\xE3o salvos no aparelho.", 5e3);
-    });
-    navigator.serviceWorker.register("sw.js").then((reg) => {
-      reg.addEventListener("updatefound", () => {
-        const w = reg.installing;
-        w && w.addEventListener("statechange", () => {
-          if (w.state === "installed" && navigator.serviceWorker.controller) toast("Nova vers\xE3o instalada. Feche e reabra o app para usar.", 5e3);
-        });
-      });
-    }).catch((e) => console.warn("SW n\xE3o registrado", e));
   }
   boot();
 })();

@@ -7,6 +7,7 @@ import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
 import { storageReport } from '../store/storage.js';
 import { freshState } from '../engine/progress.js';
+import { installCard, updateStatus } from './pwa.js';
 import { makeOwnerOf, syncActive } from '../engine/profiles.js';
 
 /** Cartões de todos os perfis (persona e jornadas) de um estado. */
@@ -175,6 +176,9 @@ export function renderSettings(App) {
     toast('Progresso apagado.');
     App.go('#/');
   }
+
+  // ---------- aplicativo: instalação e atualização (ui/pwa.js) ----------
+  view.append(h('h2', { text: 'Aplicativo' }), h('div', { class: 'stack', 'data-role': 'app-section' }, installCard(App), updateStatus(App)));
 
   // ---------- sobre ----------
   view.append(h('h2', { text: 'Sobre' }), h('div', { class: 'card small' },

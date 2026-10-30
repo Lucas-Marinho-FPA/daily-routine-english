@@ -457,3 +457,11 @@ a.stage-row:active { transform: scale(.99); }
 .hero .bar { background: rgba(255, 255, 255, .22); }
 .hero .bar i { background: var(--orange); }
 .hero .char-ph { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .5); color: #fff; }
+
+/* ---------- aplicativo instalável: aviso de atualização e cartão de instalação ---------- */
+.update-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--ink); border: 1px solid var(--line); font-size: .9rem; }
+.update-bar.warn { background: var(--warn-soft); }
+.update-bar .grow { min-width: 160px; }
+.install-card summary { cursor: pointer; }
+.stack > .pwa-slot:empty { display: none; }

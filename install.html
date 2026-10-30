@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1d4e89">
+  <meta name="color-scheme" content="light dark">
+  <!-- Mesma política do app: nenhuma conexão externa. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Instalar o Daily Routine English</title>
+  <meta name="description" content="Aprenda inglês britânico com rotinas e diálogos do dia a dia. Instale no Android e use sem internet.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    .inst { max-width: 640px; margin: 0 auto; padding: 16px 16px 40px; }
+    .inst-hero { display: flex; gap: 14px; align-items: center; }
+    .inst-hero img { width: 72px; height: 72px; border-radius: 18px; flex: none; }
+    .inst-hero h1 { margin: 0; font-size: 1.45rem; line-height: 1.2; color: #fff; }
+    .inst ol { padding-left: 20px; margin: 6px 0 0; }
+    .inst li + li { margin-top: 4px; }
+    .inst h2 { margin: 22px 0 8px; }
+    .qr { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .qr img { width: 168px; height: 168px; background: #fff; border-radius: 12px; padding: 6px; border: 1px solid var(--line); }
+    .qr .url { overflow-wrap: anywhere; }
+    .feat { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .feat li { padding-left: 22px; position: relative; }
+    .feat li::before { content: '•'; position: absolute; left: 6px; color: var(--accent); font-weight: 800; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="inst">
+    <section class="hero">
+      <div class="inst-hero">
+        <img src="icons/icon-192.png" alt="" width="72" height="72">
+        <div>
+          <h1>Daily Routine English</h1>
+          <div class="small muted">Inglês britânico a partir de rotinas e conversas do dia a dia</div>
+        </div>
+      </div>
+      <div style="margin-top:16px" id="actions">
+        <button class="btn primary block lg" id="install" type="button" hidden>Instalar aplicativo</button>
+        <p class="small" id="installed" hidden>✓ O aplicativo já está instalado neste aparelho. Abra pelo ícone “Daily English”.</p>
+        <a class="btn block" href="index.html" id="open" style="margin-top:10px">Abrir o aplicativo no navegador</a>
+      </div>
+    </section>
+
+    <h2>O que é</h2>
+    <p class="small">Uma ferramenta de aprendizagem de inglês britânico. Você estuda em jornadas organizadas em módulos: primeiro as palavras e expressões de uma situação, depois ouve, fala e usa o que aprendeu numa conversa. As rotinas e os diálogos têm personagens fixos e acontecem em situações reais do dia a dia.</p>
+    <ul class="feat small">
+      <li>Jornadas em módulos: palavras-chave, expressões práticas, ouvir, falar e aplicar.</li>
+      <li>Conversation Practice: diálogos para entender e participar de conversas.</li>
+      <li>Áudio de referência em inglês britânico, salvo no aparelho.</li>
+      <li>Speaking Lab: grave sua fala e receba retorno; o reconhecimento de fala é opcional e roda no próprio celular.</li>
+      <li>Sem conta e sem anúncios: seus dados ficam só no seu aparelho.</li>
+    </ul>
+
+    <h2>Como instalar no Android</h2>
+    <div class="card">
+      <b>Google Chrome (recomendado)</b>
+      <ol class="small">
+        <li>Abra este endereço no Chrome.</li>
+        <li>Toque em <b>Instalar aplicativo</b> (acima) ou no menu <b>⋮</b> → <b>Instalar app</b>.</li>
+        <li>Confirme em <b>Instalar</b>. O ícone <b>Daily English</b> aparece na tela inicial e na gaveta de aplicativos.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <b>Samsung Internet</b>
+      <ol class="small">
+        <li>Abra este endereço no Samsung Internet.</li>
+        <li>Toque em <b>≡</b> (canto inferior direito) → <b>Adicionar página a</b> → <b>Tela inicial</b>.</li>
+        <li>Abra o Daily English pelo ícone criado.</li>
+      </ol>
+    </div>
+    <p class="tiny muted">Use sempre o mesmo navegador: cada navegador guarda o seu próprio progresso. Não precisa de loja de aplicativos nem de arquivo APK.</p>
+
+    <h2>Funciona sem internet</h2>
+    <p class="small">No primeiro acesso, com internet, o app guarda no aparelho todo o conteúdo e o áudio (cerca de 12 MB). Depois, abre e funciona offline. O reconhecimento de fala (cerca de 38 MB) é opcional e só é baixado se você pedir, no Speaking Lab.</p>
+    <p class="small">As atualizações chegam sozinhas quando houver internet. O app avisa “Nova versão disponível” e você escolhe a hora de atualizar; seu progresso continua salvo.</p>
+
+    <h2>Faça backups</h2>
+    <div class="notice warn small">Seu progresso fica só neste aparelho. Se você limpar os dados do navegador, trocar de celular ou desinstalar, ele pode ser perdido. De vez em quando, abra <b>Ajustes → Exportar backup</b> e guarde o arquivo.</div>
+
+    <h2>Abrir no celular</h2>
+    <div class="qr">
+      <img src="img/install-qr.svg" alt="Código QR com o endereço desta página" width="168" height="168">
+      <div class="small">Aponte a câmera do celular para o código ou digite:<div class="url"><b id="url">lucas-marinho-fpa.github.io/daily-routine-english/install.html</b></div></div>
+    </div>
+  </main>
+  <script src="install.js"></script>
+</body>
+</html>

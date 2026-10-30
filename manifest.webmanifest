@@ -1,4 +1,5 @@
 {
+  "id": "/daily-routine-english/index.html",
   "name": "Daily Routine English",
   "short_name": "Daily English",
   "description": "Prática offline de inglês britânico a partir das suas rotinas.",
@@ -10,8 +11,46 @@
   "background_color": "#f4f2ed",
   "theme_color": "#1d4e89",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/modulo.png",
+      "sizes": "824x1830",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Módulo com as cinco etapas: palavras, expressões, ouvir, falar e aplicar"
+    },
+    {
+      "src": "screenshots/palavras.png",
+      "sizes": "824x1830",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Palavras-chave com áudio, significado e exemplo da situação"
+    },
+    {
+      "src": "screenshots/ouvir.png",
+      "sizes": "824x1830",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ouvir e entender: o texto só aparece depois da resposta"
+    }
   ]
 }

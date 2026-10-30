@@ -17,6 +17,7 @@ import { activate, profileIdFor, journeyProfile, makeOwnerOf } from './engine/pr
 import { renderCharacterPick } from './ui/character.js';
 import { journeyById, journeyView, journeyRegistry } from './engine/journeys.js';
 import { renderModules, renderModule, renderWords, plannedNotice } from './ui/modules.js';
+import { initPwa, confirmBoot, updateBanner, live } from './ui/pwa.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -101,6 +102,7 @@ function layout(title, { back = null, actions = [], nav = true } = {}) {
     ...actions);
   const view = h('main', { class: `view${nav ? '' : ' no-nav'}`, id: 'view' });
   root.append(top, view);
+  if (App.pwa) view.append(live(() => updateBanner(App))); // “Nova versão disponível” (nunca dentro de uma sessão)
   if (nav) {
     const r = (location.hash.replace(/^#\/?/, '').split(/[/?]/)[0]) || '';
     root.append(h('nav', { class: 'nav', 'aria-label': 'Principal' },
@@ -159,9 +161,10 @@ async function boot() {
   window.addEventListener('hashchange', route);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') App.flush().catch(() => {}); });
   window.addEventListener('pagehide', () => { App.flush().catch(() => {}); });
+  initPwa(App); // instalação e atualização controlada (ui/pwa.js)
   route();
   if (problem) toast(problem, 6000);
-  registerServiceWorker();
+  confirmBoot(App); // abriu com sucesso: arquivos de versões anteriores podem ser limpos
   scheduleRetention();
 }
 
@@ -182,22 +185,6 @@ function scheduleRetention() {
   setTimeout(() => App.runRetention(), 1500);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') App.runRetention(); });
   setInterval(() => App.runRetention(), 60 * 60 * 1000);
-}
-
-function registerServiceWorker() {
-  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
-  const firstInstall = !navigator.serviceWorker.controller;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (firstInstall) toast('Pronto para uso offline: todo o conteúdo e o áudio estão salvos no aparelho.', 5000);
-  });
-  navigator.serviceWorker.register('sw.js').then((reg) => {
-    reg.addEventListener('updatefound', () => {
-      const w = reg.installing;
-      w && w.addEventListener('statechange', () => {
-        if (w.state === 'installed' && navigator.serviceWorker.controller) toast('Nova versão instalada. Feche e reabra o app para usar.', 5000);
-      });
-    });
-  }).catch((e) => console.warn('SW não registrado', e));
 }
 
 boot();

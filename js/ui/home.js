@@ -11,6 +11,7 @@ import { progressOf, journeyProfile } from '../engine/profiles.js';
 import { trackStatus, moduleOf } from '../engine/modules.js';
 import { characterSwitcher, characterBadge } from './character.js';
 import { stageHref } from './modules.js';
+import { installCard } from './pwa.js';
 
 const EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
 
@@ -87,6 +88,8 @@ export function renderHome(App) {
   if (state.lastBackupAt === null && allCards > 30) {
     view.append(h('div', { class: 'notice warn', style: { marginTop: '16px' } }, 'Seu progresso fica só neste aparelho. ', h('a', { href: '#/settings', text: 'Faça um backup' }), ' de vez em quando.'));
   }
+  // instalar como aplicativo (some quando já está instalado ou aberto pelo ícone)
+  view.append(h('div', { style: { marginTop: '16px' } }, installCard(App, { compact: true })));
 }
 
 /** Cartão de jornada: nome, descrição, progresso, próxima etapa e botão. */
