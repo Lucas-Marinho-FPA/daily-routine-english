@@ -1,0 +1,39 @@
+✔ T01 Abre em localhost e registra o service worker — 1805 arquivos em cache; escolha inicial: Lucas
+✔ T02 Primeira sessão completa (respostas corretas) — {"telas":13,"tipos":["learn","mc","conv"],"xp":86,"cartoes":7}
+✔ T03 Erros reaparecem na mesma sessão e geram feedback — {"telas":22,"errados":5,"repetidosNaSessao":5,"xpAntes":86,"xpDepois":222}
+✔ T04 Várias sessões desbloqueiam níveis mais altos (recuperar, construir, frases, perguntas) — {"habilidades":["rec","conv","ord","wrt","seq","tell","rcl","bld"],"cartoes":47,"xp":684}
+✔ T05 Exercícios de cada tipo aparecem e podem ser respondidos — ["cloze","conv","learn","mc","order","pairs","recall","seq","tell","write"]
+✔ T06 Progresso persiste após recarregar (sem duplicar XP) — {"xp":907,"cartoes":55}
+✔ T07 Funciona offline (servidor desligado + rede cortada) e mantém o progresso — {"titulo":"Progresso","audio":{"status":206,"bytes":13965},"sessaoOffline":13}
+✔ T08 Speaking Lab: gravar, analisar, salvar e recarregar a gravação (offline) — gravação de ~2,5 s salva no IndexedDB e recarregada
+✔ T09 Speaking Lab: reconhecimento do Chrome no aparelho (simulado) — consultado só a pedido; gravar avalia sem clique extra — 13 palavras reconhecidas · Transcrição: “I wake up at five a m take a shower and brush my t
+✔ T19 Inline — estado A: frase curta numa única linha, texto idêntico e sem cores antes de gravar — {"frase":"What's a bug?","palavras":3,"linhas":1}
+✔ T20 Inline — texto longo quebra naturalmente (sem quebra por palavra), espaços/pontuação preservados — {"360px":{"palavras":63,"linhas":10,"fontePx":20.48},"412px":{"palavras":63,"linhas":9,"fontePx":20.48},"rotinaCompleta":{"paragrafos":7,"palavras":385,"linhas":56}}
+✔ T21 Inline — gravar com reconhecimento local (simulado): cores por palavra, toque explica, nota parcial — {"estados":{"I":"good","wake":"good","up":"good","at":"good","5:00":"good","a.m.":"good","take":"good","a":"good","shower":"good","and":"good","brush":"good","my":"good","teeth":"needs_practice"},"nota":"93/100Avaliação parcialVamos praticar 1 palavra.","praticar":["teeth"],"detalhe":"teethPrecisa de práticaOuvirNão foi reconhecida como esperado: o reconhecedor ouviu “tits”"}
+✔ T22 Inline — sem reconhecimento no aparelho: palavras cinza (não avaliadas) e sem nota geral — {"estados":["uncertain"],"nota":"nenhuma","aviso":"Análise automática desligada até instalar o reconhecimento.Instalar"}
+✔ T23 Áudio — “Minha voz” tem play/pausa que reflete o estado real e retoma do ponto pausado — {"tocando":"Pausar minha voz","pausadoEm":0.46,"retomadoEm":0.62,"fim":"Minha voz"}
+✔ T24 Áudio — referência toca pelo controle central e um áudio novo para o anterior (sem duplicar) — {"referencia":"/audio/03432398.ogg","depoisDeOuvirReferencia":1,"minhaVozDepois":1}
+✔ T25 Áudio — sair da tela para tudo (Minha voz, referência, A/B) e nada recomeça ao voltar — {"minhaVoz":true,"semReinicio":true,"referencia":true,"ab":true}
+✔ T26 Áudio — avançar para o próximo exercício para o áudio do exercício anterior — {"tipo":"learn","tocandoAntes":"/audio/29188c6d.ogg","silencioDepois":true}
+✔ T27 Áudio — fechar a folha (modal) de um item para o áudio que ela iniciou — {"tocando":"/audio/ecc908c2.ogg","depoisDeFechar":"silêncio"}
+✔ T28 Áudio — ao sair da tela os recursos são liberados (elemento sem fonte, URL da gravação revogada) — {"elemento":{"src":null,"paused":true},"urlRevogada":true}
+✔ T29 Gravação preservada — tocar referência durante a gravação não a interrompe; sair no meio salva a gravação — gravação seguiu durante a referência; gravação interrompida pela saída foi salva
+✔ T30 Lista automática: só a palavra divergente; tocar reproduz o áudio dela; praticar a palavra (reconhecimento do Chrome) e regravar a frase atualiza a lista — {"lista":["chess"],"audioDaPalavra":"9b48540f","devagar":0.7,"palavraIsolada":"match “Chess.”","depoisDeRegravar":"Nenhuma palavra pendente nesta tentativa."}
+✔ T31 Lista de revisão automática e resultado guardado com a gravação (sem marcar palavras à mão) — {"revisao":{"chess":{"auto":true,"okStreak":1}}}
+✔ T32 Excluir gravação: só a do exercício; resultado e pendências somem; recursos liberados; outras gravações e XP intactos — {"excluida":"sent:R01-B1-S1","preservada":"sent:R01-B4-S3","xp":998,"urlRevogada":true}
+✔ T33 Primeira entrada em Falar: convite para instalar aparece; “Agora não” respeitado sem repetir a cada visita — {"tamanho":"38 MB","escolha":"later"}
+✔ T34 Interface: alvos de toque ≥ 40 px, contraste ≥ 4,5:1 (claro e escuro) nos textos novos, sem rolagem horizontal — {"claro":{".w-legend .lg":5.79,".score-tag":5.79,".score-summary":16.34,".score-num":16.34,".pchip":5.57,".practice-panel .muted":5.5,".rec-title":16.34,".eyebrow":5.79,".link-btn.danger":6.54,".practice-hint":5.79},"escuro":{".w-legend .lg":6.81,".score-tag":6.81,".score-summary":14.28,".score-num":14.28,".pchip":11.07,".practice-panel .muted":6.34,".rec-title":14.28,".eyebrow":6.81,".link-btn.danger":7.62,".practice-hint":6.81}}
+✔ T35 Missão com resposta livre sem o modelo: grava, ouve, explica a instalação (tamanho real), nenhuma avaliação inventada; XP e conclusão intactos — {"pergunta":"Could you tell me about your daily routine?","convite":"38 MB","xp":"1122 → 1122 (recompensas anteriores hoje: 2)"}
+✔ T36 Caso A no app (transcrição real do relato do S25+ injetada como resultado salvo): transcrição intacta, trechos suspeitos em âmbar, legenda e explicação corretas — {"trechos":["sit on my","this nation"],"status":"Responde à pergunta","legenda":"CompatívelConfiraNão avaliada"}
+✔ T37 Caso real (frango/alface/Uber) no app: trechos que destoam em âmbar com sugestão rotulada, transcrição intacta; integridade e “não confirmado” visíveis — {"ambar":["kitten","little","over","station"],"status":"Não deu para confirmar tudo","item":"?Diz o horário ou o momento do dia — não confirmado: pode te"}
+✔ T10 Backup: exportar, apagar e restaurar recupera 100% do estado — {"xp":1122,"cartoes":64}
+✔ T11 Backup inválido é recusado sem perder dados — Não foi possível importar: Este arquivo não é um backup deste app.
+✔ T12 Estado corrompido no armazenamento é recuperado sem travar — {"aviso":"Parte do progresso salvo estava danificada (cards, days, xp) e foi reparada; uma…","saneado":{"xp":0,"cards":0},"restaurado":{"xp":1122,"cards":64}}
+✔ T13 Layout: sem rolagem horizontal em 360/412/480 px, fonte 130%, tema escuro — sem problemas
+✔ T16 Abre direto pelo arquivo (file://) com conteúdo e sessão — {"titulo":"Daily Routine English","primeiroExercicio":"Nova expressão"}
+✔ T17 Treino para a aula (R01): contar os 7 blocos, perguntas e rotina completa — {"telas":16,"blocos":7,"perguntas":8}
+✔ T18 Desempenho e memória (cache quente, offline) — {"aberturaMs":[72,80,82],"heapMB":30.9,"nosDOM":8517}
+✔ T14 Nenhuma requisição externa em toda a execução — 0 requisições fora do app
+✔ T15 Nenhum erro de JavaScript na página — 1 avisos de rede esperados no modo offline
+
+37 aprovados, 0 reprovados

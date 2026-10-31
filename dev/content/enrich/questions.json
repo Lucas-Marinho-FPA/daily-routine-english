@@ -1,0 +1,191 @@
+{
+ "_doc": "Perguntas novas (source 'new') para treinar perguntas inesperadas. As respostas-modelo usam apenas fatos que estão no Word (campo 'facts' indica a origem). Nenhuma informação pessoal foi inventada.",
+ "new": [
+  {
+   "q": "Where do you work?",
+   "a": "I work at a bank as a Financial Planning Analyst.",
+   "facts": [
+    "R01-B3"
+   ]
+  },
+  {
+   "q": "How do you get to work?",
+   "a": "I drive to work, and I usually accept Uber rides on my way to the office.",
+   "facts": [
+    "R01-B1",
+    "R07-B1"
+   ]
+  },
+  {
+   "q": "What time do you leave home?",
+   "a": "On on-site days, I leave home at 5:45 a.m.",
+   "facts": [
+    "R01-B1"
+   ]
+  },
+  {
+   "q": "What do you usually have for breakfast?",
+   "a": "I usually have a chicken sandwich, or fruit and oats.",
+   "facts": [
+    "R01-B1",
+    "R01-B3",
+    "R08-B2"
+   ]
+  },
+  {
+   "q": "Where do you park when you go to the office?",
+   "a": "I park on the street near my gym.",
+   "facts": [
+    "R01-B2"
+   ]
+  },
+  {
+   "q": "What do you do at the gym?",
+   "a": "I do ten minutes of cardio and a quick workout. On some days, I do a full weight-training session.",
+   "facts": [
+    "R01-B2",
+    "R08-B2"
+   ]
+  },
+  {
+   "q": "What time do you finish work?",
+   "a": "I finish work at 6:00 p.m.",
+   "facts": [
+    "R01-B5",
+    "R02-B3"
+   ]
+  },
+  {
+   "q": "What do you do when you get home?",
+   "a": "I take a shower and have dinner with my family. We say a prayer before we eat.",
+   "facts": [
+    "R01-B6"
+   ]
+  },
+  {
+   "q": "What do you have for lunch at the office?",
+   "a": "I bring my lunch from home in a lunch box and heat it up in the microwave.",
+   "facts": [
+    "R01-B3",
+    "R01-B4"
+   ]
+  },
+  {
+   "q": "Do you like chess?",
+   "a": "Yes, I do. I play quick games online, and sometimes I play on a chessboard with my son.",
+   "facts": [
+    "R01-B1",
+    "R05-B3",
+    "Q.G06"
+   ]
+  },
+  {
+   "q": "What's the difference between your on-site days and your home office days?",
+   "a": "On an on-site day, I go to the office and often go to the gym, whereas on a home office day, I work from home and usually skip the gym.",
+   "facts": [
+    "R01",
+    "R02-B2",
+    "Drill 2"
+   ]
+  },
+  {
+   "q": "How do you relax?",
+   "a": "I play chess, watch an episode of a series with my family or relax on the sofa with my wife.",
+   "facts": [
+    "R05-B3",
+    "R10-B3"
+   ]
+  },
+  {
+   "q": "Is your job stressful?",
+   "a": "It's mentally demanding. I analyse profitability and prepare presentations for committee meetings.",
+   "facts": [
+    "R01-B3"
+   ]
+  },
+  {
+   "q": "When do you have your English classes?",
+   "a": "I have online classes three times a week, at eleven p.m.",
+   "facts": [
+    "R01-B7"
+   ]
+  },
+  {
+   "q": "How do you study English in the car?",
+   "a": "I listen to music, podcasts or audiobooks in English while I drive.",
+   "facts": [
+    "R01-B5",
+    "R03-B3",
+    "R10-B2"
+   ]
+  },
+  {
+   "q": "What do you usually do at the weekend?",
+   "a": "",
+   "facts": [],
+   "openPersonal": true,
+   "hint": "O Word não fala de fins de semana. Use ‘At the weekend, I usually…’ e escreva a sua resposta real em ‘Minha versão’."
+  }
+ ],
+ "keywords": {
+  "_doc": "Ideias-chave por pergunta (sobrescrevem a extração automática). Cada grupo é aceito se qualquer forma aparecer.",
+  "R01.Q1": [
+   [
+    "five",
+    "5"
+   ],
+   [
+    "wake up",
+    "get up"
+   ]
+  ],
+  "R01.Q2": [
+   [
+    "uber"
+   ],
+   [
+    "ride",
+    "rides",
+    "trip",
+    "trips",
+    "passenger",
+    "passengers"
+   ]
+  ],
+  "R01.Q3": [
+   [
+    "analyse",
+    "analyze",
+    "analysis",
+    "profitability",
+    "efficiency"
+   ],
+   [
+    "presentation",
+    "presentations",
+    "report",
+    "reports"
+   ]
+  ],
+  "R01.Q5": [
+   [
+    "three times",
+    "3 times"
+   ],
+   [
+    "week"
+   ]
+  ],
+  "R09.Q1": [
+   [
+    "nine",
+    "9"
+   ],
+   [
+    "sharp",
+    "exactly",
+    "on time"
+   ]
+  ]
+ }
+}

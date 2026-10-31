@@ -1,0 +1,3320 @@
+{
+ "_doc": "Pacote do Lukinhas (id interno lucas-kid, 11 anos) — GERADO por tools/lukinhas-source.mjs a partir dos dez textos definitivos aprovados (Daily Routine do Lukinhas). Textos em inglês sem alteração; traduções, explicações, exemplos adicionais e perguntas são conteúdo de apoio do app. Personagem narrativo fixo: não é perfil de usuário. Dias da semana dos treinos não informados (não atribuir).",
+ "id": "lucas-kid",
+ "name": "Lukinhas",
+ "short": "Lukinhas",
+ "status": "active",
+ "audience": "child",
+ "age": 11,
+ "idPrefix": "L",
+ "itemPrefix": "lk.",
+ "audio": {
+  "voice": "bm_lewis"
+ },
+ "profile": {
+  "summary": "Tem 11 anos. De manhã, antes da escola, cuida do cachorro, ajuda em casa e vê TV com o irmão até o transporte escolar chegar (por volta de 12h40). Em alguns dias, faz jiu-jitsu com o irmão.",
+  "family": "Pai e irmão aparecem nas rotinas; o cachorro é da família.",
+  "notProvided": [
+   "dias da semana dos treinos de jiu-jitsu",
+   "nome do cachorro",
+   "nome do irmão",
+   "escola"
+  ],
+  "source": "Daily Routine do Lukinhas — dez textos definitivos aprovados pelo usuário."
+ },
+ "visual": {
+  "dir": "assets/characters/lucas-kid",
+  "ext": "png",
+  "states": {
+   "idle": {
+    "file": "IDLE",
+    "status": "pending"
+   },
+   "thinking": {
+    "file": "THINKING",
+    "status": "pending"
+   },
+   "correct": {
+    "file": "CORRECT",
+    "status": "pending"
+   },
+   "wrong": {
+    "file": "WRONG",
+    "status": "pending"
+   },
+   "celebrate": {
+    "file": "CELEBRATE",
+    "status": "pending"
+   },
+   "levelup": {
+    "file": "LEVELUP",
+    "status": "pending"
+   }
+  }
+ },
+ "facts": [
+  {
+   "id": "F01",
+   "kind": "base",
+   "pt": "Acorda bem cedo."
+  },
+  {
+   "id": "F02",
+   "kind": "base",
+   "pt": "Arruma a cama."
+  },
+  {
+   "id": "F03",
+   "kind": "base",
+   "pt": "Desce e dá comida ao cachorro."
+  },
+  {
+   "id": "F04",
+   "kind": "base",
+   "pt": "Limpa a sujeira do cachorro."
+  },
+  {
+   "id": "F05",
+   "kind": "base",
+   "pt": "Leva o lixo para fora."
+  },
+  {
+   "id": "F06",
+   "kind": "base",
+   "pt": "Toma café da manhã."
+  },
+  {
+   "id": "F07",
+   "kind": "base",
+   "pt": "Toma banho."
+  },
+  {
+   "id": "F08",
+   "kind": "base",
+   "pt": "Ajuda nas tarefas de casa."
+  },
+  {
+   "id": "F09",
+   "kind": "base",
+   "pt": "Por volta das 11h se arruma e desce para ver TV com o irmão."
+  },
+  {
+   "id": "F10",
+   "kind": "base",
+   "pt": "O pai deixa os dois verem TV até o transporte escolar chegar, por volta de 12h40."
+  },
+  {
+   "id": "F11",
+   "kind": "base",
+   "pt": "Em dias de jiu-jitsu, ajuda nas tarefas e se prepara para o treino."
+  },
+  {
+   "id": "F12",
+   "kind": "base",
+   "pt": "Em dias de jiu-jitsu, sai com o irmão às 9h40, já com a roupa de treino."
+  },
+  {
+   "id": "F13",
+   "kind": "base",
+   "pt": "Em dias de jiu-jitsu, volta para casa às 11h."
+  },
+  {
+   "id": "F14",
+   "kind": "base",
+   "pt": "Depois do treino, coloca a guia no cachorro e passeia com ele até cerca de 11h30."
+  },
+  {
+   "id": "F15",
+   "kind": "base",
+   "pt": "Depois do passeio, toma outro banho, se arruma e desce para a sala."
+  }
+ ],
+ "themes": [],
+ "routines": [
+  {
+   "id": "L01",
+   "title": "My Morning Routine",
+   "pt": "Sessão 01 · Minha rotina da manhã",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Compreender e descrever ações cotidianas utilizando frases simples.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Present Simple para hábitos (I wake up, I make my bed) e “usually” para o que costuma acontecer. “My dad lets us watch…”: let + pessoa + verbo = deixar alguém fazer algo.",
+   "session": {
+    "n": 1,
+    "focus": "Basic vocabulary and everyday actions",
+    "level": "Beginner — Foundation",
+    "vocab": [
+     "Wake up",
+     "Make my bed",
+     "Feed my dog",
+     "Clean up after him",
+     "Take the rubbish out",
+     "Help around the house",
+     "Freshen up"
+    ],
+    "vocabIds": [
+     "lk.wake-up",
+     "lk.make-my-bed",
+     "lk.feed-my-dog",
+     "lk.clean-up-after",
+     "lk.rubbish-out",
+     "lk.help-around",
+     "lk.freshen-up"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Começo da manhã e o cachorro",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "I usually wake up very early in the morning.",
+       "pt": "Normalmente eu acordo bem cedo de manhã.",
+       "facts": [
+        "F01"
+       ],
+       "items": [
+        "lk.wake-up"
+       ]
+      },
+      {
+       "en": "First, I make my bed and go downstairs to feed my dog.",
+       "pt": "Primeiro, arrumo a cama e desço para dar comida ao meu cachorro.",
+       "facts": [
+        "F02",
+        "F03"
+       ],
+       "items": [
+        "lk.make-my-bed",
+        "lk.feed-my-dog"
+       ]
+      },
+      {
+       "en": "I also clean up after him and take the rubbish out.",
+       "pt": "Também limpo a sujeira que ele faz e levo o lixo para fora.",
+       "facts": [
+        "F04",
+        "F05"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.rubbish-out"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Café, tarefas e TV",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Then, I have breakfast and take a shower.",
+       "pt": "Depois, tomo café da manhã e tomo banho.",
+       "facts": [
+        "F06",
+        "F07"
+       ],
+       "items": []
+      },
+      {
+       "en": "After that, I help around the house with some chores.",
+       "pt": "Em seguida, ajudo em casa com algumas tarefas.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "lk.help-around"
+       ]
+      },
+      {
+       "en": "At around eleven o'clock, I freshen up and go downstairs to watch TV with my brother.",
+       "pt": "Por volta das onze, eu me arrumo e desço para ver TV com o meu irmão.",
+       "facts": [
+        "F09"
+       ],
+       "items": [
+        "lk.freshen-up"
+       ]
+      },
+      {
+       "en": "My dad lets us watch television until our school minibus arrives at about twelve forty.",
+       "pt": "Meu pai deixa a gente ver televisão até o transporte escolar chegar, por volta de meio-dia e quarenta.",
+       "facts": [
+        "F10"
+       ],
+       "items": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L02",
+   "title": "Getting Ready for the Day",
+   "pt": "Sessão 02 · Preparando-me para o dia",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Organizar acontecimentos cronologicamente e compreender conectivos temporais.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Conectivos de tempo: as soon as, once, then, after, later on, while. “Once I’ve looked after my dog” usa o Present Perfect: primeiro termino isso, depois faço o resto. “After getting dressed”: depois de + verbo com -ing.",
+   "session": {
+    "n": 2,
+    "focus": "Sequence, transitions and connectors",
+    "level": "Beginner — Sequencing",
+    "vocab": [
+     "As soon as",
+     "Head downstairs",
+     "Make sure",
+     "Look after",
+     "Once I've...",
+     "After getting dressed",
+     "Later on",
+     "While we wait"
+    ],
+    "vocabIds": [
+     "lk.as-soon-as",
+     "lk.head-downstairs",
+     "lk.make-sure",
+     "lk.look-after",
+     "lk.once-ive",
+     "lk.after-getting-dressed",
+     "lk.later-on",
+     "lk.while-we-wait"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Logo cedo, com o cachorro",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "My mornings start really early.",
+       "pt": "Minhas manhãs começam bem cedo.",
+       "facts": [
+        "F01"
+       ],
+       "items": []
+      },
+      {
+       "en": "As soon as I get up, I tidy my bed and head downstairs.",
+       "pt": "Assim que me levanto, arrumo a cama e desço.",
+       "facts": [
+        "F01",
+        "F02"
+       ],
+       "items": [
+        "lk.as-soon-as",
+        "lk.head-downstairs"
+       ]
+      },
+      {
+       "en": "I put some food in my dog's bowl and make sure everything is clean.",
+       "pt": "Coloco comida na tigela do meu cachorro e confiro se está tudo limpo.",
+       "facts": [
+        "F03",
+        "F04"
+       ],
+       "items": [
+        "lk.make-sure"
+       ]
+      },
+      {
+       "en": "Once I've looked after my dog, I have a good breakfast.",
+       "pt": "Depois de cuidar do meu cachorro, tomo um bom café da manhã.",
+       "facts": [
+        "F03",
+        "F06"
+       ],
+       "items": [
+        "lk.look-after",
+        "lk.once-ive"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Banho, ajuda em casa e TV",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Then, I head upstairs to take a shower.",
+       "pt": "Então, subo para tomar banho.",
+       "facts": [
+        "F07"
+       ],
+       "items": []
+      },
+      {
+       "en": "After getting dressed, I help my family with a few things around the house.",
+       "pt": "Depois de me vestir, ajudo minha família com algumas coisas em casa.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "lk.after-getting-dressed"
+       ]
+      },
+      {
+       "en": "Later on, my brother and I go downstairs to relax and watch TV while we wait for our school transport.",
+       "pt": "Mais tarde, eu e meu irmão descemos para descansar e ver TV enquanto esperamos o transporte da escola.",
+       "facts": [
+        "F09",
+        "F10"
+       ],
+       "items": [
+        "lk.later-on",
+        "lk.while-we-wait"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L03",
+   "title": "Looking After My Dog",
+   "pt": "Sessão 03 · Cuidando do meu cachorro",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Ampliar o vocabulário por meio de situações familiares e atividades concretas.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Possessivos: my dog, his food, my bit (meu, dele, minha parte). “Once he’s eaten”: Present Perfect para uma ação já terminada. Preposições de lugar: downstairs, in the shower, around the house, in the living room.",
+   "session": {
+    "n": 3,
+    "focus": "Verbs and expressions related to caring for the dog",
+    "level": "Beginner to Elementary",
+    "vocab": [
+     "Get out of bed",
+     "Make it properly",
+     "Look after",
+     "Sort out",
+     "Get ready for",
+     "Jump in the shower",
+     "Household chores",
+     "Do my bit"
+    ],
+    "vocabIds": [
+     "lk.get-out-of-bed",
+     "lk.make-it-properly",
+     "lk.look-after",
+     "lk.sort-out",
+     "lk.get-ready-for",
+     "lk.jump-in-shower",
+     "lk.household-chores",
+     "lk.do-my-bit"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Primeiro, o cachorro",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "One of my first jobs every morning is looking after my dog.",
+       "pt": "Uma das minhas primeiras tarefas toda manhã é cuidar do meu cachorro.",
+       "facts": [
+        "F03",
+        "F04"
+       ],
+       "items": [
+        "lk.look-after"
+       ]
+      },
+      {
+       "en": "I get out of bed, make it properly and take his food downstairs.",
+       "pt": "Saio da cama, arrumo direitinho e levo a comida dele lá para baixo.",
+       "facts": [
+        "F01",
+        "F02",
+        "F03"
+       ],
+       "items": [
+        "lk.get-out-of-bed",
+        "lk.make-it-properly"
+       ]
+      },
+      {
+       "en": "Once he's eaten, I clean up after him and sort out any mess.",
+       "pt": "Depois que ele come, limpo a sujeira dele e dou um jeito em qualquer bagunça.",
+       "facts": [
+        "F04"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.sort-out"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Lixo, café, banho e tarefas",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Then, I take the rubbish out and get ready for breakfast.",
+       "pt": "Depois, levo o lixo para fora e me preparo para o café da manhã.",
+       "facts": [
+        "F05",
+        "F06"
+       ],
+       "items": [
+        "lk.rubbish-out",
+        "lk.get-ready-for"
+       ]
+      },
+      {
+       "en": "After eating, I jump in the shower and help with the household chores.",
+       "pt": "Depois de comer, tomo um banho rápido e ajudo nas tarefas de casa.",
+       "facts": [
+        "F07",
+        "F08"
+       ],
+       "items": [
+        "lk.jump-in-shower",
+        "lk.household-chores"
+       ]
+      },
+      {
+       "en": "I always try to do my bit around the house before relaxing in the living room with my brother.",
+       "pt": "Sempre tento fazer a minha parte em casa antes de relaxar na sala com o meu irmão.",
+       "facts": [
+        "F08",
+        "F09"
+       ],
+       "items": [
+        "lk.do-my-bit"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L04",
+   "title": "Helping Around the House",
+   "pt": "Sessão 04 · Ajudando em casa",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Aprender a descrever responsabilidades domésticas e utilizar expressões naturais.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Negativa no Present Simple: I don’t just sit around (eu não fico só à toa). “Such as” para dar exemplos. “Has been fed / has been cleared away”: o cachorro já foi alimentado, a sujeira já foi limpa (o importante é o resultado, não quem fez).",
+   "session": {
+    "n": 4,
+    "focus": "Household responsibilities and phrasal verbs",
+    "level": "Elementary",
+    "vocab": [
+     "Sit around",
+     "Lend a hand",
+     "Housework",
+     "Tidy things up",
+     "Put things away",
+     "Clear away",
+     "Finish my chores",
+     "Spend some time"
+    ],
+    "vocabIds": [
+     "lk.sit-around",
+     "lk.lend-a-hand",
+     "lk.housework",
+     "lk.tidy-things-up",
+     "lk.put-things-away",
+     "lk.clear-away",
+     "lk.finish-chores",
+     "lk.spend-some-time"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Nada de ficar à toa",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "After breakfast, I don't just sit around doing nothing.",
+       "pt": "Depois do café da manhã, eu não fico só à toa sem fazer nada.",
+       "facts": [
+        "F06",
+        "F08"
+       ],
+       "items": [
+        "lk.sit-around"
+       ]
+      },
+      {
+       "en": "I usually lend a hand with the housework.",
+       "pt": "Normalmente dou uma mão no serviço de casa.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "lk.lend-a-hand",
+        "lk.housework"
+       ]
+      },
+      {
+       "en": "There are always little jobs to do, such as tidying things up, putting things away and keeping the house clean.",
+       "pt": "Sempre tem pequenas tarefas para fazer, como arrumar as coisas, guardar tudo no lugar e manter a casa limpa.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "lk.tidy-things-up",
+        "lk.put-things-away"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "O cachorro antes, a sala depois",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Before that, I make sure my dog has been fed and his mess has been cleared away.",
+       "pt": "Antes disso, confiro se meu cachorro já comeu e se a sujeira dele já foi limpa.",
+       "facts": [
+        "F03",
+        "F04"
+       ],
+       "items": [
+        "lk.make-sure",
+        "lk.clear-away"
+       ]
+      },
+      {
+       "en": "Once I've finished my chores, I go upstairs to freshen up.",
+       "pt": "Depois de terminar minhas tarefas, subo para me arrumar.",
+       "facts": [
+        "F08",
+        "F09"
+       ],
+       "items": [
+        "lk.freshen-up",
+        "lk.once-ive",
+        "lk.finish-chores"
+       ]
+      },
+      {
+       "en": "Then, I head down to the living room and spend some time with my brother.",
+       "pt": "Depois, desço para a sala e passo um tempo com o meu irmão.",
+       "facts": [
+        "F09"
+       ],
+       "items": [
+        "lk.spend-some-time"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L05",
+   "title": "It's Jiu-Jitsu Time!",
+   "pt": "Sessão 05 · Hora do jiu-jitsu!",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Descrever atividades específicas, horários e deslocamentos.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Horas em inglês britânico: twenty to ten (9h40), eleven o’clock (11h), half past eleven (11h30). “On a jiu-jitsu day”: on + dia. “Before getting ready”: antes de + verbo com -ing.",
+   "session": {
+    "n": 5,
+    "focus": "Activities, movement and time expressions",
+    "level": "Elementary",
+    "vocab": [
+     "Help out",
+     "Get ready for",
+     "Get changed",
+     "Twenty to ten",
+     "Head off",
+     "Get back",
+     "Put the lead on",
+     "Take him out for a walk",
+     "Half past eleven"
+    ],
+    "vocabIds": [
+     "lk.help-out",
+     "lk.get-ready-for",
+     "lk.get-changed",
+     "lk.twenty-to-ten",
+     "lk.head-off",
+     "lk.get-back",
+     "lk.put-lead-on",
+     "lk.take-him-out-walk",
+     "lk.half-past-eleven"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Uma manhã um pouco diferente",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "On a jiu-jitsu day, my morning is a little different.",
+       "pt": "Em dia de jiu-jitsu, minha manhã é um pouco diferente.",
+       "facts": [
+        "F11"
+       ],
+       "items": []
+      },
+      {
+       "en": "After waking up, making my bed and feeding the dog, I have breakfast and take a shower.",
+       "pt": "Depois de acordar, arrumar a cama e dar comida ao cachorro, tomo café da manhã e tomo banho.",
+       "facts": [
+        "F01",
+        "F02",
+        "F03",
+        "F06",
+        "F07"
+       ],
+       "items": [
+        "lk.wake-up",
+        "lk.make-my-bed",
+        "lk.feed-my-dog"
+       ]
+      },
+      {
+       "en": "I also help out with some chores before getting ready for training.",
+       "pt": "Também ajudo com algumas tarefas antes de me preparar para o treino.",
+       "facts": [
+        "F08",
+        "F11"
+       ],
+       "items": [
+        "lk.get-ready-for",
+        "lk.help-out"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Treino e passeio com o cachorro",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "At twenty to ten, my brother and I get changed into our jiu-jitsu clothes and head off to class.",
+       "pt": "Às nove e quarenta, eu e meu irmão vestimos a roupa de jiu-jitsu e saímos para a aula.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "lk.get-changed",
+        "lk.twenty-to-ten",
+        "lk.head-off"
+       ]
+      },
+      {
+       "en": "We get back home at eleven o'clock.",
+       "pt": "Voltamos para casa às onze horas.",
+       "facts": [
+        "F13"
+       ],
+       "items": [
+        "lk.get-back"
+       ]
+      },
+      {
+       "en": "Then, we put our dog's lead on and take him out for a walk until half past eleven.",
+       "pt": "Depois, colocamos a guia no nosso cachorro e levamos ele para passear até as onze e meia.",
+       "facts": [
+        "F14"
+       ],
+       "items": [
+        "lk.put-lead-on",
+        "lk.take-him-out-walk",
+        "lk.half-past-eleven"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L06",
+   "title": "Back Home and Ready to Relax",
+   "pt": "Sessão 06 · De volta em casa e pronto para relaxar",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Compreender e utilizar phrasal verbs em situações cotidianas.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Phrasal verbs = verbo + partícula com um sentido próprio: get back, head outside, stay out, kick back, turn up. “It’s time to take our dog out”: it’s time to + verbo. “For about half an hour”: por mais ou menos meia hora.",
+   "session": {
+    "n": 6,
+    "focus": "Alternative phrasal verbs and conversational expressions",
+    "level": "Elementary",
+    "vocab": [
+     "Get back",
+     "Grab",
+     "Head outside",
+     "Stay out",
+     "Freshen up",
+     "Make our way",
+     "Kick back",
+     "Turn up"
+    ],
+    "vocabIds": [
+     "lk.get-back",
+     "lk.grab",
+     "lk.head-outside",
+     "lk.stay-out",
+     "lk.freshen-up",
+     "lk.make-our-way",
+     "lk.kick-back",
+     "lk.turn-up"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Depois do jiu-jitsu, o passeio",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "When we get back from jiu-jitsu, it's time to take our dog out.",
+       "pt": "Quando voltamos do jiu-jitsu, é hora de levar nosso cachorro para passear.",
+       "facts": [
+        "F13",
+        "F14"
+       ],
+       "items": [
+        "lk.get-back"
+       ]
+      },
+      {
+       "en": "We grab his lead, put it on him and head outside for a walk.",
+       "pt": "Pegamos a guia dele, colocamos nele e saímos para uma caminhada.",
+       "facts": [
+        "F14"
+       ],
+       "items": [
+        "lk.grab",
+        "lk.head-outside"
+       ]
+      },
+      {
+       "en": "We usually stay out for about half an hour.",
+       "pt": "Normalmente ficamos fora por mais ou menos meia hora.",
+       "facts": [
+        "F14"
+       ],
+       "items": [
+        "lk.stay-out"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Banho, sala e TV",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Once we get home, we take another shower and freshen up.",
+       "pt": "Quando chegamos em casa, tomamos outro banho e nos arrumamos.",
+       "facts": [
+        "F15"
+       ],
+       "items": [
+        "lk.freshen-up"
+       ]
+      },
+      {
+       "en": "After that, we make our way downstairs to the living room.",
+       "pt": "Depois disso, vamos lá para baixo, para a sala.",
+       "facts": [
+        "F15"
+       ],
+       "items": [
+        "lk.make-our-way"
+       ]
+      },
+      {
+       "en": "My dad lets my brother and me kick back and watch some TV.",
+       "pt": "Meu pai deixa eu e meu irmão relaxarmos e vermos um pouco de TV.",
+       "facts": [
+        "F10"
+       ],
+       "items": [
+        "lk.kick-back"
+       ]
+      },
+      {
+       "en": "It's a nice way to relax before the school minibus turns up.",
+       "pt": "É um jeito gostoso de descansar antes de o transporte escolar aparecer.",
+       "facts": [
+        "F10"
+       ],
+       "items": [
+        "lk.turn-up"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L07",
+   "title": "My Morning, Step by Step",
+   "pt": "Sessão 07 · Minha manhã, passo a passo",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Trabalhar horários, organização temporal e continuidade de ações.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "“So I have to”: so = por isso; have to = preciso (obrigação). “On training days”: nos dias de treino (on + dias). “Get on with”: continuar fazendo algo sem parar.",
+   "session": {
+    "n": 7,
+    "focus": "Time management and transitions",
+    "level": "Elementary",
+    "vocab": [
+     "Keep an eye on",
+     "Filling breakfast",
+     "Get on with",
+     "Training days",
+     "Leave",
+     "Return",
+     "The rest of the day"
+    ],
+    "vocabIds": [
+     "lk.keep-an-eye-on",
+     "lk.filling-breakfast",
+     "lk.get-on-with",
+     "lk.training-days",
+     "lk.leave",
+     "lk.return",
+     "lk.rest-of-day"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Manhã corrida, um passo de cada vez",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "My morning is quite busy, so I have to keep an eye on the time.",
+       "pt": "Minha manhã é bem corrida, então preciso ficar de olho no horário.",
+       "facts": [
+        "F01"
+       ],
+       "items": [
+        "lk.keep-an-eye-on"
+       ]
+      },
+      {
+       "en": "I get up early, make my bed and go downstairs to feed the dog.",
+       "pt": "Levanto cedo, arrumo a cama e desço para dar comida ao cachorro.",
+       "facts": [
+        "F01",
+        "F02",
+        "F03"
+       ],
+       "items": [
+        "lk.make-my-bed",
+        "lk.feed-my-dog"
+       ]
+      },
+      {
+       "en": "After cleaning up after him, I take out the rubbish and have a filling breakfast.",
+       "pt": "Depois de limpar a sujeira dele, levo o lixo para fora e tomo um café da manhã reforçado.",
+       "facts": [
+        "F04",
+        "F05",
+        "F06"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.filling-breakfast"
+       ]
+      },
+      {
+       "en": "Then, I have a shower and get on with my chores.",
+       "pt": "Depois, tomo banho e sigo com as minhas tarefas.",
+       "facts": [
+        "F07",
+        "F08"
+       ],
+       "items": [
+        "lk.get-on-with"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Dias de treino",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "On training days, my brother and I leave at twenty to ten.",
+       "pt": "Nos dias de treino, eu e meu irmão saímos às nove e quarenta.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "lk.twenty-to-ten",
+        "lk.training-days",
+        "lk.leave"
+       ]
+      },
+      {
+       "en": "We return at eleven, walk the dog for half an hour and get ready for the rest of the day.",
+       "pt": "Voltamos às onze, passeamos com o cachorro por meia hora e nos preparamos para o resto do dia.",
+       "facts": [
+        "F13",
+        "F14",
+        "F15"
+       ],
+       "items": [
+        "lk.get-ready-for",
+        "lk.return",
+        "lk.rest-of-day"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L08",
+   "title": "A Typical Day at Home",
+   "pt": "Sessão 08 · Um dia normal em casa",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Compreender linguagem conversacional e reconhecer expressões informais naturais.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Expressões do inglês do dia a dia: first things first, pitch in, chill out, show up. “If it’s a jiu-jitsu day, …”: se + Present Simple para algo que acontece em certos dias. “Until our school ride shows up”: until + Present Simple.",
+   "session": {
+    "n": 8,
+    "focus": "Conversational and idiomatic English",
+    "level": "Elementary",
+    "vocab": [
+     "Be up bright and early",
+     "First things first",
+     "Sort out",
+     "Get myself ready",
+     "Pitch in",
+     "Whatever needs doing",
+     "Get our gear on",
+     "Chill out",
+     "Show up"
+    ],
+    "vocabIds": [
+     "lk.up-bright-early",
+     "lk.first-things-first",
+     "lk.sort-out",
+     "lk.get-myself-ready",
+     "lk.pitch-in",
+     "lk.whatever-needs-doing",
+     "lk.get-gear-on",
+     "lk.chill-out",
+     "lk.show-up"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Bem cedinho",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "I'm usually up bright and early.",
+       "pt": "Normalmente estou de pé bem cedinho.",
+       "facts": [
+        "F01"
+       ],
+       "items": [
+        "lk.up-bright-early"
+       ]
+      },
+      {
+       "en": "First things first, I sort out my dog's breakfast and clean up after him.",
+       "pt": "Primeiro o mais importante: cuido do café da manhã do meu cachorro e limpo a sujeira dele.",
+       "facts": [
+        "F03",
+        "F04"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.sort-out",
+        "lk.first-things-first"
+       ]
+      },
+      {
+       "en": "Then, I get myself ready, have breakfast and pitch in with whatever needs doing around the house.",
+       "pt": "Depois, eu me arrumo, tomo café da manhã e ajudo no que precisar ser feito em casa.",
+       "facts": [
+        "F06",
+        "F07",
+        "F08"
+       ],
+       "items": [
+        "lk.get-myself-ready",
+        "lk.pitch-in",
+        "lk.whatever-needs-doing"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Treino, passeio e sofá",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "If it's a jiu-jitsu day, my brother and I get our gear on and head out for training.",
+       "pt": "Se é dia de jiu-jitsu, eu e meu irmão vestimos o nosso equipamento e saímos para o treino.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "lk.get-gear-on"
+       ]
+      },
+      {
+       "en": "When we come back, we take the dog for a walk.",
+       "pt": "Quando voltamos, levamos o cachorro para passear.",
+       "facts": [
+        "F13",
+        "F14"
+       ],
+       "items": []
+      },
+      {
+       "en": "Later, we chill out in the living room and watch TV until our school ride shows up.",
+       "pt": "Mais tarde, relaxamos na sala e vemos TV até a condução da escola aparecer.",
+       "facts": [
+        "F09",
+        "F10"
+       ],
+       "items": [
+        "lk.chill-out",
+        "lk.show-up"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L09",
+   "title": "Keeping My Morning Organised",
+   "pt": "Sessão 09 · Mantendo a manhã organizada",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Desenvolver precisão vocabular e maior flexibilidade na construção de frases.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "“Start by + -ing”: começar fazendo algo. “By half past eleven”: até as onze e meia (no máximo nesse horário). “Back from walking the dog”: from + verbo com -ing. Palavras mais precisas: proper, crack on with, wind down.",
+   "session": {
+    "n": 9,
+    "focus": "Rich vocabulary and greater linguistic precision",
+    "level": "Elementary to Intermediate",
+    "vocab": [
+     "Get things done",
+     "Start by",
+     "Take care of",
+     "Sit down for",
+     "Proper breakfast",
+     "Crack on with",
+     "By half past eleven",
+     "Wind down"
+    ],
+    "vocabIds": [
+     "lk.get-things-done",
+     "lk.start-by",
+     "lk.take-care-of",
+     "lk.sit-down-for",
+     "lk.proper-breakfast",
+     "lk.crack-on-with",
+     "lk.by-half-past-eleven",
+     "lk.wind-down"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Resolver tudo de manhã",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "I like to get things done in the morning before it's time to go to school.",
+       "pt": "Gosto de resolver as coisas de manhã, antes da hora de ir para a escola.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "lk.get-things-done"
+       ]
+      },
+      {
+       "en": "I start by making my bed and taking care of my dog.",
+       "pt": "Começo arrumando a cama e cuidando do meu cachorro.",
+       "facts": [
+        "F02",
+        "F03"
+       ],
+       "items": [
+        "lk.make-my-bed",
+        "lk.start-by",
+        "lk.take-care-of"
+       ]
+      },
+      {
+       "en": "Once I've fed him and cleaned up after him, I take the rubbish out and sit down for a proper breakfast.",
+       "pt": "Depois de dar comida a ele e limpar a sujeira dele, levo o lixo para fora e me sento para um café da manhã de verdade.",
+       "facts": [
+        "F03",
+        "F04",
+        "F05",
+        "F06"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.rubbish-out",
+        "lk.once-ive",
+        "lk.sit-down-for",
+        "lk.proper-breakfast"
+       ]
+      },
+      {
+       "en": "I then have a shower and crack on with my household chores.",
+       "pt": "Depois tomo banho e mando ver nas tarefas de casa.",
+       "facts": [
+        "F07",
+        "F08"
+       ],
+       "items": [
+        "lk.household-chores",
+        "lk.crack-on-with"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Dias de treino",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "On training days, my brother and I head off to jiu-jitsu at twenty to ten.",
+       "pt": "Nos dias de treino, eu e meu irmão saímos para o jiu-jitsu às nove e quarenta.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "lk.twenty-to-ten",
+        "lk.head-off",
+        "lk.training-days"
+       ]
+      },
+      {
+       "en": "By half past eleven, we're back from walking the dog and ready to wind down.",
+       "pt": "Até as onze e meia, já voltamos do passeio com o cachorro e estamos prontos para relaxar.",
+       "facts": [
+        "F14"
+       ],
+       "items": [
+        "lk.half-past-eleven",
+        "lk.by-half-past-eleven",
+        "lk.wind-down"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "L10",
+   "title": "My Daily Routine: The Full Story",
+   "pt": "Sessão 10 · Minha rotina: a história completa",
+   "dayType": "session",
+   "priority": false,
+   "goal": "Integrar todo o vocabulário, expressões e construções trabalhados anteriormente, preparando Lukinhas para falar de maneira independente.",
+   "usage": [],
+   "kind": "session",
+   "grammar": "Tudo junto: Present Simple para a rotina, “Once I’ve cleaned up… and taken…” (Present Perfect com once), “I’ve got” (forma britânica de “I have”), conectivos (after that, once, until) e horários (twenty to ten, at eleven, at around twelve forty).",
+   "session": {
+    "n": 10,
+    "focus": "Full storytelling, integration and independent speaking",
+    "level": "Elementary to Intermediate",
+    "vocab": [
+     "I've got a routine",
+     "Get everything done",
+     "Hearty breakfast",
+     "Lend a hand",
+     "Head off",
+     "Get back",
+     "Home again",
+     "Kick back",
+     "Pull up",
+     "Pretty much"
+    ],
+    "vocabIds": [
+     "lk.ive-got-a-routine",
+     "lk.get-everything-done",
+     "lk.hearty-breakfast",
+     "lk.lend-a-hand",
+     "lk.head-off",
+     "lk.get-back",
+     "lk.home-again",
+     "lk.kick-back",
+     "lk.pull-up",
+     "lk.pretty-much"
+    ]
+   },
+   "blocks": [
+    {
+     "pt": "Começo da manhã",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "My mornings are usually quite busy, but I've got a routine that helps me get everything done.",
+       "pt": "Minhas manhãs costumam ser bem corridas, mas eu tenho uma rotina que me ajuda a dar conta de tudo.",
+       "facts": [
+        "F01",
+        "F08"
+       ],
+       "items": [
+        "lk.ive-got-a-routine",
+        "lk.get-everything-done"
+       ]
+      },
+      {
+       "en": "I wake up early, make my bed and head downstairs to feed my dog.",
+       "pt": "Acordo cedo, arrumo a cama e desço para dar comida ao meu cachorro.",
+       "facts": [
+        "F01",
+        "F02",
+        "F03"
+       ],
+       "items": [
+        "lk.wake-up",
+        "lk.make-my-bed",
+        "lk.feed-my-dog",
+        "lk.head-downstairs"
+       ]
+      },
+      {
+       "en": "Once I've cleaned up after him and taken the rubbish out, I sit down for a hearty breakfast.",
+       "pt": "Depois de limpar a sujeira dele e levar o lixo para fora, eu me sento para um café da manhã caprichado.",
+       "facts": [
+        "F04",
+        "F05",
+        "F06"
+       ],
+       "items": [
+        "lk.clean-up-after",
+        "lk.rubbish-out",
+        "lk.once-ive",
+        "lk.sit-down-for",
+        "lk.hearty-breakfast"
+       ]
+      },
+      {
+       "en": "After that, I jump in the shower and lend a hand with the household chores.",
+       "pt": "Depois disso, tomo um banho rápido e dou uma mão nas tarefas de casa.",
+       "facts": [
+        "F07",
+        "F08"
+       ],
+       "items": [
+        "lk.jump-in-shower",
+        "lk.household-chores",
+        "lk.lend-a-hand"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Dias de jiu-jitsu",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "On jiu-jitsu days, my brother and I get changed and head off to training at twenty to ten.",
+       "pt": "Nos dias de jiu-jitsu, eu e meu irmão trocamos de roupa e saímos para o treino às nove e quarenta.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "lk.get-changed",
+        "lk.twenty-to-ten",
+        "lk.head-off"
+       ]
+      },
+      {
+       "en": "We get back at eleven, put the dog's lead on and take him out for a walk.",
+       "pt": "Voltamos às onze, colocamos a guia no cachorro e levamos ele para passear.",
+       "facts": [
+        "F13",
+        "F14"
+       ],
+       "items": [
+        "lk.get-back",
+        "lk.put-lead-on",
+        "lk.take-him-out-walk"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Até o transporte da escola",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Once we're home again, we freshen up and head downstairs.",
+       "pt": "Quando estamos em casa de novo, nos arrumamos e descemos.",
+       "facts": [
+        "F15"
+       ],
+       "items": [
+        "lk.freshen-up",
+        "lk.head-downstairs",
+        "lk.home-again"
+       ]
+      },
+      {
+       "en": "My dad lets us kick back and watch TV until our school minibus pulls up at around twelve forty.",
+       "pt": "Meu pai deixa a gente relaxar e ver TV até o transporte escolar parar aqui na frente, por volta de meio-dia e quarenta.",
+       "facts": [
+        "F10"
+       ],
+       "items": [
+        "lk.kick-back",
+        "lk.pull-up"
+       ]
+      },
+      {
+       "en": "And that's pretty much how I spend my morning!",
+       "pt": "E é mais ou menos assim que eu passo a minha manhã!",
+       "facts": [
+        "F01",
+        "F10"
+       ],
+       "items": [
+        "lk.pretty-much"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "items": [
+  {
+   "id": "lk.wake-up",
+   "en": "wake up",
+   "match": "wake up",
+   "pt": "acordar",
+   "c": "phrasal",
+   "explain": "É o momento em que você abre os olhos e para de dormir. “Get up” é sair da cama.",
+   "extra": {
+    "en": "What time do you wake up on Saturdays?",
+    "pt": "A que horas você acorda aos sábados?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.make-my-bed",
+   "en": "make my bed",
+   "match": "make my bed",
+   "pt": "arrumar a minha cama",
+   "c": "collocation",
+   "explain": "Em inglês, cama se “faz” (make): esticar o lençol, ajeitar o travesseiro e a coberta.",
+   "extra": {
+    "en": "Make your bed before you leave your room.",
+    "pt": "Arrume a cama antes de sair do quarto."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.feed-my-dog",
+   "en": "feed my dog",
+   "match": "feed my dog",
+   "pt": "dar comida ao meu cachorro",
+   "c": "collocation",
+   "explain": "“Feed” é dar comida para um animal ou para um bebê.",
+   "extra": {
+    "en": "Can you feed the dog this evening?",
+    "pt": "Você pode dar comida ao cachorro hoje à noite?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.clean-up-after",
+   "en": "clean up after him",
+   "match": "clean up after him",
+   "pt": "limpar a sujeira que ele faz",
+   "c": "phrasal",
+   "explain": "“Clean up after someone” é limpar a bagunça ou a sujeira que outra pessoa (ou um animal) deixou.",
+   "extra": {
+    "en": "Remember to clean up after yourself.",
+    "pt": "Lembre-se de limpar a sua própria bagunça."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "clean his mess"
+  },
+  {
+   "id": "lk.rubbish-out",
+   "en": "take the rubbish out",
+   "match": "take the rubbish out",
+   "pt": "levar o lixo para fora",
+   "c": "phrasal",
+   "explain": "No inglês britânico, lixo é “rubbish” (nos EUA, “garbage” ou “trash”).",
+   "extra": {
+    "en": "Whose turn is it to take the rubbish out?",
+    "pt": "De quem é a vez de levar o lixo para fora?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.help-around",
+   "en": "help around the house",
+   "match": "help around the house",
+   "pt": "ajudar em casa",
+   "c": "collocation",
+   "explain": "Fazer pequenas tarefas da casa para ajudar a família.",
+   "extra": {
+    "en": "Do you help around the house at the weekend?",
+    "pt": "Você ajuda em casa no fim de semana?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.freshen-up",
+   "en": "freshen up",
+   "match": "freshen up",
+   "pt": "se arrumar, dar uma refrescada",
+   "c": "phrasal",
+   "explain": "Lavar o rosto, pentear o cabelo, trocar de roupa: ficar limpinho e pronto.",
+   "extra": {
+    "en": "You can freshen up before dinner.",
+    "pt": "Você pode se arrumar antes do jantar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "wash and get ready"
+  },
+  {
+   "id": "lk.as-soon-as",
+   "en": "as soon as",
+   "match": "as soon as",
+   "pt": "assim que",
+   "c": "connector",
+   "explain": "Mostra que uma coisa acontece logo depois da outra, sem esperar.",
+   "extra": {
+    "en": "Call me as soon as you get home.",
+    "pt": "Me liga assim que chegar em casa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.head-downstairs",
+   "en": "head downstairs",
+   "match": "head downstairs",
+   "pt": "descer (ir lá para baixo)",
+   "c": "phrasal",
+   "explain": "“Head” aqui quer dizer “ir em direção a”. É mais natural do que “go down the stairs”.",
+   "extra": {
+    "en": "Breakfast is ready — let’s head downstairs.",
+    "pt": "O café está pronto — vamos descer."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "go down the stairs"
+  },
+  {
+   "id": "lk.make-sure",
+   "en": "make sure",
+   "match": "make sure",
+   "pt": "garantir, conferir que",
+   "c": "collocation",
+   "explain": "Verificar para ter certeza de que algo está certo ou feito.",
+   "extra": {
+    "en": "Make sure your trainers are in your bag.",
+    "pt": "Confira se o seu tênis está na mochila."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "check"
+  },
+  {
+   "id": "lk.look-after",
+   "en": "look after",
+   "match": "look after",
+   "pt": "cuidar de",
+   "c": "phrasal",
+   "explain": "Cuidar de alguém ou de um animal: dar comida, atenção, limpar.",
+   "extra": {
+    "en": "Who looks after your dog when you go on holiday?",
+    "pt": "Quem cuida do seu cachorro quando você sai de férias?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "take care of"
+  },
+  {
+   "id": "lk.once-ive",
+   "en": "once I've...",
+   "match": "once I've",
+   "pt": "depois que eu (já) …",
+   "c": "connector",
+   "explain": "“Once I’ve…” = assim que eu tiver terminado algo; depois vem o próximo passo.",
+   "extra": {
+    "en": "Once you've finished your homework, you can play.",
+    "pt": "Depois que você terminar a lição, pode brincar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.after-getting-dressed",
+   "en": "after getting dressed",
+   "match": "after getting dressed",
+   "pt": "depois de me vestir",
+   "c": "sentence",
+   "explain": "Depois de “after”, o verbo vai com -ing: after getting, after eating, after waking up.",
+   "extra": {
+    "en": "After getting dressed, put your pyjamas away.",
+    "pt": "Depois de se vestir, guarde o pijama."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.later-on",
+   "en": "later on",
+   "match": "later on",
+   "pt": "mais tarde",
+   "c": "time",
+   "explain": "Um tempo depois, no mesmo dia.",
+   "extra": {
+    "en": "I'll show you later on.",
+    "pt": "Eu te mostro mais tarde."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.while-we-wait",
+   "en": "while we wait",
+   "match": "while we wait",
+   "pt": "enquanto esperamos",
+   "c": "connector",
+   "explain": "“While” mostra duas coisas acontecendo ao mesmo tempo.",
+   "extra": {
+    "en": "Let's read a book while we wait.",
+    "pt": "Vamos ler um livro enquanto esperamos."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.get-out-of-bed",
+   "en": "get out of bed",
+   "match": "get out of bed",
+   "pt": "sair da cama",
+   "c": "phrasal",
+   "explain": "É levantar e sair da cama (depois de acordar).",
+   "extra": {
+    "en": "It’s hard to get out of bed on cold mornings.",
+    "pt": "É difícil sair da cama nas manhãs frias."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.make-it-properly",
+   "en": "make it properly",
+   "match": "make it properly",
+   "pt": "arrumar direitinho",
+   "c": "collocation",
+   "explain": "“Properly” = do jeito certo, bem feito. Aqui “it” é a cama.",
+   "extra": {
+    "en": "Do your homework properly, not too fast.",
+    "pt": "Faça a lição direitinho, não rápido demais."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.sort-out",
+   "en": "sort out",
+   "match": "sort out",
+   "pt": "resolver, dar um jeito em",
+   "c": "phrasal",
+   "explain": "Organizar ou resolver algo que estava bagunçado ou pendente.",
+   "extra": {
+    "en": "Can you sort out your toys before bedtime?",
+    "pt": "Você pode organizar os seus brinquedos antes de dormir?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "fix"
+  },
+  {
+   "id": "lk.get-ready-for",
+   "en": "get ready for",
+   "match": "get ready for",
+   "pt": "se preparar para",
+   "c": "phrasal",
+   "explain": "Fazer o que é preciso antes de uma atividade.",
+   "extra": {
+    "en": "It's time to get ready for school.",
+    "pt": "Está na hora de se preparar para a escola."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.jump-in-shower",
+   "en": "jump in the shower",
+   "match": "jump in the shower",
+   "pt": "tomar um banho rápido",
+   "c": "collocation",
+   "explain": "Jeito informal de dizer “tomar banho rapidinho” — ninguém pula de verdade!",
+   "extra": {
+    "en": "I’m going to jump in the shower before we go out.",
+    "pt": "Vou tomar um banho rápido antes de sairmos."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "take a shower"
+  },
+  {
+   "id": "lk.household-chores",
+   "en": "household chores",
+   "match": "household chores",
+   "pt": "tarefas de casa",
+   "c": "word",
+   "explain": "“Chores” são as tarefas do dia a dia: lavar louça, arrumar, varrer.",
+   "extra": {
+    "en": "Everyone should share the household chores.",
+    "pt": "Todo mundo deveria dividir as tarefas de casa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.do-my-bit",
+   "en": "do my bit",
+   "match": "do my bit",
+   "pt": "fazer a minha parte",
+   "c": "collocation",
+   "explain": "Expressão britânica: contribuir com a sua parte num trabalho em equipe.",
+   "extra": {
+    "en": "Everyone has to do their bit to keep the classroom tidy.",
+    "pt": "Todo mundo tem que fazer a sua parte para manter a sala arrumada."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "help"
+  },
+  {
+   "id": "lk.sit-around",
+   "en": "sit around",
+   "match": "sit around",
+   "pt": "ficar à toa",
+   "c": "phrasal",
+   "explain": "Ficar parado sem fazer nada de útil.",
+   "extra": {
+    "en": "Don't just sit around — come and help me!",
+    "pt": "Não fique aí à toa — venha me ajudar!"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.lend-a-hand",
+   "en": "lend a hand",
+   "match": "lend a hand",
+   "pt": "dar uma mão, ajudar",
+   "c": "collocation",
+   "explain": "“Emprestar a mão” = ajudar alguém. É um jeito simpático de dizer “help”.",
+   "extra": {
+    "en": "Could you lend me a hand with these bags?",
+    "pt": "Você pode me dar uma mão com essas sacolas?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "help"
+  },
+  {
+   "id": "lk.housework",
+   "en": "housework",
+   "match": "housework",
+   "pt": "serviço de casa",
+   "c": "word",
+   "explain": "Todo o trabalho de cuidar da casa. Não confunda com “homework” (lição da escola)!",
+   "extra": {
+    "en": "Is your homework finished? Then help with the housework.",
+    "pt": "A lição está pronta? Então ajude no serviço de casa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.tidy-things-up",
+   "en": "tidy things up",
+   "match": "tidy things up",
+   "pt": "arrumar as coisas",
+   "c": "phrasal",
+   "explain": "“Tidy” = arrumado. “Tidy up” = deixar tudo em ordem.",
+   "extra": {
+    "en": "Let's tidy things up before the guests arrive.",
+    "pt": "Vamos arrumar as coisas antes de as visitas chegarem."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "organise things"
+  },
+  {
+   "id": "lk.put-things-away",
+   "en": "put things away",
+   "match": "put things away",
+   "pt": "guardar as coisas (no lugar)",
+   "c": "phrasal",
+   "explain": "Colocar cada coisa no lugar dela: no armário, na gaveta.",
+   "extra": {
+    "en": "Put your books away when you finish.",
+    "pt": "Guarde os seus livros quando terminar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.clear-away",
+   "en": "clear away",
+   "match": "clear away",
+   "pt": "tirar, limpar (deixar livre)",
+   "c": "phrasal",
+   "explain": "Tirar algo do lugar para deixá-lo limpo, como a mesa depois do almoço.",
+   "extra": {
+    "en": "Can you clear away the plates, please?",
+    "pt": "Você pode tirar os pratos, por favor?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.finish-chores",
+   "en": "finish my chores",
+   "match": "finish my chores",
+   "pt": "terminar as minhas tarefas",
+   "c": "collocation",
+   "explain": "“Chores” são as tarefas da casa. Terminar = finish.",
+   "extra": {
+    "en": "You can play when you finish your chores.",
+    "pt": "Você pode brincar quando terminar suas tarefas."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.spend-some-time",
+   "en": "spend some time",
+   "match": "spend some time",
+   "pt": "passar um tempo",
+   "c": "collocation",
+   "explain": "Em inglês, tempo se “gasta” (spend): passar um tempo com alguém ou fazendo algo.",
+   "extra": {
+    "en": "It's nice to spend some time with your friends.",
+    "pt": "É bom passar um tempo com os seus amigos."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.help-out",
+   "en": "help out",
+   "match": "help out",
+   "pt": "ajudar (dar uma força)",
+   "c": "phrasal",
+   "explain": "“Help out” é ajudar alguém, principalmente quando ele tem muita coisa para fazer.",
+   "extra": {
+    "en": "Can you help out in the kitchen, please?",
+    "pt": "Você pode ajudar na cozinha, por favor?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.get-changed",
+   "en": "get changed",
+   "match": "get changed",
+   "pt": "trocar de roupa",
+   "c": "phrasal",
+   "explain": "Tirar uma roupa e colocar outra, como o kimono do jiu-jitsu.",
+   "extra": {
+    "en": "You need to get changed for PE.",
+    "pt": "Você precisa trocar de roupa para a aula de educação física."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "change my clothes"
+  },
+  {
+   "id": "lk.twenty-to-ten",
+   "en": "twenty to ten",
+   "match": "twenty to ten",
+   "pt": "nove e quarenta (vinte para as dez)",
+   "c": "time",
+   "explain": "Em inglês britânico, diz-se quantos minutos faltam para a hora seguinte: twenty to ten = 9h40.",
+   "extra": {
+    "en": "The film starts at twenty to ten.",
+    "pt": "O filme começa às nove e quarenta."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "nine forty"
+  },
+  {
+   "id": "lk.head-off",
+   "en": "head off",
+   "match": "head off",
+   "pt": "sair, partir (para um lugar)",
+   "c": "phrasal",
+   "explain": "Sair de onde você está e ir para outro lugar.",
+   "extra": {
+    "en": "It's late — we should head off now.",
+    "pt": "Está tarde — a gente devia ir embora agora."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "go"
+  },
+  {
+   "id": "lk.get-back",
+   "en": "get back",
+   "match": "get back",
+   "pt": "voltar",
+   "c": "phrasal",
+   "explain": "Chegar de volta ao lugar de onde você saiu (em geral, para casa).",
+   "extra": {
+    "en": "What time do you get back from school?",
+    "pt": "A que horas você volta da escola?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "return"
+  },
+  {
+   "id": "lk.put-lead-on",
+   "en": "put the lead on",
+   "match": "put * lead on",
+   "pt": "colocar a guia (no cachorro)",
+   "c": "phrasal",
+   "explain": "“Lead” é a guia do cachorro no inglês britânico (nos EUA, “leash”). O nome pode ficar no meio: put our dog’s lead on.",
+   "extra": {
+    "en": "Put the lead on before you open the door.",
+    "pt": "Coloque a guia antes de abrir a porta."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.take-him-out-walk",
+   "en": "take him out for a walk",
+   "match": "take him out for a walk",
+   "pt": "levar ele para passear",
+   "c": "phrasal",
+   "explain": "Levar o cachorro para fora para caminhar.",
+   "extra": {
+    "en": "Can you take him out for a walk later?",
+    "pt": "Você pode levar ele para passear mais tarde?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.half-past-eleven",
+   "en": "half past eleven",
+   "match": "half past eleven",
+   "pt": "onze e meia",
+   "c": "time",
+   "explain": "“Half past” = e meia, 30 minutos depois da hora.",
+   "extra": {
+    "en": "Lunch is at half past twelve.",
+    "pt": "O almoço é ao meio-dia e meia."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "eleven thirty"
+  },
+  {
+   "id": "lk.grab",
+   "en": "grab",
+   "match": "grab",
+   "pt": "pegar (rapidinho)",
+   "c": "word",
+   "explain": "Pegar algo rápido com a mão. Muito usado no dia a dia.",
+   "extra": {
+    "en": "Grab your coat — it’s cold outside.",
+    "pt": "Pega o casaco — está frio lá fora."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "take"
+  },
+  {
+   "id": "lk.head-outside",
+   "en": "head outside",
+   "match": "head outside",
+   "pt": "sair (para fora de casa)",
+   "c": "phrasal",
+   "explain": "Ir para fora, para a rua ou o quintal.",
+   "extra": {
+    "en": "Let’s head outside and play football.",
+    "pt": "Vamos lá para fora jogar bola."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "go outside"
+  },
+  {
+   "id": "lk.stay-out",
+   "en": "stay out",
+   "match": "stay out",
+   "pt": "ficar fora (de casa)",
+   "c": "phrasal",
+   "explain": "Continuar fora de casa por um tempo.",
+   "extra": {
+    "en": "We can stay out until it gets dark.",
+    "pt": "Podemos ficar fora até escurecer."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.make-our-way",
+   "en": "make our way",
+   "match": "make our way",
+   "pt": "ir (seguir) até",
+   "c": "collocation",
+   "explain": "Ir até um lugar, aos poucos ou com calma.",
+   "extra": {
+    "en": "We made our way to the front of the queue.",
+    "pt": "Fomos até a frente da fila."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "go"
+  },
+  {
+   "id": "lk.kick-back",
+   "en": "kick back",
+   "match": "kick back",
+   "pt": "relaxar, ficar de boa",
+   "c": "phrasal",
+   "explain": "Jeito informal de dizer “relax”: descansar sem preocupação.",
+   "extra": {
+    "en": "After a long day, it's nice to kick back.",
+    "pt": "Depois de um dia longo, é bom ficar de boa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "relax"
+  },
+  {
+   "id": "lk.turn-up",
+   "en": "turn up",
+   "match": "turn up",
+   "pt": "aparecer, chegar",
+   "c": "phrasal",
+   "explain": "Chegar a um lugar (às vezes sem horário exato).",
+   "extra": {
+    "en": "My friend turned up late for the party.",
+    "pt": "Meu amigo chegou atrasado à festa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "arrive"
+  },
+  {
+   "id": "lk.keep-an-eye-on",
+   "en": "keep an eye on",
+   "match": "keep an eye on",
+   "pt": "ficar de olho em",
+   "c": "collocation",
+   "explain": "Prestar atenção em algo ou alguém de vez em quando.",
+   "extra": {
+    "en": "Can you keep an eye on my bag for a minute?",
+    "pt": "Você pode ficar de olho na minha mochila um minutinho?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "watch"
+  },
+  {
+   "id": "lk.filling-breakfast",
+   "en": "filling breakfast",
+   "match": "filling breakfast",
+   "pt": "café da manhã reforçado",
+   "c": "collocation",
+   "explain": "“Filling” = que enche, que deixa você satisfeito por bastante tempo.",
+   "extra": {
+    "en": "Porridge is a filling breakfast.",
+    "pt": "Mingau é um café da manhã que sustenta."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "big breakfast"
+  },
+  {
+   "id": "lk.get-on-with",
+   "en": "get on with",
+   "match": "get on with",
+   "pt": "seguir com, continuar fazendo",
+   "c": "phrasal",
+   "explain": "Começar ou continuar uma tarefa sem enrolar.",
+   "extra": {
+    "en": "Stop talking and get on with your work.",
+    "pt": "Pare de conversar e continue o seu trabalho."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "do"
+  },
+  {
+   "id": "lk.training-days",
+   "en": "training days",
+   "match": "training days",
+   "pt": "dias de treino",
+   "c": "time",
+   "explain": "Os dias em que tem treino (aqui, de jiu-jitsu).",
+   "extra": {
+    "en": "Training days can be really tiring.",
+    "pt": "Dias de treino podem ser bem cansativos."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.leave",
+   "en": "leave",
+   "match": "leave",
+   "pt": "sair, partir",
+   "c": "verb",
+   "explain": "Ir embora de um lugar. Passado: left.",
+   "extra": {
+    "en": "What time do you leave for school?",
+    "pt": "A que horas você sai para a escola?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.return",
+   "en": "return",
+   "match": "return",
+   "pt": "voltar",
+   "c": "verb",
+   "explain": "Voltar a um lugar. É um pouco mais formal que “get back” ou “come back”.",
+   "extra": {
+    "en": "The teacher will return our tests tomorrow.",
+    "pt": "A professora vai devolver nossas provas amanhã."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.rest-of-day",
+   "en": "the rest of the day",
+   "match": "the rest of the day",
+   "pt": "o resto do dia",
+   "c": "time",
+   "explain": "Todo o tempo que ainda falta no dia.",
+   "extra": {
+    "en": "It rained for the rest of the day.",
+    "pt": "Choveu o resto do dia."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.up-bright-early",
+   "en": "be up bright and early",
+   "match": "up bright and early",
+   "pt": "estar de pé bem cedinho",
+   "c": "collocation",
+   "explain": "Expressão alegre para “acordar bem cedo e com disposição”.",
+   "extra": {
+    "en": "We need to be up bright and early for the trip.",
+    "pt": "Precisamos estar de pé bem cedinho para a viagem."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "up very early"
+  },
+  {
+   "id": "lk.first-things-first",
+   "en": "first things first",
+   "match": "first things first",
+   "pt": "primeiro o mais importante",
+   "c": "connector",
+   "explain": "Usado para dizer o que vem antes de tudo.",
+   "extra": {
+    "en": "First things first: wash your hands.",
+    "pt": "Primeiro o mais importante: lave as mãos."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "first"
+  },
+  {
+   "id": "lk.get-myself-ready",
+   "en": "get myself ready",
+   "match": "get myself ready",
+   "pt": "me arrumar, me aprontar",
+   "c": "phrasal",
+   "explain": "Fazer tudo o que é preciso para ficar pronto: vestir, pentear.",
+   "extra": {
+    "en": "Give me five minutes to get myself ready.",
+    "pt": "Me dá cinco minutos para eu me aprontar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.pitch-in",
+   "en": "pitch in",
+   "match": "pitch in",
+   "pt": "ajudar, colaborar",
+   "c": "phrasal",
+   "explain": "Entrar para ajudar num trabalho que é de todo mundo.",
+   "extra": {
+    "en": "If we all pitch in, we’ll finish quickly.",
+    "pt": "Se todo mundo ajudar, a gente termina rápido."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "help"
+  },
+  {
+   "id": "lk.whatever-needs-doing",
+   "en": "whatever needs doing",
+   "match": "whatever needs doing",
+   "pt": "o que precisar ser feito",
+   "c": "sentence",
+   "explain": "“Whatever” = qualquer coisa que. Muito natural no inglês britânico.",
+   "extra": {
+    "en": "I’m happy to do whatever needs doing.",
+    "pt": "Faço com prazer o que precisar ser feito."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.get-gear-on",
+   "en": "get our gear on",
+   "match": "get our gear on",
+   "pt": "vestir o nosso equipamento",
+   "c": "phrasal",
+   "explain": "“Gear” é o equipamento ou a roupa de uma atividade, como o kimono e a faixa.",
+   "extra": {
+    "en": "Get your gear on — the match starts soon.",
+    "pt": "Vista o seu equipamento — o jogo já vai começar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.chill-out",
+   "en": "chill out",
+   "match": "chill out",
+   "pt": "relaxar, ficar tranquilo",
+   "c": "phrasal",
+   "explain": "Bem informal: descansar e ficar calmo.",
+   "extra": {
+    "en": "Let's chill out and watch a film.",
+    "pt": "Vamos relaxar e ver um filme."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "relax"
+  },
+  {
+   "id": "lk.show-up",
+   "en": "show up",
+   "match": "show up",
+   "pt": "aparecer, chegar",
+   "c": "phrasal",
+   "explain": "Chegar ou aparecer num lugar. Igual a “turn up”.",
+   "extra": {
+    "en": "The bus showed up ten minutes late.",
+    "pt": "O ônibus apareceu dez minutos atrasado."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "arrive"
+  },
+  {
+   "id": "lk.get-things-done",
+   "en": "get things done",
+   "match": "get things done",
+   "pt": "resolver as coisas",
+   "c": "collocation",
+   "explain": "Conseguir terminar o que precisa ser feito.",
+   "extra": {
+    "en": "A list helps you get things done.",
+    "pt": "Uma lista ajuda você a resolver as coisas."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "finish things"
+  },
+  {
+   "id": "lk.start-by",
+   "en": "start by",
+   "match": "start by",
+   "pt": "começar (fazendo algo)",
+   "c": "phrasal",
+   "explain": "“Start by + -ing” mostra a primeira coisa que você faz.",
+   "extra": {
+    "en": "Start by reading the question carefully.",
+    "pt": "Comece lendo a pergunta com atenção."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.take-care-of",
+   "en": "take care of",
+   "match": "take care of",
+   "pt": "cuidar de",
+   "c": "collocation",
+   "explain": "Igual a “look after”: cuidar de alguém ou de algo.",
+   "extra": {
+    "en": "Who takes care of the plants?",
+    "pt": "Quem cuida das plantas?"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.sit-down-for",
+   "en": "sit down for",
+   "match": "sit down for",
+   "pt": "sentar para (comer)",
+   "c": "phrasal",
+   "explain": "Sentar à mesa para fazer uma refeição com calma.",
+   "extra": {
+    "en": "Let's sit down for lunch.",
+    "pt": "Vamos sentar para almoçar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.proper-breakfast",
+   "en": "proper breakfast",
+   "match": "proper breakfast",
+   "pt": "café da manhã de verdade",
+   "c": "collocation",
+   "explain": "“Proper” = de verdade, completo, como deve ser.",
+   "extra": {
+    "en": "Have a proper breakfast, not just a biscuit!",
+    "pt": "Tome um café da manhã de verdade, não só um biscoito!"
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "good breakfast"
+  },
+  {
+   "id": "lk.crack-on-with",
+   "en": "crack on with",
+   "match": "crack on with",
+   "pt": "mandar ver em, continuar (sem enrolar)",
+   "c": "phrasal",
+   "explain": "Bem britânico e informal: começar ou continuar algo com energia.",
+   "extra": {
+    "en": "Right, let’s crack on with our project.",
+    "pt": "Bom, vamos mandar ver no nosso trabalho."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "start"
+  },
+  {
+   "id": "lk.by-half-past-eleven",
+   "en": "by half past eleven",
+   "match": "by half past eleven",
+   "pt": "até as onze e meia (no máximo)",
+   "c": "time",
+   "explain": "“By” + horário = antes ou no máximo naquele horário.",
+   "extra": {
+    "en": "Be home by six o’clock.",
+    "pt": "Esteja em casa até as seis."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.wind-down",
+   "en": "wind down",
+   "match": "wind down",
+   "pt": "desacelerar, relaxar",
+   "c": "phrasal",
+   "explain": "Ir se acalmando aos poucos depois de uma atividade.",
+   "extra": {
+    "en": "A warm bath helps you wind down.",
+    "pt": "Um banho quentinho ajuda você a relaxar."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "relax"
+  },
+  {
+   "id": "lk.ive-got-a-routine",
+   "en": "I've got a routine",
+   "match": "I've got a routine",
+   "pt": "eu tenho uma rotina",
+   "c": "sentence",
+   "explain": "“I’ve got” é muito usado no inglês britânico com o mesmo sentido de “I have”.",
+   "extra": {
+    "en": "I've got a question.",
+    "pt": "Eu tenho uma pergunta."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "I have a routine"
+  },
+  {
+   "id": "lk.get-everything-done",
+   "en": "get everything done",
+   "match": "get everything done",
+   "pt": "dar conta de tudo",
+   "c": "collocation",
+   "explain": "Conseguir fazer tudo o que precisava.",
+   "extra": {
+    "en": "Try to get everything done before the holiday.",
+    "pt": "Tente dar conta de tudo antes das férias."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.hearty-breakfast",
+   "en": "hearty breakfast",
+   "match": "hearty breakfast",
+   "pt": "café da manhã caprichado",
+   "c": "collocation",
+   "explain": "“Hearty” = farto e gostoso, que dá energia.",
+   "extra": {
+    "en": "A hearty breakfast gives you lots of energy.",
+    "pt": "Um café da manhã caprichado dá bastante energia."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "big breakfast"
+  },
+  {
+   "id": "lk.home-again",
+   "en": "home again",
+   "match": "home again",
+   "pt": "em casa de novo",
+   "c": "sentence",
+   "explain": "“Again” = de novo. “Home again” = de volta em casa.",
+   "extra": {
+    "en": "It's nice to be home again after the trip.",
+    "pt": "É bom estar em casa de novo depois da viagem."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "lk.pull-up",
+   "en": "pull up",
+   "match": "pull up",
+   "pt": "parar (um veículo chegando)",
+   "c": "phrasal",
+   "explain": "Quando um carro ou ônibus chega e para na frente de um lugar.",
+   "extra": {
+    "en": "A taxi pulled up outside our house.",
+    "pt": "Um táxi parou na frente da nossa casa."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "plain": "arrive"
+  },
+  {
+   "id": "lk.pretty-much",
+   "en": "pretty much",
+   "match": "pretty much",
+   "pt": "mais ou menos, praticamente",
+   "c": "collocation",
+   "explain": "Informal: “quase totalmente”, “praticamente”.",
+   "extra": {
+    "en": "The film's pretty much finished.",
+    "pt": "O filme está praticamente no fim."
+   },
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "L.Q1",
+   "routine": "L01",
+   "q": "What time do you wake up?",
+   "a": "I usually wake up very early in the morning.",
+   "keywords": [
+    [
+     "wake up",
+     "get up"
+    ],
+    [
+     "early"
+    ]
+   ],
+   "items": [
+    "lk.wake-up"
+   ],
+   "facts": [
+    "F01"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q2",
+   "routine": "L01",
+   "q": "What do you do after breakfast?",
+   "a": "After breakfast, I take a shower and help around the house with some chores.",
+   "keywords": [
+    [
+     "shower"
+    ],
+    [
+     "help",
+     "chores"
+    ]
+   ],
+   "items": [
+    "lk.help-around"
+   ],
+   "facts": [
+    "F07",
+    "F08"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q3",
+   "routine": "L01",
+   "q": "Now, tell me about your morning without reading the text.",
+   "a": "",
+   "hint": "Conte do seu jeito, sem olhar o texto. Tente usar: wake up, make my bed, feed my dog, take the rubbish out, freshen up.",
+   "openPersonal": true,
+   "items": [
+    "lk.wake-up",
+    "lk.make-my-bed",
+    "lk.feed-my-dog",
+    "lk.rubbish-out",
+    "lk.freshen-up"
+   ],
+   "facts": [
+    "F01",
+    "F02",
+    "F03",
+    "F05",
+    "F09"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q4",
+   "routine": "L02",
+   "q": "What do you do as soon as you get up?",
+   "a": "As soon as I get up, I tidy my bed and head downstairs.",
+   "keywords": [
+    [
+     "bed"
+    ],
+    [
+     "downstairs"
+    ]
+   ],
+   "items": [
+    "lk.as-soon-as",
+    "lk.head-downstairs"
+   ],
+   "facts": [
+    "F02"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q5",
+   "routine": "L02",
+   "q": "What do you and your brother do while you wait for your school transport?",
+   "a": "We go downstairs to relax and watch TV while we wait for our school transport.",
+   "keywords": [
+    [
+     "watch",
+     "tv",
+     "television"
+    ],
+    [
+     "relax",
+     "downstairs"
+    ]
+   ],
+   "items": [
+    "lk.while-we-wait"
+   ],
+   "facts": [
+    "F09",
+    "F10"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q6",
+   "routine": "L02",
+   "q": "Now, tell me about your morning in order, without reading the text.",
+   "a": "",
+   "hint": "Use palavras de sequência: first, as soon as, once, then, after that, later on.",
+   "openPersonal": true,
+   "items": [
+    "lk.as-soon-as",
+    "lk.once-ive",
+    "lk.later-on"
+   ],
+   "facts": [
+    "F01",
+    "F02",
+    "F06",
+    "F07"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q7",
+   "routine": "L03",
+   "q": "How do you look after your dog?",
+   "a": "I take his food downstairs, and once he's eaten, I clean up after him and sort out any mess.",
+   "keywords": [
+    [
+     "food",
+     "feed"
+    ],
+    [
+     "clean"
+    ]
+   ],
+   "items": [
+    "lk.look-after",
+    "lk.sort-out"
+   ],
+   "facts": [
+    "F03",
+    "F04"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q8",
+   "routine": "L03",
+   "q": "What do you do after eating?",
+   "a": "After eating, I jump in the shower and help with the household chores.",
+   "keywords": [
+    [
+     "shower"
+    ],
+    [
+     "chores",
+     "help"
+    ]
+   ],
+   "items": [
+    "lk.jump-in-shower",
+    "lk.household-chores"
+   ],
+   "facts": [
+    "F07",
+    "F08"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q9",
+   "routine": "L03",
+   "q": "Now, tell me how you look after your dog, without reading the text.",
+   "a": "",
+   "hint": "Tente usar: look after, feed, clean up after him, sort out.",
+   "openPersonal": true,
+   "items": [
+    "lk.look-after",
+    "lk.sort-out",
+    "lk.clean-up-after"
+   ],
+   "facts": [
+    "F03",
+    "F04"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q10",
+   "routine": "L04",
+   "q": "What do you do around the house?",
+   "a": "I usually lend a hand with the housework, such as tidying things up and putting things away.",
+   "keywords": [
+    [
+     "help",
+     "lend a hand"
+    ],
+    [
+     "tidy",
+     "put",
+     "clean"
+    ]
+   ],
+   "items": [
+    "lk.lend-a-hand",
+    "lk.housework"
+   ],
+   "facts": [
+    "F08"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q11",
+   "routine": "L04",
+   "q": "What do you do once you've finished your chores?",
+   "a": "Once I've finished my chores, I go upstairs to freshen up.",
+   "keywords": [
+    [
+     "freshen up",
+     "get ready",
+     "shower"
+    ],
+    [
+     "upstairs",
+     "brother",
+     "living room"
+    ]
+   ],
+   "items": [
+    "lk.finish-chores",
+    "lk.freshen-up"
+   ],
+   "facts": [
+    "F09"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q12",
+   "routine": "L04",
+   "q": "Now, tell me how you help around the house, without reading the text.",
+   "a": "",
+   "hint": "Tente usar: lend a hand, tidy things up, put things away, housework.",
+   "openPersonal": true,
+   "items": [
+    "lk.lend-a-hand",
+    "lk.tidy-things-up",
+    "lk.put-things-away"
+   ],
+   "facts": [
+    "F08"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q13",
+   "routine": "L05",
+   "q": "What happens on jiu-jitsu days?",
+   "a": "At twenty to ten, my brother and I get changed and head off to class. We get back home at eleven.",
+   "keywords": [
+    [
+     "twenty to ten",
+     "9:40",
+     "nine forty"
+    ],
+    [
+     "class",
+     "training",
+     "jiu-jitsu"
+    ]
+   ],
+   "items": [
+    "lk.get-changed",
+    "lk.head-off"
+   ],
+   "facts": [
+    "F12",
+    "F13"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q14",
+   "routine": "L05",
+   "q": "What time do you get back home?",
+   "a": "We get back home at eleven o'clock.",
+   "keywords": [
+    [
+     "eleven",
+     "11"
+    ]
+   ],
+   "items": [
+    "lk.get-back"
+   ],
+   "facts": [
+    "F13"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q15",
+   "routine": "L05",
+   "q": "Now, tell me about a jiu-jitsu day without reading the text.",
+   "a": "",
+   "hint": "Diga os horários: twenty to ten, eleven o’clock, half past eleven. Tente usar: get changed, head off, get back, put the lead on.",
+   "openPersonal": true,
+   "items": [
+    "lk.get-changed",
+    "lk.head-off",
+    "lk.get-back",
+    "lk.put-lead-on"
+   ],
+   "facts": [
+    "F11",
+    "F12",
+    "F13",
+    "F14"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q16",
+   "routine": "L06",
+   "q": "What do you do when you get back from jiu-jitsu?",
+   "a": "We grab our dog's lead, put it on him and head outside for a walk.",
+   "keywords": [
+    [
+     "dog"
+    ],
+    [
+     "walk",
+     "outside"
+    ]
+   ],
+   "items": [
+    "lk.get-back",
+    "lk.grab",
+    "lk.head-outside"
+   ],
+   "facts": [
+    "F14"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q17",
+   "routine": "L06",
+   "q": "How long do you stay out with your dog?",
+   "a": "We usually stay out for about half an hour.",
+   "keywords": [
+    [
+     "half an hour",
+     "thirty minutes"
+    ]
+   ],
+   "items": [
+    "lk.stay-out"
+   ],
+   "facts": [
+    "F14"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q18",
+   "routine": "L06",
+   "q": "Now, tell me what you do after jiu-jitsu, without reading the text.",
+   "a": "",
+   "hint": "Use alguns phrasal verbs: get back, head outside, stay out, freshen up, kick back.",
+   "openPersonal": true,
+   "items": [
+    "lk.get-back",
+    "lk.head-outside",
+    "lk.kick-back"
+   ],
+   "facts": [
+    "F14",
+    "F15",
+    "F10"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q19",
+   "routine": "L07",
+   "q": "Why do you have to keep an eye on the time?",
+   "a": "Because my morning is quite busy.",
+   "keywords": [
+    [
+     "busy"
+    ]
+   ],
+   "items": [
+    "lk.keep-an-eye-on"
+   ],
+   "facts": [
+    "F01"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q20",
+   "routine": "L07",
+   "q": "What time do you leave for training?",
+   "a": "My brother and I leave at twenty to ten.",
+   "keywords": [
+    [
+     "twenty to ten",
+     "9:40",
+     "nine forty"
+    ]
+   ],
+   "items": [
+    "lk.leave",
+    "lk.twenty-to-ten"
+   ],
+   "facts": [
+    "F12"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q21",
+   "routine": "L07",
+   "q": "Now, tell me about your morning step by step, with the times, without reading the text.",
+   "a": "",
+   "hint": "Diga a ordem e os horários: first, then, after that, at twenty to ten, at eleven.",
+   "openPersonal": true,
+   "items": [
+    "lk.keep-an-eye-on",
+    "lk.get-on-with",
+    "lk.training-days"
+   ],
+   "facts": [
+    "F01",
+    "F12",
+    "F13"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q22",
+   "routine": "L08",
+   "q": "What do you do first thing in the morning?",
+   "a": "First things first, I sort out my dog's breakfast and clean up after him.",
+   "keywords": [
+    [
+     "dog"
+    ],
+    [
+     "breakfast",
+     "clean"
+    ]
+   ],
+   "items": [
+    "lk.first-things-first",
+    "lk.sort-out"
+   ],
+   "facts": [
+    "F03",
+    "F04"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q23",
+   "routine": "L08",
+   "q": "What do you do until your school ride shows up?",
+   "a": "We chill out in the living room and watch TV.",
+   "keywords": [
+    [
+     "tv",
+     "television"
+    ],
+    [
+     "relax",
+     "chill out",
+     "living room"
+    ]
+   ],
+   "items": [
+    "lk.chill-out",
+    "lk.show-up"
+   ],
+   "facts": [
+    "F09",
+    "F10"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q24",
+   "routine": "L08",
+   "q": "Now, tell me about a typical day at home in a relaxed way, without reading the text.",
+   "a": "",
+   "hint": "Fale como numa conversa: first things first, pitch in, chill out, show up.",
+   "openPersonal": true,
+   "items": [
+    "lk.first-things-first",
+    "lk.pitch-in",
+    "lk.chill-out"
+   ],
+   "facts": [
+    "F03",
+    "F08",
+    "F10"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q25",
+   "routine": "L09",
+   "q": "How do you start your morning?",
+   "a": "I start by making my bed and taking care of my dog.",
+   "keywords": [
+    [
+     "bed"
+    ],
+    [
+     "dog"
+    ]
+   ],
+   "items": [
+    "lk.start-by",
+    "lk.take-care-of"
+   ],
+   "facts": [
+    "F02",
+    "F03"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q26",
+   "routine": "L09",
+   "q": "Where are you by half past eleven on training days?",
+   "a": "By half past eleven, we're back from walking the dog and ready to wind down.",
+   "keywords": [
+    [
+     "back",
+     "home"
+    ],
+    [
+     "dog",
+     "walk"
+    ]
+   ],
+   "items": [
+    "lk.by-half-past-eleven",
+    "lk.wind-down"
+   ],
+   "facts": [
+    "F14"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q27",
+   "routine": "L09",
+   "q": "Now, tell me how you keep your morning organised, without reading the text.",
+   "a": "",
+   "hint": "Tente usar: get things done, start by, crack on with, wind down.",
+   "openPersonal": true,
+   "items": [
+    "lk.get-things-done",
+    "lk.start-by",
+    "lk.crack-on-with",
+    "lk.wind-down"
+   ],
+   "facts": [
+    "F02",
+    "F08",
+    "F14"
+   ],
+   "kind": "transfer"
+  },
+  {
+   "id": "L.Q28",
+   "routine": "L10",
+   "q": "What do you do before going to school?",
+   "a": "I watch TV with my brother until our school minibus pulls up at around twelve forty.",
+   "keywords": [
+    [
+     "tv",
+     "television"
+    ],
+    [
+     "minibus",
+     "bus",
+     "school"
+    ]
+   ],
+   "items": [
+    "lk.pull-up",
+    "lk.kick-back"
+   ],
+   "facts": [
+    "F10"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q29",
+   "routine": "L10",
+   "q": "How do you spend your morning on jiu-jitsu days?",
+   "a": "My brother and I get changed and head off to training at twenty to ten. We get back at eleven and take the dog out for a walk.",
+   "keywords": [
+    [
+     "twenty to ten",
+     "9:40",
+     "nine forty"
+    ],
+    [
+     "dog",
+     "walk"
+    ]
+   ],
+   "items": [
+    "lk.get-changed",
+    "lk.head-off",
+    "lk.get-back"
+   ],
+   "facts": [
+    "F12",
+    "F13",
+    "F14"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "L.Q30",
+   "routine": "L10",
+   "q": "Now, tell me the full story of your morning, without reading the text.",
+   "a": "",
+   "hint": "Conte a manhã inteira, de acordar até o transporte escolar, e o que muda nos dias de jiu-jitsu. Use o que você aprendeu nas dez sessões.",
+   "openPersonal": true,
+   "items": [
+    "lk.ive-got-a-routine",
+    "lk.get-everything-done",
+    "lk.head-off",
+    "lk.get-back",
+    "lk.kick-back",
+    "lk.pull-up"
+   ],
+   "facts": [
+    "F01",
+    "F08",
+    "F10",
+    "F12",
+    "F13",
+    "F14"
+   ],
+   "kind": "transfer"
+  }
+ ]
+}

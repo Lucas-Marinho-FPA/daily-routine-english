@@ -1,0 +1,1946 @@
+{
+ "_doc": "Lucas 2.0 (Perfil Arquiteto): episódios R11–R18 e enriquecimento de R01–R10 sem alterar o texto do Word. Episódios são FICÇÃO NARRATIVA autorizada (situações criadas para a prática), ancoradas em fatos de referência do perfil (basis); nunca viram fatos biográficos. Privacidade: sem nome do empregador, da escola de inglês, da agência, da cidade além de São Paulo como cenário de trânsito, sem nomes da família. Itens novos daqui só são localizados nas frases dos episódios (não entram nas rotinas do Word).",
+ "profile": {
+  "source": "Bíblia de Personagem — Lucas 2.0 (Perfil Arquiteto) e Escopo Oficial do Personagem Lucas v1.0, fornecidos pelo usuário em 2026-10-26.",
+  "traits": [
+   "analítico",
+   "idealista em busca de pragmatismo",
+   "comunicativo e colaborativo",
+   "disciplinado e focado",
+   "competitivo consigo mesmo",
+   "paciente",
+   "verdadeiro e transparente",
+   "humano diante do cansaço e dos próprios limites"
+  ],
+  "facts": [
+   {
+    "id": "P01",
+    "kind": "reference",
+    "pt": "Analista financeiro (FP&A) num banco — o nome do empregador não é publicado."
+   },
+   {
+    "id": "P02",
+    "kind": "reference",
+    "pt": "Motorista da Uber em horários e trajetos compatíveis com a rotina."
+   },
+   {
+    "id": "P03",
+    "kind": "reference",
+    "pt": "Projeto de BPO financeiro com a irmã (agência própria — nome não publicado)."
+   },
+   {
+    "id": "P04",
+    "kind": "reference",
+    "pt": "Programa em Python, cria aplicativos e usa ferramentas de IA."
+   },
+   {
+    "id": "P05",
+    "kind": "reference",
+    "pt": "Casado; dois filhos (referência: 11 e 7 anos)."
+   },
+   {
+    "id": "P06",
+    "kind": "reference",
+    "pt": "Tem um Border Collie."
+   },
+   {
+    "id": "P07",
+    "kind": "reference",
+    "pt": "Gosta de xadrez, inglês, atividade física, corrida, Hyrox, tecnologia, leitura e café."
+   },
+   {
+    "id": "P08",
+    "kind": "reference",
+    "pt": "Leituras citadas: Die with Zero e Mais Esperto que o Diabo."
+   },
+   {
+    "id": "P09",
+    "kind": "reference",
+    "pt": "Formação em Contabilidade e MBA em Finanças."
+   },
+   {
+    "id": "P10",
+    "kind": "reference",
+    "pt": "Mora em São Paulo."
+   }
+  ],
+  "pending": [
+   "Idade de referência (35) e idades dos filhos: não usadas no texto; podem estar desatualizadas.",
+   "Gênero dos dois filhos: o Word fala em “my son” e “the children”; os episódios usam “Son” só para o filho que já aparece no xadrez (R05).",
+   "Nome do cachorro: não informado; o texto diz “our Border Collie”.",
+   "Publicar o nome da agência (nome omitido)? Mantido fora do texto por coerência com a generalização do empregador."
+  ]
+ },
+ "existing": {
+  "R01": {
+   "stage": "A",
+   "grammar": "Present Simple na 1ª pessoa; horários (at around, between… and…); sequência do dia."
+  },
+  "R02": {
+   "stage": "A",
+   "grammar": "Present Simple; since (razão) e instead (alternativa); work from home."
+  },
+  "R03": {
+   "stage": "A",
+   "grammar": "Present Simple; on some days; negativa (I don't…) e because."
+  },
+  "R04": {
+   "stage": "A",
+   "grammar": "Present Simple; spend + tempo + -ing (I spend hours presenting…); vocabulário de reuniões."
+  },
+  "R05": {
+   "stage": "A",
+   "grammar": "Present Simple; atividades em família; so (consequência)."
+  },
+  "R06": {
+   "stage": "A",
+   "grammar": "Present Simple; so I can… (permissão/possibilidade); tarefas de análise."
+  },
+  "R07": {
+   "stage": "A",
+   "grammar": "Present Simple; when I get home; for about an hour (duração)."
+  },
+  "R08": {
+   "stage": "A",
+   "grammar": "Present Simple; by + horário (prazo); which gives me… (consequência)."
+  },
+  "R09": {
+   "stage": "A",
+   "grammar": "Present Simple; sharp (pontualidade); before + -ing."
+  },
+  "R10": {
+   "stage": "A",
+   "grammar": "Present Simple; decide not to; straight home; equilíbrio trabalho–família."
+  }
+ },
+ "routines": [
+  {
+   "id": "R11",
+   "title": "A Ride Across Town",
+   "pt": "Uma corrida pela cidade",
+   "stage": "B",
+   "basis": [
+    "P02",
+    "P10",
+    "P01"
+   ],
+   "goal": "Conversar com um passageiro: tranquilizar, explicar o trânsito, atender um pedido educado e falar um pouco de si.",
+   "grammar": "Present Continuous (I'm taking a shorter route); pedidos educados (Would you mind + -ing?); It depends on…",
+   "usage": [
+    "“Would you mind turning it down?” é um pedido educado; a resposta “Not at all” quer dizer que não há problema.",
+    "“Ten to eight” = 7h50 (dez para as oito)."
+   ],
+   "blocks": [
+    {
+     "pt": "Um passageiro com pressa",
+     "ctx": [
+      "commute",
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "At 7:00 a.m., a passenger gets into my car near the station.",
+       "pt": "Às 7h, uma passageira entra no meu carro perto da estação."
+      },
+      {
+       "en": "She's going to the airport, and she seems worried about the time.",
+       "pt": "Ela está indo para o aeroporto e parece preocupada com o horário."
+      },
+      {
+       "en": "This morning, the traffic is heavy in São Paulo, so I check the app for a quicker way.",
+       "pt": "Hoje de manhã, o trânsito está pesado em São Paulo, então procuro no aplicativo um caminho mais rápido."
+      }
+     ]
+    },
+    {
+     "pt": "No carro",
+     "kind": "dialogue",
+     "ctx": [
+      "commute"
+     ],
+     "sentences": [
+      {
+       "speaker": "Passenger",
+       "en": "Good morning! Do you think we'll get there by eight?",
+       "pt": "Passageira: Bom dia! Você acha que chegamos lá até as oito?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "It depends on the traffic, but I'm taking a shorter route.",
+       "pt": "Lucas: Depende do trânsito, mas estou pegando um caminho mais curto."
+      },
+      {
+       "speaker": "Passenger",
+       "en": "Thank you. Would you mind turning down the air conditioning a little?",
+       "pt": "Passageira: Obrigada. Você se importaria de diminuir um pouco o ar-condicionado?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Not at all. Is that better?",
+       "pt": "Lucas: De jeito nenhum. Assim está melhor?"
+      },
+      {
+       "speaker": "Passenger",
+       "en": "Much better. Do you drive all day?",
+       "pt": "Passageira: Muito melhor. Você dirige o dia todo?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "No, I only drive before and after work. During the day, I work in finance.",
+       "pt": "Lucas: Não, só dirijo antes e depois do trabalho. Durante o dia, trabalho com finanças."
+      }
+     ]
+    },
+    {
+     "pt": "Chegada",
+     "ctx": [
+      "commute"
+     ],
+     "sentences": [
+      {
+       "en": "We arrive at ten to eight, and she thanks me with a big smile.",
+       "pt": "Chegamos às dez para as oito, e ela me agradece com um grande sorriso."
+      },
+      {
+       "en": "Driving for Uber teaches me to deal with traffic and stay calm.",
+       "pt": "Dirigir para a Uber me ensina a lidar com o trânsito e a manter a calma."
+      }
+     ]
+    }
+   ],
+   "universe": "Uber e mobilidade",
+   "traits": [
+    "comunicativo e colaborativo",
+    "paciente"
+   ]
+  },
+  {
+   "id": "R12",
+   "title": "Saturday Plans",
+   "pt": "Planos de sábado",
+   "stage": "B",
+   "basis": [
+    "P05",
+    "P06"
+   ],
+   "goal": "Negociar um plano em família: fazer e recusar convites, sugerir, reconhecer o cansaço e pedir desculpas por uma reação impaciente.",
+   "grammar": "Sugestões (Why don't we…?, Let's…); pedidos com can; I didn't mean to…; be in the mood for.",
+   "usage": [
+    "“I didn't mean to sound impatient” é um jeito simples de pedir desculpas pelo tom, não pelo conteúdo.",
+    "“Dad” = pai, forma usada pelas crianças."
+   ],
+   "blocks": [
+    {
+     "pt": "Sábado de manhã",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "At the weekend, the children want to take our Border Collie to the park.",
+       "pt": "No fim de semana, as crianças querem levar nosso Border Collie ao parque."
+      },
+      {
+       "en": "My wife suggests a picnic, but I still have a report to review.",
+       "pt": "Minha esposa sugere um piquenique, mas eu ainda tenho um relatório para revisar."
+      },
+      {
+       "en": "I'm tired after a long week, and I'm not in the mood for a busy day.",
+       "pt": "Estou cansado depois de uma semana longa e não estou com disposição para um dia agitado."
+      }
+     ]
+    },
+    {
+     "pt": "A conversa",
+     "kind": "dialogue",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "speaker": "Son",
+       "en": "Dad, can we take the dog to the park, please?",
+       "pt": "Filho: Pai, a gente pode levar o cachorro ao parque, por favor?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Not now! I need to finish something first.",
+       "pt": "Lucas: Agora não! Preciso terminar uma coisa primeiro."
+      },
+      {
+       "speaker": "Wife",
+       "en": "You've worked all week. Why don't we all go together for an hour?",
+       "pt": "Esposa: Você trabalhou a semana toda. Por que não vamos todos juntos por uma hora?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Sorry, I didn't mean to sound impatient. You're right.",
+       "pt": "Lucas: Desculpe, não quis parecer impaciente. Você tem razão."
+      },
+      {
+       "speaker": "Son",
+       "en": "Great! Can I throw the ball for him?",
+       "pt": "Filho: Oba! Posso jogar a bola para ele?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Of course. Let's leave in ten minutes.",
+       "pt": "Lucas: Claro. Vamos sair em dez minutos."
+      }
+     ]
+    },
+    {
+     "pt": "No parque",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "At the park, the dog runs everywhere and the children laugh.",
+       "pt": "No parque, o cachorro corre para todo lado e as crianças riem."
+      },
+      {
+       "en": "I realise that an hour of quality time is more important than a perfect report.",
+       "pt": "Percebo que uma hora de tempo de qualidade é mais importante do que um relatório perfeito."
+      },
+      {
+       "en": "In the evening, I finish the report and feel much calmer.",
+       "pt": "À noite, termino o relatório e me sinto muito mais calmo."
+      }
+     ]
+    }
+   ],
+   "universe": "Família e vida pessoal",
+   "traits": [
+    "verdadeiro e transparente",
+    "humano diante do cansaço e dos próprios limites"
+   ]
+  },
+  {
+   "id": "R13",
+   "title": "Running Before Sunrise",
+   "pt": "Correndo antes do amanhecer",
+   "stage": "C",
+   "basis": [
+    "P06",
+    "P07"
+   ],
+   "goal": "Falar de uma meta pessoal: comparar resultados, explicar um dia ruim e justificar a decisão de descansar.",
+   "grammar": "Comparativos (slower than, faster than); Past Simple; had slept (o que tinha acontecido antes); instead of + -ing.",
+   "usage": [
+    "“Personal best” = melhor marca pessoal.",
+    "O episódio fala de descanso como parte do treino, sem prescrever nada."
+   ],
+   "blocks": [
+    {
+     "pt": "O hábito",
+     "ctx": [
+      "gym",
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Three times a week, I go for a run before work with our Border Collie.",
+       "pt": "Três vezes por semana, saio para correr antes do trabalho com nosso Border Collie."
+      },
+      {
+       "en": "He loves running, and it helps me clear my head.",
+       "pt": "Ele adora correr, e isso me ajuda a clarear a cabeça."
+      },
+      {
+       "en": "I'm training for a Hyrox race, so I record my times on my phone.",
+       "pt": "Estou treinando para uma prova de Hyrox, então registro meus tempos no celular."
+      }
+     ]
+    },
+    {
+     "pt": "Um dia mais lento",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "Last Tuesday, my run was slower than the week before.",
+       "pt": "Na terça passada, minha corrida foi mais lenta do que na semana anterior."
+      },
+      {
+       "en": "At first, I felt frustrated, since I really wanted a new personal best.",
+       "pt": "No começo, fiquei frustrado, já que eu queria muito uma nova melhor marca."
+      },
+      {
+       "en": "Then I realised that I had slept only five hours and I was tired.",
+       "pt": "Então percebi que tinha dormido só cinco horas e estava cansado."
+      },
+      {
+       "en": "So I decided to get some rest the next day instead of training harder.",
+       "pt": "Então decidi descansar no dia seguinte em vez de treinar mais forte."
+      }
+     ]
+    },
+    {
+     "pt": "O resultado",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "On Friday, I ran the same route and I was faster than on Tuesday.",
+       "pt": "Na sexta, corri o mesmo percurso e fui mais rápido do que na terça."
+      },
+      {
+       "en": "My goal is to beat my own times, not other people's.",
+       "pt": "Minha meta é superar os meus próprios tempos, não os dos outros."
+      },
+      {
+       "en": "Rest is part of the plan, not a sign of weakness.",
+       "pt": "O descanso faz parte do plano, não é sinal de fraqueza."
+      }
+     ]
+    }
+   ],
+   "universe": "Atividade física",
+   "traits": [
+    "disciplinado e focado",
+    "competitivo consigo mesmo",
+    "humano diante do cansaço e dos próprios limites"
+   ]
+  },
+  {
+   "id": "R14",
+   "title": "An Unexpected Result",
+   "pt": "Um resultado inesperado",
+   "stage": "C",
+   "basis": [
+    "P01",
+    "P09"
+   ],
+   "goal": "Explicar um resultado financeiro inesperado, justificar a causa e discordar de uma proposta com educação, sugerindo outra opção.",
+   "grammar": "Past Simple; due to (causa); discordância educada (I'm not sure that's the best option); I suggest we… ; If…, we might…",
+   "usage": [
+    "“A one-off expense” = uma despesa pontual, que não se repete.",
+    "Gerente e números são fictícios; nada vem do trabalho real."
+   ],
+   "blocks": [
+    {
+     "pt": "Os números",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "en": "This month, our costs were higher than the forecast.",
+       "pt": "Este mês, nossos custos ficaram acima da previsão."
+      },
+      {
+       "en": "I spent the morning analysing the numbers to understand why.",
+       "pt": "Passei a manhã analisando os números para entender por quê."
+      },
+      {
+       "en": "The difference came from a one-off expense, not from a long-term trend.",
+       "pt": "A diferença veio de uma despesa pontual, não de uma tendência de longo prazo."
+      }
+     ]
+    },
+    {
+     "pt": "A reunião",
+     "kind": "dialogue",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "speaker": "Manager",
+       "en": "Can you explain why the result is below the forecast?",
+       "pt": "Gerente: Você pode explicar por que o resultado está abaixo da previsão?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Yes. Most of the difference is due to a one-off expense in March.",
+       "pt": "Lucas: Sim. A maior parte da diferença se deve a uma despesa pontual em março."
+      },
+      {
+       "speaker": "Manager",
+       "en": "So should we cut the budget for next quarter?",
+       "pt": "Gerente: Então devemos cortar o orçamento do próximo trimestre?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "I'm not sure that's the best option. If we cut it now, we might delay important projects.",
+       "pt": "Lucas: Não tenho certeza de que essa seja a melhor opção. Se cortarmos agora, podemos atrasar projetos importantes."
+      },
+      {
+       "speaker": "Manager",
+       "en": "What do you suggest, then?",
+       "pt": "Gerente: O que você sugere, então?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "I suggest we monitor the costs for another month and review the forecast.",
+       "pt": "Lucas: Sugiro acompanharmos os custos por mais um mês e revisarmos a previsão."
+      }
+     ]
+    },
+    {
+     "pt": "Depois da reunião",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "en": "My manager didn't agree at first, but he listened to my analysis.",
+       "pt": "Meu gerente não concordou no começo, mas ouviu a minha análise."
+      },
+      {
+       "en": "We decided to weigh the options again at the next meeting.",
+       "pt": "Decidimos avaliar as alternativas de novo na próxima reunião."
+      },
+      {
+       "en": "I learnt that numbers need a clear story behind them.",
+       "pt": "Aprendi que os números precisam de uma explicação clara por trás."
+      }
+     ]
+    }
+   ],
+   "universe": "Trabalho corporativo — FP&A",
+   "traits": [
+    "analítico",
+    "verdadeiro e transparente"
+   ]
+  },
+  {
+   "id": "R15",
+   "title": "A Bug Before Bedtime",
+   "pt": "Um bug antes de dormir",
+   "stage": "C",
+   "basis": [
+    "P04",
+    "P05"
+   ],
+   "goal": "Descrever um problema técnico em etapas, explicar a solução e reformular uma ideia para uma criança.",
+   "grammar": "Sequência (First…, Then…); Present Simple e Continuous (I'm fixing…); explicar com palavras simples (It's a mistake in…).",
+   "usage": [
+    "“Bug” = erro num programa; “run the tests” = rodar os testes.",
+    "O app do episódio é fictício; o foco é a língua, não programação."
+   ],
+   "blocks": [
+    {
+     "pt": "O projeto",
+     "ctx": [
+      "evening",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "In the evening, I work on a small app in Python to organise my study notes.",
+       "pt": "À noite, trabalho num pequeno aplicativo em Python para organizar minhas anotações de estudo."
+      },
+      {
+       "en": "I want to meet my own deadline and finish a new feature by Friday.",
+       "pt": "Quero cumprir o meu próprio prazo e terminar uma nova funcionalidade até sexta."
+      },
+      {
+       "en": "But when I run the tests, two of them fail.",
+       "pt": "Mas quando rodo os testes, dois deles falham."
+      }
+     ]
+    },
+    {
+     "pt": "Procurando o erro",
+     "ctx": [
+      "evening",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "First, I focus on the error message and read it carefully.",
+       "pt": "Primeiro, me concentro na mensagem de erro e a leio com atenção."
+      },
+      {
+       "en": "Then I ask an AI assistant to explain it, but I check its suggestion myself.",
+       "pt": "Depois, peço a um assistente de IA que a explique, mas confiro a sugestão eu mesmo."
+      },
+      {
+       "en": "The problem is simple: a date is in the wrong format.",
+       "pt": "O problema é simples: uma data está no formato errado."
+      },
+      {
+       "en": "I fix the bug, run the tests again and they all pass.",
+       "pt": "Corrijo o bug, rodo os testes de novo e todos passam."
+      }
+     ]
+    },
+    {
+     "pt": "Uma pergunta do filho",
+     "kind": "dialogue",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "speaker": "Son",
+       "en": "Dad, what are you doing on the computer?",
+       "pt": "Filho: Pai, o que você está fazendo no computador?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "I'm fixing a bug in my app.",
+       "pt": "Lucas: Estou corrigindo um bug no meu aplicativo."
+      },
+      {
+       "speaker": "Son",
+       "en": "What's a bug?",
+       "pt": "Filho: O que é um bug?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "It's a mistake in the code. I find it, fix it and learn from it.",
+       "pt": "Lucas: É um erro no código. Eu o encontro, corrijo e aprendo com ele."
+      },
+      {
+       "speaker": "Son",
+       "en": "Can you show me how?",
+       "pt": "Filho: Você me mostra como?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Sure, but only for ten minutes. It's almost bedtime.",
+       "pt": "Lucas: Claro, mas só por dez minutos. Já está quase na hora de dormir."
+      }
+     ]
+    }
+   ],
+   "universe": "Tecnologia e aplicativos",
+   "traits": [
+    "analítico",
+    "paciente",
+    "disciplinado e focado"
+   ]
+  },
+  {
+   "id": "R16",
+   "title": "Planning a Service with My Sister",
+   "pt": "Planejando um serviço com a minha irmã",
+   "stage": "D",
+   "basis": [
+    "P03",
+    "P01",
+    "P09"
+   ],
+   "goal": "Apresentar e ajustar uma ideia de negócio: comparar opções, recusar o plano grande demais e combinar prioridades e prazos.",
+   "grammar": "Sugestões e contrapropostas (Why don't we…? / Let's start with…); first conditional (If…, we'll…); comparação de opções.",
+   "usage": [
+    "“BPO” = terceirização de processos (aqui, rotinas financeiras de pequenas empresas).",
+    "Clientes, proposta e números são fictícios."
+   ],
+   "blocks": [
+    {
+     "pt": "A ideia",
+     "ctx": [
+      "work",
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "My sister and I are planning a financial BPO service for small businesses.",
+       "pt": "Minha irmã e eu estamos planejando um serviço de BPO financeiro para pequenas empresas."
+      },
+      {
+       "en": "We want to help owners organise their bills, cash flow and monthly reports.",
+       "pt": "Queremos ajudar os donos a organizar contas, fluxo de caixa e relatórios mensais."
+      },
+      {
+       "en": "Our first idea was too ambitious for the time we have.",
+       "pt": "Nossa primeira ideia era ambiciosa demais para o tempo que temos."
+      }
+     ]
+    },
+    {
+     "pt": "A conversa",
+     "kind": "dialogue",
+     "ctx": [
+      "work",
+      "evening"
+     ],
+     "sentences": [
+      {
+       "speaker": "Sister",
+       "en": "Why don't we offer everything from the start: accounting, payroll and reports?",
+       "pt": "Irmã: Por que não oferecemos tudo desde o início: contabilidade, folha de pagamento e relatórios?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "I like the idea, but we don't have enough time to do it well.",
+       "pt": "Lucas: Gosto da ideia, mas não temos tempo suficiente para fazer isso bem."
+      },
+      {
+       "speaker": "Sister",
+       "en": "So what do you suggest?",
+       "pt": "Irmã: Então o que você sugere?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Let's start with one simple service and add more later.",
+       "pt": "Lucas: Vamos começar com um serviço simples e acrescentar outros depois."
+      },
+      {
+       "speaker": "Sister",
+       "en": "If clients ask for more, what will we say?",
+       "pt": "Irmã: Se os clientes pedirem mais, o que vamos dizer?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "We'll explain our priorities clearly and agree on a realistic deadline.",
+       "pt": "Lucas: Vamos explicar nossas prioridades com clareza e combinar um prazo realista."
+      }
+     ]
+    },
+    {
+     "pt": "A decisão",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "en": "In the end, we wrote a one-page proposal with three options.",
+       "pt": "No fim, escrevemos uma proposta de uma página com três opções."
+      },
+      {
+       "en": "We compared the costs and benefits of each option.",
+       "pt": "Comparamos os custos e os benefícios de cada opção."
+      },
+      {
+       "en": "Starting small felt less exciting, but it was the right decision.",
+       "pt": "Começar pequeno pareceu menos empolgante, mas foi a decisão certa."
+      }
+     ]
+    }
+   ],
+   "universe": "Empreendedorismo — BPO financeiro",
+   "traits": [
+    "idealista em busca de pragmatismo",
+    "comunicativo e colaborativo"
+   ]
+  },
+  {
+   "id": "R17",
+   "title": "A Chess Game I Lost",
+   "pt": "Uma partida de xadrez que perdi",
+   "stage": "D",
+   "basis": [
+    "P07"
+   ],
+   "goal": "Analisar uma derrota: contar a partida, explicar o erro, levantar hipóteses sobre o que poderia ter sido diferente e planejar a próxima vez.",
+   "grammar": "Past Simple; should have / could have (crítica e hipótese no passado); If I had…, I could have…; going to / will.",
+   "usage": [
+    "“Time trouble” = pouco tempo no relógio; “trade pieces” = trocar peças.",
+    "“I should have…” lamenta o que não foi feito."
+   ],
+   "blocks": [
+    {
+     "pt": "A partida",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "Last night, I played a ten-minute chess game online.",
+       "pt": "Ontem à noite, joguei uma partida de xadrez de dez minutos on-line."
+      },
+      {
+       "en": "I had a good position after the opening.",
+       "pt": "Eu tinha uma boa posição depois da abertura."
+      },
+      {
+       "en": "But I spent too much time on one move and got into time trouble.",
+       "pt": "Mas gastei tempo demais num lance e fiquei sem tempo no relógio."
+      },
+      {
+       "en": "Then I made a mistake and lost my queen.",
+       "pt": "Então cometi um erro e perdi a dama."
+      }
+     ]
+    },
+    {
+     "pt": "A análise",
+     "ctx": [
+      "evening",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "After the game, I analysed it with a chess engine.",
+       "pt": "Depois da partida, analisei-a com um programa de xadrez."
+      },
+      {
+       "en": "I should have traded pieces instead of attacking.",
+       "pt": "Eu deveria ter trocado peças em vez de atacar."
+      },
+      {
+       "en": "If I had checked my opponent's threats, I could have saved the game.",
+       "pt": "Se eu tivesse verificado as ameaças do adversário, poderia ter salvado a partida."
+      }
+     ]
+    },
+    {
+     "pt": "Próxima vez",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "At first, I felt frustrated, but I always learn from my mistakes.",
+       "pt": "No começo, fiquei frustrado, mas sempre aprendo com os meus erros."
+      },
+      {
+       "en": "Next time, I'm going to weigh the options before each move and manage my clock better.",
+       "pt": "Da próxima vez, vou avaliar as alternativas antes de cada lance e administrar melhor o relógio."
+      }
+     ]
+    }
+   ],
+   "universe": "Xadrez e raciocínio estratégico",
+   "traits": [
+    "competitivo consigo mesmo",
+    "analítico"
+   ]
+  },
+  {
+   "id": "R18",
+   "title": "A Book That Made Me Think",
+   "pt": "Um livro que me fez pensar",
+   "stage": "D",
+   "basis": [
+    "P08",
+    "P05",
+    "P01",
+    "P07"
+   ],
+   "goal": "Resumir a ideia de um livro, dar uma opinião equilibrada, concordar em parte e propor uma mudança concreta.",
+   "grammar": "Opinião (I agree that…, I'm not sure…, It depends on…); argue that; partly / however; should para sugestões.",
+   "usage": [
+    "“Partly” = em parte; é um jeito educado de concordar com ressalvas.",
+    "Die with Zero (Bill Perkins) defende usar dinheiro e tempo para viver experiências; o episódio pratica opinião, não dá conselho financeiro."
+   ],
+   "blocks": [
+    {
+     "pt": "O livro",
+     "ctx": [
+      "morning",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "On Sunday morning, I make a cup of coffee and read a few pages of Die with Zero.",
+       "pt": "No domingo de manhã, faço uma xícara de café e leio algumas páginas de Die with Zero."
+      },
+      {
+       "en": "The author argues that we should use our money to create memories while we can.",
+       "pt": "O autor defende que devemos usar nosso dinheiro para criar memórias enquanto podemos."
+      },
+      {
+       "en": "As someone who works in finance, I find the idea interesting but challenging.",
+       "pt": "Como alguém que trabalha com finanças, acho a ideia interessante, mas desafiadora."
+      }
+     ]
+    },
+    {
+     "pt": "Uma conversa",
+     "kind": "dialogue",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "speaker": "Wife",
+       "en": "So, do you agree with the book?",
+       "pt": "Esposa: E aí, você concorda com o livro?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Partly. I agree that experiences matter, but I still think saving is important.",
+       "pt": "Lucas: Em parte. Concordo que as experiências importam, mas ainda acho que poupar é importante."
+      },
+      {
+       "speaker": "Wife",
+       "en": "Isn't it a question of balance?",
+       "pt": "Esposa: Não é uma questão de equilíbrio?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Exactly. It depends on your age, your family and your goals.",
+       "pt": "Lucas: Exatamente. Depende da sua idade, da sua família e dos seus objetivos."
+      },
+      {
+       "speaker": "Wife",
+       "en": "Then what would you change in our plans?",
+       "pt": "Esposa: Então o que você mudaria nos nossos planos?"
+      },
+      {
+       "speaker": "Lucas",
+       "en": "Maybe we should plan one special trip with the children every year.",
+       "pt": "Lucas: Talvez devêssemos planejar uma viagem especial com as crianças todo ano."
+      }
+     ]
+    },
+    {
+     "pt": "O que ficou",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "The book didn't change my mind completely.",
+       "pt": "O livro não mudou completamente a minha opinião."
+      },
+      {
+       "en": "However, it made me think about my priorities.",
+       "pt": "No entanto, me fez pensar nas minhas prioridades."
+      },
+      {
+       "en": "Good ideas are useful when we adapt them to our own reality.",
+       "pt": "Boas ideias são úteis quando as adaptamos à nossa própria realidade."
+      }
+     ]
+    }
+   ],
+   "universe": "Leitura e desenvolvimento pessoal",
+   "traits": [
+    "idealista em busca de pragmatismo",
+    "comunicativo e colaborativo"
+   ]
+  }
+ ],
+ "items": [
+  {
+   "en": "passenger",
+   "pt": "passageiro(a)",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "be worried about",
+   "pt": "estar preocupado(a) com",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "worried about"
+  },
+  {
+   "en": "the traffic is heavy",
+   "pt": "o trânsito está pesado",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "traffic is heavy"
+  },
+  {
+   "en": "route",
+   "pt": "rota, percurso",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "get there by",
+   "pt": "chegar lá até (um horário)",
+   "c": "time",
+   "lvl": 2
+  },
+  {
+   "en": "Would you mind…?",
+   "pt": "Você se importaria de…?",
+   "c": "connector",
+   "lvl": 2,
+   "match": "would you mind",
+   "tip": "Depois de “Would you mind”, use o verbo com -ing."
+  },
+  {
+   "en": "turn down",
+   "pt": "diminuir (volume, ar-condicionado)",
+   "c": "phrasal",
+   "lvl": 2
+  },
+  {
+   "en": "Not at all.",
+   "pt": "De jeito nenhum. / Imagina.",
+   "c": "connector",
+   "lvl": 1,
+   "match": "not at all"
+  },
+  {
+   "en": "ten to eight",
+   "pt": "dez para as oito (7h50)",
+   "c": "time",
+   "lvl": 2
+  },
+  {
+   "en": "stay calm",
+   "pt": "manter a calma",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "Border Collie",
+   "pt": "Border Collie (raça de cachorro)",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "suggest",
+   "pt": "sugerir",
+   "c": "verb",
+   "lvl": 2
+  },
+  {
+   "en": "be in the mood for",
+   "pt": "estar com vontade/disposição para",
+   "c": "collocation",
+   "lvl": 3,
+   "match": "in the mood for"
+  },
+  {
+   "en": "Why don't we…?",
+   "pt": "Por que não…? (sugestão)",
+   "c": "connector",
+   "lvl": 2,
+   "match": "why don't we"
+  },
+  {
+   "en": "I didn't mean to…",
+   "pt": "Não foi minha intenção…",
+   "c": "connector",
+   "lvl": 2,
+   "match": "didn't mean to"
+  },
+  {
+   "en": "sound impatient",
+   "pt": "parecer impaciente",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "throw the ball",
+   "pt": "jogar a bola",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "quality time",
+   "pt": "tempo de qualidade",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "realise",
+   "pt": "perceber, dar-se conta",
+   "c": "verb",
+   "lvl": 2,
+   "v": [
+    "realize"
+   ],
+   "tip": "Britânico: “realise”; americano: “realize”."
+  },
+  {
+   "en": "tired",
+   "pt": "cansado(a)",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "go for a run",
+   "pt": "sair para correr",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "record my times",
+   "pt": "registrar meus tempos",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "slower than",
+   "pt": "mais lento do que",
+   "c": "connector",
+   "lvl": 2
+  },
+  {
+   "en": "faster than",
+   "pt": "mais rápido do que",
+   "c": "connector",
+   "lvl": 2
+  },
+  {
+   "en": "frustrated",
+   "pt": "frustrado(a)",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "personal best",
+   "pt": "melhor marca pessoal",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "beat my own times",
+   "pt": "superar meus próprios tempos",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "a sign of weakness",
+   "pt": "um sinal de fraqueza",
+   "c": "collocation",
+   "lvl": 3
+  },
+  {
+   "en": "forecast",
+   "pt": "previsão (financeira)",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "one-off expense",
+   "pt": "despesa pontual",
+   "c": "professional",
+   "lvl": 3
+  },
+  {
+   "en": "long-term trend",
+   "pt": "tendência de longo prazo",
+   "c": "professional",
+   "lvl": 3
+  },
+  {
+   "en": "due to",
+   "pt": "devido a",
+   "c": "connector",
+   "lvl": 2
+  },
+  {
+   "en": "cut the budget",
+   "pt": "cortar o orçamento",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "next quarter",
+   "pt": "próximo trimestre",
+   "c": "time",
+   "lvl": 2
+  },
+  {
+   "en": "I'm not sure that's the best option.",
+   "pt": "Não tenho certeza de que essa seja a melhor opção.",
+   "c": "connector",
+   "lvl": 3,
+   "match": "not sure that's the best option"
+  },
+  {
+   "en": "I suggest we…",
+   "pt": "Sugiro que…",
+   "c": "connector",
+   "lvl": 3,
+   "match": "i suggest we"
+  },
+  {
+   "en": "monitor the costs",
+   "pt": "acompanhar os custos",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "weigh the options",
+   "pt": "avaliar as alternativas",
+   "c": "collocation",
+   "lvl": 3
+  },
+  {
+   "en": "at first",
+   "pt": "no começo",
+   "c": "connector",
+   "lvl": 1
+  },
+  {
+   "en": "meet a deadline",
+   "pt": "cumprir um prazo",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "meet * deadline"
+  },
+  {
+   "en": "deadline",
+   "pt": "prazo",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "run the tests",
+   "pt": "rodar os testes",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "error message",
+   "pt": "mensagem de erro",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "AI assistant",
+   "pt": "assistente de IA",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "in the wrong format",
+   "pt": "no formato errado",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "wrong format"
+  },
+  {
+   "en": "fix a bug",
+   "pt": "corrigir um bug (erro de programa)",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "fix * bug"
+  },
+  {
+   "en": "learn from",
+   "pt": "aprender com",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "almost bedtime",
+   "pt": "quase hora de dormir",
+   "c": "time",
+   "lvl": 1
+  },
+  {
+   "en": "small businesses",
+   "pt": "pequenas empresas",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "cash flow",
+   "pt": "fluxo de caixa",
+   "c": "professional",
+   "lvl": 3
+  },
+  {
+   "en": "too ambitious",
+   "pt": "ambicioso demais",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "start with",
+   "pt": "começar com",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "agree on",
+   "pt": "combinar, chegar a um acordo sobre",
+   "c": "phrasal",
+   "lvl": 2
+  },
+  {
+   "en": "realistic",
+   "pt": "realista",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "priorities",
+   "pt": "prioridades",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "proposal",
+   "pt": "proposta",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "costs and benefits",
+   "pt": "custos e benefícios",
+   "c": "professional",
+   "lvl": 2
+  },
+  {
+   "en": "the right decision",
+   "pt": "a decisão certa",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "time trouble",
+   "pt": "aperto de tempo (no relógio do xadrez)",
+   "c": "word",
+   "lvl": 3
+  },
+  {
+   "en": "make a mistake",
+   "pt": "cometer um erro",
+   "c": "collocation",
+   "lvl": 1,
+   "match": "made a mistake"
+  },
+  {
+   "en": "trade pieces",
+   "pt": "trocar peças (xadrez)",
+   "c": "collocation",
+   "lvl": 3,
+   "match": "traded pieces"
+  },
+  {
+   "en": "should have",
+   "pt": "deveria ter",
+   "c": "connector",
+   "lvl": 3
+  },
+  {
+   "en": "could have",
+   "pt": "poderia ter",
+   "c": "connector",
+   "lvl": 3
+  },
+  {
+   "en": "opponent",
+   "pt": "adversário(a)",
+   "c": "word",
+   "lvl": 2,
+   "match": "opponent's",
+   "v": [
+    "opponent's"
+   ]
+  },
+  {
+   "en": "argue that",
+   "pt": "defender que",
+   "c": "connector",
+   "lvl": 3,
+   "match": "argues that"
+  },
+  {
+   "en": "agree with",
+   "pt": "concordar com",
+   "c": "phrasal",
+   "lvl": 1
+  },
+  {
+   "en": "partly",
+   "pt": "em parte",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "change my mind",
+   "pt": "mudar de opinião",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "make someone think about",
+   "pt": "fazer alguém pensar em",
+   "c": "collocation",
+   "lvl": 3,
+   "match": "made me think about"
+  },
+  {
+   "en": "however",
+   "pt": "no entanto",
+   "c": "connector",
+   "lvl": 2
+  },
+  {
+   "en": "adapt something to",
+   "pt": "adaptar algo a",
+   "c": "collocation",
+   "lvl": 3,
+   "match": "adapt * to"
+  },
+  {
+   "en": "all day",
+   "pt": "o dia todo",
+   "c": "time",
+   "lvl": 1
+  },
+  {
+   "en": "work in finance",
+   "pt": "trabalhar com finanças",
+   "c": "professional",
+   "lvl": 1
+  },
+  {
+   "en": "take the dog to the park",
+   "pt": "levar o cachorro ao parque",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "Let's…",
+   "pt": "Vamos… (sugestão)",
+   "c": "connector",
+   "lvl": 1,
+   "match": "let's"
+  },
+  {
+   "en": "in ten minutes",
+   "pt": "daqui a dez minutos",
+   "c": "time",
+   "lvl": 1
+  },
+  {
+   "en": "everywhere",
+   "pt": "para todo lado, em todo lugar",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "feel much calmer",
+   "pt": "sentir-se muito mais calmo",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "much calmer"
+  },
+  {
+   "en": "a clear story",
+   "pt": "uma explicação clara (uma “história” clara)",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "clear story"
+  },
+  {
+   "en": "on the computer",
+   "pt": "no computador",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "bug",
+   "pt": "bug, erro de programa",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "show someone how",
+   "pt": "mostrar a alguém como (se faz)",
+   "c": "collocation",
+   "lvl": 1,
+   "match": "show me how"
+  },
+  {
+   "en": "enough time",
+   "pt": "tempo suficiente",
+   "c": "collocation",
+   "lvl": 1
+  },
+  {
+   "en": "ask for",
+   "pt": "pedir",
+   "c": "phrasal",
+   "lvl": 1
+  },
+  {
+   "en": "client",
+   "pt": "cliente",
+   "c": "professional",
+   "lvl": 1,
+   "v": [
+    "clients"
+   ]
+  },
+  {
+   "en": "chess game",
+   "pt": "partida de xadrez",
+   "c": "word",
+   "lvl": 1
+  },
+  {
+   "en": "opening",
+   "pt": "abertura (no xadrez)",
+   "c": "word",
+   "lvl": 2
+  },
+  {
+   "en": "interesting but challenging",
+   "pt": "interessante, mas desafiador",
+   "c": "collocation",
+   "lvl": 2
+  },
+  {
+   "en": "a question of balance",
+   "pt": "uma questão de equilíbrio",
+   "c": "collocation",
+   "lvl": 2,
+   "match": "question of balance"
+  },
+  {
+   "en": "What would you change?",
+   "pt": "O que você mudaria?",
+   "c": "connector",
+   "lvl": 2,
+   "match": "what would you change"
+  },
+  {
+   "en": "plan a trip",
+   "pt": "planejar uma viagem",
+   "c": "collocation",
+   "lvl": 1,
+   "match": "plan * trip"
+  }
+ ],
+ "questions": [
+  {
+   "routine": "R02",
+   "kind": "comp",
+   "q": "Why doesn't Lucas go to the gym on home office days?",
+   "a": "Because he works from home, so he uses his short breaks to study English instead.",
+   "keywords": [
+    [
+     "home"
+    ],
+    [
+     "study",
+     "english",
+     "breaks"
+    ]
+   ]
+  },
+  {
+   "routine": "R02",
+   "kind": "transfer",
+   "q": "How is your day different when you work or study from home?",
+   "hint": "Use ‘When I work from home, I…’ e ‘Instead of…, I…’."
+  },
+  {
+   "routine": "R03",
+   "kind": "comp",
+   "q": "Why doesn't Lucas drive for Uber in the morning on these days?",
+   "a": "Because he wants to start work feeling rested.",
+   "keywords": [
+    [
+     "rested",
+     "rest"
+    ]
+   ]
+  },
+  {
+   "routine": "R03",
+   "kind": "transfer",
+   "q": "What do you do on days when you can sleep a bit longer?",
+   "hint": "Use ‘On some days, I…’, ‘to get some extra rest’ e ‘I feel…’."
+  },
+  {
+   "routine": "R04",
+   "kind": "comp",
+   "q": "How does Lucas clear his head after lunch?",
+   "a": "He plays a quick online chess game.",
+   "keywords": [
+    [
+     "chess"
+    ]
+   ]
+  },
+  {
+   "routine": "R04",
+   "kind": "transfer",
+   "q": "How do you prepare for an important meeting or presentation?",
+   "hint": "Use ‘Before…, I usually…’, ‘I review…’ e ‘I try to…’."
+  },
+  {
+   "routine": "R05",
+   "kind": "comp",
+   "q": "Why doesn't Lucas have an English class that night?",
+   "a": "Because it is a rare and special evening with his family.",
+   "keywords": [
+    [
+     "special",
+     "rare"
+    ],
+    [
+     "family"
+    ]
+   ]
+  },
+  {
+   "routine": "R05",
+   "kind": "transfer",
+   "q": "What do you enjoy doing with your family or friends in the evening?",
+   "hint": "Use ‘We usually…’ e ‘What I enjoy most is…’."
+  },
+  {
+   "routine": "R06",
+   "kind": "comp",
+   "q": "Why can Lucas concentrate on individual tasks today?",
+   "a": "Because he doesn't have any committee presentations or meetings.",
+   "keywords": [
+    [
+     "meetings",
+     "presentations"
+    ]
+   ]
+  },
+  {
+   "routine": "R06",
+   "kind": "transfer",
+   "q": "What helps you concentrate when you have a lot of work?",
+   "hint": "Use ‘I focus on…’, ‘I need to…’ e ‘I switch off…’."
+  },
+  {
+   "routine": "R07",
+   "kind": "comp",
+   "q": "How long does Lucas review his lesson materials?",
+   "a": "He reviews them for about an hour.",
+   "keywords": [
+    [
+     "hour"
+    ]
+   ]
+  },
+  {
+   "routine": "R07",
+   "kind": "transfer",
+   "q": "How do you practise English during the week?",
+   "hint": "Use ‘I usually…’, ‘three times a week’ e ‘I work on my pronunciation…’."
+  },
+  {
+   "routine": "R08",
+   "kind": "comp",
+   "q": "Why does Lucas try to finish his last trip by 7:30 a.m.?",
+   "a": "Because it gives him extra time for a longer workout.",
+   "keywords": [
+    [
+     "extra",
+     "more"
+    ],
+    [
+     "workout",
+     "training"
+    ]
+   ]
+  },
+  {
+   "routine": "R08",
+   "kind": "transfer",
+   "q": "How do you fit exercise into your week?",
+   "hint": "Use ‘I try to…’, ‘which gives me…’ e ‘before/after work’."
+  },
+  {
+   "routine": "R09",
+   "kind": "comp",
+   "q": "What does Lucas do during his afternoon break?",
+   "a": "He runs a quick errand nearby.",
+   "keywords": [
+    [
+     "errand"
+    ]
+   ]
+  },
+  {
+   "routine": "R09",
+   "kind": "transfer",
+   "q": "What small tasks do you usually do during your breaks?",
+   "hint": "Use ‘During my break, I…’ e ‘before returning to…’."
+  },
+  {
+   "routine": "R10",
+   "kind": "comp",
+   "q": "Why does Lucas get home early on this day?",
+   "a": "Because he decides not to accept any Uber rides on his way home.",
+   "keywords": [
+    [
+     "uber",
+     "rides"
+    ],
+    [
+     "decides",
+     "not"
+    ]
+   ]
+  },
+  {
+   "routine": "R10",
+   "kind": "transfer",
+   "q": "What do you do to keep a healthy balance between work and family?",
+   "hint": "Use ‘I decide not to…’, ‘I make time for…’ e ‘I try to…’."
+  },
+  {
+   "routine": "R11",
+   "kind": "conv",
+   "q": "What do you say when a passenger is worried about the time?",
+   "a": "I say that it depends on the traffic, but I'm taking a shorter route.",
+   "keywords": [
+    [
+     "traffic"
+    ],
+    [
+     "route",
+     "shorter"
+    ]
+   ]
+  },
+  {
+   "routine": "R11",
+   "kind": "comp",
+   "q": "Why does Lucas check the app for a quicker way?",
+   "a": "Because the traffic is heavy and the passenger is worried about the time.",
+   "keywords": [
+    [
+     "traffic"
+    ],
+    [
+     "worried",
+     "time"
+    ]
+   ]
+  },
+  {
+   "routine": "R11",
+   "kind": "transfer",
+   "q": "Describe a short conversation you had with a stranger recently.",
+   "hint": "Use o passado: ‘I met…’, ‘She asked me…’, ‘We talked about…’."
+  },
+  {
+   "routine": "R12",
+   "kind": "comp",
+   "q": "Why does Lucas apologise to his wife?",
+   "a": "Because he sounded impatient when he said no to the park.",
+   "keywords": [
+    [
+     "impatient"
+    ]
+   ]
+  },
+  {
+   "routine": "R12",
+   "kind": "conv",
+   "q": "What do you realise at the park?",
+   "a": "I realise that an hour of quality time is more important than a perfect report.",
+   "keywords": [
+    [
+     "quality",
+     "time"
+    ],
+    [
+     "report"
+    ]
+   ]
+  },
+  {
+   "routine": "R12",
+   "kind": "transfer",
+   "q": "How do you usually spend Saturdays with your family or friends?",
+   "hint": "Use ‘On Saturdays, we usually…’, ‘Why don't we…?’ e ‘Let's…’."
+  },
+  {
+   "routine": "R13",
+   "kind": "conv",
+   "q": "Why was your run slower last Tuesday?",
+   "a": "Because I had slept only five hours and I was tired.",
+   "keywords": [
+    [
+     "slept",
+     "sleep"
+    ],
+    [
+     "tired"
+    ]
+   ]
+  },
+  {
+   "routine": "R13",
+   "kind": "comp",
+   "q": "What does Lucas decide to do instead of training harder?",
+   "a": "He decides to get some rest the next day.",
+   "keywords": [
+    [
+     "rest"
+    ]
+   ]
+  },
+  {
+   "routine": "R13",
+   "kind": "transfer",
+   "q": "How do you measure your own progress in something you practise?",
+   "hint": "Use comparativos: ‘faster than…’, ‘better than last month’ e ‘My goal is to…’."
+  },
+  {
+   "routine": "R14",
+   "kind": "conv",
+   "q": "Why is the result below the forecast?",
+   "a": "Most of the difference is due to a one-off expense in March.",
+   "keywords": [
+    [
+     "one-off",
+     "expense"
+    ]
+   ]
+  },
+  {
+   "routine": "R14",
+   "kind": "comp",
+   "q": "What does Lucas suggest instead of cutting the budget?",
+   "a": "He suggests monitoring the costs for another month and reviewing the forecast.",
+   "keywords": [
+    [
+     "monitor",
+     "monitoring"
+    ],
+    [
+     "forecast"
+    ]
+   ]
+  },
+  {
+   "routine": "R14",
+   "kind": "transfer",
+   "q": "Tell me about a time you disagreed with someone at work or school. How did you explain your point of view?",
+   "hint": "Use ‘I'm not sure that's the best option’, ‘I suggest we…’ e ‘If we…, we might…’."
+  },
+  {
+   "routine": "R15",
+   "kind": "conv",
+   "q": "What do you do when the tests fail?",
+   "a": "First, I read the error message carefully. Then I fix the bug and run the tests again.",
+   "keywords": [
+    [
+     "error",
+     "message"
+    ],
+    [
+     "fix",
+     "bug"
+    ]
+   ]
+  },
+  {
+   "routine": "R15",
+   "kind": "comp",
+   "q": "How does Lucas explain what a bug is to his son?",
+   "a": "He says it's a mistake in the code.",
+   "keywords": [
+    [
+     "mistake"
+    ],
+    [
+     "code"
+    ]
+   ]
+  },
+  {
+   "routine": "R15",
+   "kind": "transfer",
+   "q": "Describe a problem you solved recently, step by step.",
+   "hint": "Use a sequência: ‘First…’, ‘Then…’, ‘After that…’ e ‘In the end…’."
+  },
+  {
+   "routine": "R16",
+   "kind": "conv",
+   "q": "Why don't you offer everything from the start?",
+   "a": "Because we don't have enough time to do it well, so we'll start with one simple service.",
+   "keywords": [
+    [
+     "time"
+    ],
+    [
+     "simple",
+     "one"
+    ]
+   ]
+  },
+  {
+   "routine": "R16",
+   "kind": "comp",
+   "q": "What did Lucas and his sister compare in their proposal?",
+   "a": "They compared the costs and benefits of each option.",
+   "keywords": [
+    [
+     "costs"
+    ],
+    [
+     "benefits"
+    ]
+   ]
+  },
+  {
+   "routine": "R16",
+   "kind": "transfer",
+   "q": "Describe a plan you had to simplify. What did you keep, and what did you leave for later?",
+   "hint": "Use ‘At first, I wanted to…’, ‘but…’ e ‘so I decided to start with…’."
+  },
+  {
+   "routine": "R17",
+   "kind": "conv",
+   "q": "What should you have done in that game?",
+   "a": "I should have traded pieces instead of attacking.",
+   "keywords": [
+    [
+     "traded",
+     "trade"
+    ],
+    [
+     "attacking",
+     "attack"
+    ]
+   ]
+  },
+  {
+   "routine": "R17",
+   "kind": "comp",
+   "q": "Why did Lucas get into time trouble?",
+   "a": "Because he spent too much time on one move.",
+   "keywords": [
+    [
+     "time"
+    ],
+    [
+     "move"
+    ]
+   ]
+  },
+  {
+   "routine": "R17",
+   "kind": "transfer",
+   "q": "Think of a mistake you made recently. What should you have done differently?",
+   "hint": "Use ‘I should have…’, ‘If I had…, I could have…’ e ‘Next time, I'm going to…’."
+  },
+  {
+   "routine": "R18",
+   "kind": "conv",
+   "q": "Do you agree with the book?",
+   "a": "Partly. I agree that experiences matter, but I still think saving is important.",
+   "keywords": [
+    [
+     "partly",
+     "agree"
+    ],
+    [
+     "saving",
+     "save"
+    ]
+   ]
+  },
+  {
+   "routine": "R18",
+   "kind": "comp",
+   "q": "What did the book make Lucas think about?",
+   "a": "It made him think about his priorities.",
+   "keywords": [
+    [
+     "priorities"
+    ]
+   ]
+  },
+  {
+   "routine": "R18",
+   "kind": "transfer",
+   "q": "What book, film or idea has changed the way you think? Do you agree with it?",
+   "hint": "Use ‘I agree that…’, ‘I'm not sure…’, ‘It depends on…’ e ‘In my opinion…’."
+  }
+ ]
+}

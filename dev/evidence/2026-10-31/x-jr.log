@@ -1,0 +1,12 @@
+✔ J01 Acesso fora do seletor de personagem: cartão no Início das rotinas abre a jornada; a escolha persiste ao recarregar — {"unidades":["CP01","CP02"],"salvo":"cp","personagem":"lucas"}
+✔ J02 Sessão do CP01: começa pelas expressões do diálogo (itens cp.*), sem nada das rotinas — {"vistos":["item:cp.im-name:rec","item:cp.nice-to-meet-you:rec","item:cp.i-dont-think-weve-met:rec","item:cp.im-name:rec","item:cp.nice-to-meet-you:rec"]}
+✔ J03 Ouvir e responder: o trecho toca sem texto na tela; o texto só aparece depois da resposta; acerto gera XP e cartão próprio — {"trecho":"13 falas","xp":6}
+✔ J04 Ler e responder: diálogo à vista com a fala de referência destacada; erro mostra a correta e a explicação — {"falas":12,"referencia":"Omar: To be honest, I'm not keen on spy films. The"}
+✔ J05 Progresso próprio: praticar a jornada não toca nos cartões das rotinas; sair volta ao Lucas; R01 continua igual — {"cartoesJornada":5,"rotinasIntactas":true}
+✔ J06 Conclusão: CP01 concluída quando as cinco etapas (palavras, expressões, ouvir, falar, aplicar) são cumpridas; CP02 continua em andamento — {"unidades":[["CP01","true"],["CP02","false"]],"habilidades":["✅01. Palavras-chave · Vocabula","✅02. Expressões práticas · Phr","✅03. Ouvir e entender · Listen","✅04. Falar na prática · Speaki","✅05. Aplicar e conversar · Con"]}
+✔ J07 Diálogo: falas com quem fala, origem de cada bloco (conteúdo do app), notas de variante, sem “treino para a aula” — {"falas":18,"origem":["new","new"]}
+✔ J08 Offline (servidor desligado e rede cortada): jornada abre, diálogo e áudio vêm do aparelho, sessão de ouvir funciona — {"unidades":2,"audio":{"ok":true,"bytes":20204},"exercicio":"listen"}
+✔ J10 Speaking: o Speaking Lab abre as falas da unidade (lista e fala isolada) com gravação; nada das rotinas — {"lab":"falas do CP01","gravar":1}
+✔ J09 Layout 412 px sem rolagem horizontal (Início da jornada, diálogo, sessão) e nenhum erro/requisição externa — {"semRolagem":true,"externas":0,"erros":0}
+
+10 aprovados, 0 reprovados

@@ -1,0 +1,189 @@
+{
+ "_doc": "Pendências linguísticas do Word (REV) e lacunas (GAP), com a decisão aplicada. Nenhum texto do Word foi alterado: as decisões atuam sobre o corretor (variantes aceitas) ou acrescentam notas. Status: 'aplicado' = decisão padrão em uso, revisável pelo usuário.",
+ "rev": [
+  {
+   "id": "REV-01",
+   "where": "R01-B7",
+   "issue": "‘teachers/professores’ (R01) × ‘teacher/professora’ (R07).",
+   "decision": "Texto original preservado. O corretor aceita ‘teacher’ e ‘teachers’. Nota exibida na R01.",
+   "status": "aplicado",
+   "severity": "média",
+   "note": "No Word, a R01 usa ‘teachers’ (plural) e a R07 usa ‘teacher’. Use a forma que corresponde à sua realidade.",
+   "accept": [
+    [
+     "teachers",
+     "teacher"
+    ]
+   ]
+  },
+  {
+   "id": "REV-02",
+   "where": "R01.Q1",
+   "issue": "‘although my schedule is very demanding’: contraste sem lógica.",
+   "decision": "Modelo original preservado. Alternativa natural exibida e aceita: ‘…at five in the morning, because my schedule is very demanding.’",
+   "status": "aplicado",
+   "severity": "média",
+   "note": "‘Although’ indica contraste. Aqui soa mais natural ‘because’ ou ‘My schedule is very demanding, so…’.",
+   "altAnswer": "I usually wake up at five in the morning, because my schedule is very demanding."
+  },
+  {
+   "id": "REV-03",
+   "where": "R08-B2",
+   "issue": "‘by around 8:50’ mistura prazo e aproximação.",
+   "decision": "Original preservado. ‘at around 8:50’ e ‘by 8:50’ são aceitos. Nota exibida.",
+   "status": "aplicado",
+   "severity": "baixa",
+   "note": "‘By’ indica prazo e ‘around’ indica aproximação; o mais natural é ‘at around 8:50’ ou ‘by 8:50’."
+  },
+  {
+   "id": "REV-04",
+   "where": "R09 vocabulário",
+   "issue": "‘resolver um recado’ é decalque.",
+   "decision": "Glosa alternativa aceita no Modo 1: ‘resolver uma pendência na rua’.",
+   "status": "aplicado",
+   "severity": "baixa",
+   "ptAlt": {
+    "run an errand": [
+     "resolver uma pendência na rua",
+     "fazer uma tarefa na rua"
+    ]
+   }
+  },
+  {
+   "id": "REV-05",
+   "where": "R03 vocabulário",
+   "issue": "‘a couple of hours’ = ‘cerca de duas horas’ × ‘algumas horas’.",
+   "decision": "Glosa alternativa acrescentada: ‘umas duas horas / algumas horas’.",
+   "status": "aplicado",
+   "severity": "baixa",
+   "ptAlt": {
+    "a couple of hours": [
+     "umas duas horas",
+     "algumas horas"
+    ]
+   }
+  },
+  {
+   "id": "REV-06",
+   "where": "tabelas R03, R04, R06–R10",
+   "issue": "Itens de tabela que não aparecem no texto da rotina.",
+   "decision": "Marcados como source ‘word-table-only’; o exemplo vem da nota do Word ou de um exemplo novo identificado.",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-07",
+   "where": "tabelas ‘Phrasal verbs e expressões verbais’",
+   "issue": "Mistura de categorias.",
+   "decision": "Cada item foi reclassificado (phrasal, collocation, idiom, verb); a origem (tabela) foi preservada em srcRefs.",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-08",
+   "where": "R08 vocabulário",
+   "issue": "Nota ‘Useful para rotina profissional’.",
+   "decision": "Exibida como no Word; registrado como erro tipográfico do documento.",
+   "status": "aplicado",
+   "severity": "cosmética"
+  },
+  {
+   "id": "REV-09",
+   "where": "Toolkit",
+   "issue": "‘Instead of…’ sem regra de -ing.",
+   "decision": "Dica nova acrescentada (marcada como conteúdo novo).",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-10",
+   "where": "R02-B1",
+   "issue": "‘By 8:45, I get back home’ × ‘I'm back home’.",
+   "decision": "Original preservado; as duas formas são aceitas.",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-11",
+   "where": "Toolkit Simple Present",
+   "issue": "Exemplos gramaticais que podem não ser fatos pessoais.",
+   "decision": "Marcados com a tag ‘grammar-model’ / ‘not-personal-fact’; usados só em exercícios de gramática, nunca como resposta pessoal.",
+   "status": "aplicado",
+   "severity": "média"
+  },
+  {
+   "id": "REV-12",
+   "where": "Padrão linguístico",
+   "issue": "‘car park’ e ‘at the weekend’ sem uso nas rotinas.",
+   "decision": "Itens novos com exemplo hipotético identificado.",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-13",
+   "where": "todos os horários",
+   "issue": "Formato ‘5:00 a.m.’",
+   "decision": "Exibição como no Word; o corretor aceita 5 am, 5.00 am, five a.m., five o'clock e five in the morning.",
+   "status": "aplicado",
+   "severity": "baixa"
+  },
+  {
+   "id": "REV-14",
+   "where": "R05-B3",
+   "issue": "‘my son’ (singular).",
+   "decision": "Mantido literal; nenhum detalhe foi inventado.",
+   "status": "aplicado",
+   "severity": "informativa"
+  },
+  {
+   "id": "REV-15",
+   "where": "Áudio: ‘cost-allocation analyses’ (R06), ‘efficiency analyses’ (R03)",
+   "issue": "O sintetizador lê ‘analyses’ como verbo (/ˈænəlaɪzɪz/) e não como substantivo (/əˈnæləsiːz/).",
+   "decision": "Correção fonética forçada na geração de áudio.",
+   "status": "aplicado",
+   "severity": "baixa"
+  }
+ ],
+ "gap": [
+  {
+   "id": "GAP-01",
+   "issue": "Sem pronúncia/IPA/áudio.",
+   "decision": "Áudio britânico pré-gerado offline para todo o conteúdo; IPA BrE + dicas para os itens-chave (conteúdo novo)."
+  },
+  {
+   "id": "GAP-02",
+   "issue": "Itens sem frase de exemplo.",
+   "decision": "Prioridade às frases do texto do Word; depois as notas da tabela; exemplos novos só quando nada existe (marcados)."
+  },
+  {
+   "id": "GAP-03",
+   "issue": "Sem negativas/perguntas por rotina.",
+   "decision": "Exercícios de Simple Present gerados com os verbos da lista e o modelo do Toolkit (Etapa 4)."
+  },
+  {
+   "id": "GAP-04",
+   "issue": "Sem níveis de dificuldade.",
+   "decision": "Nível 1–5 por item (curadoria + regra por extensão)."
+  },
+  {
+   "id": "GAP-05",
+   "issue": "Dicionário de variantes incompleto.",
+   "decision": "language.json + variantes por item (marcadas)."
+  },
+  {
+   "id": "GAP-06",
+   "issue": "Erros comuns parciais.",
+   "decision": "22 padrões de erro (11 do Word, 11 novos)."
+  },
+  {
+   "id": "GAP-07",
+   "issue": "Exemplo verdadeiro de ‘errand’ e respostas pessoais.",
+   "decision": "‘Minha versão’ em cada pergunta, gravada só no aparelho."
+  },
+  {
+   "id": "GAP-08",
+   "issue": "Distratores.",
+   "decision": "Gerados do próprio corpus (mesma categoria)."
+  }
+ ]
+}

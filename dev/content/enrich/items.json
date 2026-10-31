@@ -1,0 +1,1655 @@
+{
+ "_doc": "Curadoria dos itens. 'table' complementa as 176 linhas do Word (chave = inglês em minúsculas). 'new' acrescenta itens que NÃO estão nas tabelas do Word: a expressão vem do texto do Word (source 'derived') ou é complementar (source 'new'). Campos: c=categoria, tags, lvl=nível 1-5 (opcional; senão calculado), v=variantes aceitas, ipa=pronúncia BrE (conteúdo novo), tip=dica de pronúncia (novo), ex=exemplo novo {en,pt} quando o item não aparece nos textos, match=padrão alternativo para localizar o item no texto, kw=palavras-chave obrigatórias para não ser erro de sentido.",
+ "aliases": {
+  "start up / boot up": "start up",
+  "depending on traffic…": "depending on traffic",
+  "straight home": "drive straight home",
+  "log in to": "log in",
+  "head home": "head home",
+  "heat up my lunch": "heat up my lunch"
+ },
+ "table": {
+  "wake up": {
+   "c": "phrasal",
+   "lvl": 1,
+   "ipa": "/weɪk ʌp/",
+   "tip": "Diferente de get up (sair da cama)."
+  },
+  "take a shower": {
+   "c": "collocation",
+   "lvl": 1,
+   "v": [
+    "have a shower"
+   ],
+   "ipa": "/teɪk ə ˈʃaʊə/",
+   "tip": "Em BrE, ‘have a shower’ é igualmente comum."
+  },
+  "chicken sandwich": {
+   "c": "word",
+   "lvl": 1,
+   "ipa": "/ˈtʃɪkɪn ˈsænwɪdʒ/",
+   "tip": "sandwich: o ‘d’ quase não soa: ‘SAN-widj’."
+  },
+  "accept rides along the way": {
+   "c": "collocation",
+   "tags": [
+    "uber"
+   ],
+   "lvl": 3,
+   "v": [
+    "accept trips along the way"
+   ]
+  },
+  "do ten minutes of cardio": {
+   "c": "collocation",
+   "lvl": 2,
+   "ipa": "/ˈkɑːdiəʊ/",
+   "match": "ten minutes of cardio"
+  },
+  "get changed": {
+   "c": "collocation",
+   "lvl": 2,
+   "tags": [
+    "bre"
+   ],
+   "ipa": "/ɡet tʃeɪndʒd/"
+  },
+  "heat up my lunch": {
+   "c": "collocation",
+   "lvl": 2,
+   "v": [
+    "warm up my lunch"
+   ]
+  },
+  "mentally demanding": {
+   "c": "professional",
+   "lvl": 3,
+   "ipa": "/ˈmentəli dɪˈmɑːndɪŋ/",
+   "tip": "BrE: de-MAAN-ding, com ‘a’ longo."
+  },
+  "profitability and efficiency": {
+   "c": "professional",
+   "lvl": 3,
+   "match": "profitability efficiency",
+   "ipa": "/ˌprɒfɪtəˈbɪləti ənd ɪˈfɪʃnsi/",
+   "tip": "Tônica: profita-BI-lity; e-FI-ciency."
+  },
+  "executive presentation": {
+   "c": "professional",
+   "lvl": 2,
+   "v": [
+    "executive deck"
+   ],
+   "ipa": "/ɪɡˈzekjətɪv ˌpreznˈteɪʃn/",
+   "tip": "executive: ig-ZE-kiu-tiv."
+  },
+  "tidy up the kitchen": {
+   "c": "collocation",
+   "lvl": 2,
+   "v": [
+    "clean up the kitchen"
+   ],
+   "match": "tidy up the kitchen"
+  },
+  "depending on traffic": {
+   "c": "time",
+   "lvl": 2,
+   "ipa": "/dɪˈpendɪŋ ɒn ˈtræfɪk/"
+  },
+  "head to": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "go to"
+   ]
+  },
+  "heat up": {
+   "c": "phrasal",
+   "lvl": 1
+  },
+  "put away": {
+   "c": "phrasal",
+   "lvl": 2,
+   "match": "put * away"
+  },
+  "tidy up": {
+   "c": "phrasal",
+   "lvl": 1,
+   "ipa": "/ˈtaɪdi ʌp/"
+  },
+  "start up": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "boot up"
+   ],
+   "tip": "‘Boot up’ é mais técnico; ambos são aceitos."
+  },
+  "work from home": {
+   "c": "collocation",
+   "lvl": 1,
+   "tip": "Brasileiros dizem ‘I do home office’; em inglês: ‘I work from home’."
+  },
+  "home office": {
+   "c": "word",
+   "lvl": 1
+  },
+  "set up my desk": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "set up my desk"
+  },
+  "log in": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "log on to",
+    "log into"
+   ],
+   "match": "log in to"
+  },
+  "short break": {
+   "c": "word",
+   "lvl": 1,
+   "match": "short breaks"
+  },
+  "financial statements": {
+   "c": "professional",
+   "lvl": 3,
+   "ipa": "/faɪˈnænʃl ˈsteɪtmənts/",
+   "tip": "financial: fai-NAN-shal (ou fi-NAN-shal)."
+  },
+  "strategic reports": {
+   "c": "professional",
+   "lvl": 2,
+   "ipa": "/strəˈtiːdʒɪk rɪˈpɔːts/",
+   "tip": "strategic: stra-TI-djic, tônica no ‘ti’."
+  },
+  "surrounding area": {
+   "c": "word",
+   "lvl": 3,
+   "ipa": "/səˈraʊndɪŋ ˈeəriə/"
+  },
+  "set up": {
+   "c": "phrasal",
+   "lvl": 2
+  },
+  "get back": {
+   "c": "phrasal",
+   "lvl": 1
+  },
+  "get back to": {
+   "c": "phrasal",
+   "lvl": 2,
+   "ex": {
+    "en": "After lunch, I get back to work.",
+    "pt": "Depois do almoço, eu volto ao trabalho."
+   }
+  },
+  "get some extra rest": {
+   "c": "collocation",
+   "lvl": 2
+  },
+  "make a cup of coffee": {
+   "c": "collocation",
+   "lvl": 1
+  },
+  "a bowl of fruit and oats": {
+   "c": "collocation",
+   "lvl": 2,
+   "ipa": "/ə bəʊl əv fruːt ənd əʊts/",
+   "tip": "oats: ‘outs’ com ditongo /əʊ/."
+  },
+  "feel rested": {
+   "c": "collocation",
+   "lvl": 3,
+   "match": "feeling rested"
+  },
+  "financial model": {
+   "c": "professional",
+   "lvl": 2,
+   "match": "financial models"
+  },
+  "a couple of hours": {
+   "c": "time",
+   "lvl": 2,
+   "v": [
+    "two hours",
+    "a few hours"
+   ]
+  },
+  "listen to a podcast": {
+   "c": "collocation",
+   "lvl": 1,
+   "match": "listening to English podcasts",
+   "ipa": "/ˈpɒdkɑːst/"
+  },
+  "get ready for bed": {
+   "c": "collocation",
+   "lvl": 2
+  },
+  "get up": {
+   "c": "phrasal",
+   "lvl": 1,
+   "ex": {
+    "en": "I wake up at five but get up a few minutes later.",
+    "pt": "Acordo às cinco, mas me levanto alguns minutos depois."
+   }
+  },
+  "get ready": {
+   "c": "phrasal",
+   "lvl": 1
+  },
+  "work on": {
+   "c": "phrasal",
+   "lvl": 2
+  },
+  "get home": {
+   "c": "phrasal",
+   "lvl": 1,
+   "tags": [
+    "no-to"
+   ],
+   "tip": "Sem ‘to’: get home, go home."
+  },
+  "a busy day": {
+   "c": "collocation",
+   "lvl": 1,
+   "match": "a very busy day"
+  },
+  "executive committee meeting": {
+   "c": "professional",
+   "lvl": 3,
+   "match": "executive committee meetings",
+   "ipa": "/kəˈmɪti/",
+   "tip": "committee: co-MI-ti, tônica no meio."
+  },
+  "present financial results": {
+   "c": "professional",
+   "lvl": 3,
+   "match": "presenting financial results"
+  },
+  "discuss profitability": {
+   "c": "professional",
+   "lvl": 3,
+   "tags": [
+    "no-about"
+   ],
+   "match": "discussing profitability"
+  },
+  "strategic forecasts": {
+   "c": "professional",
+   "lvl": 3,
+   "ipa": "/strəˈtiːdʒɪk ˈfɔːkɑːsts/"
+  },
+  "senior managers": {
+   "c": "professional",
+   "lvl": 2,
+   "v": [
+    "executives"
+   ],
+   "ipa": "/ˈsiːniə ˈmænɪdʒəz/"
+  },
+  "grab a quick snack": {
+   "c": "collocation",
+   "lvl": 2,
+   "v": [
+    "have a quick snack"
+   ],
+   "match": "grab a quick"
+  },
+  "clear my head": {
+   "c": "collocation",
+   "tags": [
+    "idiom"
+   ],
+   "lvl": 3
+  },
+  "presentation notes": {
+   "c": "professional",
+   "lvl": 2
+  },
+  "get dressed": {
+   "c": "collocation",
+   "lvl": 1
+  },
+  "grab": {
+   "c": "verb",
+   "lvl": 2
+  },
+  "go over": {
+   "c": "phrasal",
+   "lvl": 3,
+   "v": [
+    "review"
+   ],
+   "ex": {
+    "en": "Before the meeting, I go over my presentation notes.",
+    "pt": "Antes da reunião, eu reviso minhas anotações da apresentação."
+   }
+  },
+  "hit the road": {
+   "c": "collocation",
+   "tags": [
+    "idiom"
+   ],
+   "lvl": 3
+  },
+  "a full day of": {
+   "c": "collocation",
+   "lvl": 2
+  },
+  "on this particular evening": {
+   "c": "time",
+   "lvl": 3
+  },
+  "clear the table": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "clearing the table"
+  },
+  "wash the dishes": {
+   "c": "collocation",
+   "lvl": 1,
+   "v": [
+    "wash up",
+    "do the washing-up"
+   ],
+   "match": "washing the dishes"
+  },
+  "spend time together": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "spend some time as a family"
+  },
+  "chessboard": {
+   "c": "word",
+   "lvl": 1,
+   "ipa": "/ˈtʃesbɔːd/"
+  },
+  "an episode of": {
+   "c": "collocation",
+   "lvl": 1,
+   "ipa": "/ˈepɪsəʊd/"
+  },
+  "go to bed early": {
+   "c": "collocation",
+   "lvl": 1
+  },
+  "sit down": {
+   "c": "phrasal",
+   "lvl": 1
+  },
+  "go to bed": {
+   "c": "collocation",
+   "lvl": 1,
+   "tip": "go to bed = ir para a cama; go to sleep = pegar no sono."
+  },
+  "focus on": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "concentrate on"
+   ]
+  },
+  "detailed analysis": {
+   "c": "professional",
+   "lvl": 2,
+   "match": "detailed financial analysis",
+   "ipa": "/ˈdiːteɪld əˈnæləsɪs/",
+   "tip": "analysis: a-NA-lysis (tônica no 2º); analyse: A-nalyse (no 1º)."
+  },
+  "individual tasks": {
+   "c": "professional",
+   "lvl": 2,
+   "ipa": "/ˌɪndɪˈvɪdʒuəl tɑːsks/"
+  },
+  "profitability calculations": {
+   "c": "professional",
+   "lvl": 3,
+   "ipa": "/ˌprɒfɪtəˈbɪləti ˌkælkjuˈleɪʃnz/"
+  },
+  "cost allocation": {
+   "c": "professional",
+   "lvl": 4,
+   "match": "cost-allocation",
+   "ipa": "/kɒst ˌæləˈkeɪʃn/"
+  },
+  "lunch break": {
+   "c": "word",
+   "lvl": 1
+  },
+  "practise vocabulary": {
+   "c": "collocation",
+   "tags": [
+    "bre"
+   ],
+   "lvl": 2,
+   "match": "practise English vocabulary",
+   "ipa": "/ˈpræktɪs vəˈkæbjələri/"
+  },
+  "finalise": {
+   "c": "verb",
+   "tags": [
+    "bre"
+   ],
+   "lvl": 3,
+   "ipa": "/ˈfaɪnəlaɪz/"
+  },
+  "weekly report": {
+   "c": "professional",
+   "lvl": 2,
+   "match": "weekly reports"
+  },
+  "shut down": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "turn off",
+    "switch off"
+   ]
+  },
+  "send out": {
+   "c": "phrasal",
+   "lvl": 3,
+   "v": [
+    "send"
+   ],
+   "ex": {
+    "en": "On Fridays, I send out my weekly reports.",
+    "pt": "Às sextas, eu envio meus relatórios semanais."
+   }
+  },
+  "usual routine": {
+   "c": "collocation",
+   "lvl": 1,
+   "match": "usual * routine"
+  },
+  "on my way to work": {
+   "c": "time",
+   "lvl": 2,
+   "v": [
+    "on the way to work"
+   ]
+  },
+  "lesson materials": {
+   "c": "word",
+   "lvl": 2
+  },
+  "vocabulary list": {
+   "c": "word",
+   "lvl": 1,
+   "match": "vocabulary lists"
+  },
+  "prepare for a class": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "preparing for my English class"
+  },
+  "join an online class": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "join my live online class"
+  },
+  "practise speaking": {
+   "c": "collocation",
+   "tags": [
+    "bre"
+   ],
+   "lvl": 2
+  },
+  "work on my pronunciation": {
+   "c": "collocation",
+   "lvl": 2,
+   "ipa": "/prəˌnʌnsiˈeɪʃn/",
+   "tip": "pronunciation: pro-NAN-si-ei-shan — não é ‘pronounciation’."
+  },
+  "follow": {
+   "c": "verb",
+   "lvl": 1
+  },
+  "passenger trip": {
+   "c": "word",
+   "tags": [
+    "uber"
+   ],
+   "lvl": 2,
+   "v": [
+    "ride"
+   ],
+   "ipa": "/ˈpæsɪndʒə trɪp/"
+  },
+  "by 7:30 a.m.": {
+   "c": "time",
+   "lvl": 3,
+   "tip": "by = até (prazo-limite)."
+  },
+  "extra time": {
+   "c": "word",
+   "lvl": 1
+  },
+  "weight-training session": {
+   "c": "word",
+   "lvl": 3,
+   "v": [
+    "weight training session"
+   ]
+  },
+  "deal with": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "handle"
+   ]
+  },
+  "usual tasks": {
+   "c": "professional",
+   "lvl": 1,
+   "match": "usual * tasks"
+  },
+  "in traffic": {
+   "c": "time",
+   "lvl": 1
+  },
+  "finish up": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "finish"
+   ],
+   "ex": {
+    "en": "I finish up my last trip near the gym.",
+    "pt": "Eu termino minha última corrida perto da academia."
+   }
+  },
+  "head home": {
+   "c": "phrasal",
+   "lvl": 2,
+   "v": [
+    "go home",
+    "drive home"
+   ],
+   "ex": {
+    "en": "At six, I switch off my laptop and head home.",
+    "pt": "Às seis, desligo o notebook e sigo para casa."
+   }
+  },
+  "at 9:00 a.m. sharp": {
+   "c": "time",
+   "lvl": 2,
+   "match": "at 9:00 a.m. sharp"
+  },
+  "throughout the morning": {
+   "c": "time",
+   "lvl": 3,
+   "ipa": "/θruːˈaʊt ðə ˈmɔːnɪŋ/",
+   "tip": "throughout: língua entre os dentes no /θ/."
+  },
+  "review my notes": {
+   "c": "collocation",
+   "lvl": 2,
+   "v": [
+    "go over my notes"
+   ],
+   "match": "reviewing my English notes"
+  },
+  "run an errand": {
+   "c": "collocation",
+   "tags": [
+    "idiom"
+   ],
+   "lvl": 3,
+   "match": "run a * errand",
+   "ipa": "/rʌn ən ˈerənd/"
+  },
+  "nearby": {
+   "c": "word",
+   "lvl": 2
+  },
+  "return to my desk": {
+   "c": "collocation",
+   "lvl": 2,
+   "v": [
+    "go back to my desk",
+    "get back to my desk"
+   ],
+   "match": "returning to my desk"
+  },
+  "in time for dinner": {
+   "c": "time",
+   "lvl": 2
+  },
+  "spend time talking": {
+   "c": "collocation",
+   "lvl": 3,
+   "match": "spend some time talking"
+  },
+  "skip": {
+   "c": "verb",
+   "lvl": 2
+  },
+  "wash up": {
+   "c": "phrasal",
+   "tags": [
+    "bre"
+   ],
+   "lvl": 3,
+   "v": [
+    "wash the dishes"
+   ],
+   "ex": {
+    "en": "After dinner, we wash up together.",
+    "pt": "Depois do jantar, lavamos a louça juntos."
+   }
+  },
+  "attend a meeting": {
+   "c": "professional",
+   "lvl": 2,
+   "v": [
+    "go to a meeting"
+   ],
+   "match": "attend two committee alignment meetings"
+  },
+  "alignment meeting": {
+   "c": "professional",
+   "lvl": 3,
+   "match": "alignment meetings",
+   "ipa": "/əˈlaɪnmənt ˈmiːtɪŋ/"
+  },
+  "switch off": {
+   "c": "phrasal",
+   "lvl": 1,
+   "v": [
+    "turn off",
+    "shut down"
+   ]
+  },
+  "decide not to": {
+   "c": "connector",
+   "lvl": 3
+  },
+  "drive straight home": {
+   "c": "collocation",
+   "tags": [
+    "no-to"
+   ],
+   "lvl": 2,
+   "v": [
+    "go straight home"
+   ]
+  },
+  "audiobook": {
+   "c": "word",
+   "lvl": 1,
+   "ipa": "/ˈɔːdiəʊbʊk/"
+  },
+  "bedtime routine": {
+   "c": "word",
+   "lvl": 2
+  },
+  "the rest of the evening": {
+   "c": "time",
+   "lvl": 2
+  },
+  "help someone with": {
+   "c": "collocation",
+   "lvl": 2,
+   "match": "help * with"
+  },
+  "wind down": {
+   "c": "phrasal",
+   "lvl": 3,
+   "ipa": "/waɪnd daʊn/",
+   "tip": "wind aqui rima com ‘find’ (não com o ‘wind’ de vento).",
+   "ex": {
+    "en": "I wind down in the evening by reading or listening to music.",
+    "pt": "À noite, eu desacelero lendo ou ouvindo música."
+   }
+  },
+  "i usually…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "on some days…": {
+   "c": "time",
+   "lvl": 1,
+   "v": [
+    "sometimes"
+   ]
+  },
+  "it depends on…": {
+   "c": "connector",
+   "lvl": 2
+  },
+  "when i get home…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "after that…": {
+   "c": "connector",
+   "lvl": 1,
+   "v": [
+    "afterwards",
+    "then"
+   ]
+  },
+  "before i go to bed…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "instead of…": {
+   "c": "connector",
+   "lvl": 2,
+   "tip": "Depois de ‘instead of’, use verbo em -ing: instead of driving."
+  },
+  "i try to…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "i need to…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "i prefer to…": {
+   "c": "connector",
+   "lvl": 1
+  },
+  "what i enjoy most is…": {
+   "c": "connector",
+   "lvl": 2
+  },
+  "i work at a bank.": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model"
+   ],
+   "lvl": 1
+  },
+  "i don’t work from home every day.": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model"
+   ],
+   "lvl": 2
+  },
+  "do you work from home?": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model"
+   ],
+   "lvl": 1
+  },
+  "my wife goes to bed early.": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model"
+   ],
+   "lvl": 2
+  },
+  "my wife doesn’t drive for uber.": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model",
+    "not-personal-fact"
+   ],
+   "lvl": 2
+  },
+  "does your wife study english?": {
+   "c": "sentence",
+   "tags": [
+    "grammar-model",
+    "not-personal-fact"
+   ],
+   "lvl": 2
+  }
+ },
+ "new": [
+  {
+   "en": "brush my teeth",
+   "pt": "escovar os dentes",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "ipa": "/brʌʃ maɪ tiːθ/",
+   "tip": "teeth: /θ/ final, língua entre os dentes."
+  },
+  {
+   "en": "have breakfast",
+   "pt": "tomar café da manhã",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "ipa": "/hæv ˈbrekfəst/",
+   "tip": "breakfast: BREK-fast (não ‘break-fast’)."
+  },
+  {
+   "en": "have lunch",
+   "pt": "almoçar",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "have dinner",
+   "pt": "jantar",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "get ready to leave",
+   "pt": "arrumar-se para sair",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "open the Uber app",
+   "pt": "abrir o aplicativo da Uber",
+   "c": "collocation",
+   "tags": [
+    "uber"
+   ],
+   "source": "derived",
+   "lvl": 1,
+   "tip": "Para apps, use ‘open’, não ‘switch on’."
+  },
+  {
+   "en": "set my destination",
+   "pt": "definir meu destino",
+   "c": "collocation",
+   "tags": [
+    "uber"
+   ],
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "leave home",
+   "pt": "sair de casa",
+   "c": "collocation",
+   "tags": [
+    "no-to"
+   ],
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "drive for Uber",
+   "pt": "dirigir pela Uber (como motorista)",
+   "c": "collocation",
+   "tags": [
+    "uber"
+   ],
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "do Uber trips"
+   ]
+  },
+  {
+   "en": "park on the street",
+   "pt": "estacionar na rua",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "complete a quick workout",
+   "pt": "fazer um treino rápido",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2,
+   "v": [
+    "do a quick workout"
+   ],
+   "ipa": "/ˈwɜːkaʊt/"
+  },
+  {
+   "en": "switch on my laptop",
+   "pt": "ligar meu notebook",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "turn on my laptop"
+   ],
+   "tip": "‘Notebook’ em inglês é caderno; computador portátil é ‘laptop’."
+  },
+  {
+   "en": "lunch box",
+   "pt": "marmita",
+   "c": "word",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "lunchbox"
+   ]
+  },
+  {
+   "en": "have a quick snack",
+   "pt": "fazer um lanche rápido",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "start work",
+   "pt": "começar a trabalhar",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "start working"
+   ]
+  },
+  {
+   "en": "Financial Planning Analyst",
+   "pt": "analista de planejamento financeiro",
+   "c": "professional",
+   "source": "derived",
+   "lvl": 2,
+   "ipa": "/faɪˈnænʃl ˈplænɪŋ ˈænəlɪst/"
+  },
+  {
+   "en": "analyse",
+   "pt": "analisar",
+   "c": "verb",
+   "tags": [
+    "bre"
+   ],
+   "source": "derived",
+   "lvl": 2,
+   "ipa": "/ˈænəlaɪz/",
+   "third": "analyses",
+   "tip": "Grafia BrE com ‘s’; a forma AmE é ‘analyze’."
+  },
+  {
+   "en": "business performance",
+   "pt": "desempenho dos negócios",
+   "c": "professional",
+   "source": "derived",
+   "lvl": 3,
+   "ipa": "/ˈbɪznəs pəˈfɔːməns/"
+  },
+  {
+   "en": "the cafeteria",
+   "pt": "o refeitório",
+   "c": "word",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "the canteen"
+   ],
+   "ipa": "/ˌkæfəˈtɪəriə/",
+   "tip": "Em BrE, ‘canteen’ também é muito usado."
+  },
+  {
+   "en": "in the microwave",
+   "pt": "no micro-ondas",
+   "c": "word",
+   "source": "derived",
+   "lvl": 1,
+   "ipa": "/ˈmaɪkrəweɪv/"
+  },
+  {
+   "en": "food containers",
+   "pt": "potes de comida",
+   "c": "word",
+   "source": "derived",
+   "lvl": 2,
+   "match": "food containers",
+   "ipa": "/kənˈteɪnəz/"
+  },
+  {
+   "en": "return to my floor",
+   "pt": "voltar para o meu andar",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "towards home",
+   "pt": "em direção a casa",
+   "c": "time",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "listen to music",
+   "pt": "ouvir música",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "tip": "Sempre ‘listen to’ antes do que se ouve."
+  },
+  {
+   "en": "say a prayer of thanks",
+   "pt": "fazer uma oração de agradecimento",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 3,
+   "ipa": "/seɪ ə preə əv θæŋks/",
+   "tip": "prayer: uma sílaba só, ‘prér’; thanks com /θ/."
+  },
+  {
+   "en": "go upstairs",
+   "pt": "subir (as escadas)",
+   "c": "phrasal",
+   "source": "derived",
+   "lvl": 1,
+   "tags": [
+    "no-to"
+   ]
+  },
+  {
+   "en": "the living room",
+   "pt": "a sala de estar",
+   "c": "word",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "three times a week",
+   "pt": "três vezes por semana",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "ipa": "/θriː taɪmz ə wiːk/"
+  },
+  {
+   "en": "a good night's sleep",
+   "pt": "uma boa noite de sono",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "at around",
+   "pt": "por volta de (horário)",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "at about",
+    "around"
+   ]
+  },
+  {
+   "en": "between 8:30 and 10:00 p.m.",
+   "pt": "entre 20h30 e 22h",
+   "c": "time",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "at noon",
+   "pt": "ao meio-dia",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "at midday"
+   ]
+  },
+  {
+   "en": "at around midnight",
+   "pt": "por volta da meia-noite",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "until 6:00 p.m.",
+   "pt": "até as 18h",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "match": "until 6:00 p.m."
+  },
+  {
+   "en": "in the afternoon",
+   "pt": "à tarde",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "later",
+   "pt": "mais tarde",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "afterwards",
+   "pt": "depois, em seguida",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "after that",
+    "then"
+   ]
+  },
+  {
+   "en": "while",
+   "pt": "enquanto",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "since",
+   "pt": "como / já que (razão)",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 2,
+   "tip": "Aqui ‘since’ = já que; não confundir com ‘desde’."
+  },
+  {
+   "en": "instead",
+   "pt": "em vez disso",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "so",
+   "pt": "então / por isso",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "because",
+   "pt": "porque",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "whereas",
+   "pt": "enquanto que (contraste)",
+   "c": "connector",
+   "source": "derived",
+   "lvl": 3,
+   "ex": {
+    "en": "On an on-site day, I go to the gym, whereas on a home office day, I usually skip it.",
+    "pt": "Num dia presencial, vou à academia, enquanto num dia de home office geralmente não vou."
+   }
+  },
+  {
+   "en": "usually",
+   "pt": "geralmente",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "ipa": "/ˈjuːʒuəli/",
+   "tip": "‘IU-ju-a-li’, com som de ‘j’ como em ‘garagem’."
+  },
+  {
+   "en": "sometimes",
+   "pt": "às vezes",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "on some days"
+   ]
+  },
+  {
+   "en": "on these days",
+   "pt": "nesses dias",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "on those days"
+   ]
+  },
+  {
+   "en": "a bit later",
+   "pt": "um pouco mais tarde",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "for about an hour",
+   "pt": "por cerca de uma hora",
+   "c": "time",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "drive around the city",
+   "pt": "rodar pela cidade",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2,
+   "tags": [
+    "uber"
+   ]
+  },
+  {
+   "en": "evening Uber shift",
+   "pt": "turno noturno na Uber",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2,
+   "tags": [
+    "uber"
+   ],
+   "match": "evening Uber shift"
+  },
+  {
+   "en": "drink plenty of water",
+   "pt": "beber bastante água",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "say a prayer",
+   "pt": "fazer uma oração",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "pray"
+   ]
+  },
+  {
+   "en": "get some rest",
+   "pt": "descansar um pouco",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "play a game of chess",
+   "pt": "jogar uma partida de xadrez",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "v": [
+    "play chess"
+   ],
+   "match": "play a game of chess"
+  },
+  {
+   "en": "focus on individual tasks",
+   "pt": "concentrar-se em tarefas individuais",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2,
+   "match": "concentrate on individual tasks",
+   "v": [
+    "concentrate on individual tasks"
+   ]
+  },
+  {
+   "en": "reheat my meal",
+   "pt": "esquentar de novo minha refeição",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "review my lesson materials",
+   "pt": "revisar o material da aula",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2,
+   "v": [
+    "go over my lesson materials"
+   ]
+  },
+  {
+   "en": "walk to the office",
+   "pt": "caminhar até o escritório",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "spend a quiet evening",
+   "pt": "passar uma noite tranquila",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "data consolidation",
+   "pt": "consolidação de dados",
+   "c": "professional",
+   "source": "derived",
+   "lvl": 3,
+   "ipa": "/ˈdeɪtə kənˌsɒlɪˈdeɪʃn/",
+   "tip": "data em BrE: ‘DEI-ta’."
+  },
+  {
+   "en": "help the children with their bedtime routine",
+   "pt": "ajudar as crianças com a rotina antes de dormir",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 3,
+   "v": [
+    "help the kids with their bedtime routine"
+   ]
+  },
+  {
+   "en": "relax on the sofa",
+   "pt": "relaxar no sofá",
+   "c": "collocation",
+   "source": "derived",
+   "lvl": 1,
+   "match": "relaxing on the sofa"
+  },
+  {
+   "en": "My schedule is very demanding.",
+   "pt": "Minha agenda é muito puxada.",
+   "c": "sentence",
+   "source": "derived",
+   "lvl": 2,
+   "ipa": "/ˈʃedjuːl/",
+   "tip": "schedule em BrE: ‘SHED-iul’ (AmE: ‘SKED-jul’)."
+  },
+  {
+   "en": "What I mean is…",
+   "pt": "O que quero dizer é…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "Let me put it another way…",
+   "pt": "Deixe-me dizer de outro jeito…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 3
+  },
+  {
+   "en": "I'm not sure of the exact word, but…",
+   "pt": "Não tenho certeza da palavra exata, mas…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 3
+  },
+  {
+   "en": "It's the thing I use to…",
+   "pt": "É a coisa que eu uso para…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "It's similar to…",
+   "pt": "É parecido com…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 1
+  },
+  {
+   "en": "The main difference is that…",
+   "pt": "A principal diferença é que…",
+   "c": "connector",
+   "tags": [
+    "strategy"
+   ],
+   "source": "derived",
+   "lvl": 2
+  },
+  {
+   "en": "car park",
+   "pt": "estacionamento",
+   "c": "word",
+   "tags": [
+    "bre"
+   ],
+   "source": "new",
+   "lvl": 2,
+   "ex": {
+    "en": "Sometimes I leave the car in a car park near the office.",
+    "pt": "Às vezes deixo o carro num estacionamento perto do escritório."
+   },
+   "tip": "BrE ‘car park’; AmE ‘parking lot’. Exemplo hipotético (o Word diz que você estaciona na rua)."
+  },
+  {
+   "en": "at the weekend",
+   "pt": "no fim de semana",
+   "c": "time",
+   "tags": [
+    "bre"
+   ],
+   "source": "new",
+   "lvl": 2,
+   "v": [
+    "on the weekend"
+   ],
+   "ex": {
+    "en": "What do you usually do at the weekend?",
+    "pt": "O que você costuma fazer no fim de semana?"
+   },
+   "tip": "BrE ‘at the weekend’; AmE ‘on the weekend’."
+  }
+ ],
+ "verbs": [
+  {
+   "base": "wake up",
+   "third": "wakes up",
+   "pt": "acordar"
+  },
+  {
+   "base": "take",
+   "third": "takes",
+   "pt": "tomar / pegar / levar"
+  },
+  {
+   "base": "brush",
+   "third": "brushes",
+   "pt": "escovar"
+  },
+  {
+   "base": "have",
+   "third": "has",
+   "pt": "ter / comer, tomar (refeições)"
+  },
+  {
+   "base": "play",
+   "third": "plays",
+   "pt": "jogar"
+  },
+  {
+   "base": "leave",
+   "third": "leaves",
+   "pt": "sair (de um lugar)"
+  },
+  {
+   "base": "park",
+   "third": "parks",
+   "pt": "estacionar"
+  },
+  {
+   "base": "go",
+   "third": "goes",
+   "pt": "ir"
+  },
+  {
+   "base": "do",
+   "third": "does",
+   "pt": "fazer"
+  },
+  {
+   "base": "work",
+   "third": "works",
+   "pt": "trabalhar"
+  },
+  {
+   "base": "prepare",
+   "third": "prepares",
+   "pt": "preparar"
+  },
+  {
+   "base": "watch",
+   "third": "watches",
+   "pt": "assistir"
+  },
+  {
+   "base": "wash",
+   "third": "washes",
+   "pt": "lavar"
+  },
+  {
+   "base": "finish",
+   "third": "finishes",
+   "pt": "terminar"
+  },
+  {
+   "base": "study",
+   "third": "studies",
+   "pt": "estudar"
+  },
+  {
+   "base": "drive",
+   "third": "drives",
+   "pt": "dirigir"
+  },
+  {
+   "base": "listen",
+   "third": "listens",
+   "pt": "ouvir, escutar (listen to)"
+  },
+  {
+   "base": "get",
+   "third": "gets",
+   "pt": "chegar / pegar / ficar"
+  },
+  {
+   "base": "put",
+   "third": "puts",
+   "pt": "colocar"
+  },
+  {
+   "base": "accept",
+   "third": "accepts",
+   "pt": "aceitar"
+  },
+  {
+   "base": "return",
+   "third": "returns",
+   "pt": "voltar"
+  },
+  {
+   "base": "try",
+   "third": "tries",
+   "pt": "tentar"
+  },
+  {
+   "base": "relax",
+   "third": "relaxes",
+   "pt": "relaxar"
+  },
+  {
+   "base": "help",
+   "third": "helps",
+   "pt": "ajudar"
+  },
+  {
+   "base": "spend",
+   "third": "spends",
+   "pt": "passar (tempo) / gastar"
+  },
+  {
+   "base": "review",
+   "third": "reviews",
+   "pt": "revisar"
+  },
+  {
+   "base": "practise",
+   "third": "practises",
+   "pt": "praticar (verbo, BrE)"
+  },
+  {
+   "base": "join",
+   "third": "joins",
+   "pt": "entrar / participar"
+  },
+  {
+   "base": "attend",
+   "third": "attends",
+   "pt": "participar de / frequentar"
+  },
+  {
+   "base": "send",
+   "third": "sends",
+   "pt": "enviar"
+  },
+  {
+   "base": "eat",
+   "third": "eats",
+   "pt": "comer"
+  },
+  {
+   "base": "pray",
+   "third": "prays",
+   "pt": "rezar, orar"
+  },
+  {
+   "base": "start",
+   "third": "starts",
+   "pt": "começar"
+  },
+  {
+   "base": "arrive",
+   "third": "arrives",
+   "pt": "chegar"
+  },
+  {
+   "base": "handle",
+   "third": "handles",
+   "pt": "cuidar de, lidar com"
+  },
+  {
+   "base": "walk",
+   "third": "walks",
+   "pt": "caminhar"
+  },
+  {
+   "base": "sit",
+   "third": "sits",
+   "pt": "sentar"
+  },
+  {
+   "base": "open",
+   "third": "opens",
+   "pt": "abrir"
+  },
+  {
+   "base": "say",
+   "third": "says",
+   "pt": "dizer"
+  },
+  {
+   "base": "make",
+   "third": "makes",
+   "pt": "fazer, preparar"
+  }
+ ]
+}

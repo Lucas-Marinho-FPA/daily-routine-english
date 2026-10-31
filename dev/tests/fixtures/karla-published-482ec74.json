@@ -1,0 +1,32 @@
+{
+ "_doc": "Frases de K01–K03 publicadas em 482ec74 (antes da jornada). IDs posicionais: estes textos não podem mudar.",
+ "sentences": {
+  "K01-B1-S1": "I wake up at around 5:00 a.m.",
+  "K01-B1-S2": "I take a shower, get ready and leave for work.",
+  "K01-B2-S1": "I work at a club as a personal trainer and Pilates instructor.",
+  "K01-B2-S2": "From 7:00 to 11:00 a.m., I work with my personal training clients.",
+  "K01-B3-S1": "I go for lunch at around 11:10 a.m.",
+  "K01-B3-S2": "From 12:30 to 1:30 p.m., I do my own workout.",
+  "K01-B4-S1": "From 2:00 to 4:30 p.m., I teach group Pilates classes.",
+  "K01-B5-S1": "From 5:30 to 6:30 p.m., I work with my last personal training client.",
+  "K01-B6-S1": "I get home at around 7:10 p.m.",
+  "K01-B6-S2": "I organise dinner for my family and the children's snack.",
+  "K01-B6-S3": "I plan the next day, take a shower and wait for my husband.",
+  "K01-B6-S4": "We have dinner and talk, and I usually go to bed at around 10:00 p.m.",
+  "K02-B1-S1": "On Tuesdays and Thursdays, I finish my classes at around 3:00 p.m.",
+  "K02-B1-S2": "I do my workout at 4:00 p.m.",
+  "K02-B1-S3": "I get home at around 5:30 p.m.",
+  "K03-B1-S1": "When a client cancels in advance, I can sleep until 6:00 a.m. and leave later.",
+  "K03-B2-S1": "If a client doesn't come and there's a chance at the club, I can join a spinning class.",
+  "K03-B3-S1": "When I can't work out at lunchtime, I can go for a run at another time."
+ },
+ "questions": {
+  "K.Q1": "What time do you usually wake up?",
+  "K.Q2": "What do you do in the morning at work?",
+  "K.Q3": "When do you do your own workout?",
+  "K.Q4": "What do you teach in the afternoon?",
+  "K.Q5": "What do you do when you get home?",
+  "K.Q6": "What is different on Tuesdays and Thursdays?",
+  "K.Q7": "What do you do if you can't work out at lunchtime?"
+ }
+}

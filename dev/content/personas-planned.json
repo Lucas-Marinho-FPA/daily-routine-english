@@ -1,0 +1,13 @@
+{
+ "_doc": "Personas previstas, ainda sem conteúdo. Têm progresso próprio desde já; a Daily Routine delas aparece como 'em preparação' até existir um pacote em content/characters/<id>.json (mesmo formato do da Karla). Nada de rotina ou fato é inventado aqui. Heitor: idade ainda a confirmar no cadastro. O Lukinhas (lucas-kid) já tem pacote próprio.",
+ "personas": [
+  {
+   "id": "heitor",
+   "name": "Heitor",
+   "short": "Heitor",
+   "audience": "child",
+   "age": null,
+   "summary": "Jornada infantil em preparação."
+  }
+ ]
+}

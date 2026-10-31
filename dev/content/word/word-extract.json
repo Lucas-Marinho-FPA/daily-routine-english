@@ -1,0 +1,1423 @@
+{
+ "source": {
+  "file": "conteúdo de prática (cópia de publicação, generalizada)",
+  "sha256": "copia-generalizada"
+ },
+ "intro": [
+  "Conversation Practice Pack | British English",
+  "10 rotinas baseadas no cotidiano: trabalho presencial, home office, Uber, academia, família, xadrez e estudo de inglês.",
+  "Objetivo: preparar uma apresentação oral para a teacher e construir repertório flexível para responder a perguntas espontâneas — não apenas decorar um texto."
+ ],
+ "howToUse": [
+  "Leia cada texto em voz alta. Depois, conte a mesma história sem olhar, usando suas próprias palavras.",
+  "Estude collocations como blocos: “take a shower”, “drive for Uber”, “work from home”. Evite traduzir palavra por palavra.",
+  "Responda às perguntas sem consultar os modelos. Use as respostas-modelo para conferir e ampliar seu repertório.",
+  "Para a próxima aula, priorize a Rotina 1. As outras nove são repertório de apoio para variações e perguntas da teacher.",
+  "Os horários corridos foram preservados conforme a rotina descrita. As variações são apresentadas como tipos de dia, não como se tudo acontecesse diariamente."
+ ],
+ "standards": [
+  "British English como padrão: “analyse”, “practise” como verbo, “car park” e “at the weekend”.",
+  "“Drive for Uber” descreve a atividade de motorista. “Do Uber trips” também é possível em contexto informal.",
+  "“Have breakfast/lunch/dinner” é natural para falar das refeições.",
+  "“Get home” significa chegar em casa; não se usa “to” antes de “home” nessa estrutura.",
+  "“Go to bed” é ir para a cama; “go to sleep” enfatiza começar a dormir.",
+  "O Simple Present descreve hábitos e rotinas. Perguntas e negativas são incluídas para praticar conversação, não apenas afirmações."
+ ],
+ "routines": [
+  {
+   "id": "R01",
+   "title": "On-site Workday",
+   "goal": "Descrever o dia presencial completo em ordem cronológica, incluindo trabalho, Uber, academia, família e aula de inglês.",
+   "en": [
+    "I wake up at 5:00 a.m., take a shower and brush my teeth. At around 5:20, I have a chicken sandwich with lettuce and tomato while playing a few three-minute chess games. At 5:30, I get ready to leave, open the Uber app and set my destination to my office. I leave home at 5:45 a.m. and accept rides along the way.",
+    "When I arrive near the office, I park on the street near my gym. I go in, do ten minutes of cardio and complete a quick workout. After that, I take another shower at the gym, get changed and head to the office. I switch on my laptop at around 9:00 a.m.",
+    "While my laptop starts up, I put my lunch box in the fridge and have a quick snack, usually fruit and oats. Then I brush my teeth and start work. I work at a bank as a Financial Planning Analyst, so my job is mentally demanding. I analyse profitability, efficiency and business performance, and prepare executive presentations for committee meetings.",
+    "At around noon, I go to the cafeteria, heat up my lunch in the microwave and eat while watching a chess game on YouTube. Afterwards, I wash and dry my food containers, put them away and return to my floor. I brush my teeth again and play one or two quick chess games before my break ends.",
+    "I work until 6:00 p.m. When I leave the office, I get into my car, open the Uber app and accept rides towards home. I listen to music in English during the drive. I get home between 8:30 and 10:00 p.m., depending on traffic.",
+    "At home, I take a shower and sit down at the table with my wife and children. We say a prayer of thanks for the day and for our meal, and then we eat. Afterwards, we tidy up the kitchen together. The children go upstairs to brush their teeth and get ready for bed, while I sit in the living room with my personal laptop and study English.",
+    "Three times a week, I have an online class with my English teachers at 11:00 p.m. while my wife goes to bed. I finish at around midnight, brush my teeth and go to bed, hoping to get a good night's sleep."
+   ],
+   "pt": [
+    "Acordo às 5h, tomo banho e escovo os dentes. Por volta das 5h20, como um sanduíche de frango com alface e tomate enquanto jogo algumas partidas de xadrez de três minutos. Às 5h30, termino de me arrumar para sair, abro o aplicativo da Uber e defino meu destino como o escritório. Saio de casa às 5h45 e aceito corridas pelo caminho.",
+    "Quando chego perto do escritório, estaciono na rua, perto da academia. Entro, faço dez minutos de cardio e um treino rápido. Depois, tomo outro banho na academia, troco de roupa e sigo para o escritório. Ligo o notebook por volta das 9h.",
+    "Enquanto o notebook inicia, coloco minha marmita na geladeira e faço um lanche rápido, geralmente frutas com aveia. Depois escovo os dentes e começo a trabalhar. Trabalho num banco como analista de planejamento financeiro, então meu trabalho exige bastante esforço mental. Analiso rentabilidade, eficiência e desempenho dos negócios, e preparo apresentações executivas para reuniões de comitê.",
+    "Por volta do meio-dia, vou ao refeitório, esquento meu almoço no micro-ondas e como enquanto assisto a uma partida de xadrez no YouTube. Depois, lavo e seco os potes, guardo tudo e volto para o meu andar. Escovo os dentes novamente e jogo uma ou duas partidas rápidas antes de terminar o intervalo.",
+    "Trabalho até as 18h. Quando saio do escritório, entro no carro, abro o aplicativo da Uber e aceito corridas em direção a casa. Escuto música em inglês durante o trajeto. Chego em casa entre 20h30 e 22h, dependendo do trânsito.",
+    "Em casa, tomo banho e me sento à mesa com minha esposa e meus filhos. Fazemos uma oração de agradecimento pelo dia e pela refeição e depois comemos. Em seguida, arrumamos a cozinha juntos. As crianças sobem para escovar os dentes e se preparar para dormir, enquanto eu me sento na sala com meu notebook pessoal para estudar inglês.",
+    "Três vezes por semana, tenho uma aula on-line com meus professores de inglês às 23h, enquanto minha esposa vai para a cama. Termino por volta da meia-noite, escovo os dentes e vou dormir, esperando ter uma boa noite de sono."
+   ],
+   "vocab": [
+    {
+     "en": "wake up",
+     "pt": "acordar",
+     "note": "Phrasal verb frequente; diferente de “get up”, sair da cama."
+    },
+    {
+     "en": "take a shower",
+     "pt": "tomar banho",
+     "note": "Collocation fixa."
+    },
+    {
+     "en": "chicken sandwich",
+     "pt": "sanduíche de frango",
+     "note": "“Chicken bread” não é a forma natural."
+    },
+    {
+     "en": "accept rides along the way",
+     "pt": "aceitar corridas pelo caminho",
+     "note": "“Along the way” indica ao longo do trajeto."
+    },
+    {
+     "en": "do ten minutes of cardio",
+     "pt": "fazer dez minutos de cardio",
+     "note": "Combinação comum para exercício."
+    },
+    {
+     "en": "get changed",
+     "pt": "trocar de roupa",
+     "note": "Muito comum no inglês britânico."
+    },
+    {
+     "en": "start up / boot up",
+     "pt": "iniciar o computador",
+     "note": "“Start up” é geral; “boot up” é mais técnico."
+    },
+    {
+     "en": "heat up my lunch",
+     "pt": "esquentar meu almoço",
+     "note": "Phrasal verb separável."
+    },
+    {
+     "en": "mentally demanding",
+     "pt": "mentalmente exigente",
+     "note": "Adjetivo útil para descrever o trabalho."
+    },
+    {
+     "en": "profitability and efficiency",
+     "pt": "rentabilidade e eficiência",
+     "note": "Vocabulário profissional."
+    },
+    {
+     "en": "executive presentation",
+     "pt": "apresentação executiva",
+     "note": "Alternativa clara a “executive deck”."
+    },
+    {
+     "en": "tidy up the kitchen",
+     "pt": "arrumar a cozinha",
+     "note": "Expressão comum no inglês britânico."
+    },
+    {
+     "en": "depending on traffic",
+     "pt": "dependendo do trânsito",
+     "note": "Forma enxuta e natural."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "head to",
+     "pt": "seguir para",
+     "note": "I head to the office."
+    },
+    {
+     "en": "heat up",
+     "pt": "esquentar",
+     "note": "I heat up my lunch."
+    },
+    {
+     "en": "put away",
+     "pt": "guardar",
+     "note": "I put my containers away."
+    },
+    {
+     "en": "tidy up",
+     "pt": "arrumar",
+     "note": "We tidy up the kitchen."
+    },
+    {
+     "en": "start up",
+     "pt": "iniciar",
+     "note": "My laptop starts up."
+    }
+   ],
+   "usage": [
+    "Para aplicativos, “open the Uber app” soa mais natural do que “switch on the Uber app”.",
+    "“Children” é um pouco mais formal; “kids” é comum na conversação.",
+    "“A prayer of thanks” e “say a prayer of thanks” são formas naturais.",
+    "“Executive decks” é usado no ambiente corporativo, mas “executive presentations” é mais transparente para aprender."
+   ],
+   "questions": [
+    {
+     "q": "What time do you wake up?",
+     "a": "I usually wake up at five in the morning, although my schedule is very demanding."
+    },
+    {
+     "q": "What do you do on your way to the office?",
+     "a": "I drive for Uber and accept rides along the way."
+    },
+    {
+     "q": "What do you do at work?",
+     "a": "I analyse profitability, efficiency and business performance, and prepare executive presentations."
+    },
+    {
+     "q": "How do you spend your lunch break?",
+     "a": "I heat up my lunch, watch chess videos and sometimes play a quick game."
+    },
+    {
+     "q": "How often do you have English classes?",
+     "a": "I have online classes three times a week, at eleven p.m."
+    }
+   ]
+  },
+  {
+   "id": "R02",
+   "title": "Home Office Day",
+   "goal": "Falar sobre trabalho remoto, pausas e corridas de Uber antes e depois do expediente.",
+   "en": [
+    "I wake up at 5:00 a.m., take a shower and brush my teeth. At around 5:20, I have breakfast and play a quick three-minute chess game. At 5:30, I open the Uber app and do a few trips around my neighbourhood. By 8:45, I get back home, park the car and set up my desk.",
+    "At 9:00 a.m., I log in to my work laptop in my home office. Since I work from home today, I don't go to the gym. Instead, I use my short breaks to study English. At noon, I have lunch with my family and help tidy up the kitchen.",
+    "In the afternoon, I analyse financial statements and work on strategic reports for the bank. I finish work at 6:00 p.m., get back in the car and drive for Uber in the surrounding area until around 8:30 p.m. Later, I have dinner with my family, say a prayer with them and relax before bed."
+   ],
+   "pt": [
+    "Acordo às 5h, tomo banho e escovo os dentes. Por volta das 5h20, tomo café da manhã e jogo uma partida rápida de xadrez de três minutos. Às 5h30, abro o aplicativo da Uber e faço algumas corridas pelo meu bairro. Até as 8h45, volto para casa, estaciono o carro e organizo minha mesa.",
+    "Às 9h, entro no notebook de trabalho no meu escritório em casa. Como hoje trabalho de casa, não vou à academia. Em vez disso, aproveito as pausas curtas para estudar inglês. Ao meio-dia, almoço com minha família e ajudo a arrumar a cozinha.",
+    "À tarde, analiso demonstrações financeiras e trabalho em relatórios estratégicos para o banco. Termino o expediente às 18h, volto para o carro e dirijo pela Uber na região até por volta das 20h30. Mais tarde, janto com minha família, faço uma oração com eles e relaxo antes de dormir."
+   ],
+   "vocab": [
+    {
+     "en": "work from home",
+     "pt": "trabalhar de casa",
+     "note": "Expressão padrão para home office."
+    },
+    {
+     "en": "home office",
+     "pt": "escritório em casa",
+     "note": "“Work from home” descreve a modalidade de trabalho."
+    },
+    {
+     "en": "set up my desk",
+     "pt": "preparar minha mesa",
+     "note": "“Set up” = preparar/montar."
+    },
+    {
+     "en": "log in to",
+     "pt": "entrar em sistema/conta",
+     "note": "Log in to my work laptop/account."
+    },
+    {
+     "en": "short break",
+     "pt": "pausa curta",
+     "note": "Take a short break."
+    },
+    {
+     "en": "financial statements",
+     "pt": "demonstrações financeiras",
+     "note": "Termo técnico."
+    },
+    {
+     "en": "strategic reports",
+     "pt": "relatórios estratégicos",
+     "note": "Vocabulário profissional."
+    },
+    {
+     "en": "surrounding area",
+     "pt": "arredores / região próxima",
+     "note": "Útil para descrever onde dirige."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "set up",
+     "pt": "preparar/montar",
+     "note": "Set up my desk."
+    },
+    {
+     "en": "log in",
+     "pt": "entrar em sistema",
+     "note": "Log in to my work laptop."
+    },
+    {
+     "en": "get back",
+     "pt": "voltar",
+     "note": "Get back home."
+    },
+    {
+     "en": "get back to",
+     "pt": "retomar",
+     "note": "Get back to work."
+    },
+    {
+     "en": "tidy up",
+     "pt": "arrumar",
+     "note": "Tidy up the kitchen."
+    }
+   ],
+   "usage": [
+    "“Since” aqui significa “como/já que”, introduzindo uma razão.",
+    "“I finish work at six” é natural; “I finish my work” pode enfatizar uma tarefa específica."
+   ],
+   "questions": [
+    {
+     "q": "What is different about your home office days?",
+     "a": "On home office days, I work from home and usually skip the gym."
+    },
+    {
+     "q": "Do you go to the gym on home office days?",
+     "a": "No, I don’t. I use that time differently on those days."
+    },
+    {
+     "q": "How do you use your breaks?",
+     "a": "I study English, have a snack or take care of small tasks."
+    },
+    {
+     "q": "What do you analyse in the afternoon?",
+     "a": "I analyse financial statements and prepare strategic reports."
+    }
+   ]
+  },
+  {
+   "id": "R03",
+   "title": "Late Morning Start",
+   "goal": "Descrever uma manhã com mais descanso e explicar uma mudança na rotina habitual.",
+   "en": [
+    "On some days, I wake up a bit later, at around 8:00 a.m., to get some extra rest. I brush my teeth, take a quick shower and make a cup of coffee. I also have a bowl of fruit and oats. I don't drive for Uber in the morning on these days because I want to start work feeling rested.",
+    "At 9:00 a.m., I start my tasks as a Financial Planning Analyst. I spend the morning working on efficiency analyses and updating financial models. For lunch, I have a meal at home while watching a chess match featuring a grandmaster on YouTube.",
+    "After 6:00 p.m., I start my evening Uber shift. I drive around the city for a couple of hours while listening to English podcasts or music. I get home at around 9:30 p.m., have dinner with my wife and get ready for bed. I don't have any late-night English classes on these days."
+   ],
+   "pt": [
+    "Em alguns dias, acordo um pouco mais tarde, por volta das 8h, para descansar um pouco mais. Escovo os dentes, tomo um banho rápido e preparo uma xícara de café. Também como uma tigela de frutas com aveia. Nesses dias, não dirijo pela Uber de manhã porque quero começar o trabalho descansado.",
+    "Às 9h, começo minhas tarefas como analista de planejamento financeiro. Passo a manhã trabalhando em análises de eficiência e atualizando modelos financeiros. No almoço, faço uma refeição em casa enquanto assisto a uma partida de xadrez com um grande mestre no YouTube.",
+    "Depois das 18h, começo meu turno noturno na Uber. Dirijo pela cidade por algumas horas enquanto escuto podcasts ou música em inglês. Chego em casa por volta das 21h30, janto com minha esposa e me preparo para dormir. Nesses dias, não tenho aulas de inglês tarde da noite."
+   ],
+   "vocab": [
+    {
+     "en": "get some extra rest",
+     "pt": "descansar um pouco mais",
+     "note": "Expressão natural."
+    },
+    {
+     "en": "make a cup of coffee",
+     "pt": "preparar uma xícara de café",
+     "note": "Collocation comum."
+    },
+    {
+     "en": "a bowl of fruit and oats",
+     "pt": "uma tigela de frutas com aveia",
+     "note": "“Fruit” costuma ser incontável nesse contexto."
+    },
+    {
+     "en": "feel rested",
+     "pt": "sentir-se descansado",
+     "note": "Start work feeling rested."
+    },
+    {
+     "en": "financial model",
+     "pt": "modelo financeiro",
+     "note": "Termo técnico."
+    },
+    {
+     "en": "a couple of hours",
+     "pt": "cerca de duas horas",
+     "note": "Expressão informal."
+    },
+    {
+     "en": "listen to a podcast",
+     "pt": "escutar um podcast",
+     "note": "“Listen” normalmente pede “to”."
+    },
+    {
+     "en": "get ready for bed",
+     "pt": "preparar-se para dormir",
+     "note": "Atividades antes de ir para a cama."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "get up",
+     "pt": "levantar-se da cama",
+     "note": "Diferente de “wake up”, despertar."
+    },
+    {
+     "en": "get ready",
+     "pt": "preparar-se",
+     "note": "Get ready for work/bed."
+    },
+    {
+     "en": "work on",
+     "pt": "trabalhar em",
+     "note": "Work on financial models."
+    },
+    {
+     "en": "get home",
+     "pt": "chegar em casa",
+     "note": "Não use “to” nessa estrutura."
+    }
+   ],
+   "usage": [
+    "“On some days” introduz dias específicos; “sometimes” é uma alternativa mais simples.",
+    "“A chess match featuring a grandmaster” deixa claro que a partida é de um grande mestre."
+   ],
+   "questions": [
+    {
+     "q": "Do you always wake up at five?",
+     "a": "No, I don’t. On some days, I wake up at around eight."
+    },
+    {
+     "q": "Why do you wake up later on some days?",
+     "a": "I sometimes need extra rest, so I change my morning routine."
+    },
+    {
+     "q": "What do you do in the morning on those days?",
+     "a": "I start work at nine and focus on my financial analysis tasks."
+    },
+    {
+     "q": "What do you listen to while driving for Uber?",
+     "a": "I listen to English podcasts or music."
+    }
+   ]
+  },
+  {
+   "id": "R04",
+   "title": "Meeting-Heavy On-site Day",
+   "goal": "Falar sobre reuniões, apresentação de resultados e comunicação com executivos.",
+   "en": [
+    "I wake up at 5:00 a.m., get dressed and drive for Uber on my way to the office. I park near my gym, do a quick ten-minute cardio session and take a shower there. I get to the office and switch on my laptop at around 9:00 a.m.",
+    "Today, I have a very busy day with several executive committee meetings. I spend hours presenting financial results, discussing profitability and explaining strategic forecasts to senior managers. Between meetings, I grab a quick fruit snack and drink plenty of water.",
+    "At noon, I take my lunch box to the cafeteria, heat up my meal and eat. Afterwards, I wash my containers and play a quick online chess game to clear my head. I work until 6:00 p.m., drive for Uber on my way home and arrive at around 9:00 p.m. After dinner and our family prayer, I review my presentation notes and get some rest."
+   ],
+   "pt": [
+    "Acordo às 5h, me visto e dirijo pela Uber a caminho do escritório. Estaciono perto da academia, faço dez minutos de cardio e tomo banho lá. Chego ao escritório e ligo o notebook por volta das 9h.",
+    "Hoje tenho um dia muito corrido, com várias reuniões de comitê executivo. Passo horas apresentando resultados financeiros, discutindo rentabilidade e explicando projeções estratégicas para a alta gestão. Entre as reuniões, pego uma fruta para um lanche rápido e bebo bastante água.",
+    "Ao meio-dia, levo minha marmita ao refeitório, esquento a refeição e almoço. Depois, lavo os potes e jogo uma partida rápida de xadrez on-line para espairecer. Trabalho até as 18h, dirijo pela Uber no caminho de volta e chego por volta das 21h. Depois do jantar e da oração em família, reviso minhas anotações da apresentação e descanso um pouco."
+   ],
+   "vocab": [
+    {
+     "en": "a busy day",
+     "pt": "um dia corrido",
+     "note": "Conversacional e natural."
+    },
+    {
+     "en": "executive committee meeting",
+     "pt": "reunião de comitê executivo",
+     "note": "Vocabulário corporativo."
+    },
+    {
+     "en": "present financial results",
+     "pt": "apresentar resultados financeiros",
+     "note": "Collocation de negócios."
+    },
+    {
+     "en": "discuss profitability",
+     "pt": "discutir rentabilidade",
+     "note": "“Discuss” não precisa de “about”."
+    },
+    {
+     "en": "strategic forecasts",
+     "pt": "projeções estratégicas",
+     "note": "Vocabulário técnico."
+    },
+    {
+     "en": "senior managers",
+     "pt": "gestores seniores / alta gestão",
+     "note": "Alternativa a “executives”."
+    },
+    {
+     "en": "grab a quick snack",
+     "pt": "pegar um lanche rápido",
+     "note": "Informal e natural."
+    },
+    {
+     "en": "clear my head",
+     "pt": "espairecer",
+     "note": "Expressão idiomática."
+    },
+    {
+     "en": "presentation notes",
+     "pt": "anotações da apresentação",
+     "note": "Útil para reuniões."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "get dressed",
+     "pt": "vestir-se",
+     "note": "Get dressed before leaving."
+    },
+    {
+     "en": "head to",
+     "pt": "seguir para",
+     "note": "Head to the office."
+    },
+    {
+     "en": "grab",
+     "pt": "pegar rapidamente",
+     "note": "Grab a snack / grab a coffee."
+    },
+    {
+     "en": "go over",
+     "pt": "revisar",
+     "note": "Go over my presentation notes."
+    },
+    {
+     "en": "clear my head",
+     "pt": "espairecer",
+     "note": "I play chess to clear my head."
+    }
+   ],
+   "usage": [
+    "“Discuss profitability” está correto sem “about”.",
+    "“Go over my notes” é um phrasal verb útil para revisar conteúdo."
+   ],
+   "questions": [
+    {
+     "q": "What makes your workday busy?",
+     "a": "Several meetings and deadlines can make my day very busy."
+    },
+    {
+     "q": "What do you present in committee meetings?",
+     "a": "I present financial results, profitability analyses and strategic forecasts."
+    },
+    {
+     "q": "How do you prepare for a presentation?",
+     "a": "I review the data, prepare the slides and organise my key points."
+    },
+    {
+     "q": "What do you do between meetings?",
+     "a": "I have a quick snack, drink water or take a short break."
+    }
+   ]
+  },
+  {
+   "id": "R05",
+   "title": "Family Night and Chess",
+   "goal": "Descrever uma noite em família, lazer e atividades compartilhadas.",
+   "en": [
+    "I wake up at 5:00 a.m., have my chicken sandwich with salad and hit the road for some early Uber trips before heading to the office. After a full day of financial analysis and meetings, I finish work at 6:00 p.m. and drive home.",
+    "On this particular evening, I get home early, at around 8:00 p.m. We sit together as a family, say a prayer and have dinner. After clearing the table and washing the dishes together, we spend some time as a family.",
+    "Before my son goes to bed, we sit down and play a game of chess on a chessboard. Later, my wife, the children and I watch an episode of The Simpsons in the living room. It is a rare and special evening, so I don't have an English class that night. I go to bed early, at around 10:30 p.m."
+   ],
+   "pt": [
+    "Acordo às 5h, como meu sanduíche de frango com salada e pego a estrada para fazer algumas corridas cedo pela Uber antes de seguir para o escritório. Depois de um dia inteiro de análises financeiras e reuniões, termino o expediente às 18h e dirijo para casa.",
+    "Nessa noite específica, chego cedo, por volta das 20h. Sentamo-nos juntos em família, fazemos uma oração e jantamos. Depois de tirar as coisas da mesa e lavar a louça juntos, passamos um tempo em família.",
+    "Antes de meu filho ir para a cama, sentamo-nos e jogamos uma partida de xadrez em um tabuleiro. Mais tarde, minha esposa, as crianças e eu assistimos a um episódio de The Simpsons na sala. É uma noite rara e especial, então não tenho aula de inglês naquela noite. Vou dormir cedo, por volta das 22h30."
+   ],
+   "vocab": [
+    {
+     "en": "hit the road",
+     "pt": "pegar a estrada / sair",
+     "note": "Expressão idiomática informal."
+    },
+    {
+     "en": "a full day of",
+     "pt": "um dia inteiro de",
+     "note": "A full day of meetings."
+    },
+    {
+     "en": "on this particular evening",
+     "pt": "nessa noite específica",
+     "note": "Marca uma variação, não uma regra diária."
+    },
+    {
+     "en": "clear the table",
+     "pt": "tirar/limpar a mesa",
+     "note": "Depois da refeição."
+    },
+    {
+     "en": "wash the dishes",
+     "pt": "lavar a louça",
+     "note": "Collocation essencial."
+    },
+    {
+     "en": "spend time together",
+     "pt": "passar tempo juntos",
+     "note": "Muito útil para família."
+    },
+    {
+     "en": "chessboard",
+     "pt": "tabuleiro de xadrez",
+     "note": "“Physical chessboard” só é necessário para contrastar com jogo on-line."
+    },
+    {
+     "en": "an episode of",
+     "pt": "um episódio de",
+     "note": "Estrutura usada com séries."
+    },
+    {
+     "en": "go to bed early",
+     "pt": "ir para a cama cedo",
+     "note": "Expressão de rotina."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "hit the road",
+     "pt": "pegar a estrada / sair",
+     "note": "Informal, útil na narrativa."
+    },
+    {
+     "en": "head to",
+     "pt": "seguir para",
+     "note": "Head to the office."
+    },
+    {
+     "en": "sit down",
+     "pt": "sentar-se",
+     "note": "Sit down and play chess."
+    },
+    {
+     "en": "go to bed",
+     "pt": "ir para a cama",
+     "note": "Não significa necessariamente adormecer imediatamente."
+    },
+    {
+     "en": "clear the table",
+     "pt": "tirar a mesa",
+     "note": "Mais natural do que procurar um phrasal verb desnecessário."
+    }
+   ],
+   "usage": [
+    "“On this particular evening” evita apresentar a chegada às 20h como horário fixo diário.",
+    "“Play a game of chess” é natural; “play chess” também funciona."
+   ],
+   "questions": [
+    {
+     "q": "What do you like doing with your family?",
+     "a": "I enjoy having dinner together, talking and spending time with my wife and children."
+    },
+    {
+     "q": "Do you play chess online or on a physical board?",
+     "a": "I play both online and on a chessboard, depending on the situation."
+    },
+    {
+     "q": "What do you usually watch together?",
+     "a": "Sometimes we watch an episode of a series together."
+    },
+    {
+     "q": "Why is this evening special?",
+     "a": "Because I have more time with my family and no English class that night."
+    }
+   ]
+  },
+  {
+   "id": "R06",
+   "title": "Deep-focus Home Office Day",
+   "goal": "Explicar tarefas que exigem concentração e detalhar atividades de análise financeira.",
+   "en": [
+    "I wake up at 5:00 a.m. and do a short Uber shift in the morning. At 9:00 a.m., I start work at my desk at home and focus on a day of detailed financial analysis. Today, I don't have any committee presentations or meetings, so I can concentrate on individual tasks.",
+    "I spend several hours working on complex profitability calculations and strategic cost-allocation analyses. During my lunch break at noon, I reheat my meal, eat at home and practise English vocabulary for twenty minutes.",
+    "In the afternoon, I finalise executive presentations and send my weekly reports. At 6:00 p.m., I shut down my computer, do a short evening Uber shift and return home for dinner with my family and our evening prayer."
+   ],
+   "pt": [
+    "Acordo às 5h e faço um turno curto na Uber pela manhã. Às 9h, começo a trabalhar na minha mesa em casa e me concentro em um dia de análise financeira detalhada. Hoje não tenho apresentações para comitês nem reuniões, então consigo me concentrar nas tarefas individuais.",
+    "Passo várias horas trabalhando em cálculos complexos de rentabilidade e análises estratégicas de alocação de custos. Durante meu intervalo de almoço, ao meio-dia, esquento minha refeição, almoço em casa e pratico vocabulário de inglês por vinte minutos.",
+    "À tarde, finalizo apresentações executivas e envio meus relatórios semanais. Às 18h, desligo o computador, faço um turno curto na Uber à noite e volto para casa para jantar com minha família e fazer nossa oração da noite."
+   ],
+   "vocab": [
+    {
+     "en": "focus on",
+     "pt": "concentrar-se em",
+     "note": "Focus on a task / financial analysis."
+    },
+    {
+     "en": "detailed analysis",
+     "pt": "análise detalhada",
+     "note": "Vocabulário profissional claro."
+    },
+    {
+     "en": "individual tasks",
+     "pt": "tarefas individuais",
+     "note": "Útil para explicar trabalho sem reuniões."
+    },
+    {
+     "en": "profitability calculations",
+     "pt": "cálculos de rentabilidade",
+     "note": "Vocabulário técnico."
+    },
+    {
+     "en": "cost allocation",
+     "pt": "alocação de custos",
+     "note": "Termo financeiro especializado."
+    },
+    {
+     "en": "lunch break",
+     "pt": "intervalo de almoço",
+     "note": "Take a lunch break."
+    },
+    {
+     "en": "practise vocabulary",
+     "pt": "praticar vocabulário",
+     "note": "Grafia britânica do verbo."
+    },
+    {
+     "en": "finalise",
+     "pt": "finalizar",
+     "note": "Grafia britânica."
+    },
+    {
+     "en": "weekly report",
+     "pt": "relatório semanal",
+     "note": "Collocation profissional."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "focus on",
+     "pt": "concentrar-se em",
+     "note": "Focus on complex calculations."
+    },
+    {
+     "en": "work on",
+     "pt": "trabalhar em",
+     "note": "Work on a report."
+    },
+    {
+     "en": "shut down",
+     "pt": "desligar/encerrar",
+     "note": "Shut down my computer."
+    },
+    {
+     "en": "send out",
+     "pt": "enviar/distribuir",
+     "note": "Send out weekly reports."
+    },
+    {
+     "en": "get back to",
+     "pt": "retomar",
+     "note": "Get back to work after lunch."
+    }
+   ],
+   "usage": [
+    "“Focus on detailed financial analysis” é mais transparente que “lock in for a deep-focus workday”.",
+    "“Shut down my computer” e “turn off my computer” são ambos naturais."
+   ],
+   "questions": [
+    {
+     "q": "How do you work when you have no meetings?",
+     "a": "I can focus on detailed analyses and individual tasks."
+    },
+    {
+     "q": "What kind of calculations do you do?",
+     "a": "I work on profitability calculations and cost-allocation analyses."
+    },
+    {
+     "q": "How do you practise English during the day?",
+     "a": "I review vocabulary for about twenty minutes during my lunch break."
+    },
+    {
+     "q": "What do you do at the end of your workday?",
+     "a": "I shut down my computer at six and sometimes drive for Uber afterwards."
+    }
+   ]
+  },
+  {
+   "id": "R07",
+   "title": "Intensive English Study Day",
+   "goal": "Falar sobre preparação, estudo autônomo, aula on-line e pronúncia.",
+   "en": [
+    "I follow my usual morning routine: I wake up at 5:00 a.m. and drive for Uber on my way to work. I work a full day as a Financial Planning Analyst, preparing executive presentations and analysing profitability until 6:00 p.m.",
+    "When I get home at around 8:30 p.m., I take a shower, pray with my family and have dinner. After we tidy up the kitchen, I focus on preparing for my English class. I review my lesson materials and vocabulary lists for about an hour.",
+    "At 11:00 p.m., I join my live online class with my English teacher. During the lesson, I practise speaking and work on my pronunciation. I finish at around midnight, brush my teeth and go to bed."
+   ],
+   "pt": [
+    "Sigo minha rotina habitual da manhã: acordo às 5h e dirijo pela Uber a caminho do trabalho. Trabalho um dia inteiro como analista de planejamento financeiro, preparando apresentações executivas e analisando rentabilidade até as 18h.",
+    "Quando chego em casa, por volta das 20h30, tomo banho, faço uma oração com minha família e janto. Depois que arrumamos a cozinha, concentro-me na preparação para a aula de inglês. Reviso o material da aula e as listas de vocabulário por cerca de uma hora.",
+    "Às 23h, entro na minha aula on-line ao vivo com minha professora de inglês. Durante a aula, pratico conversação e trabalho minha pronúncia. Termino por volta da meia-noite, escovo os dentes e vou dormir."
+   ],
+   "vocab": [
+    {
+     "en": "usual routine",
+     "pt": "rotina habitual",
+     "note": "Something you normally do."
+    },
+    {
+     "en": "on my way to work",
+     "pt": "a caminho do trabalho",
+     "note": "Expressão muito frequente."
+    },
+    {
+     "en": "lesson materials",
+     "pt": "materiais da aula",
+     "note": "Mais amplo que homework."
+    },
+    {
+     "en": "vocabulary list",
+     "pt": "lista de vocabulário",
+     "note": "Útil para estudo."
+    },
+    {
+     "en": "prepare for a class",
+     "pt": "preparar-se para uma aula",
+     "note": "“Prepare for” nesse sentido."
+    },
+    {
+     "en": "join an online class",
+     "pt": "entrar/participar de aula on-line",
+     "note": "Natural na conversação."
+    },
+    {
+     "en": "practise speaking",
+     "pt": "praticar a fala/conversação",
+     "note": "Verbo na grafia britânica."
+    },
+    {
+     "en": "work on my pronunciation",
+     "pt": "trabalhar minha pronúncia",
+     "note": "Expressão natural."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "follow",
+     "pt": "seguir",
+     "note": "Follow my usual routine."
+    },
+    {
+     "en": "tidy up",
+     "pt": "arrumar",
+     "note": "Tidy up the kitchen."
+    },
+    {
+     "en": "focus on",
+     "pt": "concentrar-se em",
+     "note": "Focus on preparing for class."
+    },
+    {
+     "en": "go over",
+     "pt": "revisar",
+     "note": "Go over my vocabulary lists."
+    },
+    {
+     "en": "work on",
+     "pt": "trabalhar em/aprimorar",
+     "note": "Work on my pronunciation."
+    }
+   ],
+   "usage": [
+    "“Practise” é o verbo britânico; “practice” é o substantivo: “I practise speaking” / “I need more practice”.",
+    "“Join a class” significa entrar/participar; “attend a class” enfatiza comparecer ou frequentar."
+   ],
+   "questions": [
+    {
+     "q": "How do you prepare for your English classes?",
+     "a": "I review my lesson materials and vocabulary lists before class."
+    },
+    {
+     "q": "How long do you study before class?",
+     "a": "I usually study for about an hour on these days."
+    },
+    {
+     "q": "What do you practise during the lesson?",
+     "a": "I practise speaking and work on my pronunciation."
+    },
+    {
+     "q": "What do you find most challenging about speaking English?",
+     "a": "I sometimes need more time to find the right words and speak fluently."
+    }
+   ]
+  },
+  {
+   "id": "R08",
+   "title": "Gym and Office Day",
+   "goal": "Descrever treino, preparação e ida ao escritório.",
+   "en": [
+    "I wake up at 5:00 a.m. and drive for Uber towards my workplace. I try to finish my last passenger trip near my gym by 7:30 a.m., which gives me extra time for a longer workout.",
+    "I do ten minutes of cardio and a full weight-training session. After showering and getting changed at the gym, I walk to the office and switch on my laptop by around 8:50 a.m. While it starts up, I have a bowl of fruit and oats.",
+    "I deal with my usual financial tasks, have lunch in the cafeteria at noon and play two quick chess games during my break. At 6:00 p.m., I drive home, listen to English songs in traffic and spend a quiet evening with my wife and children."
+   ],
+   "pt": [
+    "Acordo às 5h e dirijo pela Uber em direção ao meu local de trabalho. Tento terminar minha última corrida com passageiro perto da academia até as 7h30, o que me dá mais tempo para um treino mais longo.",
+    "Faço dez minutos de cardio e uma sessão completa de musculação. Depois de tomar banho e trocar de roupa na academia, caminho até o escritório e ligo o notebook por volta das 8h50. Enquanto ele inicia, como uma tigela de frutas com aveia.",
+    "Cuido das minhas tarefas financeiras habituais, almoço no refeitório ao meio-dia e jogo duas partidas rápidas de xadrez durante o intervalo. Às 18h, dirijo para casa, escuto músicas em inglês no trânsito e passo uma noite tranquila com minha esposa e meus filhos."
+   ],
+   "vocab": [
+    {
+     "en": "passenger trip",
+     "pt": "corrida com passageiro",
+     "note": "Também pode dizer “ride” no contexto de Uber."
+    },
+    {
+     "en": "by 7:30 a.m.",
+     "pt": "até as 7h30",
+     "note": "“By” indica prazo-limite."
+    },
+    {
+     "en": "extra time",
+     "pt": "tempo extra",
+     "note": "Give me extra time."
+    },
+    {
+     "en": "weight-training session",
+     "pt": "sessão de musculação",
+     "note": "Forma natural para treino com pesos."
+    },
+    {
+     "en": "get changed",
+     "pt": "trocar de roupa",
+     "note": "Comum no inglês britânico."
+    },
+    {
+     "en": "deal with",
+     "pt": "lidar com/cuidar de",
+     "note": "Deal with financial tasks."
+    },
+    {
+     "en": "usual tasks",
+     "pt": "tarefas habituais",
+     "note": "Useful para rotina profissional."
+    },
+    {
+     "en": "in traffic",
+     "pt": "no trânsito",
+     "note": "Forma comum e enxuta."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "finish up",
+     "pt": "terminar/concluir",
+     "note": "Finish up my last trip."
+    },
+    {
+     "en": "get changed",
+     "pt": "trocar de roupa",
+     "note": "Get changed at the gym."
+    },
+    {
+     "en": "start up",
+     "pt": "iniciar",
+     "note": "The laptop starts up."
+    },
+    {
+     "en": "deal with",
+     "pt": "lidar com/cuidar de",
+     "note": "Deal with financial tasks."
+    },
+    {
+     "en": "head home",
+     "pt": "seguir para casa",
+     "note": "Alternativa natural a “drive home”."
+    }
+   ],
+   "usage": [
+    "“By 7:30” significa até esse horário, não necessariamente exatamente às 7h30.",
+    "“Weight training” é musculação; “workout” é treino de forma geral."
+   ],
+   "questions": [
+    {
+     "q": "How long is your workout on these days?",
+     "a": "It is a longer session, with cardio and weight training."
+    },
+    {
+     "q": "What does “by 7:30” mean?",
+     "a": "It means I try to finish the last trip no later than 7:30 a.m."
+    },
+    {
+     "q": "What do you do while your laptop starts up?",
+     "a": "I have breakfast, usually fruit and oats."
+    },
+    {
+     "q": "How do you combine exercise and work?",
+     "a": "I go to the gym near the office and get ready there before starting work."
+    }
+   ]
+  },
+  {
+   "id": "R09",
+   "title": "Home Office with Afternoon Errands",
+   "goal": "Falar sobre recados e retomada do trabalho.",
+   "en": [
+    "I wake up at 8:00 a.m. on some home office days and skip my morning Uber trips. I start work at 9:00 a.m. sharp and focus on bank efficiency reports and data consolidation throughout the morning.",
+    "At noon, I have lunch at home, wash my dishes and spend fifteen minutes reviewing my English notes. During my afternoon break, I run a quick errand nearby before returning to my desk.",
+    "I finish work at 6:00 p.m., do a short two-hour Uber shift around my neighbourhood and get home in time for dinner. We pray together, tidy up the kitchen and spend some time talking in the living room."
+   ],
+   "pt": [
+    "Em alguns dias de home office, acordo às 8h e não faço minhas corridas matinais pela Uber. Começo a trabalhar às 9h em ponto e me concentro em relatórios de eficiência do banco e consolidação de dados durante toda a manhã.",
+    "Ao meio-dia, almoço em casa, lavo a louça e passo quinze minutos revisando minhas anotações de inglês. Durante minha pausa da tarde, resolvo um recado rápido nas proximidades antes de voltar à mesa.",
+    "Termino o expediente às 18h, faço um turno curto de duas horas pela Uber na região do meu bairro e chego em casa a tempo do jantar. Fazemos uma oração juntos, arrumamos a cozinha e passamos um tempo conversando na sala."
+   ],
+   "vocab": [
+    {
+     "en": "at 9:00 a.m. sharp",
+     "pt": "às 9h em ponto",
+     "note": "“Sharp” enfatiza pontualidade."
+    },
+    {
+     "en": "throughout the morning",
+     "pt": "durante toda a manhã",
+     "note": "Abrange o período inteiro."
+    },
+    {
+     "en": "review my notes",
+     "pt": "revisar minhas anotações",
+     "note": "Collocation de estudo."
+    },
+    {
+     "en": "run an errand",
+     "pt": "resolver um recado",
+     "note": "Expressão idiomática frequente."
+    },
+    {
+     "en": "nearby",
+     "pt": "nas proximidades",
+     "note": "Pode funcionar como advérbio."
+    },
+    {
+     "en": "return to my desk",
+     "pt": "voltar à minha mesa",
+     "note": "Boa expressão de transição."
+    },
+    {
+     "en": "in time for dinner",
+     "pt": "a tempo do jantar",
+     "note": "“In time for” = a tempo de."
+    },
+    {
+     "en": "spend time talking",
+     "pt": "passar tempo conversando",
+     "note": "Depois de “spend time”, use verbo em -ing."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "skip",
+     "pt": "pular/deixar de fazer",
+     "note": "Skip my morning Uber trips."
+    },
+    {
+     "en": "run an errand",
+     "pt": "resolver um recado",
+     "note": "Expressão fixa."
+    },
+    {
+     "en": "get back to",
+     "pt": "voltar a uma tarefa",
+     "note": "Get back to work."
+    },
+    {
+     "en": "tidy up",
+     "pt": "arrumar",
+     "note": "Tidy up the kitchen."
+    },
+    {
+     "en": "wash up",
+     "pt": "lavar a louça/limpar depois da refeição",
+     "note": "Uso britânico; o sentido depende do contexto."
+    }
+   ],
+   "usage": [
+    "“Run an errand” não exige especificar qual recado; se a teacher perguntar, dê um exemplo verdadeiro.",
+    "“Wash my dishes” está correto. No inglês britânico, “wash up” também pode significar lavar a louça."
+   ],
+   "questions": [
+    {
+     "q": "What time do you start work on home office days?",
+     "a": "I start at nine o’clock sharp."
+    },
+    {
+     "q": "What does “sharp” mean?",
+     "a": "It means exactly at that time."
+    },
+    {
+     "q": "What kind of errand do you run?",
+     "a": "It depends on the day. I run a quick practical errand nearby."
+    },
+    {
+     "q": "How do you fit Uber into this day?",
+     "a": "I work until six and then drive for Uber for about two hours."
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "title": "Balanced On-site Day",
+   "goal": "Descrever a escolha de não fazer Uber na volta e reservar mais tempo à família.",
+   "en": [
+    "I wake up at 5:00 a.m., do some early Uber trips, go to the gym and start work at the bank at around 9:00 a.m. I handle my usual strategic analyses and attend two committee alignment meetings.",
+    "At 6:00 p.m., I switch off my laptop and decide not to accept any Uber rides on my way home. I drive straight home and listen to an English audiobook during the journey.",
+    "I get home early, at around 7:15 p.m. I have a relaxed dinner with my family, help the children with their bedtime routine and spend the rest of the evening relaxing on the sofa with my wife. I go to bed at around 10:30 p.m."
+   ],
+   "pt": [
+    "Acordo às 5h, faço algumas corridas cedo pela Uber, vou à academia e começo a trabalhar no banco por volta das 9h. Cuido das análises estratégicas habituais e participo de duas reuniões de alinhamento de comitê.",
+    "Às 18h, desligo o notebook e decido não aceitar corridas da Uber no caminho para casa. Vou direto para casa e escuto um audiolivro em inglês durante o trajeto.",
+    "Chego cedo, por volta das 19h15. Janto tranquilamente com minha família, ajudo as crianças com a rotina antes de dormir e passo o resto da noite relaxando no sofá com minha esposa. Vou para a cama por volta das 22h30."
+   ],
+   "vocab": [
+    {
+     "en": "attend a meeting",
+     "pt": "participar de uma reunião",
+     "note": "Neutro/formal; “go to a meeting” é mais conversacional."
+    },
+    {
+     "en": "alignment meeting",
+     "pt": "reunião de alinhamento",
+     "note": "Vocabulário corporativo."
+    },
+    {
+     "en": "switch off",
+     "pt": "desligar",
+     "note": "Switch off my laptop."
+    },
+    {
+     "en": "decide not to",
+     "pt": "decidir não",
+     "note": "Depois de “decide”, use “to” + verbo."
+    },
+    {
+     "en": "straight home",
+     "pt": "direto para casa",
+     "note": "“Go/drive straight home”, sem “to”."
+    },
+    {
+     "en": "audiobook",
+     "pt": "audiolivro",
+     "note": "Listen to an audiobook."
+    },
+    {
+     "en": "bedtime routine",
+     "pt": "rotina antes de dormir",
+     "note": "Expressão útil sobre crianças."
+    },
+    {
+     "en": "the rest of the evening",
+     "pt": "o resto da noite",
+     "note": "Estrutura frequente."
+    }
+   ],
+   "phrasal": [
+    {
+     "en": "switch off",
+     "pt": "desligar",
+     "note": "Switch off my laptop."
+    },
+    {
+     "en": "drive straight home",
+     "pt": "ir direto para casa dirigindo",
+     "note": "“Straight” indica sem desvios."
+    },
+    {
+     "en": "help someone with",
+     "pt": "ajudar alguém com",
+     "note": "Help the children with their bedtime routine."
+    },
+    {
+     "en": "wind down",
+     "pt": "desacelerar/relaxar antes de dormir",
+     "note": "I wind down in the evening."
+    }
+   ],
+   "usage": [
+    "“Go straight home” e “drive straight home” não levam “to” antes de “home”.",
+    "“Wind down” é uma expressão útil para desacelerar no fim do dia; use-a quando fizer sentido para você."
+   ],
+   "questions": [
+    {
+     "q": "Why do you sometimes skip Uber rides on the way home?",
+     "a": "I sometimes want to get home earlier and spend more time with my family."
+    },
+    {
+     "q": "What do you listen to in the car?",
+     "a": "I listen to English music, podcasts or an audiobook."
+    },
+    {
+     "q": "How do you spend the evening with your family?",
+     "a": "We have dinner, talk and relax together."
+    },
+    {
+     "q": "What time do you go to bed on this kind of day?",
+     "a": "I usually go to bed at around 10:30 p.m."
+    }
+   ]
+  }
+ ],
+ "toolkit": {
+  "intro": "Use estas estruturas para adaptar suas respostas à pergunta da teacher. Elas ajudam a manter a conversa mesmo quando a pergunta muda.",
+  "structures": [
+   {
+    "en": "I usually…",
+    "pt": "Eu geralmente…",
+    "note": "Hábito frequente."
+   },
+   {
+    "en": "On some days…",
+    "pt": "Em alguns dias…",
+    "note": "Introduz uma variação."
+   },
+   {
+    "en": "It depends on…",
+    "pt": "Depende de…",
+    "note": "Útil para trânsito, agenda e trabalho."
+   },
+   {
+    "en": "Depending on traffic…",
+    "pt": "Dependendo do trânsito…",
+    "note": "Explica variação de horário."
+   },
+   {
+    "en": "When I get home…",
+    "pt": "Quando chego em casa…",
+    "note": "Conecta ações em sequência."
+   },
+   {
+    "en": "After that…",
+    "pt": "Depois disso…",
+    "note": "Organiza a narrativa."
+   },
+   {
+    "en": "Before I go to bed…",
+    "pt": "Antes de ir dormir…",
+    "note": "Introduz uma ação anterior."
+   },
+   {
+    "en": "Instead of…",
+    "pt": "Em vez de…",
+    "note": "Apresenta alternativa."
+   },
+   {
+    "en": "I try to…",
+    "pt": "Eu tento…",
+    "note": "Expressa tentativa/hábito."
+   },
+   {
+    "en": "I need to…",
+    "pt": "Eu preciso…",
+    "note": "Expressa necessidade."
+   },
+   {
+    "en": "I prefer to…",
+    "pt": "Eu prefiro…",
+    "note": "Expressa preferência."
+   },
+   {
+    "en": "What I enjoy most is…",
+    "pt": "O que mais gosto é…",
+    "note": "Ajuda a desenvolver uma resposta."
+   }
+  ],
+  "simplePresent": [
+   {
+    "en": "I work at a bank.",
+    "pt": "Eu trabalho num banco.",
+    "note": "Afirmativa: I + verbo base."
+   },
+   {
+    "en": "I don’t work from home every day.",
+    "pt": "Não trabalho de casa todos os dias.",
+    "note": "Negativa: don’t + verbo base."
+   },
+   {
+    "en": "Do you work from home?",
+    "pt": "Você trabalha de casa?",
+    "note": "Pergunta: Do + sujeito + verbo base."
+   },
+   {
+    "en": "My wife goes to bed early.",
+    "pt": "Minha esposa vai para a cama cedo.",
+    "note": "Terceira pessoa: verbo + -s/-es."
+   },
+   {
+    "en": "My wife doesn’t drive for Uber.",
+    "pt": "Minha esposa não dirige pela Uber.",
+    "note": "Doesn’t + verbo base, sem -s no verbo principal."
+   },
+   {
+    "en": "Does your wife study English?",
+    "pt": "Sua esposa estuda inglês?",
+    "note": "Does + sujeito + verbo base."
+   }
+  ],
+  "phrasalReview": [
+   {
+    "en": "wake up",
+    "pt": "acordar",
+    "note": "I wake up at five."
+   },
+   {
+    "en": "get up",
+    "pt": "levantar-se da cama",
+    "note": "I wake up at five but get up a few minutes later."
+   },
+   {
+    "en": "get dressed",
+    "pt": "vestir-se",
+    "note": "I get dressed before leaving."
+   },
+   {
+    "en": "get changed",
+    "pt": "trocar de roupa",
+    "note": "I get changed at the gym."
+   },
+   {
+    "en": "set up",
+    "pt": "montar/preparar",
+    "note": "I set up my desk."
+   },
+   {
+    "en": "log in",
+    "pt": "entrar em sistema/conta",
+    "note": "I log in to my work laptop."
+   },
+   {
+    "en": "start up / boot up",
+    "pt": "iniciar computador",
+    "note": "My laptop starts up."
+   },
+   {
+    "en": "heat up",
+    "pt": "esquentar",
+    "note": "I heat up my lunch."
+   },
+   {
+    "en": "put away",
+    "pt": "guardar",
+    "note": "I put my containers away."
+   },
+   {
+    "en": "tidy up",
+    "pt": "arrumar",
+    "note": "We tidy up the kitchen."
+   },
+   {
+    "en": "head to",
+    "pt": "seguir para",
+    "note": "I head to the office."
+   },
+   {
+    "en": "get back",
+    "pt": "voltar",
+    "note": "I get back home."
+   },
+   {
+    "en": "get back to",
+    "pt": "retomar",
+    "note": "I get back to work."
+   },
+   {
+    "en": "go over",
+    "pt": "revisar",
+    "note": "I go over my notes."
+   },
+   {
+    "en": "focus on",
+    "pt": "concentrar-se em",
+    "note": "I focus on financial analysis."
+   },
+   {
+    "en": "work on",
+    "pt": "trabalhar em/aprimorar",
+    "note": "I work on my pronunciation."
+   },
+   {
+    "en": "deal with",
+    "pt": "lidar com/cuidar de",
+    "note": "I deal with financial tasks."
+   },
+   {
+    "en": "shut down",
+    "pt": "desligar/encerrar",
+    "note": "I shut down my computer."
+   },
+   {
+    "en": "switch off",
+    "pt": "desligar",
+    "note": "I switch off my laptop."
+   },
+   {
+    "en": "wind down",
+    "pt": "desacelerar/relaxar",
+    "note": "I wind down before bed."
+   },
+   {
+    "en": "run an errand",
+    "pt": "resolver um recado",
+    "note": "I run an errand during my break."
+   },
+   {
+    "en": "clear my head",
+    "pt": "espairecer",
+    "note": "I play chess to clear my head."
+   }
+  ]
+ },
+ "generalQuestions": [
+  {
+   "q": "Could you tell me about your daily routine?",
+   "a": "Of course. I usually wake up at five in the morning. My days are quite busy because I work at a bank and also drive for Uber."
+  },
+  {
+   "q": "What do you do for a living?",
+   "a": "I work as a Financial Planning Analyst at a bank. I analyse profitability and efficiency, and prepare reports and executive presentations."
+  },
+  {
+   "q": "Why do you drive for Uber as well?",
+   "a": "I fit Uber trips around my work schedule. Sometimes I accept rides on my way to or from the office."
+  },
+  {
+   "q": "Do you always go to the gym before work?",
+   "a": "Not always. On some on-site days, I go to the gym near my office. On home office days, my routine is different."
+  },
+  {
+   "q": "How do you practise English outside class?",
+   "a": "I review vocabulary, listen to music or podcasts in English, and practise speaking during my online classes."
+  },
+  {
+   "q": "What do you do in your free time?",
+   "a": "I enjoy playing chess and spending time with my family. Sometimes we watch a series together."
+  },
+  {
+   "q": "What is the most challenging part of your routine?",
+   "a": "My schedule is demanding, especially because I combine my main job, Uber trips, family time and English study."
+  },
+  {
+   "q": "How do you manage your time?",
+   "a": "I try to organise my day carefully, but the exact schedule depends on traffic and my work commitments."
+  },
+  {
+   "q": "What do you usually do before going to bed?",
+   "a": "I brush my teeth and get ready for bed. On some nights, I finish an English class around midnight."
+  },
+  {
+   "q": "Would you like to change anything about your routine?",
+   "a": "I would like to have more time to rest and study, but I also want to keep my responsibilities and family time balanced."
+  }
+ ],
+ "drills": [
+  {
+   "title": "Drill 1 — Fale sem ler (30–45 segundos)",
+   "prompts": [
+    "Who you are and where you work.",
+    "What time you usually wake up.",
+    "How you combine Uber and your commute.",
+    "What you do at work.",
+    "How you spend your evening."
+   ]
+  },
+  {
+   "title": "Drill 2 — Compare two kinds of day",
+   "prompts": [
+    "On an on-site day, I…, whereas on a home office day, I…",
+    "The main difference is that…",
+    "I usually…, but on some days I…",
+    "If I don’t have an English class, I…"
+   ]
+  },
+  {
+   "title": "Drill 3 — Como continuar quando esquecer uma palavra",
+   "prompts": [
+    "What I mean is…",
+    "Let me put it another way…",
+    "I’m not sure of the exact word, but…",
+    "It’s the thing I use to…",
+    "It’s similar to…"
+   ]
+  }
+ ],
+ "checklist": [
+  "Consigo apresentar a Rotina 1 sem ler cada frase?",
+  "Consigo explicar o que faço no trabalho em duas ou três frases?",
+  "Consigo explicar por que meus horários variam?",
+  "Consigo responder usando “usually”, “sometimes”, “on some days” e “it depends”?",
+  "Consigo formular uma afirmativa, uma negativa e uma pergunta no Simple Present?",
+  "Consigo continuar falando mesmo quando esqueço uma palavra?"
+ ],
+ "mainGoal": "Meta principal: comunicar sua rotina com clareza e naturalidade — não recitar um texto perfeito."
+}

@@ -1,0 +1,794 @@
+[
+ {
+  "key": "362e96ad",
+  "text": "Morning! I don't think we've met. I'm Priya, and I work in the design team.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "962b0809",
+  "text": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "9f2eacbf",
+  "text": "Oh, welcome! Where are you from, Daniel?",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "c5dc57e7",
+  "text": "I'm from Leeds, but I've been living in Bristol for a couple of years.",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "9c635be3",
+  "text": "Lovely. And what do you do?",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "b0ce936c",
+  "text": "I'm a software developer. I'll be working on the new booking app.",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "f8091223",
+  "text": "Great! Oh, here's Ruth. Ruth, have you met Daniel? He's just joined the team.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "16695b6d",
+  "text": "Hello, Daniel. Pleased to meet you. How are you finding it so far?",
+  "kind": "sentence",
+  "voice": "bf_lily"
+ },
+ {
+  "key": "7a04ecdb",
+  "text": "Pleased to meet you, too. So far, so good. Everyone's been really friendly.",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "345e43a8",
+  "text": "Glad to hear it. If you need anything, just let me know.",
+  "kind": "sentence",
+  "voice": "bf_lily"
+ },
+ {
+  "key": "990d0934",
+  "text": "Thanks very much. I really appreciate it.",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "c48ccff7",
+  "text": "Shall we grab a coffee later? I can introduce you to the rest of the team.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "0a07366e",
+  "text": "That sounds great. See you later!",
+  "kind": "sentence",
+  "voice": "bm_lewis"
+ },
+ {
+  "key": "38603f7a",
+  "text": "Hi, everyone. This is my friend Leo. He's just moved here from Manchester.",
+  "kind": "sentence",
+  "voice": "bm_daniel"
+ },
+ {
+  "key": "d51312d7",
+  "text": "Hi! Nice to meet you all.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "3508a590",
+  "text": "Nice to meet you, Leo. Have you joined a club yet?",
+  "kind": "sentence",
+  "voice": "bf_alice"
+ },
+ {
+  "key": "2daaf8b8",
+  "text": "Not yet, but I'd like to. I usually run at the weekend.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "2340d29b",
+  "text": "Brilliant. Our running club meets every Saturday morning, so you should come along.",
+  "kind": "sentence",
+  "voice": "bf_alice"
+ },
+ {
+  "key": "14c26ed8",
+  "text": "Thanks, I will. I'm really looking forward to it.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "36a55d92",
+  "text": "What do you fancy doing tonight? There's a new comedy on at the cinema.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "e3db2fb0",
+  "text": "Hmm, I'm not really into comedies. I prefer something more exciting.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "44188905",
+  "text": "Really? Comedies are my favourite. What kind of films do you like, then?",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "b6b9eec4",
+  "text": "I'm a huge fan of thrillers, but I can't stand films with a predictable ending.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "fa30c973",
+  "text": "Fair enough. So what do you think of the new spy film?",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "8b8c7f06",
+  "text": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "b89938d7",
+  "text": "To be honest, I'm not keen on spy films. They're often far too long.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "c706798d",
+  "text": "That's true. Personally, I don't mind long films if the story's good.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "97edc99c",
+  "text": "How about a compromise? We watch your thriller, and I choose the takeaway.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "67f1416e",
+  "text": "Deal! What do you feel like eating?",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "cd7f8111",
+  "text": "I'd love a curry. I'm absolutely starving.",
+  "kind": "sentence",
+  "voice": "bm_george"
+ },
+ {
+  "key": "f9854535",
+  "text": "Me too. Shall we order now? Just let me know what you want.",
+  "kind": "sentence",
+  "voice": "bf_isabella"
+ },
+ {
+  "key": "04744535",
+  "text": "I really like this café. The coffee's excellent.",
+  "kind": "sentence",
+  "voice": "bf_alice"
+ },
+ {
+  "key": "f46f4288",
+  "text": "I agree, but to be honest, I'm not so sure about the music. It's a bit loud.",
+  "kind": "sentence",
+  "voice": "bm_daniel"
+ },
+ {
+  "key": "192bca48",
+  "text": "Really? I quite like it. I find it relaxing.",
+  "kind": "sentence",
+  "voice": "bf_alice"
+ },
+ {
+  "key": "681ffe89",
+  "text": "Fair enough. I suppose it's a matter of taste.",
+  "kind": "sentence",
+  "voice": "bm_daniel"
+ },
+ {
+  "key": "2b5245b5",
+  "text": "Exactly. Anyway, do you fancy a walk by the river after this?",
+  "kind": "sentence",
+  "voice": "bf_alice"
+ },
+ {
+  "key": "0ac05006",
+  "text": "That sounds great. I love walking by the river.",
+  "kind": "sentence",
+  "voice": "bm_daniel"
+ },
+ {
+  "key": "05aa2dec",
+  "text": "What is happening in this conversation?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "fbfa98fb",
+  "text": "Where does Daniel live now?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "529eda22",
+  "text": "What is Daniel's job?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "b5f774d6",
+  "text": "What does Priya suggest?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "7119ca82",
+  "text": "What are Omar and Beth deciding?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "865e9c14",
+  "text": "Does Beth like comedies?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "ab951d63",
+  "text": "What kind of films is Beth a huge fan of?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "fb9842ed",
+  "text": "What do they agree on in the end?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "97cea18a",
+  "text": "You meet someone new at work. Start the conversation and introduce yourself.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "139cc099",
+  "text": "Hi, I don't think we've met. I'm Sam, and I work in sales.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "b27cbf02",
+  "text": "Introduce your friend Leo to a colleague.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "8b8ecd87",
+  "text": "Have you met my friend Leo? He's just moved here.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "a9a0c65c",
+  "text": "Ask a new colleague two questions about themselves.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "fcb0d9ef",
+  "text": "Where are you from? And what do you do?",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "5f2012e5",
+  "text": "Why does Priya want to have a coffee with Daniel later?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "a324f26f",
+  "text": "Because she wants to introduce him to the rest of the team.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "97a0c7e8",
+  "text": "It's your first day in a new class or job. Introduce yourself and ask two questions.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "bbc0e14a",
+  "text": "Introduce a friend or a family member to someone you know.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "93e520e2",
+  "text": "Ask a friend what they want to do tonight.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "7582c0e5",
+  "text": "What do you fancy doing tonight?",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "16051adb",
+  "text": "Say politely that you don't really like horror films.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "8ee10f2a",
+  "text": "To be honest, I'm not really into horror films.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "1f522ff4",
+  "text": "A friend suggests a curry. Say yes with enthusiasm.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "1d548add",
+  "text": "I'd love a curry. I'm absolutely starving!",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "03a38fe2",
+  "text": "What compromise does Omar suggest?",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "13364c67",
+  "text": "They watch Beth's thriller, and he chooses the takeaway.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "a52cd43e",
+  "text": "You meet your new flatmate. Introduce yourself and say what kind of films you like.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "741b5db1",
+  "text": "Hi, I don't think we've met. I'm Sam. I'm a huge fan of thrillers.",
+  "kind": "answer",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "4e289df4",
+  "text": "Describe something you love and something you can't stand.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "cebe0f4b",
+  "text": "Disagree politely with a friend about a film, a place or some food, and suggest a compromise.",
+  "kind": "question",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "81867e12",
+  "text": "I don't think we've met.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "fe00a57c",
+  "text": "I'm",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "060fe6ff",
+  "text": "work in",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "a3d72107",
+  "text": "Nice to meet you.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "38945dea",
+  "text": "It's my first day.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "aabd0868",
+  "text": "actually",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "280c6c10",
+  "text": "Where are you from?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "3ff3465c",
+  "text": "I'm from",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "4e9d1205",
+  "text": "I've been living in for",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "b226efd9",
+  "text": "a couple of",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "b9f7a551",
+  "text": "What do you do?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "50c979ef",
+  "text": "I'm a",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "eb27805a",
+  "text": "I'll be working on",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "c9547e8b",
+  "text": "Have you met?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "175621f9",
+  "text": "He's / She's just",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "2c1e1d78",
+  "text": "Pleased to meet you.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "8d8e151b",
+  "text": "How are you finding it?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "40240f6d",
+  "text": "So far, so good.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "8d894ae9",
+  "text": "Glad to hear it.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "4b77ab07",
+  "text": "let me know",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "671f7b5d",
+  "text": "Thanks very much.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "ab09505e",
+  "text": "I really appreciate it.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "bf15fbe0",
+  "text": "Shall we?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "3eace420",
+  "text": "grab a coffee",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "50e3e34b",
+  "text": "introduce someone to",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "eeab9df9",
+  "text": "That sounds great.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "06d5374c",
+  "text": "See you later!",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "9db85e51",
+  "text": "This is my friend",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "25c78c7f",
+  "text": "Have you yet?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "d0421716",
+  "text": "Not yet.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "34e6a637",
+  "text": "I'd like to",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "855b4cce",
+  "text": "at the weekend",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "7ad24cd8",
+  "text": "brilliant",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "21b2c620",
+  "text": "come along",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "04c84d1d",
+  "text": "be looking forward to",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "82bdc7c4",
+  "text": "(Do you) fancy ?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "8e7af5f0",
+  "text": "be on at the cinema",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "daacc90e",
+  "text": "I'm not really into",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "0a3bda77",
+  "text": "prefer",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "b1995b50",
+  "text": "my favourite",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "6e6f01a2",
+  "text": "What kind of do you like?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "9b999585",
+  "text": "be a huge / big fan of",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "0c699036",
+  "text": "can't stand",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "3d471761",
+  "text": "Fair enough.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "39bcdc41",
+  "text": "What do you think of?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "c7903f64",
+  "text": "I've heard (that)",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "cf36176c",
+  "text": "To be honest,",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "ae81697d",
+  "text": "I'm not keen on",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "1b5207f0",
+  "text": "That's true.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "d5f2b436",
+  "text": "Personally,",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "e40fe0f2",
+  "text": "I don't mind",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "fdfa37e1",
+  "text": "How about?",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "bac460cf",
+  "text": "compromise",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "5f74c494",
+  "text": "takeaway",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "38b2378a",
+  "text": "Deal!",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "bffbc5d4",
+  "text": "feel like",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "21186311",
+  "text": "I'd love (a / to)",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "c01c9b3a",
+  "text": "I'm absolutely starving.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "e9afb64e",
+  "text": "I really like",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "7cd6522e",
+  "text": "I agree.",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "5152e97b",
+  "text": "I'm not so sure about",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "ae2bf625",
+  "text": "I quite like",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "99b58de8",
+  "text": "I find it",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "a0509849",
+  "text": "a matter of taste",
+  "kind": "item",
+  "voice": "bf_emma"
+ },
+ {
+  "key": "d52792d1",
+  "text": "love",
+  "kind": "item",
+  "voice": "bf_emma"
+ }
+]

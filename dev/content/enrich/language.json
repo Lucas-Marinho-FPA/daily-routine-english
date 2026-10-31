@@ -1,0 +1,423 @@
+{
+ "_doc": "Regras de idioma do corretor. 'source' indica se a regra vem do Word ('word') ou é complementar ('new'). Regex em sintaxe JavaScript, aplicadas sem diferenciar maiúsculas sobre a resposta normalizada (minúsculas, apóstrofo reto, espaços simples).",
+ "contractions": {
+  "don't": "do not",
+  "doesn't": "does not",
+  "didn't": "did not",
+  "isn't": "is not",
+  "aren't": "are not",
+  "wasn't": "was not",
+  "weren't": "were not",
+  "haven't": "have not",
+  "hasn't": "has not",
+  "can't": "cannot",
+  "won't": "will not",
+  "wouldn't": "would not",
+  "i'm": "i am",
+  "you're": "you are",
+  "we're": "we are",
+  "they're": "they are",
+  "it's": "it is",
+  "that's": "that is",
+  "what's": "what is",
+  "there's": "there is",
+  "i've": "i have",
+  "we've": "we have",
+  "i'd": "i would",
+  "i'll": "i will",
+  "let's": "let us",
+  "he's": "he is",
+  "she's": "she is"
+ },
+ "spellingAmE": {
+  "_doc": "Grafia americana → britânica. A resposta AmE é aceita com observação (classe variant_ame).",
+  "analyze": "analyse",
+  "analyzes": "analyses",
+  "analyzing": "analysing",
+  "analyzed": "analysed",
+  "organize": "organise",
+  "organizes": "organises",
+  "organizing": "organising",
+  "finalize": "finalise",
+  "finalizes": "finalises",
+  "finalizing": "finalising",
+  "neighborhood": "neighbourhood",
+  "favorite": "favourite",
+  "color": "colour",
+  "center": "centre",
+  "traveling": "travelling",
+  "canceled": "cancelled",
+  "behavior": "behaviour",
+  "labor": "labour",
+  "program": "programme",
+  "catalog": "catalogue",
+  "realize": "realise",
+  "prioritize": "prioritise"
+ },
+ "practiceVerb": {
+  "_doc": "‘practice’ como verbo é AmE; em BrE o verbo é ‘practise’. Detectado por contexto (precedido por sujeito, to, do ou don't).",
+  "source": "word"
+ },
+ "synonyms": {
+  "_doc": "Grupos de equivalência aplicados em todas as respostas (a primeira forma é a canônica). Somente equivalências seguras no contexto das rotinas.",
+  "groups": [
+   [
+    "children",
+    "kids"
+   ],
+   [
+    "laptop",
+    "computer"
+   ],
+   [
+    "switch on",
+    "turn on"
+   ],
+   [
+    "switch off",
+    "turn off"
+   ],
+   [
+    "start up",
+    "boot up"
+   ],
+   [
+    "starts up",
+    "boots up"
+   ],
+   [
+    "switches on",
+    "turns on"
+   ],
+   [
+    "switches off",
+    "turns off"
+   ],
+   [
+    "every day",
+    "everyday"
+   ],
+   [
+    "lunch box",
+    "lunchbox"
+   ],
+   [
+    "weight-training",
+    "weight training"
+   ],
+   [
+    "cafeteria",
+    "canteen"
+   ],
+   [
+    "at around",
+    "at about",
+    "around about"
+   ],
+   [
+    "afterwards",
+    "after that"
+   ],
+   [
+    "take a shower",
+    "have a shower"
+   ],
+   [
+    "home office day",
+    "work from home day",
+    "wfh day"
+   ],
+   [
+    "tv",
+    "television"
+   ],
+   [
+    "rides",
+    "trips"
+   ],
+   [
+    "ride",
+    "trip"
+   ],
+   [
+    "online",
+    "on-line",
+    "on line"
+   ],
+   [
+    "e-mail",
+    "email"
+   ],
+   [
+    "ok",
+    "okay"
+   ]
+  ]
+ },
+ "errors": [
+  {
+   "id": "E_HOME_TO",
+   "source": "word",
+   "re": "\\b(?<!close |next )to home\\b",
+   "msg": "Com ‘home’ não se usa ‘to’: get home, go home, drive home.",
+   "fix": "get home"
+  },
+  {
+   "id": "E_LISTEN_TO",
+   "source": "word",
+   "re": "\\blisten(s|ing)? (?!to\\b)(music|podcasts?|an?\\b|english|the radio|audiobooks?|songs?)",
+   "msg": "‘Listen’ pede ‘to’ antes do que se ouve: listen to music.",
+   "fix": "listen to"
+  },
+  {
+   "id": "E_DISCUSS_ABOUT",
+   "source": "word",
+   "re": "\\bdiscuss(es|ing)? about\\b",
+   "msg": "‘Discuss’ não leva ‘about’: discuss profitability.",
+   "fix": "discuss"
+  },
+  {
+   "id": "E_CHICKEN_BREAD",
+   "source": "word",
+   "re": "\\bchicken bread\\b",
+   "msg": "A forma natural é ‘chicken sandwich’.",
+   "fix": "chicken sandwich"
+  },
+  {
+   "id": "E_SWITCH_ON_APP",
+   "source": "word",
+   "re": "\\b(switch|turn)(es|s|ing)? on the (uber )?app\\b",
+   "msg": "Para aplicativos, use ‘open’: open the Uber app.",
+   "fix": "open the app"
+  },
+  {
+   "id": "E_SPEND_TIME_INF",
+   "source": "word",
+   "re": "\\bspend(s|ing)? (some |more |the rest of the )?(time|evening|morning) (to )?(talk|relax|play|study|watch|read)\\b",
+   "msg": "Depois de ‘spend time’, use verbo em -ing: spend time talking.",
+   "fix": "spend time + -ing"
+  },
+  {
+   "id": "E_DECIDE_TO_NOT",
+   "source": "word",
+   "re": "\\bdecide(s|d)? to not\\b",
+   "msg": "A ordem natural é ‘decide not to’ + verbo.",
+   "fix": "decide not to"
+  },
+  {
+   "id": "E_DOESNT_S",
+   "source": "word",
+   "re": "\\b(does not|doesn't) (goes|drives|works|studies|has|does|plays|watches|wakes|takes|gets)\\b",
+   "msg": "Depois de ‘doesn't’, o verbo fica na forma base, sem -s: doesn't drive.",
+   "fix": "doesn't + verbo base"
+  },
+  {
+   "id": "E_DO_THIRD",
+   "source": "word",
+   "re": "^(do) (she|he|my wife|your wife|my son|it)\\b",
+   "msg": "Na 3ª pessoa, a pergunta usa ‘Does’: Does your wife study English?",
+   "fix": "Does"
+  },
+  {
+   "id": "E_THIRD_S",
+   "source": "word",
+   "re": "\\b(my wife|my son|she|he|the laptop|my laptop|it) (go|do|have|study|watch|wake|drive|start|work|finish|take|play|get)\\b",
+   "msg": "Na 3ª pessoa do Simple Present, o verbo leva -s/-es: my wife goes, the laptop starts.",
+   "fix": "verbo + -s"
+  },
+  {
+   "id": "E_DONT_THIRD",
+   "source": "word",
+   "re": "\\b(my wife|my son|she|he|it) (do not|don't)\\b",
+   "msg": "Na 3ª pessoa, a negativa usa ‘doesn't’.",
+   "fix": "doesn't"
+  },
+  {
+   "id": "E_ARRIVE_TO",
+   "source": "new",
+   "re": "\\barrive(s|d)? to (the )?(office|work|gym)\\b",
+   "msg": "‘Arrive’ usa ‘at’ para lugares: arrive at the office (ou: get to the office).",
+   "fix": "arrive at"
+  },
+  {
+   "id": "E_MAKE_SHOWER",
+   "source": "new",
+   "re": "\\b(make|makes|do|does) a shower\\b",
+   "msg": "Em inglês, ‘take a shower’ (ou ‘have a shower’ em BrE).",
+   "fix": "take a shower"
+  },
+  {
+   "id": "E_TAKE_MEAL",
+   "source": "new",
+   "re": "\\b(take|takes) (the |my )?(breakfast|lunch|dinner)\\b(?! ?box)",
+   "msg": "Para refeições, use ‘have’: have breakfast, have lunch.",
+   "fix": "have breakfast"
+  },
+  {
+   "id": "E_DO_HOME_OFFICE",
+   "source": "new",
+   "re": "\\b(do|does|make|makes) home office\\b",
+   "msg": "‘Home office’ é o lugar. Para a modalidade, diga ‘I work from home’.",
+   "fix": "work from home"
+  },
+  {
+   "id": "E_NOTEBOOK",
+   "source": "new",
+   "re": "\\bnotebook\\b",
+   "msg": "Em inglês, ‘notebook’ costuma ser caderno; o computador portátil é ‘laptop’.",
+   "fix": "laptop",
+   "soft": true
+  },
+  {
+   "id": "E_AT_THE_MORNING",
+   "source": "new",
+   "re": "\\bat the (morning|afternoon|evening)\\b",
+   "msg": "Partes do dia usam ‘in the’: in the morning, in the afternoon (mas ‘at night’).",
+   "fix": "in the morning"
+  },
+  {
+   "id": "E_IN_THE_NIGHT",
+   "source": "new",
+   "re": "\\bin the night\\b",
+   "msg": "Para o hábito noturno em geral, use ‘at night’.",
+   "fix": "at night",
+   "soft": true
+  },
+  {
+   "id": "E_GO_TO_HOME",
+   "source": "word",
+   "re": "\\bgo(es)? to (my )?house\\b",
+   "msg": "Para ‘ir para casa’, o natural é ‘go home’.",
+   "fix": "go home",
+   "soft": true
+  },
+  {
+   "id": "E_EVERYDAY",
+   "source": "new",
+   "re": "\\beveryday\\b",
+   "msg": "Como advérbio (todos os dias), escreva separado: every day. ‘Everyday’ junto é adjetivo (everyday life).",
+   "fix": "every day",
+   "soft": true
+  },
+  {
+   "id": "E_PEOPLE_IS",
+   "source": "new",
+   "re": "\\b(children|people|kids) is\\b",
+   "msg": "‘Children’, ‘kids’ e ‘people’ são plurais: children are.",
+   "fix": "are"
+  },
+  {
+   "id": "E_PRACTISE_NOUN",
+   "source": "word",
+   "re": "\\b(more|some|need|good) practise\\b",
+   "msg": "Em BrE, o substantivo é ‘practice’ (com c); o verbo é ‘practise’.",
+   "fix": "practice (substantivo)"
+  }
+ ],
+ "stopwords": [
+  "a",
+  "an",
+  "the",
+  "i",
+  "my",
+  "me",
+  "we",
+  "our",
+  "you",
+  "your",
+  "it",
+  "is",
+  "am",
+  "are",
+  "be",
+  "and",
+  "or",
+  "but",
+  "to",
+  "of",
+  "in",
+  "on",
+  "at",
+  "for",
+  "with",
+  "while",
+  "then",
+  "so",
+  "do",
+  "does",
+  "not",
+  "this",
+  "that",
+  "these",
+  "those",
+  "them",
+  "they",
+  "their",
+  "he",
+  "she",
+  "his",
+  "her",
+  "usually",
+  "sometimes",
+  "also",
+  "very",
+  "really",
+  "just",
+  "some",
+  "any",
+  "there",
+  "here",
+  "after",
+  "before",
+  "when",
+  "as",
+  "by",
+  "from",
+  "up",
+  "into",
+  "about",
+  "around",
+  "can",
+  "would",
+  "will",
+  "have",
+  "has",
+  "get",
+  "go",
+  "of"
+ ],
+ "determiners": [
+  "a",
+  "an",
+  "the",
+  "my",
+  "our",
+  "his",
+  "her",
+  "their",
+  "your",
+  "this",
+  "that",
+  "some"
+ ],
+ "numberWords": {
+  "one": 1,
+  "two": 2,
+  "three": 3,
+  "four": 4,
+  "five": 5,
+  "six": 6,
+  "seven": 7,
+  "eight": 8,
+  "nine": 9,
+  "ten": 10,
+  "eleven": 11,
+  "twelve": 12,
+  "fifteen": 15,
+  "twenty": 20,
+  "thirty": 30,
+  "forty": 40,
+  "forty-five": 45,
+  "fifty": 50
+ }
+}

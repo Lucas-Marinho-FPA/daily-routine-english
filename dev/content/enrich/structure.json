@@ -1,0 +1,303 @@
+{
+ "_doc": "Metadados estruturais (conteúdo novo de organização, não linguístico): contextos, categorias, tipo de dia, título em PT e contextos de cada bloco (parágrafo) das rotinas, conforme CONTENT_MAP §4.",
+ "contexts": [
+  {
+   "id": "morning",
+   "en": "Morning Routine",
+   "pt": "Manhã",
+   "icon": "☀️"
+  },
+  {
+   "id": "commute",
+   "en": "Commute & Uber",
+   "pt": "Trajeto e Uber",
+   "icon": "🚗"
+  },
+  {
+   "id": "gym",
+   "en": "Gym & Preparation",
+   "pt": "Academia e preparação",
+   "icon": "🏋️"
+  },
+  {
+   "id": "work",
+   "en": "Workday",
+   "pt": "Trabalho",
+   "icon": "💼"
+  },
+  {
+   "id": "lunch",
+   "en": "Lunch Break",
+   "pt": "Almoço",
+   "icon": "🍱"
+  },
+  {
+   "id": "evening",
+   "en": "Evening & Family",
+   "pt": "Noite e família",
+   "icon": "🏠"
+  },
+  {
+   "id": "study",
+   "en": "English Study",
+   "pt": "Estudo de inglês",
+   "icon": "📚"
+  },
+  {
+   "id": "full",
+   "en": "Full Daily Routine",
+   "pt": "Rotina completa",
+   "icon": "🗓️"
+  }
+ ],
+ "categories": [
+  {
+   "id": "word",
+   "pt": "Palavras frequentes"
+  },
+  {
+   "id": "verb",
+   "pt": "Verbos e formas verbais"
+  },
+  {
+   "id": "collocation",
+   "pt": "Collocations"
+  },
+  {
+   "id": "phrasal",
+   "pt": "Phrasal verbs"
+  },
+  {
+   "id": "professional",
+   "pt": "Profissional e financeiro"
+  },
+  {
+   "id": "time",
+   "pt": "Tempo e frequência"
+  },
+  {
+   "id": "connector",
+   "pt": "Conectores e estruturas"
+  },
+  {
+   "id": "sentence",
+   "pt": "Frases completas"
+  },
+  {
+   "id": "qa",
+   "pt": "Perguntas e respostas"
+  },
+  {
+   "id": "text",
+   "pt": "Textos completos"
+  }
+ ],
+ "routines": {
+  "R01": {
+   "pt": "Dia presencial completo",
+   "dayType": "on-site",
+   "priority": true,
+   "blocks": [
+    [
+     "morning",
+     "commute"
+    ],
+    [
+     "gym"
+    ],
+    [
+     "work"
+    ],
+    [
+     "lunch"
+    ],
+    [
+     "commute"
+    ],
+    [
+     "evening",
+     "study"
+    ],
+    [
+     "study",
+     "evening"
+    ]
+   ]
+  },
+  "R02": {
+   "pt": "Dia de home office",
+   "dayType": "home",
+   "blocks": [
+    [
+     "morning",
+     "commute"
+    ],
+    [
+     "work",
+     "lunch",
+     "study"
+    ],
+    [
+     "work",
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R03": {
+   "pt": "Manhã mais tarde",
+   "dayType": "home",
+   "blocks": [
+    [
+     "morning"
+    ],
+    [
+     "work",
+     "lunch"
+    ],
+    [
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R04": {
+   "pt": "Dia presencial com muitas reuniões",
+   "dayType": "on-site",
+   "blocks": [
+    [
+     "morning",
+     "commute",
+     "gym"
+    ],
+    [
+     "work"
+    ],
+    [
+     "lunch",
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R05": {
+   "pt": "Noite em família e xadrez",
+   "dayType": "on-site",
+   "blocks": [
+    [
+     "morning",
+     "commute",
+     "work"
+    ],
+    [
+     "evening"
+    ],
+    [
+     "evening"
+    ]
+   ]
+  },
+  "R06": {
+   "pt": "Home office de concentração",
+   "dayType": "home",
+   "blocks": [
+    [
+     "morning",
+     "commute",
+     "work"
+    ],
+    [
+     "work",
+     "lunch",
+     "study"
+    ],
+    [
+     "work",
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R07": {
+   "pt": "Dia de estudo intensivo de inglês",
+   "dayType": "on-site",
+   "blocks": [
+    [
+     "morning",
+     "commute",
+     "work"
+    ],
+    [
+     "evening",
+     "study"
+    ],
+    [
+     "study"
+    ]
+   ]
+  },
+  "R08": {
+   "pt": "Academia e escritório",
+   "dayType": "on-site",
+   "blocks": [
+    [
+     "morning",
+     "commute"
+    ],
+    [
+     "gym",
+     "work"
+    ],
+    [
+     "work",
+     "lunch",
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R09": {
+   "pt": "Home office com recados à tarde",
+   "dayType": "home",
+   "blocks": [
+    [
+     "morning",
+     "work"
+    ],
+    [
+     "lunch",
+     "study",
+     "work"
+    ],
+    [
+     "commute",
+     "evening"
+    ]
+   ]
+  },
+  "R10": {
+   "pt": "Dia presencial equilibrado",
+   "dayType": "on-site",
+   "blocks": [
+    [
+     "morning",
+     "commute",
+     "gym",
+     "work"
+    ],
+    [
+     "commute",
+     "study"
+    ],
+    [
+     "evening"
+    ]
+   ]
+  }
+ },
+ "dayTypes": {
+  "on-site": "Presencial",
+  "home": "Home office",
+  "episode": "Episódio"
+ }
+}

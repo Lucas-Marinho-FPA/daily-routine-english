@@ -1,0 +1,12 @@
+✔ S01 Migração do banco v1 → v2 (dados de quem já usa o app): áudio separado do texto, nada perdido — {"versao":2,"audios":["q:G.Q01"],"textoMantido":["q:G.Q01","sent:R01-B3-S1"]}
+✔ S02 Regravar o mesmo exercício SUBSTITUI o áudio (contagem não cresce, tamanho = arquivo atual, data renovada); outro exercício intacto — {"audios":3,"primeira":15814,"segunda":48435}
+✔ S03 Guardar a transcrição/resultado não regrava o áudio nem muda a data de gravação — {"recordedAt":1793406753178}
+✔ S04 Falha ao salvar a nova gravação (SIMULADA no meio da transação): a gravação anterior continua inteira e o aluno é avisado — {"mantido":48435}
+✔ S05 Retenção com relógio controlado: < 7 dias fica; exatamente 7 dias e > 7 dias saem; datas inválidas ficam e são registradas; texto preservado — {"removidos":["sent:R01-B2-S1"],"invalidos":["q:G.Q01"],"segundaExecucao":0}
+✔ S06 Nova tentativa reinicia o prazo: regravar um exercício perto do limite mantém o áudio novo — {"recordedAt":"2026-10-31T00:32:44.290Z"}
+✔ S07 Fechar e reabrir o app: a limpeza roda na abertura sem atrapalhar o uso — {"abriu":"Daily Routine English","audiosRestantes":["q:G.Q01"]}
+✔ S08 Áudio vencido na interface: a tela mostra que o áudio foi apagado e mantém o resultado salvo — {"mensagem":"O áudio desta gravação foi apagado automaticamente após 7 dias. O resultado cont"}
+✔ S09 Indicadores em Ajustes batem com o banco e se atualizam após gravar, substituir e excluir — {"antes":"2 (14 KB)","gravou":"3 (26 KB)","substituiu":"3 (46 KB)","excluiu":"2 (14 KB)","total":"≈ 17,3 MB","app":"14,5 MB","reconhecimento":"não instalado","naoAtribuido":"≈ 2,8 MB","estudo":"1 KB","protegido":"não"}
+✔ S10 Nenhum erro de JavaScript (fora a falha simulada do S04) — nenhum
+
+10 aprovados, 0 reprovados

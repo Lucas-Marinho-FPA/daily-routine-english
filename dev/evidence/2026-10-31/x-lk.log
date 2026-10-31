@@ -1,0 +1,14 @@
+✔ K01 Lukinhas é o personagem fixo existente: aparece no seletor atual com esse nome; a Daily Routine dele tem as dez sessões — {"seletor":["Lucas","Karla","Lukinhas","Heitor"],"sessoes":10}
+✔ K02 Texto de cada sessão: integral (igual ao aprovado), título, foco, nível, objetivo, língua em contexto, vocabulário prioritário e tradução — {"sessoes":10,"textosIntegros":true,"traducao":"L05 com horários"}
+✔ K03 Expressão tocável: significado, explicação, exemplo adicional com tradução e áudio local (expressão e exemplo) — {"expressao":"kick back","audio":{"expr":true,"ex":true}}
+✔ K04 Áudio britânico do texto: todas as frases das dez sessões têm clipe local — {"total":66,"embedded":66}
+✔ K05 Sessão 01, etapas 1 e 2: Palavras-chave e Expressões praticadas (incluindo “mais natural” e completar), cadeado abre a etapa seguinte — {"antes":"vocab:open","depois":["vocab:done","expr:done","listen:open"],"tipos":["learn","mc"]}
+✔ K06 “Mais natural” no app: a frase mostra a forma simples; escolher a expressão britânica; a frase do texto aparece depois — {"plain":"go","right":"make our way","shown":"After that, we go downstairs to the living room."}
+✔ K07 Ouvir e entender (L01): a frase toca sem texto; depois, o texto; etapa concluída — {"tipo":"listen","concluida":true}
+✔ K08 Speaking Lab da sessão: só frases e perguntas do Lukinhas; gravar e reabrir a gravação; 3 gravações concluem a etapa — {"etapa":"speak:done"}
+✔ K09 Aplicar e conversar (L01): montar frases, ordenar, responder e falar de si sem ler; sessão concluída — {"etapas":["vocab:done","expr:done","listen:done","speak:done","apply:done"],"producao":"L.Q3 respondida","tipos":["learn","mc","recall","listen","order","conv"]}
+✔ K10 Progresso próprio do Lukinhas: separado do Lucas; persiste ao recarregar — {"cartoes":32,"lucasSemLukinhas":true}
+✔ K11 Offline (servidor desligado e rede cortada): abre a sessão, mostra texto, expressão e áudio; segue a prática — {"texto":"L10 integral","expressao":true,"audio":true,"exercicio":"learn"}
+✔ K12 Layout 412 px sem rolagem horizontal nas telas do módulo; nenhum erro nem requisição externa — {"telas":6,"erros":0,"externas":0}
+
+12 aprovados, 0 reprovados

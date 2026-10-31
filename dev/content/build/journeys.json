@@ -1,0 +1,4419 @@
+{
+ "version": 1,
+ "journeys": [
+  {
+   "id": "cp",
+   "name": "Conversation Practice",
+   "status": "pilot",
+   "source": {
+    "topicsAlignedWith": "Conversation Book (material do curso), temas 01 e 02 — só os objetivos funcionais",
+    "note": "Diálogos, expressões e atividades criados para o app, em inglês britânico."
+   },
+   "content": {
+    "routines": [
+     {
+      "id": "CP01",
+      "title": "First Steps: Meeting People",
+      "pt": "Primeiros passos: apresentar-se e conhecer pessoas",
+      "goal": "Puxar conversa com alguém novo, apresentar-se, perguntar de onde a pessoa é e o que faz, apresentar um colega e combinar o próximo encontro.",
+      "dayType": "conversation",
+      "priority": false,
+      "blocks": [
+       "CP01-B1",
+       "CP01-B2"
+      ],
+      "usage": [
+       "“Pleased to meet you” é um pouco mais formal do que “Nice to meet you”; os dois são comuns no Reino Unido.",
+       "Variante: no britânico, “flat”, “film” e “at the weekend”; no americano, “apartment”, “movie” e “on the weekend”. O corretor aceita a grafia americana nas respostas."
+      ],
+      "questions": [
+       "CP.Q1",
+       "CP.Q2",
+       "CP.Q3",
+       "CP.Q4",
+       "CP.Q5",
+       "CP.Q6"
+      ],
+      "items": [
+       "cp.i-dont-think-weve-met",
+       "cp.im-name",
+       "cp.work-in",
+       "cp.nice-to-meet-you",
+       "cp.my-first-day",
+       "cp.actually",
+       "cp.where-are-you-from",
+       "cp.im-from",
+       "cp.ive-been-living",
+       "cp.a-couple-of",
+       "cp.what-do-you-do",
+       "cp.im-a-job",
+       "cp.ill-be-working-on",
+       "cp.have-you-met",
+       "cp.hes-just-joined",
+       "cp.pleased-to-meet-you",
+       "cp.how-are-you-finding-it",
+       "cp.so-far-so-good",
+       "cp.glad-to-hear-it",
+       "cp.let-me-know",
+       "cp.thanks-very-much",
+       "cp.i-really-appreciate-it",
+       "cp.shall-we",
+       "cp.grab-a-coffee",
+       "cp.introduce-you-to",
+       "cp.that-sounds-great",
+       "cp.see-you-later",
+       "cp.this-is-my-friend",
+       "cp.have-you-yet",
+       "cp.not-yet",
+       "cp.id-like-to",
+       "cp.at-the-weekend",
+       "cp.brilliant",
+       "cp.come-along",
+       "cp.look-forward-to"
+      ],
+      "kind": "unit",
+      "stage": "B",
+      "grammar": "Present Simple (I work in…, What do you do?); Present Perfect com just e for (He's just joined; I've been living here for…); will / Shall we…? para planos e propostas.",
+      "listening": [
+       "CP.L1",
+       "CP.L2",
+       "CP.L3",
+       "CP.L4"
+      ],
+      "reading": [
+       "CP.R1",
+       "CP.R2",
+       "CP.R3",
+       "CP.R4"
+      ]
+     },
+     {
+      "id": "CP02",
+      "title": "What I Think: Likes and Opinions",
+      "pt": "O que eu penso: gostos e opiniões",
+      "goal": "Dizer do que você gosta e do que não gosta, pedir e dar opinião, discordar com educação e chegar a um acordo — retomando as apresentações do CP01.",
+      "dayType": "conversation",
+      "priority": false,
+      "blocks": [
+       "CP02-B1",
+       "CP02-B2"
+      ],
+      "usage": [
+       "Do mais forte ao mais fraco: “I love…” → “I'm a big fan of…” → “I quite like…” → “I don't mind…” → “I'm not keen on…” → “I can't stand…”.",
+       "Variante: no britânico, “favourite”, “film” e “takeaway”; no americano, “favorite”, “movie” e “takeout”. O corretor aceita as duas grafias."
+      ],
+      "questions": [
+       "CP.Q7",
+       "CP.Q8",
+       "CP.Q9",
+       "CP.Q10",
+       "CP.Q11",
+       "CP.Q12",
+       "CP.Q13"
+      ],
+      "items": [
+       "cp.what-do-you-fancy",
+       "cp.on-at-the-cinema",
+       "cp.not-really-into",
+       "cp.prefer",
+       "cp.my-favourite",
+       "cp.what-kind-of",
+       "cp.big-fan",
+       "cp.cant-stand",
+       "cp.fair-enough",
+       "cp.what-do-you-think-of",
+       "cp.ive-heard",
+       "cp.brilliant",
+       "cp.actually",
+       "cp.a-couple-of",
+       "cp.to-be-honest",
+       "cp.not-keen-on",
+       "cp.thats-true",
+       "cp.personally",
+       "cp.dont-mind",
+       "cp.how-about",
+       "cp.compromise",
+       "cp.takeaway",
+       "cp.deal",
+       "cp.feel-like",
+       "cp.id-love",
+       "cp.absolutely-starving",
+       "cp.shall-we",
+       "cp.let-me-know",
+       "cp.i-really-like",
+       "cp.i-agree",
+       "cp.not-so-sure-about",
+       "cp.quite-like",
+       "cp.i-find-it",
+       "cp.a-matter-of-taste",
+       "cp.that-sounds-great",
+       "cp.love-ing"
+      ],
+      "kind": "unit",
+      "stage": "B",
+      "grammar": "fancy / feel like + -ing; be into, be keen on, be a big fan of; can't stand / don't mind; I've heard (that)…; How about…? para propor.",
+      "listening": [
+       "CP.L5",
+       "CP.L6",
+       "CP.L7",
+       "CP.L8"
+      ],
+      "reading": [
+       "CP.R5",
+       "CP.R6",
+       "CP.R7",
+       "CP.R8"
+      ]
+     }
+    ],
+    "blocks": {
+     "CP01-B1": {
+      "id": "CP01-B1",
+      "routine": "CP01",
+      "index": 1,
+      "en": "Morning! I don't think we've met. I'm Priya, and I work in the design team. Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually. Oh, welcome! Where are you from, Daniel? I'm from Leeds, but I've been living in Bristol for a couple of years. Lovely. And what do you do? I'm a software developer. I'll be working on the new booking app. Great! Oh, here's Ruth. Ruth, have you met Daniel? He's just joined the team. Hello, Daniel. Pleased to meet you. How are you finding it so far? Pleased to meet you, too. So far, so good. Everyone's been really friendly. Glad to hear it. If you need anything, just let me know. Thanks very much. I really appreciate it. Shall we grab a coffee later? I can introduce you to the rest of the team. That sounds great. See you later!",
+      "pt": "Priya: Bom dia! Acho que ainda não nos conhecemos. Eu sou a Priya e trabalho na equipe de design. Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui. Priya: Ah, seja bem-vindo! De onde você é, Daniel? Daniel: Sou de Leeds, mas moro em Bristol há uns dois anos. Priya: Que bom. E o que você faz? Daniel: Sou desenvolvedor de software. Vou trabalhar no novo aplicativo de reservas. Priya: Ótimo! Ah, aí está a Ruth. Ruth, você já conhece o Daniel? Ele acabou de entrar na equipe. Ruth: Olá, Daniel. Muito prazer. Está gostando até agora? Daniel: O prazer é meu. Até agora, tudo bem. Todo mundo tem sido muito simpático. Ruth: Que bom ouvir isso. Se precisar de alguma coisa, é só me avisar. Daniel: Muito obrigado. Agradeço mesmo. Priya: Vamos tomar um café mais tarde? Posso te apresentar ao resto da equipe. Daniel: Parece ótimo. Até mais tarde!",
+      "ctx": [
+       "work"
+      ],
+      "sentences": [
+       "CP01-B1-S1",
+       "CP01-B1-S2",
+       "CP01-B1-S3",
+       "CP01-B1-S4",
+       "CP01-B1-S5",
+       "CP01-B1-S6",
+       "CP01-B1-S7",
+       "CP01-B1-S8",
+       "CP01-B1-S9",
+       "CP01-B1-S10",
+       "CP01-B1-S11",
+       "CP01-B1-S12",
+       "CP01-B1-S13"
+      ],
+      "title": "A new face at the office",
+      "provenance": "new",
+      "kind": "dialogue"
+     },
+     "CP01-B2": {
+      "id": "CP01-B2",
+      "routine": "CP01",
+      "index": 2,
+      "en": "Hi, everyone. This is my friend Leo. He's just moved here from Manchester. Hi! Nice to meet you all. Nice to meet you, Leo. Have you joined a club yet? Not yet, but I'd like to. I usually run at the weekend. Brilliant. Our running club meets every Saturday morning, so you should come along. Thanks, I will. I'm really looking forward to it.",
+      "pt": "Sam: Oi, pessoal. Este é o meu amigo Leo. Ele acabou de se mudar de Manchester para cá. Leo: Oi! Prazer em conhecer vocês. Anna: Prazer, Leo. Você já entrou em algum clube? Leo: Ainda não, mas eu gostaria. Costumo correr no fim de semana. Anna: Ótimo. Nosso clube de corrida se encontra todo sábado de manhã, então você devia vir junto. Leo: Obrigado, vou sim. Estou bem animado com isso.",
+      "ctx": [
+       "evening"
+      ],
+      "sentences": [
+       "CP01-B2-S1",
+       "CP01-B2-S2",
+       "CP01-B2-S3",
+       "CP01-B2-S4",
+       "CP01-B2-S5",
+       "CP01-B2-S6"
+      ],
+      "title": "Na prática: apresentando um amigo",
+      "provenance": "new",
+      "kind": "dialogue"
+     },
+     "CP02-B1": {
+      "id": "CP02-B1",
+      "routine": "CP02",
+      "index": 1,
+      "en": "What do you fancy doing tonight? There's a new comedy on at the cinema. Hmm, I'm not really into comedies. I prefer something more exciting. Really? Comedies are my favourite. What kind of films do you like, then? I'm a huge fan of thrillers, but I can't stand films with a predictable ending. Fair enough. So what do you think of the new spy film? I've heard it's brilliant. Actually, a couple of friends saw it last week. To be honest, I'm not keen on spy films. They're often far too long. That's true. Personally, I don't mind long films if the story's good. How about a compromise? We watch your thriller, and I choose the takeaway. Deal! What do you feel like eating? I'd love a curry. I'm absolutely starving. Me too. Shall we order now? Just let me know what you want.",
+      "pt": "Omar: O que você está a fim de fazer hoje à noite? Está passando uma comédia nova no cinema. Beth: Hum, não curto muito comédias. Prefiro algo mais emocionante. Omar: Sério? Comédias são as minhas favoritas. Então, de que tipo de filme você gosta? Beth: Sou muito fã de suspense, mas não suporto filmes com final previsível. Omar: Justo. Então, o que você acha do novo filme de espionagem? Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada. Omar: Para ser sincero, não sou muito fã de filmes de espionagem. Muitas vezes são longos demais. Beth: É verdade. Pessoalmente, não me importo com filmes longos se a história for boa. Omar: Que tal um meio-termo? A gente assiste ao seu suspense e eu escolho a comida para viagem. Beth: Fechado! O que você está com vontade de comer? Omar: Eu adoraria um curry. Estou morrendo de fome. Beth: Eu também. Vamos pedir agora? É só me dizer o que você quer.",
+      "ctx": [
+       "evening"
+      ],
+      "sentences": [
+       "CP02-B1-S1",
+       "CP02-B1-S2",
+       "CP02-B1-S3",
+       "CP02-B1-S4",
+       "CP02-B1-S5",
+       "CP02-B1-S6",
+       "CP02-B1-S7",
+       "CP02-B1-S8",
+       "CP02-B1-S9",
+       "CP02-B1-S10",
+       "CP02-B1-S11",
+       "CP02-B1-S12"
+      ],
+      "title": "Choosing a film",
+      "provenance": "new",
+      "kind": "dialogue"
+     },
+     "CP02-B2": {
+      "id": "CP02-B2",
+      "routine": "CP02",
+      "index": 2,
+      "en": "I really like this café. The coffee's excellent. I agree, but to be honest, I'm not so sure about the music. It's a bit loud. Really? I quite like it. I find it relaxing. Fair enough. I suppose it's a matter of taste. Exactly. Anyway, do you fancy a walk by the river after this? That sounds great. I love walking by the river.",
+      "pt": "Zoe: Gosto muito deste café. O café daqui é excelente. Mark: Concordo, mas, para ser sincero, não tenho tanta certeza sobre a música. Está um pouco alta. Zoe: Sério? Eu até gosto. Acho relaxante. Mark: Justo. Acho que é questão de gosto. Zoe: Exatamente. Enfim, você está a fim de uma caminhada perto do rio depois daqui? Mark: Parece ótimo. Adoro caminhar perto do rio.",
+      "ctx": [
+       "lunch"
+      ],
+      "sentences": [
+       "CP02-B2-S1",
+       "CP02-B2-S2",
+       "CP02-B2-S3",
+       "CP02-B2-S4",
+       "CP02-B2-S5",
+       "CP02-B2-S6"
+      ],
+      "title": "Na prática: concordar e discordar com educação",
+      "provenance": "new",
+      "kind": "dialogue"
+     }
+    },
+    "sentences": {
+     "CP01-B1-S1": {
+      "id": "CP01-B1-S1",
+      "en": "Morning! I don't think we've met. I'm Priya, and I work in the design team.",
+      "pt": "Priya: Bom dia! Acho que ainda não nos conhecemos. Eu sou a Priya e trabalho na equipe de design.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.i-dont-think-weve-met",
+       "cp.im-name",
+       "cp.work-in"
+      ],
+      "au": "362e96ad",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Priya"
+     },
+     "CP01-B1-S2": {
+      "id": "CP01-B1-S2",
+      "en": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+      "pt": "Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.nice-to-meet-you",
+       "cp.im-name",
+       "cp.my-first-day",
+       "cp.actually"
+      ],
+      "au": "962b0809",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B1-S3": {
+      "id": "CP01-B1-S3",
+      "en": "Oh, welcome! Where are you from, Daniel?",
+      "pt": "Priya: Ah, seja bem-vindo! De onde você é, Daniel?",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.where-are-you-from"
+      ],
+      "au": "9f2eacbf",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Priya"
+     },
+     "CP01-B1-S4": {
+      "id": "CP01-B1-S4",
+      "en": "I'm from Leeds, but I've been living in Bristol for a couple of years.",
+      "pt": "Daniel: Sou de Leeds, mas moro em Bristol há uns dois anos.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.im-from",
+       "cp.ive-been-living",
+       "cp.a-couple-of"
+      ],
+      "au": "c5dc57e7",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B1-S5": {
+      "id": "CP01-B1-S5",
+      "en": "Lovely. And what do you do?",
+      "pt": "Priya: Que bom. E o que você faz?",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.what-do-you-do"
+      ],
+      "au": "9c635be3",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Priya"
+     },
+     "CP01-B1-S6": {
+      "id": "CP01-B1-S6",
+      "en": "I'm a software developer. I'll be working on the new booking app.",
+      "pt": "Daniel: Sou desenvolvedor de software. Vou trabalhar no novo aplicativo de reservas.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.im-a-job",
+       "cp.ill-be-working-on"
+      ],
+      "au": "b0ce936c",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B1-S7": {
+      "id": "CP01-B1-S7",
+      "en": "Great! Oh, here's Ruth. Ruth, have you met Daniel? He's just joined the team.",
+      "pt": "Priya: Ótimo! Ah, aí está a Ruth. Ruth, você já conhece o Daniel? Ele acabou de entrar na equipe.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.have-you-met",
+       "cp.hes-just-joined"
+      ],
+      "au": "f8091223",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Priya"
+     },
+     "CP01-B1-S8": {
+      "id": "CP01-B1-S8",
+      "en": "Hello, Daniel. Pleased to meet you. How are you finding it so far?",
+      "pt": "Ruth: Olá, Daniel. Muito prazer. Está gostando até agora?",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.pleased-to-meet-you",
+       "cp.how-are-you-finding-it"
+      ],
+      "au": "16695b6d",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Ruth"
+     },
+     "CP01-B1-S9": {
+      "id": "CP01-B1-S9",
+      "en": "Pleased to meet you, too. So far, so good. Everyone's been really friendly.",
+      "pt": "Daniel: O prazer é meu. Até agora, tudo bem. Todo mundo tem sido muito simpático.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.pleased-to-meet-you",
+       "cp.so-far-so-good"
+      ],
+      "au": "7a04ecdb",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B1-S10": {
+      "id": "CP01-B1-S10",
+      "en": "Glad to hear it. If you need anything, just let me know.",
+      "pt": "Ruth: Que bom ouvir isso. Se precisar de alguma coisa, é só me avisar.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.glad-to-hear-it",
+       "cp.let-me-know"
+      ],
+      "au": "345e43a8",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Ruth"
+     },
+     "CP01-B1-S11": {
+      "id": "CP01-B1-S11",
+      "en": "Thanks very much. I really appreciate it.",
+      "pt": "Daniel: Muito obrigado. Agradeço mesmo.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.thanks-very-much",
+       "cp.i-really-appreciate-it"
+      ],
+      "au": "990d0934",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B1-S12": {
+      "id": "CP01-B1-S12",
+      "en": "Shall we grab a coffee later? I can introduce you to the rest of the team.",
+      "pt": "Priya: Vamos tomar um café mais tarde? Posso te apresentar ao resto da equipe.",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.shall-we",
+       "cp.grab-a-coffee",
+       "cp.introduce-you-to"
+      ],
+      "au": "c48ccff7",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Priya"
+     },
+     "CP01-B1-S13": {
+      "id": "CP01-B1-S13",
+      "en": "That sounds great. See you later!",
+      "pt": "Daniel: Parece ótimo. Até mais tarde!",
+      "routine": "CP01",
+      "block": "CP01-B1",
+      "ctx": [
+       "work"
+      ],
+      "items": [
+       "cp.that-sounds-great",
+       "cp.see-you-later"
+      ],
+      "au": "0a07366e",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Daniel"
+     },
+     "CP01-B2-S1": {
+      "id": "CP01-B2-S1",
+      "en": "Hi, everyone. This is my friend Leo. He's just moved here from Manchester.",
+      "pt": "Sam: Oi, pessoal. Este é o meu amigo Leo. Ele acabou de se mudar de Manchester para cá.",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.this-is-my-friend",
+       "cp.hes-just-joined"
+      ],
+      "au": "38603f7a",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Sam"
+     },
+     "CP01-B2-S2": {
+      "id": "CP01-B2-S2",
+      "en": "Hi! Nice to meet you all.",
+      "pt": "Leo: Oi! Prazer em conhecer vocês.",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.nice-to-meet-you"
+      ],
+      "au": "d51312d7",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Leo"
+     },
+     "CP01-B2-S3": {
+      "id": "CP01-B2-S3",
+      "en": "Nice to meet you, Leo. Have you joined a club yet?",
+      "pt": "Anna: Prazer, Leo. Você já entrou em algum clube?",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.nice-to-meet-you",
+       "cp.have-you-yet"
+      ],
+      "au": "3508a590",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Anna"
+     },
+     "CP01-B2-S4": {
+      "id": "CP01-B2-S4",
+      "en": "Not yet, but I'd like to. I usually run at the weekend.",
+      "pt": "Leo: Ainda não, mas eu gostaria. Costumo correr no fim de semana.",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.not-yet",
+       "cp.id-like-to",
+       "cp.at-the-weekend"
+      ],
+      "au": "2daaf8b8",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Leo"
+     },
+     "CP01-B2-S5": {
+      "id": "CP01-B2-S5",
+      "en": "Brilliant. Our running club meets every Saturday morning, so you should come along.",
+      "pt": "Anna: Ótimo. Nosso clube de corrida se encontra todo sábado de manhã, então você devia vir junto.",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.brilliant",
+       "cp.come-along"
+      ],
+      "au": "2340d29b",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Anna"
+     },
+     "CP01-B2-S6": {
+      "id": "CP01-B2-S6",
+      "en": "Thanks, I will. I'm really looking forward to it.",
+      "pt": "Leo: Obrigado, vou sim. Estou bem animado com isso.",
+      "routine": "CP01",
+      "block": "CP01-B2",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.look-forward-to"
+      ],
+      "au": "14c26ed8",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Leo"
+     },
+     "CP02-B1-S1": {
+      "id": "CP02-B1-S1",
+      "en": "What do you fancy doing tonight? There's a new comedy on at the cinema.",
+      "pt": "Omar: O que você está a fim de fazer hoje à noite? Está passando uma comédia nova no cinema.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.what-do-you-fancy",
+       "cp.on-at-the-cinema"
+      ],
+      "au": "36a55d92",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S2": {
+      "id": "CP02-B1-S2",
+      "en": "Hmm, I'm not really into comedies. I prefer something more exciting.",
+      "pt": "Beth: Hum, não curto muito comédias. Prefiro algo mais emocionante.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.not-really-into",
+       "cp.prefer"
+      ],
+      "au": "e3db2fb0",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B1-S3": {
+      "id": "CP02-B1-S3",
+      "en": "Really? Comedies are my favourite. What kind of films do you like, then?",
+      "pt": "Omar: Sério? Comédias são as minhas favoritas. Então, de que tipo de filme você gosta?",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.my-favourite",
+       "cp.what-kind-of"
+      ],
+      "au": "44188905",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S4": {
+      "id": "CP02-B1-S4",
+      "en": "I'm a huge fan of thrillers, but I can't stand films with a predictable ending.",
+      "pt": "Beth: Sou muito fã de suspense, mas não suporto filmes com final previsível.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.big-fan",
+       "cp.cant-stand"
+      ],
+      "au": "b6b9eec4",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B1-S5": {
+      "id": "CP02-B1-S5",
+      "en": "Fair enough. So what do you think of the new spy film?",
+      "pt": "Omar: Justo. Então, o que você acha do novo filme de espionagem?",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.fair-enough",
+       "cp.what-do-you-think-of"
+      ],
+      "au": "fa30c973",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S6": {
+      "id": "CP02-B1-S6",
+      "en": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+      "pt": "Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.ive-heard",
+       "cp.brilliant",
+       "cp.actually",
+       "cp.a-couple-of"
+      ],
+      "au": "8b8c7f06",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B1-S7": {
+      "id": "CP02-B1-S7",
+      "en": "To be honest, I'm not keen on spy films. They're often far too long.",
+      "pt": "Omar: Para ser sincero, não sou muito fã de filmes de espionagem. Muitas vezes são longos demais.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.to-be-honest",
+       "cp.not-keen-on"
+      ],
+      "au": "b89938d7",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S8": {
+      "id": "CP02-B1-S8",
+      "en": "That's true. Personally, I don't mind long films if the story's good.",
+      "pt": "Beth: É verdade. Pessoalmente, não me importo com filmes longos se a história for boa.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.thats-true",
+       "cp.personally",
+       "cp.dont-mind"
+      ],
+      "au": "c706798d",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B1-S9": {
+      "id": "CP02-B1-S9",
+      "en": "How about a compromise? We watch your thriller, and I choose the takeaway.",
+      "pt": "Omar: Que tal um meio-termo? A gente assiste ao seu suspense e eu escolho a comida para viagem.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.how-about",
+       "cp.compromise",
+       "cp.takeaway"
+      ],
+      "au": "97edc99c",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S10": {
+      "id": "CP02-B1-S10",
+      "en": "Deal! What do you feel like eating?",
+      "pt": "Beth: Fechado! O que você está com vontade de comer?",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.deal",
+       "cp.feel-like"
+      ],
+      "au": "67f1416e",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B1-S11": {
+      "id": "CP02-B1-S11",
+      "en": "I'd love a curry. I'm absolutely starving.",
+      "pt": "Omar: Eu adoraria um curry. Estou morrendo de fome.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.id-love",
+       "cp.absolutely-starving"
+      ],
+      "au": "cd7f8111",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Omar"
+     },
+     "CP02-B1-S12": {
+      "id": "CP02-B1-S12",
+      "en": "Me too. Shall we order now? Just let me know what you want.",
+      "pt": "Beth: Eu também. Vamos pedir agora? É só me dizer o que você quer.",
+      "routine": "CP02",
+      "block": "CP02-B1",
+      "ctx": [
+       "evening"
+      ],
+      "items": [
+       "cp.shall-we",
+       "cp.let-me-know"
+      ],
+      "au": "f9854535",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Beth"
+     },
+     "CP02-B2-S1": {
+      "id": "CP02-B2-S1",
+      "en": "I really like this café. The coffee's excellent.",
+      "pt": "Zoe: Gosto muito deste café. O café daqui é excelente.",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.i-really-like"
+      ],
+      "au": "04744535",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Zoe"
+     },
+     "CP02-B2-S2": {
+      "id": "CP02-B2-S2",
+      "en": "I agree, but to be honest, I'm not so sure about the music. It's a bit loud.",
+      "pt": "Mark: Concordo, mas, para ser sincero, não tenho tanta certeza sobre a música. Está um pouco alta.",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.i-agree",
+       "cp.to-be-honest",
+       "cp.not-so-sure-about"
+      ],
+      "au": "f46f4288",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Mark"
+     },
+     "CP02-B2-S3": {
+      "id": "CP02-B2-S3",
+      "en": "Really? I quite like it. I find it relaxing.",
+      "pt": "Zoe: Sério? Eu até gosto. Acho relaxante.",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.quite-like",
+       "cp.i-find-it"
+      ],
+      "au": "192bca48",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Zoe"
+     },
+     "CP02-B2-S4": {
+      "id": "CP02-B2-S4",
+      "en": "Fair enough. I suppose it's a matter of taste.",
+      "pt": "Mark: Justo. Acho que é questão de gosto.",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.fair-enough",
+       "cp.a-matter-of-taste"
+      ],
+      "au": "681ffe89",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Mark"
+     },
+     "CP02-B2-S5": {
+      "id": "CP02-B2-S5",
+      "en": "Exactly. Anyway, do you fancy a walk by the river after this?",
+      "pt": "Zoe: Exatamente. Enfim, você está a fim de uma caminhada perto do rio depois daqui?",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.what-do-you-fancy"
+      ],
+      "au": "2b5245b5",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Zoe"
+     },
+     "CP02-B2-S6": {
+      "id": "CP02-B2-S6",
+      "en": "That sounds great. I love walking by the river.",
+      "pt": "Mark: Parece ótimo. Adoro caminhar perto do rio.",
+      "routine": "CP02",
+      "block": "CP02-B2",
+      "ctx": [
+       "lunch"
+      ],
+      "items": [
+       "cp.that-sounds-great",
+       "cp.love-ing"
+      ],
+      "au": "0ac05006",
+      "facts": [],
+      "provenance": "new",
+      "speaker": "Mark"
+     }
+    },
+    "items": {
+     "cp.i-dont-think-weve-met": {
+      "id": "cp.i-dont-think-weve-met",
+      "en": "I don't think we've met.",
+      "pt": "Acho que ainda não nos conhecemos.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Jeito educado de puxar conversa com alguém novo.",
+      "ex": [
+       {
+        "en": "Morning! I don't think we've met. I'm Priya, and I work in the design team.",
+        "pt": "Priya: Bom dia! Acho que ainda não nos conhecemos. Eu sou a Priya e trabalho na equipe de design.",
+        "src": "CP01-B1-S1",
+        "au": "362e96ad"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S1"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I don't think we've met",
+      "au": "81867e12",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.im-name": {
+      "id": "cp.im-name",
+      "en": "I'm (+ nome)",
+      "pt": "Eu sou… / Meu nome é…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Morning! I don't think we've met. I'm Priya, and I work in the design team.",
+        "pt": "Priya: Bom dia! Acho que ainda não nos conhecemos. Eu sou a Priya e trabalho na equipe de design.",
+        "src": "CP01-B1-S1",
+        "au": "362e96ad"
+       },
+       {
+        "en": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+        "pt": "Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui.",
+        "src": "CP01-B1-S2",
+        "au": "962b0809"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S1",
+       "CP01-B1-S2"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'm",
+      "au": "fe00a57c",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.work-in": {
+      "id": "cp.work-in",
+      "en": "work in (+ área / equipe)",
+      "pt": "trabalhar em (área, equipe)",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Morning! I don't think we've met. I'm Priya, and I work in the design team.",
+        "pt": "Priya: Bom dia! Acho que ainda não nos conhecemos. Eu sou a Priya e trabalho na equipe de design.",
+        "src": "CP01-B1-S1",
+        "au": "362e96ad"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S1"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "work in",
+      "au": "060fe6ff",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.nice-to-meet-you": {
+      "id": "cp.nice-to-meet-you",
+      "en": "Nice to meet you.",
+      "pt": "Prazer.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+        "pt": "Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui.",
+        "src": "CP01-B1-S2",
+        "au": "962b0809"
+       },
+       {
+        "en": "Hi! Nice to meet you all.",
+        "pt": "Leo: Oi! Prazer em conhecer vocês.",
+        "src": "CP01-B2-S2",
+        "au": "d51312d7"
+       },
+       {
+        "en": "Nice to meet you, Leo. Have you joined a club yet?",
+        "pt": "Anna: Prazer, Leo. Você já entrou em algum clube?",
+        "src": "CP01-B2-S3",
+        "au": "3508a590"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B1-S2",
+       "CP01-B2-S2",
+       "CP01-B2-S3"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "nice to meet you",
+      "au": "a3d72107",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.my-first-day": {
+      "id": "cp.my-first-day",
+      "en": "It's my first day.",
+      "pt": "É meu primeiro dia.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+        "pt": "Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui.",
+        "src": "CP01-B1-S2",
+        "au": "962b0809"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S2"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "my first day",
+      "au": "38945dea",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.actually": {
+      "id": "cp.actually",
+      "en": "actually",
+      "pt": "na verdade, aliás",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Não significa “atualmente” (= currently).",
+      "ex": [
+       {
+        "en": "Hi, Priya. Nice to meet you. I'm Daniel. It's my first day here, actually.",
+        "pt": "Daniel: Oi, Priya. Prazer. Eu sou o Daniel. Na verdade, é meu primeiro dia aqui.",
+        "src": "CP01-B1-S2",
+        "au": "962b0809"
+       },
+       {
+        "en": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+        "pt": "Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada.",
+        "src": "CP02-B1-S6",
+        "au": "8b8c7f06"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S2",
+       "CP02-B1-S6"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "aabd0868",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.where-are-you-from": {
+      "id": "cp.where-are-you-from",
+      "en": "Where are you from?",
+      "pt": "De onde você é?",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Oh, welcome! Where are you from, Daniel?",
+        "pt": "Priya: Ah, seja bem-vindo! De onde você é, Daniel?",
+        "src": "CP01-B1-S3",
+        "au": "9f2eacbf"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S3"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "where are you from",
+      "au": "280c6c10",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.im-from": {
+      "id": "cp.im-from",
+      "en": "I'm from…",
+      "pt": "Eu sou de…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'm from Leeds, but I've been living in Bristol for a couple of years.",
+        "pt": "Daniel: Sou de Leeds, mas moro em Bristol há uns dois anos.",
+        "src": "CP01-B1-S4",
+        "au": "c5dc57e7"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S4"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'm from",
+      "au": "3ff3465c",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.ive-been-living": {
+      "id": "cp.ive-been-living",
+      "en": "I've been living in… for…",
+      "pt": "Moro em… há…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 3,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Present Perfect Continuous para algo que começou no passado e continua: “for” + período.",
+      "ex": [
+       {
+        "en": "I'm from Leeds, but I've been living in Bristol for a couple of years.",
+        "pt": "Daniel: Sou de Leeds, mas moro em Bristol há uns dois anos.",
+        "src": "CP01-B1-S4",
+        "au": "c5dc57e7"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S4"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I've been living in",
+      "au": "4e9d1205",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.a-couple-of": {
+      "id": "cp.a-couple-of",
+      "en": "a couple of",
+      "pt": "uns dois, alguns",
+      "ptAlt": [],
+      "c": "time",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'm from Leeds, but I've been living in Bristol for a couple of years.",
+        "pt": "Daniel: Sou de Leeds, mas moro em Bristol há uns dois anos.",
+        "src": "CP01-B1-S4",
+        "au": "c5dc57e7"
+       },
+       {
+        "en": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+        "pt": "Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada.",
+        "src": "CP02-B1-S6",
+        "au": "8b8c7f06"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S4",
+       "CP02-B1-S6"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "b226efd9",
+      "provenance": "new",
+      "relatedTo": [
+       "it.a-couple-of-hours"
+      ]
+     },
+     "cp.what-do-you-do": {
+      "id": "cp.what-do-you-do",
+      "en": "What do you do?",
+      "pt": "O que você faz? (profissão)",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Lovely. And what do you do?",
+        "pt": "Priya: Que bom. E o que você faz?",
+        "src": "CP01-B1-S5",
+        "au": "9c635be3"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S5"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "what do you do",
+      "au": "b9f7a551",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.im-a-job": {
+      "id": "cp.im-a-job",
+      "en": "I'm a (+ profissão)",
+      "pt": "Sou (profissão)",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Em inglês, a profissão leva artigo: “I'm a developer”, não “I'm developer”.",
+      "ex": [
+       {
+        "en": "I'm a software developer. I'll be working on the new booking app.",
+        "pt": "Daniel: Sou desenvolvedor de software. Vou trabalhar no novo aplicativo de reservas.",
+        "src": "CP01-B1-S6",
+        "au": "b0ce936c"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S6"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'm a",
+      "au": "50c979ef",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.ill-be-working-on": {
+      "id": "cp.ill-be-working-on",
+      "en": "I'll be working on…",
+      "pt": "Vou trabalhar em…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 3,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'm a software developer. I'll be working on the new booking app.",
+        "pt": "Daniel: Sou desenvolvedor de software. Vou trabalhar no novo aplicativo de reservas.",
+        "src": "CP01-B1-S6",
+        "au": "b0ce936c"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S6"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'll be working on",
+      "au": "eb27805a",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.have-you-met": {
+      "id": "cp.have-you-met",
+      "en": "Have you met…?",
+      "pt": "Você já conhece…?",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Usado para apresentar uma pessoa a outra.",
+      "ex": [
+       {
+        "en": "Great! Oh, here's Ruth. Ruth, have you met Daniel? He's just joined the team.",
+        "pt": "Priya: Ótimo! Ah, aí está a Ruth. Ruth, você já conhece o Daniel? Ele acabou de entrar na equipe.",
+        "src": "CP01-B1-S7",
+        "au": "f8091223"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S7"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "have you met",
+      "au": "c9547e8b",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.hes-just-joined": {
+      "id": "cp.hes-just-joined",
+      "en": "He's / She's just (+ particípio)",
+      "pt": "Ele/Ela acabou de…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Present Perfect com “just” = algo muito recente.",
+      "ex": [
+       {
+        "en": "Great! Oh, here's Ruth. Ruth, have you met Daniel? He's just joined the team.",
+        "pt": "Priya: Ótimo! Ah, aí está a Ruth. Ruth, você já conhece o Daniel? Ele acabou de entrar na equipe.",
+        "src": "CP01-B1-S7",
+        "au": "f8091223"
+       },
+       {
+        "en": "Hi, everyone. This is my friend Leo. He's just moved here from Manchester.",
+        "pt": "Sam: Oi, pessoal. Este é o meu amigo Leo. Ele acabou de se mudar de Manchester para cá.",
+        "src": "CP01-B2-S1",
+        "au": "38603f7a"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B1-S7",
+       "CP01-B2-S1"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "he's just",
+      "au": "175621f9",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.pleased-to-meet-you": {
+      "id": "cp.pleased-to-meet-you",
+      "en": "Pleased to meet you.",
+      "pt": "Muito prazer.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hello, Daniel. Pleased to meet you. How are you finding it so far?",
+        "pt": "Ruth: Olá, Daniel. Muito prazer. Está gostando até agora?",
+        "src": "CP01-B1-S8",
+        "au": "16695b6d"
+       },
+       {
+        "en": "Pleased to meet you, too. So far, so good. Everyone's been really friendly.",
+        "pt": "Daniel: O prazer é meu. Até agora, tudo bem. Todo mundo tem sido muito simpático.",
+        "src": "CP01-B1-S9",
+        "au": "7a04ecdb"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S8",
+       "CP01-B1-S9"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "pleased to meet you",
+      "au": "2c1e1d78",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.how-are-you-finding-it": {
+      "id": "cp.how-are-you-finding-it",
+      "en": "How are you finding it?",
+      "pt": "Está gostando? / Como está achando?",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hello, Daniel. Pleased to meet you. How are you finding it so far?",
+        "pt": "Ruth: Olá, Daniel. Muito prazer. Está gostando até agora?",
+        "src": "CP01-B1-S8",
+        "au": "16695b6d"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S8"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "how are you finding it",
+      "au": "8d8e151b",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.so-far-so-good": {
+      "id": "cp.so-far-so-good",
+      "en": "So far, so good.",
+      "pt": "Até agora, tudo bem.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Pleased to meet you, too. So far, so good. Everyone's been really friendly.",
+        "pt": "Daniel: O prazer é meu. Até agora, tudo bem. Todo mundo tem sido muito simpático.",
+        "src": "CP01-B1-S9",
+        "au": "7a04ecdb"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S9"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "so far so good",
+      "au": "40240f6d",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.glad-to-hear-it": {
+      "id": "cp.glad-to-hear-it",
+      "en": "Glad to hear it.",
+      "pt": "Que bom ouvir isso.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Glad to hear it. If you need anything, just let me know.",
+        "pt": "Ruth: Que bom ouvir isso. Se precisar de alguma coisa, é só me avisar.",
+        "src": "CP01-B1-S10",
+        "au": "345e43a8"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S10"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "glad to hear it",
+      "au": "8d894ae9",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.let-me-know": {
+      "id": "cp.let-me-know",
+      "en": "let me know",
+      "pt": "me avise, me diga",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Glad to hear it. If you need anything, just let me know.",
+        "pt": "Ruth: Que bom ouvir isso. Se precisar de alguma coisa, é só me avisar.",
+        "src": "CP01-B1-S10",
+        "au": "345e43a8"
+       },
+       {
+        "en": "Me too. Shall we order now? Just let me know what you want.",
+        "pt": "Beth: Eu também. Vamos pedir agora? É só me dizer o que você quer.",
+        "src": "CP02-B1-S12",
+        "au": "f9854535"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S10",
+       "CP02-B1-S12"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "4b77ab07",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.thanks-very-much": {
+      "id": "cp.thanks-very-much",
+      "en": "Thanks very much.",
+      "pt": "Muito obrigado(a).",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Thanks very much. I really appreciate it.",
+        "pt": "Daniel: Muito obrigado. Agradeço mesmo.",
+        "src": "CP01-B1-S11",
+        "au": "990d0934"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S11"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "thanks very much",
+      "au": "671f7b5d",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.i-really-appreciate-it": {
+      "id": "cp.i-really-appreciate-it",
+      "en": "I really appreciate it.",
+      "pt": "Agradeço mesmo.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Thanks very much. I really appreciate it.",
+        "pt": "Daniel: Muito obrigado. Agradeço mesmo.",
+        "src": "CP01-B1-S11",
+        "au": "990d0934"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S11"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "appreciate it",
+      "au": "ab09505e",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.shall-we": {
+      "id": "cp.shall-we",
+      "en": "Shall we…?",
+      "pt": "Vamos…? (proposta)",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Muito usado no inglês britânico para propor algo.",
+      "ex": [
+       {
+        "en": "Shall we grab a coffee later? I can introduce you to the rest of the team.",
+        "pt": "Priya: Vamos tomar um café mais tarde? Posso te apresentar ao resto da equipe.",
+        "src": "CP01-B1-S12",
+        "au": "c48ccff7"
+       },
+       {
+        "en": "Me too. Shall we order now? Just let me know what you want.",
+        "pt": "Beth: Eu também. Vamos pedir agora? É só me dizer o que você quer.",
+        "src": "CP02-B1-S12",
+        "au": "f9854535"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S12",
+       "CP02-B1-S12"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "shall we",
+      "au": "bf15fbe0",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.grab-a-coffee": {
+      "id": "cp.grab-a-coffee",
+      "en": "grab a coffee",
+      "pt": "tomar um café rápido",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Shall we grab a coffee later? I can introduce you to the rest of the team.",
+        "pt": "Priya: Vamos tomar um café mais tarde? Posso te apresentar ao resto da equipe.",
+        "src": "CP01-B1-S12",
+        "au": "c48ccff7"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S12"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "3eace420",
+      "provenance": "new",
+      "relatedTo": [
+       "it.make-a-cup-of-coffee"
+      ]
+     },
+     "cp.introduce-you-to": {
+      "id": "cp.introduce-you-to",
+      "en": "introduce someone to",
+      "pt": "apresentar alguém a",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Shall we grab a coffee later? I can introduce you to the rest of the team.",
+        "pt": "Priya: Vamos tomar um café mais tarde? Posso te apresentar ao resto da equipe.",
+        "src": "CP01-B1-S12",
+        "au": "c48ccff7"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S12"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "introduce * to",
+      "au": "50e3e34b",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.that-sounds-great": {
+      "id": "cp.that-sounds-great",
+      "en": "That sounds great.",
+      "pt": "Parece ótimo.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That sounds great. See you later!",
+        "pt": "Daniel: Parece ótimo. Até mais tarde!",
+        "src": "CP01-B1-S13",
+        "au": "0a07366e"
+       },
+       {
+        "en": "That sounds great. I love walking by the river.",
+        "pt": "Mark: Parece ótimo. Adoro caminhar perto do rio.",
+        "src": "CP02-B2-S6",
+        "au": "0ac05006"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B1",
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP01-B1-S13",
+       "CP02-B2-S6"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "that sounds great",
+      "au": "eeab9df9",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.see-you-later": {
+      "id": "cp.see-you-later",
+      "en": "See you later!",
+      "pt": "Até mais tarde!",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That sounds great. See you later!",
+        "pt": "Daniel: Parece ótimo. Até mais tarde!",
+        "src": "CP01-B1-S13",
+        "au": "0a07366e"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B1"
+      ],
+      "sentences": [
+       "CP01-B1-S13"
+      ],
+      "ctx": [
+       "work"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "see you later",
+      "au": "06d5374c",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.this-is-my-friend": {
+      "id": "cp.this-is-my-friend",
+      "en": "This is my friend…",
+      "pt": "Este é o meu amigo / Esta é a minha amiga…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Para apresentar alguém, “This is…” (não “He is…”).",
+      "ex": [
+       {
+        "en": "Hi, everyone. This is my friend Leo. He's just moved here from Manchester.",
+        "pt": "Sam: Oi, pessoal. Este é o meu amigo Leo. Ele acabou de se mudar de Manchester para cá.",
+        "src": "CP01-B2-S1",
+        "au": "38603f7a"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S1"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "this is my friend",
+      "au": "9db85e51",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.have-you-yet": {
+      "id": "cp.have-you-yet",
+      "en": "Have you… yet?",
+      "pt": "Você já…? (até agora)",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Nice to meet you, Leo. Have you joined a club yet?",
+        "pt": "Anna: Prazer, Leo. Você já entrou em algum clube?",
+        "src": "CP01-B2-S3",
+        "au": "3508a590"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S3"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "have you * yet",
+      "au": "25c78c7f",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.not-yet": {
+      "id": "cp.not-yet",
+      "en": "Not yet.",
+      "pt": "Ainda não.",
+      "ptAlt": [],
+      "c": "time",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Not yet, but I'd like to. I usually run at the weekend.",
+        "pt": "Leo: Ainda não, mas eu gostaria. Costumo correr no fim de semana.",
+        "src": "CP01-B2-S4",
+        "au": "2daaf8b8"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "not yet",
+      "au": "d0421716",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.id-like-to": {
+      "id": "cp.id-like-to",
+      "en": "I'd like to…",
+      "pt": "Eu gostaria de…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Not yet, but I'd like to. I usually run at the weekend.",
+        "pt": "Leo: Ainda não, mas eu gostaria. Costumo correr no fim de semana.",
+        "src": "CP01-B2-S4",
+        "au": "2daaf8b8"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'd like to",
+      "au": "34e6a637",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.at-the-weekend": {
+      "id": "cp.at-the-weekend",
+      "en": "at the weekend",
+      "pt": "no fim de semana",
+      "ptAlt": [],
+      "c": "time",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Britânico; no americano, “on the weekend”.",
+      "ex": [
+       {
+        "en": "Not yet, but I'd like to. I usually run at the weekend.",
+        "pt": "Leo: Ainda não, mas eu gostaria. Costumo correr no fim de semana.",
+        "src": "CP01-B2-S4",
+        "au": "2daaf8b8"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "855b4cce",
+      "provenance": "new",
+      "relatedTo": [
+       "it.at-the-weekend"
+      ]
+     },
+     "cp.brilliant": {
+      "id": "cp.brilliant",
+      "en": "brilliant",
+      "pt": "ótimo, excelente",
+      "ptAlt": [],
+      "c": "word",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Uso britânico informal para “muito bom”.",
+      "ex": [
+       {
+        "en": "Brilliant. Our running club meets every Saturday morning, so you should come along.",
+        "pt": "Anna: Ótimo. Nosso clube de corrida se encontra todo sábado de manhã, então você devia vir junto.",
+        "src": "CP01-B2-S5",
+        "au": "2340d29b"
+       },
+       {
+        "en": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+        "pt": "Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada.",
+        "src": "CP02-B1-S6",
+        "au": "8b8c7f06"
+       }
+      ],
+      "routines": [
+       "CP01",
+       "CP02"
+      ],
+      "blocks": [
+       "CP01-B2",
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP01-B2-S5",
+       "CP02-B1-S6"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "7ad24cd8",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.come-along": {
+      "id": "cp.come-along",
+      "en": "come along",
+      "pt": "vir junto",
+      "ptAlt": [],
+      "c": "phrasal",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Brilliant. Our running club meets every Saturday morning, so you should come along.",
+        "pt": "Anna: Ótimo. Nosso clube de corrida se encontra todo sábado de manhã, então você devia vir junto.",
+        "src": "CP01-B2-S5",
+        "au": "2340d29b"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S5"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "21b2c620",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.look-forward-to": {
+      "id": "cp.look-forward-to",
+      "en": "be looking forward to",
+      "pt": "estar ansioso(a) por (algo bom)",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Thanks, I will. I'm really looking forward to it.",
+        "pt": "Leo: Obrigado, vou sim. Estou bem animado com isso.",
+        "src": "CP01-B2-S6",
+        "au": "14c26ed8"
+       }
+      ],
+      "routines": [
+       "CP01"
+      ],
+      "blocks": [
+       "CP01-B2"
+      ],
+      "sentences": [
+       "CP01-B2-S6"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "looking forward to",
+      "au": "04c84d1d",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.what-do-you-fancy": {
+      "id": "cp.what-do-you-fancy",
+      "en": "(Do you) fancy (+ -ing / algo)?",
+      "pt": "Está a fim de…?",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Muito britânico: “Do you fancy a coffee?” = Quer um café?",
+      "ex": [
+       {
+        "en": "What do you fancy doing tonight? There's a new comedy on at the cinema.",
+        "pt": "Omar: O que você está a fim de fazer hoje à noite? Está passando uma comédia nova no cinema.",
+        "src": "CP02-B1-S1",
+        "au": "36a55d92"
+       },
+       {
+        "en": "Exactly. Anyway, do you fancy a walk by the river after this?",
+        "pt": "Zoe: Exatamente. Enfim, você está a fim de uma caminhada perto do rio depois daqui?",
+        "src": "CP02-B2-S5",
+        "au": "2b5245b5"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1",
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B1-S1",
+       "CP02-B2-S5"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "fancy",
+      "au": "82bdc7c4",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.on-at-the-cinema": {
+      "id": "cp.on-at-the-cinema",
+      "en": "be on at the cinema",
+      "pt": "estar passando no cinema",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "What do you fancy doing tonight? There's a new comedy on at the cinema.",
+        "pt": "Omar: O que você está a fim de fazer hoje à noite? Está passando uma comédia nova no cinema.",
+        "src": "CP02-B1-S1",
+        "au": "36a55d92"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S1"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "on at the cinema",
+      "au": "8e7af5f0",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.not-really-into": {
+      "id": "cp.not-really-into",
+      "en": "I'm not really into…",
+      "pt": "Não curto muito…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hmm, I'm not really into comedies. I prefer something more exciting.",
+        "pt": "Beth: Hum, não curto muito comédias. Prefiro algo mais emocionante.",
+        "src": "CP02-B1-S2",
+        "au": "e3db2fb0"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S2"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "not really into",
+      "au": "daacc90e",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.prefer": {
+      "id": "cp.prefer",
+      "en": "prefer",
+      "pt": "preferir",
+      "ptAlt": [],
+      "c": "verb",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Hmm, I'm not really into comedies. I prefer something more exciting.",
+        "pt": "Beth: Hum, não curto muito comédias. Prefiro algo mais emocionante.",
+        "src": "CP02-B1-S2",
+        "au": "e3db2fb0"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S2"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "0a3bda77",
+      "provenance": "new",
+      "relatedTo": [
+       "it.i-prefer-to"
+      ]
+     },
+     "cp.my-favourite": {
+      "id": "cp.my-favourite",
+      "en": "my favourite",
+      "pt": "meu/minha favorito(a)",
+      "ptAlt": [],
+      "c": "word",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [
+       "my favorite"
+      ],
+      "notes": [],
+      "ipa": null,
+      "tip": "Britânico “favourite”; americano “favorite”.",
+      "ex": [
+       {
+        "en": "Really? Comedies are my favourite. What kind of films do you like, then?",
+        "pt": "Omar: Sério? Comédias são as minhas favoritas. Então, de que tipo de filme você gosta?",
+        "src": "CP02-B1-S3",
+        "au": "44188905"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S3"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "my favourite",
+      "au": "b1995b50",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.what-kind-of": {
+      "id": "cp.what-kind-of",
+      "en": "What kind of… do you like?",
+      "pt": "De que tipo de… você gosta?",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Really? Comedies are my favourite. What kind of films do you like, then?",
+        "pt": "Omar: Sério? Comédias são as minhas favoritas. Então, de que tipo de filme você gosta?",
+        "src": "CP02-B1-S3",
+        "au": "44188905"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S3"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "what kind of",
+      "au": "6e6f01a2",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.big-fan": {
+      "id": "cp.big-fan",
+      "en": "be a huge / big fan of",
+      "pt": "ser muito fã de",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'm a huge fan of thrillers, but I can't stand films with a predictable ending.",
+        "pt": "Beth: Sou muito fã de suspense, mas não suporto filmes com final previsível.",
+        "src": "CP02-B1-S4",
+        "au": "b6b9eec4"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "fan of",
+      "au": "9b999585",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.cant-stand": {
+      "id": "cp.cant-stand",
+      "en": "can't stand",
+      "pt": "não suportar",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'm a huge fan of thrillers, but I can't stand films with a predictable ending.",
+        "pt": "Beth: Sou muito fã de suspense, mas não suporto filmes com final previsível.",
+        "src": "CP02-B1-S4",
+        "au": "b6b9eec4"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "can't stand",
+      "au": "0c699036",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.fair-enough": {
+      "id": "cp.fair-enough",
+      "en": "Fair enough.",
+      "pt": "Justo. / Faz sentido.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Aceita o ponto de vista do outro, mesmo sem concordar totalmente.",
+      "ex": [
+       {
+        "en": "Fair enough. So what do you think of the new spy film?",
+        "pt": "Omar: Justo. Então, o que você acha do novo filme de espionagem?",
+        "src": "CP02-B1-S5",
+        "au": "fa30c973"
+       },
+       {
+        "en": "Fair enough. I suppose it's a matter of taste.",
+        "pt": "Mark: Justo. Acho que é questão de gosto.",
+        "src": "CP02-B2-S4",
+        "au": "681ffe89"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1",
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B1-S5",
+       "CP02-B2-S4"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "fair enough",
+      "au": "3d471761",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.what-do-you-think-of": {
+      "id": "cp.what-do-you-think-of",
+      "en": "What do you think of…?",
+      "pt": "O que você acha de…?",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Fair enough. So what do you think of the new spy film?",
+        "pt": "Omar: Justo. Então, o que você acha do novo filme de espionagem?",
+        "src": "CP02-B1-S5",
+        "au": "fa30c973"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S5"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "what do you think of",
+      "au": "39bcdc41",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.ive-heard": {
+      "id": "cp.ive-heard",
+      "en": "I've heard (that)…",
+      "pt": "Ouvi dizer que…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I've heard it's brilliant. Actually, a couple of friends saw it last week.",
+        "pt": "Beth: Ouvi dizer que é ótimo. Na verdade, uns amigos viram na semana passada.",
+        "src": "CP02-B1-S6",
+        "au": "8b8c7f06"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S6"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I've heard",
+      "au": "c7903f64",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.to-be-honest": {
+      "id": "cp.to-be-honest",
+      "en": "To be honest, …",
+      "pt": "Para ser sincero(a), …",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "To be honest, I'm not keen on spy films. They're often far too long.",
+        "pt": "Omar: Para ser sincero, não sou muito fã de filmes de espionagem. Muitas vezes são longos demais.",
+        "src": "CP02-B1-S7",
+        "au": "b89938d7"
+       },
+       {
+        "en": "I agree, but to be honest, I'm not so sure about the music. It's a bit loud.",
+        "pt": "Mark: Concordo, mas, para ser sincero, não tenho tanta certeza sobre a música. Está um pouco alta.",
+        "src": "CP02-B2-S2",
+        "au": "f46f4288"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1",
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B1-S7",
+       "CP02-B2-S2"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "to be honest",
+      "au": "cf36176c",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.not-keen-on": {
+      "id": "cp.not-keen-on",
+      "en": "I'm not keen on…",
+      "pt": "Não sou muito fã de…",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Forma britânica e educada de dizer que não gosta.",
+      "ex": [
+       {
+        "en": "To be honest, I'm not keen on spy films. They're often far too long.",
+        "pt": "Omar: Para ser sincero, não sou muito fã de filmes de espionagem. Muitas vezes são longos demais.",
+        "src": "CP02-B1-S7",
+        "au": "b89938d7"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S7"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "not keen on",
+      "au": "ae81697d",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.thats-true": {
+      "id": "cp.thats-true",
+      "en": "That's true.",
+      "pt": "É verdade.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That's true. Personally, I don't mind long films if the story's good.",
+        "pt": "Beth: É verdade. Pessoalmente, não me importo com filmes longos se a história for boa.",
+        "src": "CP02-B1-S8",
+        "au": "c706798d"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S8"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "that's true",
+      "au": "1b5207f0",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.personally": {
+      "id": "cp.personally",
+      "en": "Personally, …",
+      "pt": "Pessoalmente, …",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That's true. Personally, I don't mind long films if the story's good.",
+        "pt": "Beth: É verdade. Pessoalmente, não me importo com filmes longos se a história for boa.",
+        "src": "CP02-B1-S8",
+        "au": "c706798d"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S8"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "personally",
+      "au": "d5f2b436",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.dont-mind": {
+      "id": "cp.dont-mind",
+      "en": "I don't mind…",
+      "pt": "Não me importo com… / Para mim tanto faz",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That's true. Personally, I don't mind long films if the story's good.",
+        "pt": "Beth: É verdade. Pessoalmente, não me importo com filmes longos se a história for boa.",
+        "src": "CP02-B1-S8",
+        "au": "c706798d"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S8"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "don't mind",
+      "au": "e40fe0f2",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.how-about": {
+      "id": "cp.how-about",
+      "en": "How about…?",
+      "pt": "Que tal…?",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "How about a compromise? We watch your thriller, and I choose the takeaway.",
+        "pt": "Omar: Que tal um meio-termo? A gente assiste ao seu suspense e eu escolho a comida para viagem.",
+        "src": "CP02-B1-S9",
+        "au": "97edc99c"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S9"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "how about",
+      "au": "fdfa37e1",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.compromise": {
+      "id": "cp.compromise",
+      "en": "compromise",
+      "pt": "meio-termo, acordo",
+      "ptAlt": [],
+      "c": "word",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "How about a compromise? We watch your thriller, and I choose the takeaway.",
+        "pt": "Omar: Que tal um meio-termo? A gente assiste ao seu suspense e eu escolho a comida para viagem.",
+        "src": "CP02-B1-S9",
+        "au": "97edc99c"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S9"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "bac460cf",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.takeaway": {
+      "id": "cp.takeaway",
+      "en": "takeaway",
+      "pt": "comida para viagem / delivery",
+      "ptAlt": [],
+      "c": "word",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Britânico; no americano, “takeout”.",
+      "ex": [
+       {
+        "en": "How about a compromise? We watch your thriller, and I choose the takeaway.",
+        "pt": "Omar: Que tal um meio-termo? A gente assiste ao seu suspense e eu escolho a comida para viagem.",
+        "src": "CP02-B1-S9",
+        "au": "97edc99c"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S9"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "5f74c494",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.deal": {
+      "id": "cp.deal",
+      "en": "Deal!",
+      "pt": "Fechado!",
+      "ptAlt": [],
+      "c": "word",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Deal! What do you feel like eating?",
+        "pt": "Beth: Fechado! O que você está com vontade de comer?",
+        "src": "CP02-B1-S10",
+        "au": "67f1416e"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S10"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "deal",
+      "au": "38b2378a",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.feel-like": {
+      "id": "cp.feel-like",
+      "en": "feel like (+ -ing)",
+      "pt": "estar com vontade de",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Deal! What do you feel like eating?",
+        "pt": "Beth: Fechado! O que você está com vontade de comer?",
+        "src": "CP02-B1-S10",
+        "au": "67f1416e"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S10"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "feel like",
+      "au": "bffbc5d4",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.id-love": {
+      "id": "cp.id-love",
+      "en": "I'd love (a / to…)",
+      "pt": "Eu adoraria…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'd love a curry. I'm absolutely starving.",
+        "pt": "Omar: Eu adoraria um curry. Estou morrendo de fome.",
+        "src": "CP02-B1-S11",
+        "au": "cd7f8111"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S11"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I'd love",
+      "au": "21186311",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.absolutely-starving": {
+      "id": "cp.absolutely-starving",
+      "en": "I'm absolutely starving.",
+      "pt": "Estou morrendo de fome.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I'd love a curry. I'm absolutely starving.",
+        "pt": "Omar: Eu adoraria um curry. Estou morrendo de fome.",
+        "src": "CP02-B1-S11",
+        "au": "cd7f8111"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B1"
+      ],
+      "sentences": [
+       "CP02-B1-S11"
+      ],
+      "ctx": [
+       "evening"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "absolutely starving",
+      "au": "c01c9b3a",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.i-really-like": {
+      "id": "cp.i-really-like",
+      "en": "I really like…",
+      "pt": "Gosto muito de…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I really like this café. The coffee's excellent.",
+        "pt": "Zoe: Gosto muito deste café. O café daqui é excelente.",
+        "src": "CP02-B2-S1",
+        "au": "04744535"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S1"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I really like",
+      "au": "e9afb64e",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.i-agree": {
+      "id": "cp.i-agree",
+      "en": "I agree.",
+      "pt": "Concordo.",
+      "ptAlt": [],
+      "c": "sentence",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "I agree, but to be honest, I'm not so sure about the music. It's a bit loud.",
+        "pt": "Mark: Concordo, mas, para ser sincero, não tenho tanta certeza sobre a música. Está um pouco alta.",
+        "src": "CP02-B2-S2",
+        "au": "f46f4288"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S2"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I agree",
+      "au": "7cd6522e",
+      "provenance": "new",
+      "relatedTo": [
+       "it.agree-with"
+      ]
+     },
+     "cp.not-so-sure-about": {
+      "id": "cp.not-so-sure-about",
+      "en": "I'm not so sure about…",
+      "pt": "Não tenho tanta certeza sobre…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "Discordância suave e educada.",
+      "ex": [
+       {
+        "en": "I agree, but to be honest, I'm not so sure about the music. It's a bit loud.",
+        "pt": "Mark: Concordo, mas, para ser sincero, não tenho tanta certeza sobre a música. Está um pouco alta.",
+        "src": "CP02-B2-S2",
+        "au": "f46f4288"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S2"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "not so sure about",
+      "au": "5152e97b",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.quite-like": {
+      "id": "cp.quite-like",
+      "en": "I quite like…",
+      "pt": "Até que gosto de…",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": "No britânico, “quite like” = gosto razoavelmente (não muito).",
+      "ex": [
+       {
+        "en": "Really? I quite like it. I find it relaxing.",
+        "pt": "Zoe: Sério? Eu até gosto. Acho relaxante.",
+        "src": "CP02-B2-S3",
+        "au": "192bca48"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S3"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "quite like",
+      "au": "ae2bf625",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.i-find-it": {
+      "id": "cp.i-find-it",
+      "en": "I find it (+ adjetivo)",
+      "pt": "Eu acho (isso)…",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Really? I quite like it. I find it relaxing.",
+        "pt": "Zoe: Sério? Eu até gosto. Acho relaxante.",
+        "src": "CP02-B2-S3",
+        "au": "192bca48"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S3"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "I find it",
+      "au": "99b58de8",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.a-matter-of-taste": {
+      "id": "cp.a-matter-of-taste",
+      "en": "a matter of taste",
+      "pt": "questão de gosto",
+      "ptAlt": [],
+      "c": "collocation",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 2,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "Fair enough. I suppose it's a matter of taste.",
+        "pt": "Mark: Justo. Acho que é questão de gosto.",
+        "src": "CP02-B2-S4",
+        "au": "681ffe89"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S4"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": null,
+      "au": "a0509849",
+      "provenance": "new",
+      "relatedTo": []
+     },
+     "cp.love-ing": {
+      "id": "cp.love-ing",
+      "en": "love (+ -ing)",
+      "pt": "adorar (fazer algo)",
+      "ptAlt": [],
+      "c": "connector",
+      "tags": [
+       "journey"
+      ],
+      "lvl": 1,
+      "v": [],
+      "notes": [],
+      "ipa": null,
+      "tip": null,
+      "ex": [
+       {
+        "en": "That sounds great. I love walking by the river.",
+        "pt": "Mark: Parece ótimo. Adoro caminhar perto do rio.",
+        "src": "CP02-B2-S6",
+        "au": "0ac05006"
+       }
+      ],
+      "routines": [
+       "CP02"
+      ],
+      "blocks": [
+       "CP02-B2"
+      ],
+      "sentences": [
+       "CP02-B2-S6"
+      ],
+      "ctx": [
+       "lunch"
+      ],
+      "source": "new",
+      "srcRefs": [],
+      "match": "love walking",
+      "au": "d52792d1",
+      "provenance": "new",
+      "relatedTo": []
+     }
+    },
+    "questions": {
+     "CP.Q1": {
+      "id": "CP.Q1",
+      "q": "You meet someone new at work. Start the conversation and introduce yourself.",
+      "a": "Hi, I don't think we've met. I'm Sam, and I work in sales.",
+      "keywords": [
+       [
+        "I'm",
+        "my name"
+       ],
+       [
+        "met",
+        "meet"
+       ]
+      ],
+      "items": [
+       "cp.i-dont-think-weve-met",
+       "cp.im-name",
+       "cp.work-in"
+      ],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "97cea18a",
+      "aau": "139cc099",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q2": {
+      "id": "CP.Q2",
+      "q": "Introduce your friend Leo to a colleague.",
+      "a": "Have you met my friend Leo? He's just moved here.",
+      "keywords": [
+       [
+        "met",
+        "this is"
+       ],
+       [
+        "friend",
+        "Leo"
+       ]
+      ],
+      "items": [
+       "cp.have-you-met",
+       "cp.hes-just-joined"
+      ],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "b27cbf02",
+      "aau": "8b8ecd87",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q3": {
+      "id": "CP.Q3",
+      "q": "Ask a new colleague two questions about themselves.",
+      "a": "Where are you from? And what do you do?",
+      "keywords": [
+       [
+        "where"
+       ],
+       [
+        "what do you do",
+        "job",
+        "work"
+       ]
+      ],
+      "items": [
+       "cp.where-are-you-from",
+       "cp.what-do-you-do"
+      ],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "a9a0c65c",
+      "aau": "fcb0d9ef",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q4": {
+      "id": "CP.Q4",
+      "q": "Why does Priya want to have a coffee with Daniel later?",
+      "a": "Because she wants to introduce him to the rest of the team.",
+      "keywords": [
+       [
+        "introduce"
+       ],
+       [
+        "team"
+       ]
+      ],
+      "items": [
+       "cp.introduce-you-to"
+      ],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "5f2012e5",
+      "aau": "a324f26f",
+      "kind": "comp",
+      "provenance": "new"
+     },
+     "CP.Q5": {
+      "id": "CP.Q5",
+      "q": "It's your first day in a new class or job. Introduce yourself and ask two questions.",
+      "a": "",
+      "keywords": [],
+      "items": [],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "97a0c7e8",
+      "aau": null,
+      "kind": "transfer",
+      "provenance": "new",
+      "openPersonal": true,
+      "hint": "Use ‘I don't think we've met’, ‘I'm…’, ‘I work in…’ ou ‘I'm studying…’, ‘Where are you from?’ e ‘What do you do?’."
+     },
+     "CP.Q6": {
+      "id": "CP.Q6",
+      "q": "Introduce a friend or a family member to someone you know.",
+      "a": "",
+      "keywords": [],
+      "items": [],
+      "routine": "CP01",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "bbc0e14a",
+      "aau": null,
+      "kind": "transfer",
+      "provenance": "new",
+      "openPersonal": true,
+      "hint": "Use ‘This is…’ ou ‘Have you met…?’, ‘He's/She's just…’ e ‘He/She works in…’."
+     },
+     "CP.Q7": {
+      "id": "CP.Q7",
+      "q": "Ask a friend what they want to do tonight.",
+      "a": "What do you fancy doing tonight?",
+      "keywords": [
+       [
+        "fancy",
+        "feel like",
+        "want"
+       ],
+       [
+        "tonight"
+       ]
+      ],
+      "items": [
+       "cp.what-do-you-fancy"
+      ],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "93e520e2",
+      "aau": "7582c0e5",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q8": {
+      "id": "CP.Q8",
+      "q": "Say politely that you don't really like horror films.",
+      "a": "To be honest, I'm not really into horror films.",
+      "keywords": [
+       [
+        "honest"
+       ],
+       [
+        "not really into",
+        "not keen",
+        "don't really like"
+       ]
+      ],
+      "items": [
+       "cp.to-be-honest",
+       "cp.not-really-into"
+      ],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "16051adb",
+      "aau": "8ee10f2a",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q9": {
+      "id": "CP.Q9",
+      "q": "A friend suggests a curry. Say yes with enthusiasm.",
+      "a": "I'd love a curry. I'm absolutely starving!",
+      "keywords": [
+       [
+        "love",
+        "great idea",
+        "sounds great"
+       ]
+      ],
+      "items": [
+       "cp.id-love",
+       "cp.absolutely-starving"
+      ],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "1f522ff4",
+      "aau": "1d548add",
+      "kind": "conv",
+      "provenance": "new"
+     },
+     "CP.Q10": {
+      "id": "CP.Q10",
+      "q": "What compromise does Omar suggest?",
+      "a": "They watch Beth's thriller, and he chooses the takeaway.",
+      "keywords": [
+       [
+        "thriller"
+       ],
+       [
+        "takeaway",
+        "food"
+       ]
+      ],
+      "items": [
+       "cp.compromise",
+       "cp.takeaway"
+      ],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "03a38fe2",
+      "aau": "13364c67",
+      "kind": "comp",
+      "provenance": "new"
+     },
+     "CP.Q11": {
+      "id": "CP.Q11",
+      "q": "You meet your new flatmate. Introduce yourself and say what kind of films you like.",
+      "a": "Hi, I don't think we've met. I'm Sam. I'm a huge fan of thrillers.",
+      "keywords": [
+       [
+        "I'm",
+        "my name"
+       ],
+       [
+        "fan",
+        "like",
+        "love",
+        "into"
+       ]
+      ],
+      "items": [
+       "cp.i-dont-think-weve-met",
+       "cp.im-name",
+       "cp.big-fan"
+      ],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "a52cd43e",
+      "aau": "741b5db1",
+      "kind": "review",
+      "provenance": "new",
+      "reviews": [
+       "CP01"
+      ]
+     },
+     "CP.Q12": {
+      "id": "CP.Q12",
+      "q": "Describe something you love and something you can't stand.",
+      "a": "",
+      "keywords": [],
+      "items": [],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "4e289df4",
+      "aau": null,
+      "kind": "transfer",
+      "provenance": "new",
+      "openPersonal": true,
+      "hint": "Use ‘I'm a huge fan of…’, ‘I quite like…’, ‘I'm not keen on…’ e ‘I can't stand…’."
+     },
+     "CP.Q13": {
+      "id": "CP.Q13",
+      "q": "Disagree politely with a friend about a film, a place or some food, and suggest a compromise.",
+      "a": "",
+      "keywords": [],
+      "items": [],
+      "routine": "CP02",
+      "source": "new",
+      "altAnswers": [],
+      "altAu": [],
+      "facts": [],
+      "au": "cebe0f4b",
+      "aau": null,
+      "kind": "transfer",
+      "provenance": "new",
+      "openPersonal": true,
+      "hint": "Use ‘I'm not so sure about…’, ‘Fair enough’, ‘Personally, …’ e ‘How about…?’."
+     }
+    },
+    "listening": {
+     "CP.L1": {
+      "id": "CP.L1",
+      "routine": "CP01",
+      "sentences": [
+       "CP01-B1-S1",
+       "CP01-B1-S2",
+       "CP01-B1-S3",
+       "CP01-B1-S4",
+       "CP01-B1-S5",
+       "CP01-B1-S6",
+       "CP01-B1-S7",
+       "CP01-B1-S8",
+       "CP01-B1-S9",
+       "CP01-B1-S10",
+       "CP01-B1-S11",
+       "CP01-B1-S12",
+       "CP01-B1-S13"
+      ],
+      "q": "What is happening in this conversation?",
+      "options": [
+       "A new employee is meeting his colleagues.",
+       "Two old friends are talking at a party.",
+       "Someone is having a job interview.",
+       "Priya is leaving the company."
+      ],
+      "answer": 0,
+      "explain": "É o primeiro dia do Daniel: Priya puxa conversa, apresenta a Ruth e convida para um café.",
+      "items": [
+       "cp.my-first-day",
+       "cp.have-you-met"
+      ],
+      "provenance": "new",
+      "au": "05aa2dec"
+     },
+     "CP.L2": {
+      "id": "CP.L2",
+      "routine": "CP01",
+      "sentences": [
+       "CP01-B1-S4"
+      ],
+      "q": "Where does Daniel live now?",
+      "options": [
+       "In Bristol.",
+       "In Leeds.",
+       "In Manchester.",
+       "In London."
+      ],
+      "answer": 0,
+      "explain": "Ele é de Leeds, mas mora em Bristol há uns dois anos (“I've been living in Bristol”).",
+      "items": [
+       "cp.im-from",
+       "cp.ive-been-living"
+      ],
+      "provenance": "new",
+      "au": "fbfa98fb"
+     },
+     "CP.L3": {
+      "id": "CP.L3",
+      "routine": "CP01",
+      "sentences": [
+       "CP01-B1-S6"
+      ],
+      "q": "What is Daniel's job?",
+      "options": [
+       "He's a software developer.",
+       "He's a designer.",
+       "He's a teacher.",
+       "He's a manager."
+      ],
+      "answer": 0,
+      "explain": "“I'm a software developer.” Quem trabalha com design é a Priya.",
+      "items": [
+       "cp.im-a-job"
+      ],
+      "provenance": "new",
+      "au": "529eda22"
+     },
+     "CP.L4": {
+      "id": "CP.L4",
+      "routine": "CP01",
+      "sentences": [
+       "CP01-B1-S12",
+       "CP01-B1-S13"
+      ],
+      "q": "What does Priya suggest?",
+      "options": [
+       "Having a coffee later and meeting the team.",
+       "Having lunch together tomorrow.",
+       "Going home early.",
+       "Calling Ruth after work."
+      ],
+      "answer": 0,
+      "explain": "“Shall we grab a coffee later? I can introduce you to the rest of the team.”",
+      "items": [
+       "cp.shall-we",
+       "cp.introduce-you-to"
+      ],
+      "provenance": "new",
+      "au": "b5f774d6"
+     },
+     "CP.L5": {
+      "id": "CP.L5",
+      "routine": "CP02",
+      "sentences": [
+       "CP02-B1-S1",
+       "CP02-B1-S2",
+       "CP02-B1-S3",
+       "CP02-B1-S4",
+       "CP02-B1-S5",
+       "CP02-B1-S6",
+       "CP02-B1-S7",
+       "CP02-B1-S8",
+       "CP02-B1-S9",
+       "CP02-B1-S10",
+       "CP02-B1-S11",
+       "CP02-B1-S12"
+      ],
+      "q": "What are Omar and Beth deciding?",
+      "options": [
+       "What to watch and what to eat tonight.",
+       "Where to go on holiday.",
+       "Which flat to rent.",
+       "What to cook for a party."
+      ],
+      "answer": 0,
+      "explain": "Eles escolhem o filme (um suspense) e a comida (um curry).",
+      "items": [
+       "cp.what-do-you-fancy"
+      ],
+      "provenance": "new",
+      "au": "7119ca82"
+     },
+     "CP.L6": {
+      "id": "CP.L6",
+      "routine": "CP02",
+      "sentences": [
+       "CP02-B1-S2"
+      ],
+      "q": "Does Beth like comedies?",
+      "options": [
+       "Not really. She prefers something more exciting.",
+       "Yes, they're her favourite.",
+       "She has never seen one.",
+       "Only at the weekend."
+      ],
+      "answer": 0,
+      "explain": "“I'm not really into comedies. I prefer something more exciting.”",
+      "items": [
+       "cp.not-really-into",
+       "cp.prefer"
+      ],
+      "provenance": "new",
+      "au": "865e9c14"
+     },
+     "CP.L7": {
+      "id": "CP.L7",
+      "routine": "CP02",
+      "sentences": [
+       "CP02-B1-S4"
+      ],
+      "q": "What kind of films is Beth a huge fan of?",
+      "options": [
+       "Thrillers.",
+       "Comedies.",
+       "Spy films.",
+       "Romantic films."
+      ],
+      "answer": 0,
+      "explain": "“I'm a huge fan of thrillers.”",
+      "items": [
+       "cp.big-fan"
+      ],
+      "provenance": "new",
+      "au": "ab951d63"
+     },
+     "CP.L8": {
+      "id": "CP.L8",
+      "routine": "CP02",
+      "sentences": [
+       "CP02-B1-S9",
+       "CP02-B1-S10",
+       "CP02-B1-S11"
+      ],
+      "q": "What do they agree on in the end?",
+      "options": [
+       "A thriller and a curry.",
+       "A comedy and a pizza.",
+       "The spy film and a curry.",
+       "No film, just a takeaway."
+      ],
+      "answer": 0,
+      "explain": "O meio-termo: o suspense da Beth, e o Omar escolhe a comida — um curry.",
+      "items": [
+       "cp.compromise",
+       "cp.takeaway"
+      ],
+      "provenance": "new",
+      "au": "fb9842ed"
+     }
+    },
+    "reading": {
+     "CP.R1": {
+      "id": "CP.R1",
+      "routine": "CP01",
+      "sentence": "CP01-B1-S1",
+      "block": "CP01-B1",
+      "q": "When Priya says “I don't think we've met”, she is…",
+      "options": [
+       "starting a conversation with someone new.",
+       "saying that she knows Daniel.",
+       "apologising for being late.",
+       "asking Daniel to leave."
+      ],
+      "answer": 0,
+      "explain": "É um jeito educado de abordar alguém que você ainda não conhece.",
+      "items": [
+       "cp.i-dont-think-weve-met"
+      ],
+      "provenance": "new"
+     },
+     "CP.R2": {
+      "id": "CP.R2",
+      "routine": "CP01",
+      "sentence": "CP01-B1-S7",
+      "block": "CP01-B1",
+      "q": "“He's just joined the team” means Daniel…",
+      "options": [
+       "became part of the team very recently.",
+       "is leaving the team.",
+       "joined the team years ago.",
+       "only works with the team on Fridays."
+      ],
+      "answer": 0,
+      "explain": "Present Perfect com “just” = acabou de acontecer.",
+      "items": [
+       "cp.hes-just-joined"
+      ],
+      "provenance": "new"
+     },
+     "CP.R3": {
+      "id": "CP.R3",
+      "routine": "CP01",
+      "sentence": "CP01-B1-S9",
+      "block": "CP01-B1",
+      "q": "What does Daniel mean by “So far, so good”?",
+      "options": [
+       "Things are going well until now.",
+       "It's too early to say anything.",
+       "Everything is going badly.",
+       "He wants to go home."
+      ],
+      "answer": 0,
+      "explain": "“So far” = até agora; a resposta é positiva.",
+      "items": [
+       "cp.so-far-so-good"
+      ],
+      "provenance": "new"
+     },
+     "CP.R4": {
+      "id": "CP.R4",
+      "routine": "CP01",
+      "sentence": "CP01-B1-S10",
+      "block": "CP01-B1",
+      "q": "Why does Ruth say “just let me know”?",
+      "options": [
+       "To offer help if Daniel needs anything.",
+       "To ask for Daniel's phone number.",
+       "To end the conversation quickly.",
+       "To complain about the office."
+      ],
+      "answer": 0,
+      "explain": "“If you need anything, just let me know” é uma oferta de ajuda.",
+      "items": [
+       "cp.let-me-know"
+      ],
+      "provenance": "new"
+     },
+     "CP.R5": {
+      "id": "CP.R5",
+      "routine": "CP02",
+      "sentence": "CP02-B1-S7",
+      "block": "CP02-B1",
+      "q": "How does Omar feel about spy films?",
+      "options": [
+       "He isn't keen on them.",
+       "He loves them.",
+       "He has never seen one.",
+       "He prefers them to comedies."
+      ],
+      "answer": 0,
+      "explain": "“I'm not keen on spy films” = não gosta muito, dito de forma educada.",
+      "items": [
+       "cp.not-keen-on"
+      ],
+      "provenance": "new"
+     },
+     "CP.R6": {
+      "id": "CP.R6",
+      "routine": "CP02",
+      "sentence": "CP02-B1-S5",
+      "block": "CP02-B1",
+      "q": "When Omar says “Fair enough”, he…",
+      "options": [
+       "accepts Beth's point of view.",
+       "strongly disagrees with Beth.",
+       "doesn't understand Beth.",
+       "is angry with Beth."
+      ],
+      "answer": 0,
+      "explain": "“Fair enough” aceita o argumento do outro, mesmo sem concordar totalmente.",
+      "items": [
+       "cp.fair-enough"
+      ],
+      "provenance": "new"
+     },
+     "CP.R7": {
+      "id": "CP.R7",
+      "routine": "CP02",
+      "sentence": "CP02-B1-S9",
+      "block": "CP02-B1",
+      "q": "Why does Omar suggest a compromise?",
+      "options": [
+       "So that they both get something they want.",
+       "Because he wants to stay at home alone.",
+       "To save money on the cinema.",
+       "Because he is too tired to choose."
+      ],
+      "answer": 0,
+      "explain": "Cada um escolhe uma parte: Beth o filme, Omar a comida.",
+      "items": [
+       "cp.compromise",
+       "cp.how-about"
+      ],
+      "provenance": "new"
+     },
+     "CP.R8": {
+      "id": "CP.R8",
+      "routine": "CP02",
+      "sentence": "CP02-B1-S8",
+      "block": "CP02-B1",
+      "q": "What does Beth mean by “I don't mind long films”?",
+      "options": [
+       "Long films are fine for her.",
+       "She hates long films.",
+       "She never watches films.",
+       "She only watches short films."
+      ],
+      "answer": 0,
+      "explain": "“I don't mind…” = não me incomoda.",
+      "items": [
+       "cp.dont-mind"
+      ],
+      "provenance": "new"
+     }
+    }
+   }
+  }
+ ]
+}

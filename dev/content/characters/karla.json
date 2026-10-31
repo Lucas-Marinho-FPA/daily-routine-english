@@ -1,0 +1,4119 @@
+{
+ "_doc": "Fonte do pacote da personagem Karla. Duas camadas: (1) PERFIL e ROTINA-BASE — só fatos informados pelo usuário (rotina de 2026-10-26 e Character Bible — Karla v1.0); cada frase de K01–K03 aponta para os fatos que a sustentam; (2) EPISÓDIOS (kind: episode) — situações ilustrativas criadas para a prática, coerentes com o perfil (basis), que NÃO viram fatos biográficos. Personagens secundários de episódios (Sophie, Ana) são fictícios. Nunca inventar: idade dela, sobrenome, cidade, nome/profissão do marido, nomes dos filhos. Campos derivados são calculados por tools/build-characters.mjs.",
+ "id": "karla",
+ "name": "Karla",
+ "status": "preview",
+ "idPrefix": "K",
+ "profile": {
+  "occupation": {
+   "en": "personal trainer and Pilates instructor",
+   "pt": "personal trainer e instrutora de Pilates"
+  },
+  "workplace": {
+   "en": "a club",
+   "pt": "um clube"
+  },
+  "traits": [
+   "organizada",
+   "disciplinada",
+   "determinada",
+   "acolhedora",
+   "positiva",
+   "curiosa",
+   "pragmática",
+   "afetuosa",
+   "reflexiva",
+   "resiliente"
+  ],
+  "interests": [
+   "treinamento físico e condicionamento",
+   "Pilates",
+   "spinning",
+   "corrida",
+   "Hyrox",
+   "nutrição e recuperação",
+   "biomecânica, postura e movimento",
+   "leitura e ciência",
+   "café especial",
+   "organização da rotina",
+   "família"
+  ],
+  "summary": "Personal trainer e instrutora de Pilates num clube; estuda Nutrição e faz pós-graduação em Biomecânica do Movimento e Postura; casada, mãe de dois meninos (11 e 7 anos). Concilia trabalho, estudos, treinos e família.",
+  "notProvided": [
+   "idade",
+   "sobrenome",
+   "cidade",
+   "nome e profissão do marido",
+   "nomes dos filhos",
+   "nome do clube",
+   "meio de transporte"
+  ],
+  "studies": [
+   "Nutrição (graduação)",
+   "Pós-graduação em Biomecânica do Movimento e Postura"
+  ],
+  "family": "Casada; dois filhos, de 11 e 7 anos; o mais novo é muito apegado a ela.",
+  "motto": {
+   "en": "Taking care of myself helps me take care of the people I love.",
+   "pt": "Cuidar de mim me ajuda a cuidar das pessoas que eu amo."
+  },
+  "source": "Rotina informada pelo usuário (2026-10-26) e Character Bible — Karla v1.0 (fornecida pelo usuário, 2026-10-26)."
+ },
+ "visual": {
+  "_doc": "Seis estados, mesma convenção de nomes do Bora de Inglês (ASSETS/CHARACTERS/<NOME>/<ESTADO>.png): PNG quadrado com transparência; o app usa um marcador com a inicial enquanto o arquivo estiver pendente.",
+  "dir": "assets/characters/karla",
+  "ext": "png",
+  "states": {
+   "idle": {
+    "file": "IDLE",
+    "status": "pending"
+   },
+   "thinking": {
+    "file": "THINKING",
+    "status": "pending"
+   },
+   "correct": {
+    "file": "CORRECT",
+    "status": "pending"
+   },
+   "wrong": {
+    "file": "WRONG",
+    "status": "pending"
+   },
+   "celebrate": {
+    "file": "CELEBRATE",
+    "status": "pending"
+   },
+   "levelup": {
+    "file": "LEVELUP",
+    "status": "pending"
+   }
+  }
+ },
+ "facts": [
+  {
+   "id": "F01",
+   "kind": "base",
+   "pt": "Acorda por volta das 5h."
+  },
+  {
+   "id": "F02",
+   "kind": "base",
+   "pt": "Toma banho, se arruma e sai para trabalhar."
+  },
+  {
+   "id": "F03",
+   "kind": "base",
+   "pt": "Atende alunos de personal training das 7h às 11h."
+  },
+  {
+   "id": "F04",
+   "kind": "base",
+   "pt": "Vai almoçar por volta das 11h10."
+  },
+  {
+   "id": "F05",
+   "kind": "base",
+   "pt": "Faz o próprio treino das 12h30 às 13h30."
+  },
+  {
+   "id": "F06",
+   "kind": "base",
+   "pt": "Ministra aulas coletivas de Pilates das 14h às 16h30."
+  },
+  {
+   "id": "F07",
+   "kind": "base",
+   "pt": "Atende o último aluno de personal das 17h30 às 18h30."
+  },
+  {
+   "id": "F08",
+   "kind": "base",
+   "pt": "Chega em casa por volta das 19h10."
+  },
+  {
+   "id": "F09",
+   "kind": "base",
+   "pt": "Organiza o jantar da família e o lanche das crianças."
+  },
+  {
+   "id": "F10",
+   "kind": "base",
+   "pt": "Organiza o dia seguinte, toma banho e aguarda o marido."
+  },
+  {
+   "id": "F11",
+   "kind": "base",
+   "pt": "Janta, conversa com o marido e costuma se deitar por volta das 22h."
+  },
+  {
+   "id": "F12",
+   "kind": "profile",
+   "pt": "Trabalha em um clube como personal trainer e instrutora de Pilates."
+  },
+  {
+   "id": "V01",
+   "kind": "conditional",
+   "pt": "Terças e quintas: encerra as aulas por volta das 15h, treina às 16h e chega em casa por volta das 17h30."
+  },
+  {
+   "id": "V02",
+   "kind": "conditional",
+   "pt": "Quando um aluno cancela com antecedência, pode dormir até as 6h e sair mais tarde."
+  },
+  {
+   "id": "V03",
+   "kind": "conditional",
+   "pt": "Se um aluno faltar e houver oportunidade no clube, pode participar de uma aula de spinning."
+  },
+  {
+   "id": "V04",
+   "kind": "conditional",
+   "pt": "Quando não consegue treinar no horário do almoço, pode correr em outro horário."
+  },
+  {
+   "id": "F13",
+   "kind": "profile",
+   "pt": "Estuda Nutrição."
+  },
+  {
+   "id": "F14",
+   "kind": "profile",
+   "pt": "Faz pós-graduação em Biomecânica do Movimento e Postura."
+  },
+  {
+   "id": "F15",
+   "kind": "profile",
+   "pt": "É casada e tem dois filhos, de 11 e 7 anos; o mais novo é muito apegado a ela."
+  },
+  {
+   "id": "F16",
+   "kind": "profile",
+   "pt": "Gosta de treino de força, corrida, spinning, Pilates e Hyrox; tem metas próprias de condicionamento."
+  },
+  {
+   "id": "F17",
+   "kind": "profile",
+   "pt": "Gosta de café especial e de leitura (ciência, desenvolvimento pessoal, literatura)."
+  },
+  {
+   "id": "F18",
+   "kind": "profile",
+   "pt": "Frase-síntese: cuidar de si mesma a ajuda a cuidar das pessoas que ama."
+  }
+ ],
+ "themes": [
+  {
+   "n": 1,
+   "title": "Rotina completa de segunda-feira",
+   "status": "pending",
+   "covers": [],
+   "open": [
+    "A rotina-base (K01) vale para a segunda-feira? Há algo diferente às segundas?"
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Dia com expediente mais curto e treino às 16h",
+   "status": "draft",
+   "covers": [
+    "K02"
+   ],
+   "open": [
+    "Nas terças e quintas ela ainda atende o último aluno das 17h30?",
+    "Quais aulas terminam às 15h (Pilates, personal ou ambos)?",
+    "O que ela faz entre 17h30 e a hora de dormir nesses dias?"
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Dia com possível cancelamento de aluno pela manhã",
+   "status": "draft",
+   "covers": [
+    "K03-B1"
+   ],
+   "open": [
+    "Com que frequência isso acontece?",
+    "Ela sai às quantas nesses dias?"
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Outra rotina com expediente mais curto",
+   "status": "pending",
+   "covers": [],
+   "open": [
+    "Qual dia é este? Difere da terça/quinta (tema 2)?"
+   ]
+  },
+  {
+   "n": 5,
+   "title": "Dia de trabalho normal",
+   "status": "draft",
+   "covers": [
+    "K01"
+   ],
+   "open": [
+    "Como ela vai para o clube?",
+    "Onde almoça?"
+   ]
+  },
+  {
+   "n": 6,
+   "title": "Situação alternativa com aula de spinning",
+   "status": "draft",
+   "covers": [
+    "K03-B2"
+   ],
+   "open": [
+    "Em que horário costuma haver aula de spinning?"
+   ]
+  },
+  {
+   "n": 7,
+   "title": "Corrida como alternativa ao treino do almoço",
+   "status": "draft",
+   "covers": [
+    "K03-B3",
+    "K09",
+    "K11"
+   ],
+   "open": [
+    "Em que horário e onde ela costuma correr?",
+    "Por quanto tempo?"
+   ]
+  },
+  {
+   "n": 8,
+   "title": "Aulas de Pilates e atendimentos individuais",
+   "status": "draft",
+   "covers": [
+    "K01-B2",
+    "K01-B4",
+    "K01-B5",
+    "K05",
+    "K06"
+   ],
+   "open": [
+    "Detalhes das aulas (quantos alunos, tipo de exercício) ainda não foram informados."
+   ]
+  },
+  {
+   "n": 9,
+   "title": "Organização do jantar e da rotina familiar",
+   "status": "draft",
+   "covers": [
+    "K01-B6",
+    "K04"
+   ],
+   "open": [
+    "O que costuma ter no jantar e no lanche das crianças?"
+   ]
+  },
+  {
+   "n": 10,
+   "title": "Encerramento da noite e preparação do dia seguinte",
+   "status": "draft",
+   "covers": [
+    "K01-B6",
+    "K04",
+    "K11"
+   ],
+   "open": [
+    "O que significa “organizar o dia seguinte” (roupas, agenda, refeições)?"
+   ]
+  }
+ ],
+ "routines": [
+  {
+   "id": "K01",
+   "title": "A Normal Workday",
+   "pt": "Dia de trabalho normal (rotina-base)",
+   "dayType": "club",
+   "priority": true,
+   "goal": "Descrever o dia normal da Karla em ordem: manhã, alunos de personal, almoço e treino, Pilates, último aluno e noite com a família.",
+   "usage": [
+    "“Personal training client” é o aluno de personal; “class” é a aula coletiva.",
+    "Inglês britânico: “organise”, “programme”; o corretor aceita também a grafia americana."
+   ],
+   "blocks": [
+    {
+     "pt": "Manhã",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "I wake up at around 5:00 a.m.",
+       "pt": "Acordo por volta das 5h.",
+       "facts": [
+        "F01"
+       ],
+       "items": [
+        "it.wake-up",
+        "it.at-around"
+       ]
+      },
+      {
+       "en": "I take a shower, get ready and leave for work.",
+       "pt": "Tomo banho, me arrumo e saio para trabalhar.",
+       "facts": [
+        "F02"
+       ],
+       "items": [
+        "it.take-a-shower",
+        "it.get-ready",
+        "k.leave-for-work"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Alunos de personal",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "I work at a club as a personal trainer and Pilates instructor.",
+       "pt": "Trabalho em um clube como personal trainer e instrutora de Pilates.",
+       "facts": [
+        "F12"
+       ],
+       "items": [
+        "k.club",
+        "k.personal-trainer",
+        "k.pilates-instructor"
+       ]
+      },
+      {
+       "en": "From 7:00 to 11:00 a.m., I work with my personal training clients.",
+       "pt": "Das 7h às 11h, atendo meus alunos de personal.",
+       "facts": [
+        "F03"
+       ],
+       "items": [
+        "k.personal-training-client"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Almoço e treino",
+     "ctx": [
+      "lunch",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "I go for lunch at around 11:10 a.m.",
+       "pt": "Vou almoçar por volta das 11h10.",
+       "facts": [
+        "F04"
+       ],
+       "items": [
+        "k.go-for-lunch",
+        "it.at-around"
+       ]
+      },
+      {
+       "en": "From 12:30 to 1:30 p.m., I do my own workout.",
+       "pt": "Das 12h30 às 13h30, faço meu próprio treino.",
+       "facts": [
+        "F05"
+       ],
+       "items": [
+        "k.do-my-own-workout"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Aulas de Pilates",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "From 2:00 to 4:30 p.m., I teach group Pilates classes.",
+       "pt": "Das 14h às 16h30, dou aulas coletivas de Pilates.",
+       "facts": [
+        "F06"
+       ],
+       "items": [
+        "k.teach-a-class",
+        "k.group-pilates-class"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Último aluno",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "From 5:30 to 6:30 p.m., I work with my last personal training client.",
+       "pt": "Das 17h30 às 18h30, atendo meu último aluno de personal.",
+       "facts": [
+        "F07"
+       ],
+       "items": [
+        "k.personal-training-client"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Noite em família",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "I get home at around 7:10 p.m.",
+       "pt": "Chego em casa por volta das 19h10.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "it.get-home",
+        "it.at-around"
+       ]
+      },
+      {
+       "en": "I organise dinner for my family and the children's snack.",
+       "pt": "Organizo o jantar da família e o lanche das crianças.",
+       "facts": [
+        "F09"
+       ],
+       "items": [
+        "k.organise-dinner",
+        "k.childrens-snack"
+       ]
+      },
+      {
+       "en": "I plan the next day, take a shower and wait for my husband.",
+       "pt": "Organizo o dia seguinte, tomo banho e espero meu marido.",
+       "facts": [
+        "F10"
+       ],
+       "items": [
+        "k.plan-the-next-day",
+        "it.take-a-shower",
+        "k.wait-for-my-husband"
+       ]
+      },
+      {
+       "en": "We have dinner and talk, and I usually go to bed at around 10:00 p.m.",
+       "pt": "Jantamos e conversamos, e eu costumo me deitar por volta das 22h.",
+       "facts": [
+        "F11"
+       ],
+       "items": [
+        "it.have-dinner",
+        "it.usually",
+        "it.go-to-bed",
+        "it.at-around"
+       ]
+      }
+     ]
+    }
+   ],
+   "stage": "A",
+   "grammar": "Present Simple; horas (at around, from… to…); sequência do dia."
+  },
+  {
+   "id": "K02",
+   "title": "A Shorter Day (Tuesdays and Thursdays)",
+   "pt": "Dia mais curto (terças e quintas)",
+   "dayType": "short",
+   "priority": false,
+   "goal": "Contar o que muda nas terças e quintas: aulas até as 15h, treino às 16h e chegada em casa mais cedo.",
+   "usage": [
+    "“On Tuesdays and Thursdays” (com -s) indica o que costuma acontecer nesses dias."
+   ],
+   "blocks": [
+    {
+     "pt": "Terças e quintas",
+     "ctx": [
+      "work",
+      "gym",
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "On Tuesdays and Thursdays, I finish my classes at around 3:00 p.m.",
+       "pt": "Às terças e quintas, termino minhas aulas por volta das 15h.",
+       "facts": [
+        "V01"
+       ],
+       "items": [
+        "k.on-tuesdays-and-thursdays",
+        "it.at-around"
+       ]
+      },
+      {
+       "en": "I do my workout at 4:00 p.m.",
+       "pt": "Faço meu treino às 16h.",
+       "facts": [
+        "V01"
+       ],
+       "items": [
+        "k.do-my-own-workout"
+       ]
+      },
+      {
+       "en": "I get home at around 5:30 p.m.",
+       "pt": "Chego em casa por volta das 17h30.",
+       "facts": [
+        "V01"
+       ],
+       "items": [
+        "it.get-home",
+        "it.at-around"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Comparando com os outros dias",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "On these days, I get home earlier than usual.",
+       "pt": "Nesses dias, chego em casa mais cedo do que o normal.",
+       "facts": [
+        "V01",
+        "F08"
+       ],
+       "items": [
+        "it.on-these-days",
+        "it.get-home",
+        "k.earlier-than-usual"
+       ]
+      },
+      {
+       "en": "On other days, I get home later, at around 7:10 p.m.",
+       "pt": "Nos outros dias, chego mais tarde, por volta das 19h10.",
+       "facts": [
+        "F08"
+       ],
+       "items": [
+        "it.get-home",
+        "it.later",
+        "it.at-around"
+       ]
+      },
+      {
+       "en": "So on Tuesdays and Thursdays, I have more time with my family.",
+       "pt": "Então, às terças e quintas, tenho mais tempo com a minha família.",
+       "facts": [
+        "V01",
+        "F15"
+       ],
+       "items": [
+        "it.so",
+        "k.on-tuesdays-and-thursdays",
+        "k.more-time-with"
+       ]
+      }
+     ]
+    }
+   ],
+   "stage": "A",
+   "grammar": "Present Simple para dias específicos (on Tuesdays…); earlier / later; contraste com o dia normal."
+  },
+  {
+   "id": "K03",
+   "title": "When Plans Change",
+   "pt": "Quando os planos mudam (possibilidades)",
+   "dayType": "variation",
+   "priority": false,
+   "goal": "Falar de mudanças que PODEM acontecer: cancelamento, aula de spinning, corrida. Use “when”, “if” e “can”.",
+   "usage": [
+    "“When a client cancels…” e “If a client doesn't come…” descrevem possibilidades, não a rotina de todo dia."
+   ],
+   "blocks": [
+    {
+     "pt": "Cancelamento com antecedência",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "When a client cancels in advance, I can sleep until 6:00 a.m. and leave later.",
+       "pt": "Quando um aluno cancela com antecedência, posso dormir até as 6h e sair mais tarde.",
+       "facts": [
+        "V02"
+       ],
+       "items": [
+        "k.cancel-in-advance",
+        "k.sleep-until"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Aula de spinning",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "If a client doesn't come and there's a chance at the club, I can join a spinning class.",
+       "pt": "Se um aluno falta e surge uma oportunidade no clube, posso participar de uma aula de spinning.",
+       "facts": [
+        "V03"
+       ],
+       "items": [
+        "k.spinning-class",
+        "k.club"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Corrida",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "When I can't work out at lunchtime, I can go for a run at another time.",
+       "pt": "Quando não consigo treinar na hora do almoço, posso correr em outro horário.",
+       "facts": [
+        "V04"
+       ],
+       "items": [
+        "k.go-for-a-run",
+        "k.at-lunchtime"
+       ]
+      }
+     ]
+    }
+   ],
+   "stage": "A",
+   "grammar": "when / if + Present Simple; can para possibilidades."
+  },
+  {
+   "id": "K04",
+   "title": "Evenings at Home",
+   "pt": "Noites em casa",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "A",
+   "basis": [
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F15"
+   ],
+   "goal": "Falar da família e da noite em casa: chegada, conversa no jantar, lição de casa e hora de dormir.",
+   "grammar": "Present Simple (hábitos da família); perguntas com How / Have you…?; can para pedidos.",
+   "usage": [
+    "“How was your day?” é a pergunta mais natural para começar uma conversa no fim do dia.",
+    "Inglês britânico: “Mum” (mãe) e “maths” (matemática)."
+   ],
+   "blocks": [
+    {
+     "pt": "Chegando em casa",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "When I get home, my younger son runs to give me a hug.",
+       "pt": "Quando chego em casa, meu filho mais novo corre para me dar um abraço.",
+       "items": [
+        "it.when-i-get-home",
+        "k.younger-son",
+        "k.give-someone-a-hug"
+       ]
+      },
+      {
+       "en": "My older son is more independent, but he likes to tell me about his day.",
+       "pt": "Meu filho mais velho é mais independente, mas gosta de me contar sobre o dia dele.",
+       "items": [
+        "k.older-son",
+        "k.independent",
+        "k.tell-someone-about"
+       ]
+      },
+      {
+       "en": "I'm often tired, but I try to be there for them.",
+       "pt": "Muitas vezes estou cansada, mas tento estar presente para eles.",
+       "items": [
+        "k.often",
+        "k.tired",
+        "it.i-try-to",
+        "k.be-there-for"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Conversa no jantar",
+     "kind": "dialogue",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "How was your day at school?",
+       "pt": "Karla: Como foi seu dia na escola?",
+       "items": [
+        "k.how-was-your-day"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "It was good. We had a maths test.",
+       "pt": "Filho mais velho: Foi bom. Tivemos prova de matemática.",
+       "items": [
+        "k.maths-test"
+       ],
+       "speaker": "Older son"
+      },
+      {
+       "en": "Have you finished your homework?",
+       "pt": "Karla: Você já terminou a lição de casa?",
+       "items": [
+        "k.finish-your-homework"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Not yet. Can you help me with it, Mum?",
+       "pt": "Filho mais novo: Ainda não. Você me ajuda, mãe?",
+       "items": [
+        "k.not-yet",
+        "it.help-someone-with"
+       ],
+       "speaker": "Younger son"
+      },
+      {
+       "en": "Of course. Let's do it after dinner.",
+       "pt": "Karla: Claro. Vamos fazer depois do jantar.",
+       "items": [
+        "k.of-course",
+        "k.after-dinner"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    },
+    {
+     "pt": "Hora de dormir",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "After dinner, I help my younger son get ready for bed.",
+       "pt": "Depois do jantar, ajudo meu filho mais novo a se preparar para dormir.",
+       "items": [
+        "k.after-dinner",
+        "k.younger-son",
+        "it.get-ready-for-bed"
+       ]
+      },
+      {
+       "en": "He always asks me to read him a story.",
+       "pt": "Ele sempre me pede para ler uma história para ele.",
+       "items": [
+        "k.always",
+        "k.read-someone-a-story"
+       ]
+      },
+      {
+       "en": "Then I plan the next day and spend some quality time with my husband.",
+       "pt": "Depois, organizo o dia seguinte e passo um tempo de qualidade com meu marido.",
+       "items": [
+        "k.plan-the-next-day",
+        "k.quality-time"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K05",
+   "title": "Teaching a Pilates Class",
+   "pt": "Dando uma aula de Pilates",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "B",
+   "basis": [
+    "F06",
+    "F12"
+   ],
+   "goal": "Dar e entender instruções de movimento numa aula de Pilates e descrever o que está acontecendo agora.",
+   "grammar": "Imperativo (Lie…, Keep…, Move…); Present Continuous para o que está acontecendo; because.",
+   "usage": [
+    "Em instruções, o imperativo é educado e direto: “Take a deep breath.” Para suavizar: “Try to…”.",
+    "“Engage your core” = ativar os músculos do centro do corpo."
+   ],
+   "blocks": [
+    {
+     "pt": "Antes da aula",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "This afternoon, I'm teaching a group Pilates class at the club.",
+       "pt": "Hoje à tarde, estou dando uma aula coletiva de Pilates no clube.",
+       "items": [
+        "k.this-afternoon",
+        "k.group-pilates-class",
+        "k.club"
+       ]
+      },
+      {
+       "en": "The participants are arriving and putting their mats on the floor.",
+       "pt": "Os participantes estão chegando e colocando os colchonetes no chão.",
+       "items": [
+        "k.participant",
+        "k.mat"
+       ]
+      },
+      {
+       "en": "Some of them are a bit nervous because it's their first class.",
+       "pt": "Alguns estão um pouco nervosos porque é a primeira aula deles.",
+       "items": [
+        "k.nervous",
+        "it.because"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Instruções",
+     "kind": "dialogue",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "Lie on your back and take a deep breath.",
+       "pt": "Karla: Deitem de costas e respirem fundo.",
+       "items": [
+        "k.lie-on-your-back",
+        "k.take-a-deep-breath"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Engage your core and keep your shoulders relaxed.",
+       "pt": "Karla: Ativem o centro do corpo e mantenham os ombros relaxados.",
+       "items": [
+        "k.engage-your-core",
+        "k.keep-your-shoulders-relaxed"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Is this right? My neck feels a bit tense.",
+       "pt": "Participante: Está certo assim? Meu pescoço está um pouco tenso.",
+       "items": [
+        "k.tense"
+       ],
+       "speaker": "Participant"
+      },
+      {
+       "en": "Almost. Lower your chin a little and move slowly, with control.",
+       "pt": "Karla: Quase. Abaixe um pouco o queixo e movimente-se devagar, com controle.",
+       "items": [
+        "k.a-little",
+        "k.move-with-control"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Remember, quality matters more than speed.",
+       "pt": "Karla: Lembrem-se: qualidade importa mais do que velocidade.",
+       "items": [
+        "k.matter-more-than"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    },
+    {
+     "pt": "Fim da aula",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "At the end of the class, we stretch and breathe slowly.",
+       "pt": "No fim da aula, alongamos e respiramos devagar.",
+       "items": [
+        "k.at-the-end-of",
+        "k.stretch"
+       ]
+      },
+      {
+       "en": "I ask everyone how they feel, and I listen carefully.",
+       "pt": "Pergunto a todos como se sentem e escuto com atenção.",
+       "items": [
+        "k.listen-carefully"
+       ]
+      },
+      {
+       "en": "I love seeing people become more aware of their bodies.",
+       "pt": "Adoro ver as pessoas ficarem mais conscientes do próprio corpo.",
+       "items": [
+        "k.aware-of"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K06",
+   "title": "A Session with a Client",
+   "pt": "Uma sessão com uma aluna",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "B",
+   "basis": [
+    "F03",
+    "F12",
+    "F14"
+   ],
+   "goal": "Conduzir o começo de uma sessão: perguntar como a pessoa está, ajustar o plano e dar orientações curtas.",
+   "grammar": "Perguntas (How are you feeling?); advérbios de frequência (often); let's / can para propostas; so.",
+   "usage": [
+    "“How are you feeling today?” pergunta pelo estado físico e de ânimo agora.",
+    "Sophie é uma aluna fictícia, criada para o episódio."
+   ],
+   "blocks": [
+    {
+     "pt": "A aluna",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "My first client today is Sophie, and she wants to improve her posture.",
+       "pt": "Minha primeira aluna hoje é a Sophie, e ela quer melhorar a postura.",
+       "items": [
+        "k.client",
+        "k.improve-your-posture"
+       ]
+      },
+      {
+       "en": "She sits at a desk all day, so her back often feels stiff.",
+       "pt": "Ela fica sentada a uma mesa o dia todo, então as costas dela muitas vezes ficam rígidas.",
+       "items": [
+        "k.all-day",
+        "it.so",
+        "k.often",
+        "k.stiff"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Começo da sessão",
+     "kind": "dialogue",
+     "ctx": [
+      "work",
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "Good morning, Sophie! How are you feeling today?",
+       "pt": "Karla: Bom dia, Sophie! Como você está se sentindo hoje?",
+       "items": [
+        "k.how-are-you-feeling"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "A bit tired. I didn't sleep very well.",
+       "pt": "Sophie: Um pouco cansada. Não dormi muito bem.",
+       "items": [
+        "k.tired",
+        "k.sleep-well"
+       ],
+       "speaker": "Sophie"
+      },
+      {
+       "en": "No problem. We can adjust the training plan and work on mobility today.",
+       "pt": "Karla: Sem problema. Podemos ajustar o plano de treino e trabalhar a mobilidade hoje.",
+       "items": [
+        "k.adjust-the-plan",
+        "k.work-on-mobility"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Great. My lower back feels stiff after work.",
+       "pt": "Sophie: Ótimo. Minha lombar fica rígida depois do trabalho.",
+       "items": [
+        "k.lower-back",
+        "k.stiff"
+       ],
+       "speaker": "Sophie"
+      },
+      {
+       "en": "Then let's start slowly. Keep your back straight and control the movement.",
+       "pt": "Karla: Então vamos começar devagar. Mantenha as costas retas e controle o movimento.",
+       "items": [
+        "k.keep-your-back-straight",
+        "k.control-the-movement"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    },
+    {
+     "pt": "Fim da sessão",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "en": "At the end of the session, Sophie feels better and more confident.",
+       "pt": "No fim da sessão, a Sophie se sente melhor e mais confiante.",
+       "items": [
+        "k.at-the-end-of",
+        "k.feel-better",
+        "k.confident"
+       ]
+      },
+      {
+       "en": "I remind her that progress takes time and consistency.",
+       "pt": "Lembro a ela que o progresso exige tempo e consistência.",
+       "items": [
+        "k.progress-takes-time",
+        "k.consistency"
+       ]
+      },
+      {
+       "en": "Then I write a few notes and check my schedule for the next client.",
+       "pt": "Depois, faço algumas anotações e confiro minha agenda para o próximo aluno.",
+       "items": [
+        "k.check-my-schedule",
+        "k.schedule",
+        "k.client"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K07",
+   "title": "Coffee and a Good Book",
+   "pt": "Café e um bom livro",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "B",
+   "basis": [
+    "F17",
+    "F15"
+   ],
+   "goal": "Falar de preferências e de pequenos prazeres: café especial, leitura e um momento de calma.",
+   "grammar": "like / enjoy / prefer + -ing; I'd rather… than…; adjetivos sensoriais; Would you like…?",
+   "usage": [
+    "Depois de enjoy, use -ing: “I enjoy reading”.",
+    "“I'd rather read than check my phone” = prefiro ler a olhar o celular."
+   ],
+   "blocks": [
+    {
+     "pt": "Uma manhã tranquila",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "On quiet mornings, I like to make a cup of coffee and sit down with a book.",
+       "pt": "Nas manhãs tranquilas, gosto de fazer uma xícara de café e me sentar com um livro.",
+       "items": [
+        "k.quiet-morning",
+        "it.make-a-cup-of-coffee",
+        "it.sit-down"
+       ]
+      },
+      {
+       "en": "I prefer speciality coffee because I love the rich aroma.",
+       "pt": "Prefiro café especial porque adoro o aroma intenso.",
+       "items": [
+        "k.speciality-coffee",
+        "it.because",
+        "k.rich-aroma"
+       ]
+      },
+      {
+       "en": "The smell of freshly ground beans helps me slow down.",
+       "pt": "O cheiro dos grãos recém-moídos me ajuda a desacelerar.",
+       "items": [
+        "k.freshly-ground-beans",
+        "k.slow-down"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Leitura",
+     "ctx": [
+      "morning",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "I enjoy reading about science, but I also like good novels.",
+       "pt": "Gosto de ler sobre ciência, mas também gosto de bons romances.",
+       "items": [
+        "k.enjoy-reading",
+        "k.novel"
+       ]
+      },
+      {
+       "en": "I'd rather read a few pages than check my phone first thing in the morning.",
+       "pt": "Prefiro ler algumas páginas a olhar o celular logo cedo.",
+       "items": [
+        "k.would-rather",
+        "k.first-thing-in-the-morning"
+       ]
+      },
+      {
+       "en": "Sometimes I underline a sentence or write a note in the margin.",
+       "pt": "Às vezes, sublinho uma frase ou escrevo uma anotação na margem.",
+       "items": [
+        "it.sometimes",
+        "k.underline",
+        "k.in-the-margin"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Uma conversa na cozinha",
+     "kind": "dialogue",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "Are you reading that book about posture again?",
+       "pt": "Marido: Você está lendo aquele livro sobre postura de novo?",
+       "items": [
+        "k.posture"
+       ],
+       "speaker": "Husband"
+      },
+      {
+       "en": "No, this one is a novel. It helps me switch off.",
+       "pt": "Karla: Não, este é um romance. Ele me ajuda a desligar.",
+       "items": [
+        "k.novel",
+        "it.switch-off"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Would you like another coffee?",
+       "pt": "Marido: Você quer outro café?",
+       "items": [
+        "k.would-you-like"
+       ],
+       "speaker": "Husband"
+      },
+      {
+       "en": "Yes, please. This one has a lovely flavour.",
+       "pt": "Karla: Sim, por favor. Este tem um sabor delicioso.",
+       "items": [
+        "k.flavour"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K08",
+   "title": "Studying Nutrition and Biomechanics",
+   "pt": "Estudando Nutrição e Biomecânica",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "C",
+   "basis": [
+    "F13",
+    "F14",
+    "F12"
+   ],
+   "goal": "Falar dos estudos: o que está aprendendo, uma dificuldade, como a resolveu e um prazo com uma colega.",
+   "grammar": "Present Continuous para estudos em andamento; Past Simple (last night, had to, looked up); because / so.",
+   "usage": [
+    "“Look up a word” = procurar uma palavra (no dicionário ou na internet).",
+    "Ana é uma colega fictícia, criada para o episódio. O episódio fala de estudo, não dá orientação nutricional."
+   ],
+   "blocks": [
+    {
+     "pt": "Duas formações",
+     "ctx": [
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "I'm studying Nutrition, and I'm also doing a postgraduate course in Biomechanics.",
+       "pt": "Estou estudando Nutrição e também estou fazendo uma pós-graduação em Biomecânica.",
+       "items": [
+        "k.study-nutrition",
+        "k.postgraduate-course"
+       ]
+      },
+      {
+       "en": "This term, I'm learning how the body moves and how food affects energy.",
+       "pt": "Neste semestre, estou aprendendo como o corpo se movimenta e como a alimentação afeta a energia.",
+       "items": [
+        "k.this-term",
+        "k.how-the-body-moves",
+        "k.affect"
+       ]
+      },
+      {
+       "en": "It's demanding, but I enjoy connecting theory with my work.",
+       "pt": "É exigente, mas gosto de relacionar a teoria com o meu trabalho.",
+       "items": [
+        "k.demanding",
+        "k.connect-theory-with"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Uma noite de estudo",
+     "ctx": [
+      "evening",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "Last night, I read a research paper about protein and recovery.",
+       "pt": "Ontem à noite, li um artigo científico sobre proteína e recuperação.",
+       "items": [
+        "k.last-night",
+        "k.research-paper",
+        "k.recovery"
+       ]
+      },
+      {
+       "en": "I had to read one paragraph twice because it was quite technical.",
+       "pt": "Tive de ler um parágrafo duas vezes porque era bem técnico.",
+       "items": [
+        "k.had-to",
+        "it.because",
+        "k.technical"
+       ]
+      },
+      {
+       "en": "So I looked up a few words and took notes in my notebook.",
+       "pt": "Então procurei algumas palavras e fiz anotações no meu caderno.",
+       "items": [
+        "it.so",
+        "k.look-up",
+        "k.take-notes"
+       ]
+      },
+      {
+       "en": "Now I can explain it clearly to my clients.",
+       "pt": "Agora consigo explicar isso com clareza aos meus alunos.",
+       "items": [
+        "k.explain-something-clearly",
+        "k.client"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "O prazo",
+     "kind": "dialogue",
+     "ctx": [
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "Have you started the biomechanics assignment?",
+       "pt": "Ana: Você já começou o trabalho de biomecânica?",
+       "items": [
+        "k.assignment"
+       ],
+       "speaker": "Ana"
+      },
+      {
+       "en": "Yes, I'm working on it, but the deadline is on Friday.",
+       "pt": "Karla: Sim, estou trabalhando nele, mas o prazo é na sexta.",
+       "items": [
+        "it.work-on",
+        "k.deadline"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Me too. Shall we go over our lecture notes together?",
+       "pt": "Ana: Eu também. Vamos repassar juntas as anotações das aulas?",
+       "items": [
+        "k.shall-we",
+        "it.go-over",
+        "k.lecture-notes"
+       ],
+       "speaker": "Ana"
+      },
+      {
+       "en": "Good idea. Let's meet after my last client.",
+       "pt": "Karla: Boa ideia. Vamos nos encontrar depois do meu último aluno.",
+       "items": [
+        "k.good-idea",
+        "k.client"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K09",
+   "title": "A Tuesday That Didn't Go to Plan",
+   "pt": "Uma terça que não saiu como planejado",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "C",
+   "basis": [
+    "V01",
+    "V02",
+    "V04",
+    "F05",
+    "F14"
+   ],
+   "goal": "Contar um dia em que os planos mudaram: o problema, as opções, a decisão e o que aprendeu.",
+   "grammar": "Past Simple (regulares e irregulares); could para opções; decide to; comparativo (shorter than).",
+   "usage": [
+    "“Took longer than expected” = demorou mais do que o previsto.",
+    "“Stick to a plan” = seguir um plano; “learnt” é a forma britânica comum de “learned”."
+   ],
+   "blocks": [
+    {
+     "pt": "O que aconteceu",
+     "ctx": [
+      "work"
+     ],
+     "sentences": [
+      {
+       "en": "Last Tuesday, my plans changed completely.",
+       "pt": "Na terça passada, meus planos mudaram completamente.",
+       "items": [
+        "k.last-tuesday",
+        "k.plans-change"
+       ]
+      },
+      {
+       "en": "A client cancelled her session, and another appointment took longer than expected.",
+       "pt": "Uma aluna cancelou a sessão, e outro compromisso demorou mais do que o previsto.",
+       "items": [
+        "k.client",
+        "k.cancel-a-session",
+        "k.appointment",
+        "k.take-longer-than-expected"
+       ]
+      },
+      {
+       "en": "By noon, there was no time left in my schedule for my own workout.",
+       "pt": "Ao meio-dia, já não havia tempo na minha agenda para o meu próprio treino.",
+       "items": [
+        "k.by-noon",
+        "k.no-time-left",
+        "k.schedule"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "A decisão",
+     "ctx": [
+      "gym",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "At first, I felt frustrated because I like to stick to my plans.",
+       "pt": "No começo, fiquei frustrada porque gosto de seguir meus planos.",
+       "items": [
+        "k.at-first",
+        "k.frustrated",
+        "it.because",
+        "k.stick-to-a-plan"
+       ]
+      },
+      {
+       "en": "Then I took a deep breath and looked at my options.",
+       "pt": "Então respirei fundo e analisei minhas opções.",
+       "items": [
+        "k.take-a-deep-breath",
+        "k.option"
+       ]
+      },
+      {
+       "en": "I could go for a run later, or I could catch up on my assignment.",
+       "pt": "Eu poderia correr mais tarde, ou poderia pôr meu trabalho da faculdade em dia.",
+       "items": [
+        "k.go-for-a-run",
+        "it.later",
+        "k.catch-up-on",
+        "k.assignment"
+       ]
+      },
+      {
+       "en": "In the end, I decided to run in the evening and study after dinner.",
+       "pt": "No fim, decidi correr à noite e estudar depois do jantar.",
+       "items": [
+        "k.in-the-end",
+        "k.decide-to",
+        "k.after-dinner"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "O que aprendi",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "The run was shorter than usual, but I felt much better.",
+       "pt": "A corrida foi mais curta do que o normal, mas me senti muito melhor.",
+       "items": [
+        "k.shorter-than-usual",
+        "k.feel-better"
+       ]
+      },
+      {
+       "en": "I learnt that being flexible is part of being disciplined.",
+       "pt": "Aprendi que ser flexível faz parte de ser disciplinada.",
+       "items": [
+        "k.flexible",
+        "k.disciplined"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K10",
+   "title": "Getting Ready for Hyrox",
+   "pt": "Preparando-se para o Hyrox",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "D",
+   "basis": [
+    "F16",
+    "F15",
+    "F05"
+   ],
+   "goal": "Falar de uma meta: o desafio, o plano de treino, o que vai melhorar e o que fazer se estiver cansada.",
+   "grammar": "be going to / will; comparativos (stronger than); If…, I might…; want to + verbo.",
+   "usage": [
+    "“Going to” = plano já decidido; “will” = decisão ou promessa na hora.",
+    "O Hyrox combina corrida com estações de exercícios; a prova do episódio é ilustrativa."
+   ],
+   "blocks": [
+    {
+     "pt": "O desafio",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "I'm going to take part in a Hyrox race in a few months.",
+       "pt": "Vou participar de uma prova de Hyrox daqui a alguns meses.",
+       "items": [
+        "k.be-going-to",
+        "k.take-part-in",
+        "k.race",
+        "k.in-a-few-months"
+       ]
+      },
+      {
+       "en": "Hyrox combines running with demanding workout stations.",
+       "pt": "O Hyrox combina corrida com estações de treino exigentes.",
+       "items": [
+        "k.combine-with",
+        "k.demanding",
+        "k.workout-station"
+       ]
+      },
+      {
+       "en": "It's a challenge for my body and my mind.",
+       "pt": "É um desafio para o meu corpo e para a minha mente.",
+       "items": [
+        "k.challenge"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "O plano",
+     "ctx": [
+      "gym"
+     ],
+     "sentences": [
+      {
+       "en": "I want to improve my endurance and my running pace.",
+       "pt": "Quero melhorar minha resistência e meu ritmo de corrida.",
+       "items": [
+        "k.endurance",
+        "k.running-pace"
+       ]
+      },
+      {
+       "en": "My runs are getting longer, and my legs feel stronger than they did last month.",
+       "pt": "Minhas corridas estão ficando mais longas, e minhas pernas estão mais fortes do que no mês passado.",
+       "items": [
+        "k.get-longer",
+        "k.stronger-than",
+        "k.last-month"
+       ]
+      },
+      {
+       "en": "I'll train hard, but I'll also make time for recovery.",
+       "pt": "Vou treinar firme, mas também vou reservar tempo para a recuperação.",
+       "items": [
+        "k.train-hard",
+        "k.make-time-for",
+        "k.recovery"
+       ]
+      },
+      {
+       "en": "If I feel too tired, I might take a rest day.",
+       "pt": "Se eu estiver cansada demais, talvez tire um dia de descanso.",
+       "items": [
+        "k.tired",
+        "k.might",
+        "k.rest-day"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Uma pergunta do filho",
+     "kind": "dialogue",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "Mum, are you going to win the race?",
+       "pt": "Filho mais novo: Mãe, você vai ganhar a prova?",
+       "items": [
+        "k.be-going-to",
+        "k.race"
+       ],
+       "speaker": "Younger son"
+      },
+      {
+       "en": "I don't know, but I'm going to do my best.",
+       "pt": "Karla: Não sei, mas vou dar o meu melhor.",
+       "items": [
+        "k.do-my-best"
+       ],
+       "speaker": "Karla"
+      },
+      {
+       "en": "Can I come and watch you?",
+       "pt": "Filho mais novo: Posso ir te assistir?",
+       "items": [
+        "k.come-and-watch"
+       ],
+       "speaker": "Younger son"
+      },
+      {
+       "en": "Of course! It will be more fun with you there.",
+       "pt": "Karla: Claro! Vai ser mais divertido com você lá.",
+       "items": [
+        "k.of-course",
+        "k.more-fun"
+       ],
+       "speaker": "Karla"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K11",
+   "title": "Sunday: Planning the Week Ahead",
+   "pt": "Domingo: planejando a semana",
+   "kind": "episode",
+   "dayType": "episode",
+   "stage": "D",
+   "basis": [
+    "F15",
+    "F13",
+    "F14",
+    "F16",
+    "F18",
+    "V04"
+   ],
+   "goal": "Planejar a semana com prioridades, prever imprevistos com “if” e refletir sobre equilíbrio.",
+   "grammar": "will / first conditional (If…, I'll…); prioridades e intenções; revisão das estruturas da jornada.",
+   "usage": [
+    "“Set aside time for” = reservar tempo para algo.",
+    "Este episódio retoma palavras de K03, K06, K09 e K10: schedule, client, catch up on, go for a run, make time for."
+   ],
+   "blocks": [
+    {
+     "pt": "Domingo de manhã",
+     "ctx": [
+      "morning"
+     ],
+     "sentences": [
+      {
+       "en": "On Sunday mornings, we have breakfast together and take things slowly.",
+       "pt": "Nas manhãs de domingo, tomamos café da manhã juntos e fazemos tudo com calma.",
+       "items": [
+        "it.have-breakfast",
+        "k.take-things-slowly"
+       ]
+      },
+      {
+       "en": "Later, I review my schedule for the week ahead.",
+       "pt": "Mais tarde, reviso minha agenda para a semana que vem.",
+       "items": [
+        "it.later",
+        "k.schedule",
+        "k.the-week-ahead"
+       ]
+      },
+      {
+       "en": "I set aside time for my studies, my clients and my own training.",
+       "pt": "Reservo tempo para os meus estudos, os meus alunos e o meu próprio treino.",
+       "items": [
+        "k.set-aside-time",
+        "k.client"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Prioridades",
+     "ctx": [
+      "evening",
+      "study"
+     ],
+     "sentences": [
+      {
+       "en": "I can't do everything at once, so I choose my priorities.",
+       "pt": "Não consigo fazer tudo ao mesmo tempo, então escolho minhas prioridades.",
+       "items": [
+        "k.at-once",
+        "it.so",
+        "k.priority"
+       ]
+      },
+      {
+       "en": "If a client cancels, I'll use the time to catch up on my reading.",
+       "pt": "Se um aluno cancelar, vou usar o tempo para pôr minha leitura em dia.",
+       "items": [
+        "k.client",
+        "k.catch-up-on"
+       ]
+      },
+      {
+       "en": "If I can't train at lunchtime, I'll go for a run in the evening.",
+       "pt": "Se eu não puder treinar na hora do almoço, vou correr à noite.",
+       "items": [
+        "k.at-lunchtime",
+        "k.go-for-a-run"
+       ]
+      },
+      {
+       "en": "And I'll always make time for my family.",
+       "pt": "E sempre vou reservar tempo para a minha família.",
+       "items": [
+        "k.always",
+        "k.make-time-for"
+       ]
+      }
+     ]
+    },
+    {
+     "pt": "Antes de dormir",
+     "ctx": [
+      "evening"
+     ],
+     "sentences": [
+      {
+       "en": "My week will be busy, but I don't need to be perfect.",
+       "pt": "Minha semana vai ser cheia, mas não preciso ser perfeita.",
+       "items": [
+        "k.busy",
+        "k.perfect"
+       ]
+      },
+      {
+       "en": "Taking care of myself helps me take care of the people I love.",
+       "pt": "Cuidar de mim me ajuda a cuidar das pessoas que eu amo.",
+       "items": [
+        "k.take-care-of"
+       ]
+      },
+      {
+       "en": "I turn off the light, ready for another week.",
+       "pt": "Apago a luz, pronta para mais uma semana.",
+       "items": [
+        "k.turn-off-the-light",
+        "k.ready-for"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "items": [
+  {
+   "id": "k.club",
+   "en": "club",
+   "pt": "clube",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "work",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.personal-trainer",
+   "en": "personal trainer",
+   "pt": "personal trainer",
+   "c": "professional",
+   "lvl": 1,
+   "ctx": [
+    "work",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.pilates-instructor",
+   "en": "Pilates instructor",
+   "pt": "instrutora de Pilates",
+   "c": "professional",
+   "lvl": 1,
+   "ctx": [
+    "work",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.personal-training-client",
+   "en": "personal training client",
+   "pt": "aluno(a) de personal",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "work",
+    "gym"
+   ],
+   "v": [
+    "personal training clients"
+   ]
+  },
+  {
+   "id": "k.leave-for-work",
+   "en": "leave for work",
+   "pt": "sair para trabalhar",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.go-for-lunch",
+   "en": "go for lunch",
+   "pt": "ir almoçar",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "lunch"
+   ]
+  },
+  {
+   "id": "k.do-my-own-workout",
+   "en": "do my own workout",
+   "pt": "fazer meu próprio treino",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "do my",
+   "v": [
+    "do my workout"
+   ]
+  },
+  {
+   "id": "k.teach-a-class",
+   "en": "teach a class",
+   "pt": "dar uma aula",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ],
+   "match": "teach",
+   "v": [
+    "teach classes"
+   ]
+  },
+  {
+   "id": "k.group-pilates-class",
+   "en": "group Pilates class",
+   "pt": "aula coletiva de Pilates",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "work",
+    "gym"
+   ],
+   "match": "group Pilates",
+   "v": [
+    "group Pilates classes"
+   ]
+  },
+  {
+   "id": "k.organise-dinner",
+   "en": "organise dinner",
+   "pt": "organizar o jantar",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ],
+   "v": [
+    "organize dinner"
+   ]
+  },
+  {
+   "id": "k.childrens-snack",
+   "en": "the children's snack",
+   "pt": "o lanche das crianças",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.plan-the-next-day",
+   "en": "plan the next day",
+   "pt": "organizar o dia seguinte",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.wait-for-my-husband",
+   "en": "wait for my husband",
+   "pt": "esperar meu marido",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.on-tuesdays-and-thursdays",
+   "en": "on Tuesdays and Thursdays",
+   "pt": "às terças e quintas",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.cancel-in-advance",
+   "en": "cancel in advance",
+   "pt": "cancelar com antecedência",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "morning"
+   ],
+   "match": "cancels in advance",
+   "v": [
+    "cancels in advance"
+   ]
+  },
+  {
+   "id": "k.sleep-until",
+   "en": "sleep until",
+   "pt": "dormir até",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.spinning-class",
+   "en": "spinning class",
+   "pt": "aula de spinning",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.go-for-a-run",
+   "en": "go for a run",
+   "pt": "sair para correr",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.earlier-than-usual",
+   "en": "earlier than usual",
+   "pt": "mais cedo do que o normal",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.more-time-with",
+   "en": "more time with",
+   "pt": "mais tempo com",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.at-lunchtime",
+   "en": "at lunchtime",
+   "pt": "na hora do almoço",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "lunch",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.younger-son",
+   "en": "my younger son",
+   "pt": "meu filho mais novo",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "younger son"
+  },
+  {
+   "id": "k.older-son",
+   "en": "my older son",
+   "pt": "meu filho mais velho",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "older son"
+  },
+  {
+   "id": "k.give-someone-a-hug",
+   "en": "give someone a hug",
+   "pt": "dar um abraço em alguém",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "give * a hug"
+  },
+  {
+   "id": "k.independent",
+   "en": "independent",
+   "pt": "independente",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.tell-someone-about",
+   "en": "tell someone about",
+   "pt": "contar para alguém sobre",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "tell * about"
+  },
+  {
+   "id": "k.often",
+   "en": "often",
+   "pt": "muitas vezes; com frequência",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "evening",
+    "work"
+   ]
+  },
+  {
+   "id": "k.tired",
+   "en": "tired",
+   "pt": "cansado(a)",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening",
+    "gym"
+   ],
+   "v": [
+    "too tired",
+    "a bit tired"
+   ]
+  },
+  {
+   "id": "k.be-there-for",
+   "en": "be there for someone",
+   "pt": "estar presente para alguém",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ],
+   "match": "be there for"
+  },
+  {
+   "id": "k.how-was-your-day",
+   "en": "How was your day?",
+   "pt": "Como foi seu dia?",
+   "c": "sentence",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "how was your day"
+  },
+  {
+   "id": "k.maths-test",
+   "en": "a maths test",
+   "pt": "uma prova de matemática",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "maths test",
+   "tip": "Inglês britânico: “maths”; no americano, “math”."
+  },
+  {
+   "id": "k.finish-your-homework",
+   "en": "finish your homework",
+   "pt": "terminar a lição de casa",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "finish your homework"
+  },
+  {
+   "id": "k.not-yet",
+   "en": "not yet",
+   "pt": "ainda não",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.of-course",
+   "en": "of course",
+   "pt": "claro",
+   "c": "connector",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.after-dinner",
+   "en": "after dinner",
+   "pt": "depois do jantar",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.always",
+   "en": "always",
+   "pt": "sempre",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.read-someone-a-story",
+   "en": "read someone a story",
+   "pt": "ler uma história para alguém",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "read * a story"
+  },
+  {
+   "id": "k.quality-time",
+   "en": "quality time",
+   "pt": "tempo de qualidade",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.this-afternoon",
+   "en": "this afternoon",
+   "pt": "hoje à tarde",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.participant",
+   "en": "participant",
+   "pt": "participante",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "participants",
+   "v": [
+    "participants"
+   ]
+  },
+  {
+   "id": "k.mat",
+   "en": "mat",
+   "pt": "colchonete",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ],
+   "match": "mats",
+   "v": [
+    "mats"
+   ]
+  },
+  {
+   "id": "k.nervous",
+   "en": "nervous",
+   "pt": "nervoso(a)",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.lie-on-your-back",
+   "en": "lie on your back",
+   "pt": "deitar de costas",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.take-a-deep-breath",
+   "en": "take a deep breath",
+   "pt": "respirar fundo",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ],
+   "match": "a deep breath",
+   "v": [
+    "took a deep breath"
+   ]
+  },
+  {
+   "id": "k.engage-your-core",
+   "en": "engage your core",
+   "pt": "ativar o centro do corpo (core)",
+   "c": "professional",
+   "lvl": 3,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.keep-your-shoulders-relaxed",
+   "en": "keep your shoulders relaxed",
+   "pt": "manter os ombros relaxados",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.tense",
+   "en": "tense",
+   "pt": "tenso(a)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.a-little",
+   "en": "a little",
+   "pt": "um pouco",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.move-with-control",
+   "en": "move slowly, with control",
+   "pt": "movimentar-se devagar, com controle",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "move slowly with control"
+  },
+  {
+   "id": "k.matter-more-than",
+   "en": "matter more than",
+   "pt": "importar mais do que",
+   "c": "connector",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "matters more than"
+  },
+  {
+   "id": "k.at-the-end-of",
+   "en": "at the end of",
+   "pt": "no fim de",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "gym",
+    "work"
+   ]
+  },
+  {
+   "id": "k.stretch",
+   "en": "stretch",
+   "pt": "alongar(-se)",
+   "c": "verb",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.listen-carefully",
+   "en": "listen carefully",
+   "pt": "escutar com atenção",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "gym",
+    "work"
+   ]
+  },
+  {
+   "id": "k.aware-of",
+   "en": "become aware of",
+   "pt": "ficar consciente de",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "gym"
+   ],
+   "match": "aware of"
+  },
+  {
+   "id": "k.client",
+   "en": "client",
+   "pt": "aluno(a), cliente",
+   "c": "professional",
+   "lvl": 1,
+   "ctx": [
+    "work",
+    "gym"
+   ],
+   "match": "client",
+   "v": [
+    "clients"
+   ]
+  },
+  {
+   "id": "k.improve-your-posture",
+   "en": "improve your posture",
+   "pt": "melhorar a postura",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "improve my posture"
+  },
+  {
+   "id": "k.all-day",
+   "en": "all day",
+   "pt": "o dia todo",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.stiff",
+   "en": "stiff",
+   "pt": "rígido(a), travado(a)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.how-are-you-feeling",
+   "en": "How are you feeling today?",
+   "pt": "Como você está se sentindo hoje?",
+   "c": "sentence",
+   "lvl": 1,
+   "ctx": [
+    "gym",
+    "work"
+   ],
+   "match": "how are you feeling"
+  },
+  {
+   "id": "k.sleep-well",
+   "en": "sleep well",
+   "pt": "dormir bem",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "match": "sleep very well",
+   "v": [
+    "sleep very well"
+   ]
+  },
+  {
+   "id": "k.adjust-the-plan",
+   "en": "adjust the training plan",
+   "pt": "ajustar o plano de treino",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "gym",
+    "work"
+   ],
+   "match": "adjust the training plan"
+  },
+  {
+   "id": "k.work-on-mobility",
+   "en": "work on mobility",
+   "pt": "trabalhar a mobilidade",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.lower-back",
+   "en": "lower back",
+   "pt": "lombar",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.keep-your-back-straight",
+   "en": "keep your back straight",
+   "pt": "manter as costas retas",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.control-the-movement",
+   "en": "control the movement",
+   "pt": "controlar o movimento",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.feel-better",
+   "en": "feel better",
+   "pt": "sentir-se melhor",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "gym",
+    "evening"
+   ],
+   "match": "better"
+  },
+  {
+   "id": "k.confident",
+   "en": "confident",
+   "pt": "confiante",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.progress-takes-time",
+   "en": "progress takes time",
+   "pt": "o progresso leva tempo",
+   "c": "sentence",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.consistency",
+   "en": "consistency",
+   "pt": "consistência, constância",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.check-my-schedule",
+   "en": "check my schedule",
+   "pt": "conferir a agenda",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.schedule",
+   "en": "schedule",
+   "pt": "agenda, programação",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "work",
+    "study"
+   ]
+  },
+  {
+   "id": "k.quiet-morning",
+   "en": "a quiet morning",
+   "pt": "uma manhã tranquila",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "match": "quiet mornings",
+   "v": [
+    "quiet mornings"
+   ]
+  },
+  {
+   "id": "k.speciality-coffee",
+   "en": "speciality coffee",
+   "pt": "café especial",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ],
+   "tip": "Britânico: “speciality”; americano: “specialty”."
+  },
+  {
+   "id": "k.rich-aroma",
+   "en": "rich aroma",
+   "pt": "aroma intenso",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.freshly-ground-beans",
+   "en": "freshly ground beans",
+   "pt": "grãos recém-moídos",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.slow-down",
+   "en": "slow down",
+   "pt": "desacelerar",
+   "c": "phrasal",
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.enjoy-reading",
+   "en": "enjoy reading",
+   "pt": "gostar de ler",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "morning",
+    "study"
+   ]
+  },
+  {
+   "id": "k.novel",
+   "en": "novel",
+   "pt": "romance (livro)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ],
+   "v": [
+    "novels"
+   ]
+  },
+  {
+   "id": "k.would-rather",
+   "en": "I'd rather… than…",
+   "pt": "prefiro… a…",
+   "c": "connector",
+   "lvl": 3,
+   "ctx": [
+    "morning"
+   ],
+   "match": "I'd rather"
+  },
+  {
+   "id": "k.first-thing-in-the-morning",
+   "en": "first thing in the morning",
+   "pt": "logo cedo, assim que acordo",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.underline",
+   "en": "underline",
+   "pt": "sublinhar",
+   "c": "verb",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.in-the-margin",
+   "en": "in the margin",
+   "pt": "na margem",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.posture",
+   "en": "posture",
+   "pt": "postura",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym",
+    "study"
+   ]
+  },
+  {
+   "id": "k.would-you-like",
+   "en": "Would you like…?",
+   "pt": "Você quer…? / Gostaria de…?",
+   "c": "connector",
+   "lvl": 1,
+   "ctx": [
+    "morning"
+   ],
+   "match": "would you like"
+  },
+  {
+   "id": "k.flavour",
+   "en": "flavour",
+   "pt": "sabor",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ],
+   "v": [
+    "flavor"
+   ],
+   "tip": "Britânico: “flavour”; americano: “flavor”."
+  },
+  {
+   "id": "k.study-nutrition",
+   "en": "study Nutrition",
+   "pt": "estudar Nutrição",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.postgraduate-course",
+   "en": "postgraduate course",
+   "pt": "curso de pós-graduação",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.this-term",
+   "en": "this term",
+   "pt": "neste semestre / período",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.how-the-body-moves",
+   "en": "how the body moves",
+   "pt": "como o corpo se movimenta",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.affect",
+   "en": "affect",
+   "pt": "afetar",
+   "c": "verb",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.demanding",
+   "en": "demanding",
+   "pt": "exigente",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.connect-theory-with",
+   "en": "connect theory with practice",
+   "pt": "relacionar a teoria com a prática",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "study"
+   ],
+   "match": "connecting theory with"
+  },
+  {
+   "id": "k.last-night",
+   "en": "last night",
+   "pt": "ontem à noite",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.research-paper",
+   "en": "research paper",
+   "pt": "artigo científico",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.recovery",
+   "en": "recovery",
+   "pt": "recuperação",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym",
+    "study"
+   ]
+  },
+  {
+   "id": "k.had-to",
+   "en": "had to",
+   "pt": "tive de / precisei",
+   "c": "connector",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.technical",
+   "en": "technical",
+   "pt": "técnico",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.look-up",
+   "en": "look up",
+   "pt": "procurar (uma palavra, uma informação)",
+   "c": "phrasal",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ],
+   "match": "looked up"
+  },
+  {
+   "id": "k.take-notes",
+   "en": "take notes",
+   "pt": "fazer anotações",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "study"
+   ],
+   "match": "took notes"
+  },
+  {
+   "id": "k.explain-something-clearly",
+   "en": "explain something clearly",
+   "pt": "explicar algo com clareza",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "study",
+    "work"
+   ],
+   "match": "explain * clearly"
+  },
+  {
+   "id": "k.assignment",
+   "en": "assignment",
+   "pt": "trabalho (da faculdade)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.deadline",
+   "en": "deadline",
+   "pt": "prazo",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.shall-we",
+   "en": "Shall we…?",
+   "pt": "Vamos…? (sugestão)",
+   "c": "connector",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ],
+   "match": "shall we",
+   "tip": "Muito usado no inglês britânico para sugerir algo."
+  },
+  {
+   "id": "k.lecture-notes",
+   "en": "lecture notes",
+   "pt": "anotações das aulas",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.good-idea",
+   "en": "good idea",
+   "pt": "boa ideia",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.last-tuesday",
+   "en": "last Tuesday",
+   "pt": "na terça passada",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.plans-change",
+   "en": "my plans change",
+   "pt": "meus planos mudam",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ],
+   "match": "plans changed",
+   "v": [
+    "plans changed"
+   ]
+  },
+  {
+   "id": "k.cancel-a-session",
+   "en": "cancel a session",
+   "pt": "cancelar uma sessão",
+   "c": "professional",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ],
+   "match": "cancelled her session",
+   "v": [
+    "canceled her session"
+   ]
+  },
+  {
+   "id": "k.appointment",
+   "en": "appointment",
+   "pt": "compromisso, horário marcado",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.take-longer-than-expected",
+   "en": "take longer than expected",
+   "pt": "demorar mais do que o previsto",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "work"
+   ],
+   "match": "longer than expected"
+  },
+  {
+   "id": "k.by-noon",
+   "en": "by noon",
+   "pt": "até o meio-dia",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.no-time-left",
+   "en": "have no time left",
+   "pt": "não ter mais tempo",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ],
+   "match": "no time left"
+  },
+  {
+   "id": "k.at-first",
+   "en": "at first",
+   "pt": "no começo",
+   "c": "connector",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.frustrated",
+   "en": "frustrated",
+   "pt": "frustrado(a)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.stick-to-a-plan",
+   "en": "stick to a plan",
+   "pt": "seguir um plano",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "work"
+   ],
+   "match": "stick to my plans"
+  },
+  {
+   "id": "k.option",
+   "en": "option",
+   "pt": "opção",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "work"
+   ],
+   "match": "options",
+   "v": [
+    "options"
+   ]
+  },
+  {
+   "id": "k.catch-up-on",
+   "en": "catch up on",
+   "pt": "pôr em dia",
+   "c": "phrasal",
+   "lvl": 3,
+   "ctx": [
+    "study"
+   ]
+  },
+  {
+   "id": "k.in-the-end",
+   "en": "in the end",
+   "pt": "no fim",
+   "c": "connector",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.decide-to",
+   "en": "decide to",
+   "pt": "decidir (fazer algo)",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ],
+   "match": "decided to"
+  },
+  {
+   "id": "k.shorter-than-usual",
+   "en": "shorter than usual",
+   "pt": "mais curto do que o normal",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.flexible",
+   "en": "flexible",
+   "pt": "flexível",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.disciplined",
+   "en": "disciplined",
+   "pt": "disciplinado(a)",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "work"
+   ]
+  },
+  {
+   "id": "k.be-going-to",
+   "en": "be going to",
+   "pt": "ir (fazer algo) — plano",
+   "c": "connector",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "going to"
+  },
+  {
+   "id": "k.take-part-in",
+   "en": "take part in",
+   "pt": "participar de",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.race",
+   "en": "race",
+   "pt": "prova, corrida (competição)",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.in-a-few-months",
+   "en": "in a few months",
+   "pt": "daqui a alguns meses",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.combine-with",
+   "en": "combine… with…",
+   "pt": "combinar… com…",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "gym"
+   ],
+   "match": "combines * with"
+  },
+  {
+   "id": "k.workout-station",
+   "en": "workout station",
+   "pt": "estação de treino",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "workout stations",
+   "v": [
+    "workout stations"
+   ]
+  },
+  {
+   "id": "k.challenge",
+   "en": "challenge",
+   "pt": "desafio",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.endurance",
+   "en": "endurance",
+   "pt": "resistência",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.running-pace",
+   "en": "running pace",
+   "pt": "ritmo de corrida",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.get-longer",
+   "en": "get longer",
+   "pt": "ficar mais longo",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ],
+   "match": "getting longer"
+  },
+  {
+   "id": "k.stronger-than",
+   "en": "stronger than",
+   "pt": "mais forte do que",
+   "c": "connector",
+   "lvl": 2,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.last-month",
+   "en": "last month",
+   "pt": "no mês passado",
+   "c": "time",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.train-hard",
+   "en": "train hard",
+   "pt": "treinar firme",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.make-time-for",
+   "en": "make time for",
+   "pt": "reservar tempo para",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "evening",
+    "gym"
+   ]
+  },
+  {
+   "id": "k.might",
+   "en": "might",
+   "pt": "talvez (possibilidade)",
+   "c": "connector",
+   "lvl": 3,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.rest-day",
+   "en": "rest day",
+   "pt": "dia de descanso",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.do-my-best",
+   "en": "do my best",
+   "pt": "dar o meu melhor",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "gym"
+   ]
+  },
+  {
+   "id": "k.come-and-watch",
+   "en": "come and watch",
+   "pt": "vir assistir",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.more-fun",
+   "en": "more fun",
+   "pt": "mais divertido",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.take-things-slowly",
+   "en": "take things slowly",
+   "pt": "fazer as coisas com calma",
+   "c": "collocation",
+   "lvl": 2,
+   "ctx": [
+    "morning"
+   ]
+  },
+  {
+   "id": "k.the-week-ahead",
+   "en": "the week ahead",
+   "pt": "a semana que vem",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.set-aside-time",
+   "en": "set aside time for",
+   "pt": "reservar tempo para",
+   "c": "collocation",
+   "lvl": 3,
+   "ctx": [
+    "study",
+    "evening"
+   ],
+   "match": "set aside time"
+  },
+  {
+   "id": "k.at-once",
+   "en": "at once",
+   "pt": "ao mesmo tempo",
+   "c": "time",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.priority",
+   "en": "priority",
+   "pt": "prioridade",
+   "c": "word",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ],
+   "match": "priorities",
+   "v": [
+    "priorities"
+   ]
+  },
+  {
+   "id": "k.busy",
+   "en": "busy",
+   "pt": "cheio(a), ocupado(a)",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.perfect",
+   "en": "perfect",
+   "pt": "perfeito(a)",
+   "c": "word",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.take-care-of",
+   "en": "take care of",
+   "pt": "cuidar de",
+   "c": "phrasal",
+   "lvl": 2,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.turn-off-the-light",
+   "en": "turn off the light",
+   "pt": "apagar a luz",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  },
+  {
+   "id": "k.ready-for",
+   "en": "ready for",
+   "pt": "pronto(a) para",
+   "c": "collocation",
+   "lvl": 1,
+   "ctx": [
+    "evening"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "id": "K.Q1",
+   "routine": "K01",
+   "q": "What time do you usually wake up?",
+   "a": "I usually wake up at around 5:00 a.m.",
+   "keywords": [
+    [
+     "five",
+     "5"
+    ],
+    [
+     "wake up",
+     "get up"
+    ]
+   ],
+   "items": [
+    "it.wake-up",
+    "it.usually"
+   ],
+   "facts": [
+    "F01"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q2",
+   "routine": "K01",
+   "q": "What do you do in the morning at work?",
+   "a": "From 7:00 to 11:00 a.m., I work with my personal training clients.",
+   "keywords": [
+    [
+     "personal",
+     "client",
+     "clients"
+    ]
+   ],
+   "items": [
+    "k.personal-training-client"
+   ],
+   "facts": [
+    "F03"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q3",
+   "routine": "K01",
+   "q": "When do you do your own workout?",
+   "a": "I do my own workout from 12:30 to 1:30 p.m.",
+   "keywords": [
+    [
+     "workout",
+     "train",
+     "training"
+    ]
+   ],
+   "items": [
+    "k.do-my-own-workout"
+   ],
+   "facts": [
+    "F05"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q4",
+   "routine": "K01",
+   "q": "What do you teach in the afternoon?",
+   "a": "I teach group Pilates classes from 2:00 to 4:30 p.m.",
+   "keywords": [
+    [
+     "pilates"
+    ]
+   ],
+   "items": [
+    "k.teach-a-class",
+    "k.group-pilates-class"
+   ],
+   "facts": [
+    "F06"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q5",
+   "routine": "K01",
+   "q": "What do you do when you get home?",
+   "a": "I organise dinner for my family and the children's snack.",
+   "keywords": [
+    [
+     "dinner"
+    ],
+    [
+     "snack",
+     "children"
+    ]
+   ],
+   "items": [
+    "k.organise-dinner",
+    "k.childrens-snack"
+   ],
+   "facts": [
+    "F09"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q6",
+   "routine": "K02",
+   "q": "What is different on Tuesdays and Thursdays?",
+   "a": "I finish my classes at around 3:00 p.m., do my workout at 4:00 p.m. and get home at around 5:30 p.m.",
+   "keywords": [
+    [
+     "three",
+     "3"
+    ],
+    [
+     "four",
+     "4"
+    ]
+   ],
+   "items": [
+    "k.on-tuesdays-and-thursdays"
+   ],
+   "facts": [
+    "V01"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q7",
+   "routine": "K03",
+   "q": "What do you do if you can't work out at lunchtime?",
+   "a": "I can go for a run at another time.",
+   "keywords": [
+    [
+     "run",
+     "running"
+    ]
+   ],
+   "items": [
+    "k.go-for-a-run"
+   ],
+   "facts": [
+    "V04"
+   ],
+   "kind": "conv"
+  },
+  {
+   "id": "K.Q8",
+   "routine": "K02",
+   "kind": "comp",
+   "q": "What happens on Tuesdays and Thursdays when Karla gets home earlier?",
+   "a": "She has more time with her family.",
+   "keywords": [
+    [
+     "time"
+    ],
+    [
+     "family"
+    ]
+   ],
+   "items": [
+    "k.more-time-with"
+   ]
+  },
+  {
+   "id": "K.Q9",
+   "routine": "K04",
+   "kind": "conv",
+   "q": "What does your younger son do when you get home?",
+   "a": "He runs to give me a hug.",
+   "keywords": [
+    [
+     "hug"
+    ]
+   ],
+   "items": [
+    "k.younger-son",
+    "k.give-someone-a-hug"
+   ]
+  },
+  {
+   "id": "K.Q10",
+   "routine": "K04",
+   "kind": "comp",
+   "q": "Why does Karla help her younger son after dinner?",
+   "a": "Because he hasn't finished his homework yet.",
+   "keywords": [
+    [
+     "homework"
+    ],
+    [
+     "finished",
+     "finish"
+    ]
+   ],
+   "items": [
+    "k.finish-your-homework",
+    "it.because"
+   ]
+  },
+  {
+   "id": "K.Q11",
+   "routine": "K04",
+   "kind": "transfer",
+   "q": "What do you usually do in the evening with your family?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "it.usually",
+    "it.have-dinner"
+   ],
+   "openPersonal": true,
+   "hint": "Fale da sua noite real: ‘In the evening, I usually…’, ‘We have dinner together…’, ‘I try to…’."
+  },
+  {
+   "id": "K.Q12",
+   "routine": "K05",
+   "kind": "conv",
+   "q": "What do you tell the class at the start?",
+   "a": "I tell them to lie on their backs and take a deep breath.",
+   "keywords": [
+    [
+     "breath",
+     "breathe"
+    ],
+    [
+     "back",
+     "backs"
+    ]
+   ],
+   "items": [
+    "k.lie-on-your-back",
+    "k.take-a-deep-breath"
+   ]
+  },
+  {
+   "id": "K.Q13",
+   "routine": "K05",
+   "kind": "comp",
+   "q": "Why are some of the participants nervous?",
+   "a": "Because it's their first class.",
+   "keywords": [
+    [
+     "first"
+    ]
+   ],
+   "items": [
+    "k.nervous",
+    "it.because"
+   ]
+  },
+  {
+   "id": "K.Q14",
+   "routine": "K05",
+   "kind": "transfer",
+   "q": "Give three simple instructions for an exercise you know.",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.take-a-deep-breath",
+    "k.keep-your-back-straight"
+   ],
+   "openPersonal": true,
+   "hint": "Use o imperativo: ‘Stand up straight’, ‘Breathe in’, ‘Move slowly’, ‘Keep your back straight’."
+  },
+  {
+   "id": "K.Q15",
+   "routine": "K06",
+   "kind": "conv",
+   "q": "What do you ask your clients at the start of a session?",
+   "a": "I ask them how they are feeling today.",
+   "keywords": [
+    [
+     "feeling",
+     "feel"
+    ]
+   ],
+   "items": [
+    "k.how-are-you-feeling",
+    "k.client"
+   ]
+  },
+  {
+   "id": "K.Q16",
+   "routine": "K06",
+   "kind": "comp",
+   "q": "Why does Karla change Sophie's training plan?",
+   "a": "Because Sophie is tired and her lower back feels stiff.",
+   "keywords": [
+    [
+     "tired"
+    ],
+    [
+     "stiff",
+     "back"
+    ]
+   ],
+   "items": [
+    "k.adjust-the-plan",
+    "k.stiff"
+   ]
+  },
+  {
+   "id": "K.Q17",
+   "routine": "K06",
+   "kind": "conv",
+   "q": "What do you tell your clients about progress?",
+   "a": "Progress takes time and consistency.",
+   "keywords": [
+    [
+     "time"
+    ],
+    [
+     "consistency",
+     "consistent"
+    ]
+   ],
+   "items": [
+    "k.progress-takes-time",
+    "k.consistency"
+   ]
+  },
+  {
+   "id": "K.Q18",
+   "routine": "K06",
+   "kind": "transfer",
+   "q": "How do you feel after a long day at work or school?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.tired",
+    "k.often"
+   ],
+   "openPersonal": true,
+   "hint": "Use ‘I feel…’, ‘a bit tired’, ‘my back feels stiff’ e ‘I need to…’."
+  },
+  {
+   "id": "K.Q19",
+   "routine": "K07",
+   "kind": "conv",
+   "q": "Why do you prefer speciality coffee?",
+   "a": "Because I love the rich aroma.",
+   "keywords": [
+    [
+     "aroma"
+    ]
+   ],
+   "items": [
+    "k.speciality-coffee",
+    "k.rich-aroma"
+   ]
+  },
+  {
+   "id": "K.Q20",
+   "routine": "K07",
+   "kind": "conv",
+   "q": "What would you rather do first thing in the morning?",
+   "a": "I'd rather read a few pages than check my phone.",
+   "keywords": [
+    [
+     "read"
+    ],
+    [
+     "phone"
+    ]
+   ],
+   "items": [
+    "k.would-rather",
+    "k.first-thing-in-the-morning"
+   ]
+  },
+  {
+   "id": "K.Q21",
+   "routine": "K07",
+   "kind": "transfer",
+   "q": "What do you enjoy doing on a quiet morning?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.enjoy-reading",
+    "k.would-rather"
+   ],
+   "openPersonal": true,
+   "hint": "Use ‘I enjoy…ing’, ‘I prefer…’ e ‘I'd rather… than…’."
+  },
+  {
+   "id": "K.Q22",
+   "routine": "K08",
+   "kind": "conv",
+   "q": "What are you studying at the moment?",
+   "a": "I'm studying Nutrition, and I'm also doing a postgraduate course in Biomechanics.",
+   "keywords": [
+    [
+     "nutrition"
+    ],
+    [
+     "biomechanics"
+    ]
+   ],
+   "items": [
+    "k.study-nutrition",
+    "k.postgraduate-course"
+   ]
+  },
+  {
+   "id": "K.Q23",
+   "routine": "K08",
+   "kind": "comp",
+   "q": "What did Karla do when a paragraph was too technical?",
+   "a": "She read it twice, looked up a few words and took notes.",
+   "keywords": [
+    [
+     "looked",
+     "look"
+    ],
+    [
+     "notes"
+    ]
+   ],
+   "items": [
+    "k.look-up",
+    "k.take-notes"
+   ]
+  },
+  {
+   "id": "K.Q24",
+   "routine": "K08",
+   "kind": "transfer",
+   "q": "What are you learning at the moment, and how do you study?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.take-notes",
+    "k.look-up"
+   ],
+   "openPersonal": true,
+   "hint": "Use o Present Continuous: ‘I'm learning…’, ‘I'm working on…’ e ‘I usually take notes…’."
+  },
+  {
+   "id": "K.Q25",
+   "routine": "K09",
+   "kind": "comp",
+   "q": "What went wrong last Tuesday?",
+   "a": "A client cancelled her session, and another appointment took longer than expected.",
+   "keywords": [
+    [
+     "cancelled",
+     "canceled",
+     "cancel"
+    ],
+    [
+     "longer"
+    ]
+   ],
+   "items": [
+    "k.cancel-a-session",
+    "k.take-longer-than-expected"
+   ]
+  },
+  {
+   "id": "K.Q26",
+   "routine": "K09",
+   "kind": "conv",
+   "q": "What did you decide to do in the end?",
+   "a": "I decided to run in the evening and study after dinner.",
+   "keywords": [
+    [
+     "run"
+    ],
+    [
+     "evening"
+    ],
+    [
+     "study"
+    ]
+   ],
+   "items": [
+    "k.decide-to",
+    "k.in-the-end"
+   ]
+  },
+  {
+   "id": "K.Q27",
+   "routine": "K09",
+   "kind": "transfer",
+   "q": "Tell me about a day when your plans changed. What did you do?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.plans-change",
+    "k.decide-to"
+   ],
+   "openPersonal": true,
+   "hint": "Use o passado: ‘My plans changed…’, ‘At first, I felt…’, ‘In the end, I decided to…’."
+  },
+  {
+   "id": "K.Q28",
+   "routine": "K10",
+   "kind": "conv",
+   "q": "What are you going to improve before the race?",
+   "a": "I'm going to improve my endurance and my running pace.",
+   "keywords": [
+    [
+     "endurance"
+    ],
+    [
+     "pace"
+    ]
+   ],
+   "items": [
+    "k.endurance",
+    "k.running-pace",
+    "k.be-going-to"
+   ]
+  },
+  {
+   "id": "K.Q29",
+   "routine": "K10",
+   "kind": "conv",
+   "q": "What will you do if you feel too tired?",
+   "a": "If I feel too tired, I might take a rest day.",
+   "keywords": [
+    [
+     "rest"
+    ],
+    [
+     "tired"
+    ]
+   ],
+   "items": [
+    "k.might",
+    "k.rest-day"
+   ]
+  },
+  {
+   "id": "K.Q30",
+   "routine": "K10",
+   "kind": "comp",
+   "q": "Why is Hyrox a challenge for Karla?",
+   "a": "Because it combines running with demanding workout stations.",
+   "keywords": [
+    [
+     "running"
+    ],
+    [
+     "stations",
+     "workout"
+    ]
+   ],
+   "items": [
+    "k.combine-with",
+    "k.demanding"
+   ]
+  },
+  {
+   "id": "K.Q31",
+   "routine": "K10",
+   "kind": "transfer",
+   "q": "What goal are you working towards at the moment?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.be-going-to",
+    "k.might"
+   ],
+   "openPersonal": true,
+   "hint": "Use ‘I'm going to…’, ‘I want to improve…’ e ‘If…, I might…’."
+  },
+  {
+   "id": "K.Q32",
+   "routine": "K11",
+   "kind": "conv",
+   "q": "How do you plan your week?",
+   "a": "I review my schedule and set aside time for my studies, my clients and my own training.",
+   "keywords": [
+    [
+     "schedule"
+    ],
+    [
+     "time"
+    ]
+   ],
+   "items": [
+    "k.schedule",
+    "k.set-aside-time"
+   ]
+  },
+  {
+   "id": "K.Q33",
+   "routine": "K11",
+   "kind": "conv",
+   "q": "What will you do if a client cancels?",
+   "a": "I'll use the time to catch up on my reading.",
+   "keywords": [
+    [
+     "catch up"
+    ],
+    [
+     "reading",
+     "read",
+     "study"
+    ]
+   ],
+   "items": [
+    "k.catch-up-on",
+    "k.client"
+   ]
+  },
+  {
+   "id": "K.Q34",
+   "routine": "K11",
+   "kind": "comp",
+   "q": "What does Karla believe about taking care of herself?",
+   "a": "She believes that taking care of herself helps her take care of the people she loves.",
+   "keywords": [
+    [
+     "care"
+    ],
+    [
+     "love",
+     "loves"
+    ]
+   ],
+   "items": [
+    "k.take-care-of"
+   ]
+  },
+  {
+   "id": "K.Q35",
+   "routine": "K11",
+   "kind": "transfer",
+   "q": "How are you going to organise your week?",
+   "a": "",
+   "keywords": [],
+   "items": [
+    "k.make-time-for",
+    "k.priority",
+    "k.schedule"
+   ],
+   "openPersonal": true,
+   "hint": "Use ‘I'm going to…’, ‘I'll…’, ‘If…, I'll…’ e ‘I need to make time for…’."
+  }
+ ],
+ "journey": {
+  "_doc": "Ordem da jornada = ordem das rotinas no pacote (o motor desbloqueia itens nessa ordem). Etapas são metadados pedagógicos, não um sistema paralelo de níveis.",
+  "stages": {
+   "A": "A vida cotidiana — Present Simple, horários, família, perguntas curtas.",
+   "B": "Descrever e explicar — imperativo, Present Continuous, preferências, perguntas na sessão.",
+   "C": "Relatar e resolver problemas — Past Simple, opções (could), decisões, estudo.",
+   "D": "Planejar e refletir — going to / will, condicionais (if… I'll / I might), metas e prioridades."
+  },
+  "secondaryCharacters": [
+   {
+    "name": "Sophie",
+    "role": "aluna de personal (fictícia)",
+    "episodes": [
+     "K06"
+    ]
+   },
+   {
+    "name": "Ana",
+    "role": "colega de pós-graduação (fictícia)",
+    "episodes": [
+     "K08"
+    ]
+   },
+   {
+    "name": "Younger son / Older son / Husband",
+    "role": "família real da Karla; sem nomes (não informados)",
+    "episodes": [
+     "K04",
+     "K07",
+     "K10"
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,1215 @@
+
+> test
+> node --test tests/unit/*.test.js
+
+TAP version 13
+# Subtest: playElement: toca, reflete estado e resolve ao terminar
+ok 1 - playElement: toca, reflete estado e resolve ao terminar
+  ---
+  duration_ms: 2.993834
+  type: 'test'
+  ...
+# Subtest: pausa do usuário mantém a posição; tocar de novo retoma (não reinicia)
+ok 2 - pausa do usuário mantém a posição; tocar de novo retoma (não reinicia)
+  ---
+  duration_ms: 0.706494
+  type: 'test'
+  ...
+# Subtest: um áudio novo para o anterior (sem reprodução duplicada)
+ok 3 - um áudio novo para o anterior (sem reprodução duplicada)
+  ---
+  duration_ms: 0.459694
+  type: 'test'
+  ...
+# Subtest: stopAll (troca de tela) para o elemento e não deixa ouvintes pendurados
+ok 4 - stopAll (troca de tela) para o elemento e não deixa ouvintes pendurados
+  ---
+  duration_ms: 9.111609
+  type: 'test'
+  ...
+# Subtest: releaseElement: para se estiver tocando e libera o recurso (src removido)
+ok 5 - releaseElement: para se estiver tocando e libera o recurso (src removido)
+  ---
+  duration_ms: 0.39045
+  type: 'test'
+  ...
+# Subtest: playSoon: reprodução agendada é cancelada se algo parar o áudio antes (próximo exercício/troca de tela)
+ok 6 - playSoon: reprodução agendada é cancelada se algo parar o áudio antes (próximo exercício/troca de tela)
+  ---
+  duration_ms: 40.329084
+  type: 'test'
+  ...
+# Subtest: reconhecimento local: fora do navegador é "unsupported" com motivo, sem lançar erro
+ok 7 - reconhecimento local: fora do navegador é "unsupported" com motivo, sem lançar erro
+  ---
+  duration_ms: 1.176846
+  type: 'test'
+  ...
+# Subtest: As 10 rotinas e os 34 parágrafos (EN e PT) são idênticos ao Word
+ok 8 - As 10 rotinas e os 34 parágrafos (EN e PT) são idênticos ao Word
+  ---
+  duration_ms: 2.612185
+  type: 'test'
+  ...
+# Subtest: As 176 linhas das tabelas do Word estão representadas, com tradução e nota originais
+ok 9 - As 176 linhas das tabelas do Word estão representadas, com tradução e nota originais
+  ---
+  duration_ms: 10.423552
+  type: 'test'
+  ...
+# Subtest: Perguntas e respostas-modelo do Word sem alteração (51)
+ok 10 - Perguntas e respostas-modelo do Word sem alteração (51)
+  ---
+  duration_ms: 0.329511
+  type: 'test'
+  ...
+# Subtest: Pontos de uso, drills e checklist preservados
+ok 11 - Pontos de uso, drills e checklist preservados
+  ---
+  duration_ms: 0.245665
+  type: 'test'
+  ...
+# Subtest: Todo conteúdo novo está marcado e as perguntas novas citam a origem dos fatos
+ok 12 - Todo conteúdo novo está marcado e as perguntas novas citam a origem dos fatos
+  ---
+  duration_ms: 0.431489
+  type: 'test'
+  ...
+# Subtest: Nenhuma resposta-modelo é rejeitada pelo próprio corretor
+ok 13 - Nenhuma resposta-modelo é rejeitada pelo próprio corretor
+  ---
+  duration_ms: 72.178472
+  type: 'test'
+  ...
+# Subtest: Grafia britânica nos textos-modelo (sem formas americanas mapeadas)
+ok 14 - Grafia britânica nos textos-modelo (sem formas americanas mapeadas)
+  ---
+  duration_ms: 6.916167
+  type: 'test'
+  ...
+# Subtest: Todo áudio referenciado existe (ou está no índice)
+ok 15 - Todo áudio referenciado existe (ou está no índice)
+  ---
+  duration_ms: 2.629052
+  type: 'test'
+  ...
+# Subtest: cadastro: Lucas, Karla e as personas previstas (sem conteúdo), seis estados cada, imagens pendentes (nenhuma imagem genérica)
+ok 16 - cadastro: Lucas, Karla e as personas previstas (sem conteúdo), seis estados cada, imagens pendentes (nenhuma imagem genérica)
+  ---
+  duration_ms: 2.000034
+  type: 'test'
+  ...
+# Subtest: perfil da Karla: só o informado (rotina + Character Bible); nada de idade dela, sobrenome, cidade ou nomes da família
+ok 17 - perfil da Karla: só o informado (rotina + Character Bible); nada de idade dela, sobrenome, cidade ou nomes da família
+  ---
+  duration_ms: 2.901453
+  type: 'test'
+  ...
+# Subtest: duas camadas: frases da rotina-base vêm de fatos (variações com when/if/can); episódios são ilustrativos, ancorados no perfil
+ok 18 - duas camadas: frases da rotina-base vêm de fatos (variações com when/if/can); episódios são ilustrativos, ancorados no perfil
+  ---
+  duration_ms: 0.728166
+  type: 'test'
+  ...
+# Subtest: progresso já publicado preservado: K01–K03 mantêm IDs e textos de 482ec74 (blocos novos só no fim)
+ok 19 - progresso já publicado preservado: K01–K03 mantêm IDs e textos de 482ec74 (blocos novos só no fim)
+  ---
+  duration_ms: 0.407105
+  type: 'test'
+  ...
+# Subtest: jornada: episódios em ordem de etapa (A→D), cada um com conversa/compreensão e transferência; diálogos com quem fala
+ok 20 - jornada: episódios em ordem de etapa (A→D), cada um com conversa/compreensão e transferência; diálogos com quem fala
+  ---
+  duration_ms: 0.533414
+  type: 'test'
+  ...
+# Subtest: revisão cumulativa: palavras retomadas em episódios posteriores; cada episódio novo retoma algo já visto
+ok 21 - revisão cumulativa: palavras retomadas em episódios posteriores; cada episódio novo retoma algo já visto
+  ---
+  duration_ms: 3.131428
+  type: 'test'
+  ...
+# Subtest: inglês britânico nos textos novos (grafia e vocabulário), sem afirmação de saúde prescritiva
+ok 22 - inglês britânico nos textos novos (grafia e vocabulário), sem afirmação de saúde prescritiva
+  ---
+  duration_ms: 0.478626
+  type: 'test'
+  ...
+# Subtest: visão do Lucas = o próprio conteúdo atual (mesmo objeto): nada muda para quem já usa o app
+ok 23 - visão do Lucas = o próprio conteúdo atual (mesmo objeto): nada muda para quem já usa o app
+  ---
+  duration_ms: 0.243803
+  type: 'test'
+  ...
+# Subtest: visão da Karla: só conteúdo dela + vocabulário genérico compartilhado, reapontado para as frases dela
+ok 24 - visão da Karla: só conteúdo dela + vocabulário genérico compartilhado, reapontado para as frases dela
+  ---
+  duration_ms: 0.437039
+  type: 'test'
+  ...
+# Subtest: progresso isolado: cartões de um personagem não entram nas sessões/revisões do outro; palavras genéricas sim
+ok 25 - progresso isolado: cartões de um personagem não entram nas sessões/revisões do outro; palavras genéricas sim
+  ---
+  duration_ms: 4.601989
+  type: 'test'
+  ...
+# Subtest: armazenamento: estados antigos ganham personagem padrão (Lucas) sem migração destrutiva
+ok 26 - armazenamento: estados antigos ganham personagem padrão (Lucas) sem migração destrutiva
+  ---
+  duration_ms: 0.957131
+  type: 'test'
+  ...
+# Subtest: motor compartilhado: exercícios da Karla são gerados pelo mesmo gerador e respondidos pelo mesmo corretor
+ok 27 - motor compartilhado: exercícios da Karla são gerados pelo mesmo gerador e respondidos pelo mesmo corretor
+  ---
+  duration_ms: 10.956843
+  type: 'test'
+  ...
+# Subtest: avaliação oral com o conteúdo da Karla: respostas dela não geram falsos alarmes; troca real é marcada
+ok 28 - avaliação oral com o conteúdo da Karla: respostas dela não geram falsos alarmes; troca real é marcada
+  ---
+  duration_ms: 1287.327352
+  type: 'test'
+  ...
+# Subtest: escolha de personagem: estado novo ainda não escolheu (Lucas marcado); antigos e backups não são interrompidos; dados inválidos caem no padrão
+ok 29 - escolha de personagem: estado novo ainda não escolheu (Lucas marcado); antigos e backups não são interrompidos; dados inválidos caem no padrão
+  ---
+  duration_ms: 0.848852
+  type: 'test'
+  ...
+# Subtest: corretor: 175 casos
+ok 30 - corretor: 175 casos
+  ---
+  duration_ms: 74.333033
+  type: 'test'
+  ...
+# Subtest: nenhuma resposta de sentido errado é aceita (amostra adversarial)
+ok 31 - nenhuma resposta de sentido errado é aceita (amostra adversarial)
+  ---
+  duration_ms: 1.137797
+  type: 'test'
+  ...
+# Subtest: variante pessoal aprovada pelo usuário passa a ser aceita
+ok 32 - variante pessoal aprovada pelo usuário passa a ser aceita
+  ---
+  duration_ms: 1.276172
+  type: 'test'
+  ...
+# Subtest: cobertura de resposta longa por itens e palavras-chave
+ok 33 - cobertura de resposta longa por itens e palavras-chave
+  ---
+  duration_ms: 1.667945
+  type: 'test'
+  ...
+# Subtest: Caso A — “sit on my” e “this nation” sinalizados como POSSÍVEL erro de reconhecimento, com o trecho esperado
+ok 34 - Caso A — “sit on my” e “this nation” sinalizados como POSSÍVEL erro de reconhecimento, com o trecho esperado
+  ---
+  duration_ms: 19.85061
+  type: 'test'
+  ...
+# Subtest: Caso A — a transcrição original é preservada; as hipóteses não substituem o texto
+ok 35 - Caso A — a transcrição original é preservada; as hipóteses não substituem o texto
+  ---
+  duration_ms: 14.583188
+  type: 'test'
+  ...
+# Subtest: Caso A — a adequação da resposta continua independente da transcrição: responde, cita horário e desenvolve
+ok 36 - Caso A — a adequação da resposta continua independente da transcrição: responde, cita horário e desenvolve
+  ---
+  duration_ms: 9.685171
+  type: 'test'
+  ...
+# Subtest: Caso B — aceita “five thirty a.m.” e “the office”; nota de estilo clara; destaque só no lugar certo
+ok 37 - Caso B — aceita “five thirty a.m.” e “the office”; nota de estilo clara; destaque só no lugar certo
+  ---
+  duration_ms: 11.045126
+  type: 'test'
+  ...
+# Subtest: Caso C — “five and thirty a.m.” entendido como 5:30, aceito com UMA sugestão de naturalidade (sem erros artificiais)
+ok 38 - Caso C — “five and thirty a.m.” entendido como 5:30, aceito com UMA sugestão de naturalidade (sem erros artificiais)
+  ---
+  duration_ms: 2.678308
+  type: 'test'
+  ...
+# Subtest: 1 — horários equivalentes em número e por extenso
+ok 39 - 1 — horários equivalentes em número e por extenso
+  ---
+  duration_ms: 1.190498
+  type: 'test'
+  ...
+# Subtest: 3 — “my office” e “the office” aceitos quando o sentido se mantém; a troca é estilo, não gramática
+ok 40 - 3 — “my office” e “the office” aceitos quando o sentido se mantém; a troca é estilo, não gramática
+  ---
+  duration_ms: 0.441483
+  type: 'test'
+  ...
+# Subtest: 7 e 10 — palavra legítima fora do modelo e vocabulário diferente não viram suspeita de reconhecimento
+ok 41 - 7 e 10 — palavra legítima fora do modelo e vocabulário diferente não viram suspeita de reconhecimento
+  ---
+  duration_ms: 6.869826
+  type: 'test'
+  ...
+# Subtest: 8 e 9 — resposta curta pertinente e resposta desenvolvida e coerente
+ok 42 - 8 e 9 — resposta curta pertinente e resposta desenvolvida e coerente
+  ---
+  duration_ms: 5.85535
+  type: 'test'
+  ...
+# Subtest: 11 — erro gramatical real é distinguido de diferença de estilo
+ok 43 - 11 — erro gramatical real é distinguido de diferença de estilo
+  ---
+  duration_ms: 3.684633
+  type: 'test'
+  ...
+# Subtest: 12 — artigos, possessivos e preposições não são descartados na comparação
+ok 44 - 12 — artigos, possessivos e preposições não são descartados na comparação
+  ---
+  duration_ms: 8.232041
+  type: 'test'
+  ...
+# Subtest: 13 — transcrição inconclusiva: sem nota, sem marcações, sem afirmações
+ok 45 - 13 — transcrição inconclusiva: sem nota, sem marcações, sem afirmações
+  ---
+  duration_ms: 2.836953
+  type: 'test'
+  ...
+# Subtest: 14 — palavras realmente ausentes ou trocadas: troca dentro de frase conhecida vira suspeita; omissão não vira acusação
+ok 46 - 14 — palavras realmente ausentes ou trocadas: troca dentro de frase conhecida vira suspeita; omissão não vira acusação
+  ---
+  duration_ms: 28.062103
+  type: 'test'
+  ...
+# Subtest: as próprias frases do app nunca geram suspeita (355 referências)
+ok 47 - as próprias frases do app nunca geram suspeita (355 referências)
+  ---
+  duration_ms: 551.251771
+  type: 'test'
+  ...
+# Subtest: transcrições REAIS do modelo (fala correta, 101 frases): só erros reais do reconhecedor são sinalizados
+ok 48 - transcrições REAIS do modelo (fala correta, 101 frases): só erros reais do reconhecedor são sinalizados
+  ---
+  duration_ms: 80.087169
+  type: 'test'
+  ...
+# Subtest: critério de som parecido (só para suspeita)
+ok 49 - critério de som parecido (só para suspeita)
+  ---
+  duration_ms: 0.179953
+  type: 'test'
+  ...
+# primeiro dia de cada habilidade: {"rec":0,"ord":0,"conv":0,"rcl":1,"wrt":1,"seq":2,"tell":2,"bld":4,"retell":20} · itens R01 vistos: 57 / 57 · revisões acumuladas no dia 60: 89
+# Subtest: Leitner: acerto sobe de caixa; erro volta à caixa 0 e vence hoje
+ok 50 - Leitner: acerto sobe de caixa; erro volta à caixa 0 e vence hoje
+  ---
+  duration_ms: 0.876758
+  type: 'test'
+  ...
+# Subtest: Sessão inicial: começa pela Rotina 1 com itens novos e tamanho limitado
+ok 51 - Sessão inicial: começa pela Rotina 1 com itens novos e tamanho limitado
+  ---
+  duration_ms: 4.163505
+  type: 'test'
+  ...
+# Subtest: Desbloqueio progressivo: recuperação só depois de reconhecer (caixa ≥ 2)
+ok 52 - Desbloqueio progressivo: recuperação só depois de reconhecer (caixa ≥ 2)
+  ---
+  duration_ms: 4.594393
+  type: 'test'
+  ...
+# Subtest: Erros reaparecem: cartão errado entra na próxima sessão do mesmo dia
+ok 53 - Erros reaparecem: cartão errado entra na próxima sessão do mesmo dia
+  ---
+  duration_ms: 2.867176
+  type: 'test'
+  ...
+# Subtest: XP: o mesmo cartão rende no máximo 2 vezes por dia; erro rende esforço uma vez
+ok 54 - XP: o mesmo cartão rende no máximo 2 vezes por dia; erro rende esforço uma vez
+  ---
+  duration_ms: 1.069956
+  type: 'test'
+  ...
+# Subtest: XP de sessão e de gravação têm teto diário
+ok 55 - XP de sessão e de gravação têm teto diário
+  ---
+  duration_ms: 0.431555
+  type: 'test'
+  ...
+# Subtest: Sequência de dias com folga semanal
+ok 56 - Sequência de dias com folga semanal
+  ---
+  duration_ms: 0.187745
+  type: 'test'
+  ...
+# Subtest: Níveis por XP
+ok 57 - Níveis por XP
+  ---
+  duration_ms: 0.104222
+  type: 'test'
+  ...
+# Subtest: Migração: recupera estado parcial/corrompido e recusa esquema futuro
+ok 58 - Migração: recupera estado parcial/corrompido e recusa esquema futuro
+  ---
+  duration_ms: 1.118609
+  type: 'test'
+  ...
+# Subtest: Exercícios: todas as unidades geram exercício válido
+ok 59 - Exercícios: todas as unidades geram exercício válido
+  ---
+  duration_ms: 39.876575
+  type: 'test'
+  ...
+# Subtest: Peças de ordenação reconstituem a frase
+ok 60 - Peças de ordenação reconstituem a frase
+  ---
+  duration_ms: 1.276623
+  type: 'test'
+  ...
+# Subtest: Localização de itens e spans alinhados com os tokens
+ok 61 - Localização de itens e spans alinhados com os tokens
+  ---
+  duration_ms: 1.326738
+  type: 'test'
+  ...
+# Subtest: Pares: 4 itens distintos
+ok 62 - Pares: 4 itens distintos
+  ---
+  duration_ms: 0.240473
+  type: 'test'
+  ...
+# Subtest: Progressão simulada na Rotina 1 (60 dias, 2 sessões curtas/dia, 85% de acertos): todos os níveis são alcançados em ordem
+ok 63 - Progressão simulada na Rotina 1 (60 dias, 2 sessões curtas/dia, 85% de acertos): todos os níveis são alcançados em ordem
+  ---
+  duration_ms: 224.98579
+  type: 'test'
+  ...
+# Subtest: pedagógico 1 — sinônimos e vocabulário fora do exemplo não são penalizados
+ok 64 - pedagógico 1 — sinônimos e vocabulário fora do exemplo não são penalizados
+  ---
+  duration_ms: 8.741079
+  type: 'test'
+  ...
+# Subtest: pedagógico 2 — responde à pergunta sem reproduzir o exemplo (caso do enunciado)
+ok 65 - pedagógico 2 — responde à pergunta sem reproduzir o exemplo (caso do enunciado)
+  ---
+  duration_ms: 1.942338
+  type: 'test'
+  ...
+# Subtest: pedagógico 3 — palavra omitida pela transcrição não vira erro de pronúncia
+ok 66 - pedagógico 3 — palavra omitida pela transcrição não vira erro de pronúncia
+  ---
+  duration_ms: 1.133613
+  type: 'test'
+  ...
+# Subtest: pedagógico 4 — palavra trocada pelo reconhecedor é sinalizada como DIVERGÊNCIA, com a palavra provável
+ok 67 - pedagógico 4 — palavra trocada pelo reconhecedor é sinalizada como DIVERGÊNCIA, com a palavra provável
+  ---
+  duration_ms: 3.030526
+  type: 'test'
+  ...
+# Subtest: pedagógico 5 — pertinente com erros gramaticais continua “responde à pergunta”
+ok 68 - pedagógico 5 — pertinente com erros gramaticais continua “responde à pergunta”
+  ---
+  duration_ms: 0.987715
+  type: 'test'
+  ...
+# Subtest: pedagógico 6 — gramaticalmente simples, mas comunica a ideia pedida
+ok 69 - pedagógico 6 — gramaticalmente simples, mas comunica a ideia pedida
+  ---
+  duration_ms: 1.372333
+  type: 'test'
+  ...
+# Subtest: pedagógico 7 — áudio insuficiente, transcrição vazia, curta ou degenerada: inconclusivo e sem avaliação
+ok 70 - pedagógico 7 — áudio insuficiente, transcrição vazia, curta ou degenerada: inconclusivo e sem avaliação
+  ---
+  duration_ms: 0.687335
+  type: 'test'
+  ...
+# Subtest: fora do tema e sem o elemento pedido: orientação, não “erro”
+ok 71 - fora do tema e sem o elemento pedido: orientação, não “erro”
+  ---
+  duration_ms: 1.926905
+  type: 'test'
+  ...
+# Subtest: contrações, flexões, horários, compostos e grafias BrE/AmE não geram marcações
+ok 72 - contrações, flexões, horários, compostos e grafias BrE/AmE não geram marcações
+  ---
+  duration_ms: 1.216796
+  type: 'test'
+  ...
+# Subtest: intenção da pergunta (critério explícito)
+ok 73 - intenção da pergunta (critério explícito)
+  ---
+  duration_ms: 0.913714
+  type: 'test'
+  ...
+# Subtest: respostas-exemplo do próprio app são reconhecidas como resposta à pergunta (≥ 95%)
+ok 74 - respostas-exemplo do próprio app são reconhecidas como resposta à pergunta (≥ 95%)
+  ---
+  duration_ms: 35.154981
+  type: 'test'
+  ...
+# Subtest: transcrições REAIS do modelo local (fala correta, 101 frases): quase nenhuma marcação indevida
+ok 75 - transcrições REAIS do modelo local (fala correta, 101 frases): quase nenhuma marcação indevida
+  ---
+  duration_ms: 48.597238
+  type: 'test'
+  ...
+# Subtest: métricas: só o que foi medido; velocidade fora da faixa plausível fica indisponível
+ok 76 - métricas: só o que foi medido; velocidade fora da faixa plausível fica indisponível
+  ---
+  duration_ms: 0.67032
+  type: 'test'
+  ...
+# Subtest: gravação longa: dividida em trechos ≤ 24 s, contíguos, sem perder áudio, cortando nas pausas
+ok 77 - gravação longa: dividida em trechos ≤ 24 s, contíguos, sem perder áudio, cortando nas pausas
+  ---
+  duration_ms: 42.162856
+  type: 'test'
+  ...
+# Subtest: direitos: nada do Conversation Book no conteúdo publicável (sequências de 6 palavras, nomes, notas); nada “original” sem licença
+ok 78 - direitos: nada do Conversation Book no conteúdo publicável (sequências de 6 palavras, nomes, notas); nada “original” sem licença
+  ---
+  duration_ms: 8.157978
+  type: 'test'
+  ...
+# Subtest: atribuição: toda frase, bloco, item e atividade marcados como conteúdo do app; o livro só orienta os objetivos
+ok 79 - atribuição: toda frase, bloco, item e atividade marcados como conteúdo do app; o livro só orienta os objetivos
+  ---
+  duration_ms: 0.47544
+  type: 'test'
+  ...
+# Subtest: inglês britânico em todo o texto; notas de variante explicam o americano; o corretor aceita as duas grafias
+ok 80 - inglês britânico em todo o texto; notas de variante explicam o americano; o corretor aceita as duas grafias
+  ---
+  duration_ms: 2.649435
+  type: 'test'
+  ...
+# Subtest: quatro habilidades por unidade: listening, reading, writing, speaking e transferência
+ok 81 - quatro habilidades por unidade: listening, reading, writing, speaking e transferência
+  ---
+  duration_ms: 2.866961
+  type: 'test'
+  ...
+# Subtest: ouvir e responder: trecho em áudio sem texto na pergunta; uma única opção correta; itens ligados
+ok 82 - ouvir e responder: trecho em áudio sem texto na pergunta; uma única opção correta; itens ligados
+  ---
+  duration_ms: 0.616254
+  type: 'test'
+  ...
+# Subtest: ler e responder: passagem com a fala de referência destacada; uma única opção correta
+ok 83 - ler e responder: passagem com a fala de referência destacada; uma única opção correta
+  ---
+  duration_ms: 0.317346
+  type: 'test'
+  ...
+# Subtest: correção: modelos aceitos; grafia britânica aceita nas falas americanas; palavra errada não passa
+ok 84 - correção: modelos aceitos; grafia britânica aceita nas falas americanas; palavra errada não passa
+  ---
+  duration_ms: 17.713601
+  type: 'test'
+  ...
+# Subtest: revisão cumulativa e transferência: CP02 retoma CP01; pergunta de revisão aponta a unidade anterior
+ok 85 - revisão cumulativa e transferência: CP02 retoma CP01; pergunta de revisão aponta a unidade anterior
+  ---
+  duration_ms: 0.372474
+  type: 'test'
+  ...
+# Subtest: progresso e domínio próprios: itens só da jornada; cartões de Lucas/Karla não contam; nada da jornada entra nas rotinas
+ok 86 - progresso e domínio próprios: itens só da jornada; cartões de Lucas/Karla não contam; nada da jornada entra nas rotinas
+  ---
+  duration_ms: 10.138283
+  type: 'test'
+  ...
+# Subtest: desbloqueio: ouvir abre quando a unidade começa; ler, depois de ouvir; transferência entra na sessão da unidade
+ok 87 - desbloqueio: ouvir abre quando a unidade começa; ler, depois de ouvir; transferência entra na sessão da unidade
+  ---
+  duration_ms: 1.591264
+  type: 'test'
+  ...
+# Subtest: conclusão da unidade por habilidade, calculada dos cartões
+ok 88 - conclusão da unidade por habilidade, calculada dos cartões
+  ---
+  duration_ms: 1.131538
+  type: 'test'
+  ...
+# Subtest: áudio britânico offline: falas com voz do personagem (chave própria), itens e perguntas com áudio no índice
+ok 89 - áudio britânico offline: falas com voz do personagem (chave própria), itens e perguntas com áudio no índice
+  ---
+  duration_ms: 3.845105
+  type: 'test'
+  ...
+# Subtest: avaliação oral sem falsos alarmes no conteúdo da jornada (molduras da própria jornada)
+ok 90 - avaliação oral sem falsos alarmes no conteúdo da jornada (molduras da própria jornada)
+  ---
+  duration_ms: 445.430373
+  type: 'test'
+  ...
+# Subtest: conteúdo publicado preservado: frases, blocos, rotinas, perguntas, itens e dados do Word idênticos a 35bd2fb
+ok 91 - conteúdo publicado preservado: frases, blocos, rotinas, perguntas, itens e dados do Word idênticos a 35bd2fb
+  ---
+  duration_ms: 5.703515
+  type: 'test'
+  ...
+# Subtest: jornada: rotinas do Word (etapa A) primeiro, episódios R11–R18 depois, em etapas B→D
+ok 92 - jornada: rotinas do Word (etapa A) primeiro, episódios R11–R18 depois, em etapas B→D
+  ---
+  duration_ms: 0.42827
+  type: 'test'
+  ...
+# Subtest: Perfil Arquiteto e universos: todos os traços e os oito universos aparecem em situações concretas
+ok 93 - Perfil Arquiteto e universos: todos os traços e os oito universos aparecem em situações concretas
+  ---
+  duration_ms: 0.480002
+  type: 'test'
+  ...
+# Subtest: privacidade e ficção: nada de empregador, escola, agência ou nomes da família; secundários declarados por papel
+ok 94 - privacidade e ficção: nada de empregador, escola, agência ou nomes da família; secundários declarados por papel
+  ---
+  duration_ms: 0.732369
+  type: 'test'
+  ...
+# Subtest: vocabulário: itens novos só nos episódios; itens do Lucas retomados nos episódios; retomada entre episódios
+ok 95 - vocabulário: itens novos só nos episódios; itens do Lucas retomados nos episódios; retomada entre episódios
+  ---
+  duration_ms: 1.150439
+  type: 'test'
+  ...
+# Subtest: toda frase (Lucas e Karla) tem ao menos um item: frase sem item seria liberada logo na primeira sessão
+ok 96 - toda frase (Lucas e Karla) tem ao menos um item: frase sem item seria liberada logo na primeira sessão
+  ---
+  duration_ms: 11.304534
+  type: 'test'
+  ...
+# Subtest: motor intacto: exercícios gerados para todas as frases novas, respostas-modelo aceitas, sessão do episódio só com ele
+ok 97 - motor intacto: exercícios gerados para todas as frases novas, respostas-modelo aceitas, sessão do episódio só com ele
+  ---
+  duration_ms: 69.276642
+  type: 'test'
+  ...
+# Subtest: inglês britânico nos episódios; nada de conselho financeiro ou de saúde prescritivo
+ok 98 - inglês britânico nos episódios; nada de conselho financeiro ou de saúde prescritivo
+  ---
+  duration_ms: 0.680006
+  type: 'test'
+  ...
+# Subtest: Lukinhas é o personagem fixo “lucas-kid” (nome de exibição), sem perfil novo nem identidade duplicada
+ok 99 - Lukinhas é o personagem fixo “lucas-kid” (nome de exibição), sem perfil novo nem identidade duplicada
+  ---
+  duration_ms: 1.558656
+  type: 'test'
+  ...
+# Subtest: dez sessões na ordem, com título, foco, nível, objetivo e vocabulário prioritário aprovados
+ok 100 - dez sessões na ordem, com título, foco, nível, objetivo e vocabulário prioritário aprovados
+  ---
+  duration_ms: 0.322403
+  type: 'test'
+  ...
+# Subtest: os dez textos estão completos e idênticos aos aprovados (nenhuma correção foi necessária)
+ok 101 - os dez textos estão completos e idênticos aos aprovados (nenhuma correção foi necessária)
+  ---
+  duration_ms: 0.3122
+  type: 'test'
+  ...
+# Subtest: traduções: uma por frase, em português, mantendo os horários
+ok 102 - traduções: uma por frase, em português, mantendo os horários
+  ---
+  duration_ms: 0.853223
+  type: 'test'
+  ...
+# Subtest: expressões: cada uma do vocabulário prioritário está no texto da sua sessão, com significado, explicação, exemplo e tradução
+ok 103 - expressões: cada uma do vocabulário prioritário está no texto da sua sessão, com significado, explicação, exemplo e tradução
+  ---
+  duration_ms: 4.801677
+  type: 'test'
+  ...
+# Subtest: progressão cumulativa: expressões de sessões anteriores voltam ligadas nas seguintes; a sessão 10 retoma várias
+ok 104 - progressão cumulativa: expressões de sessões anteriores voltam ligadas nas seguintes; a sessão 10 retoma várias
+  ---
+  duration_ms: 0.535597
+  type: 'test'
+  ...
+# Subtest: inglês britânico e rotina informada: rubbish, lead, minibus; sem dias da semana para o treino; só os horários informados
+ok 105 - inglês britânico e rotina informada: rubbish, lead, minibus; sem dias da semana para o treino; só os horários informados
+  ---
+  duration_ms: 0.852966
+  type: 'test'
+  ...
+# Subtest: produção independente: cada sessão termina com uma pergunta aberta sem leitura, além de perguntas com resposta-modelo do texto
+ok 106 - produção independente: cada sessão termina com uma pergunta aberta sem leitura, além de perguntas com resposta-modelo do texto
+  ---
+  duration_ms: 0.232794
+  type: 'test'
+  ...
+# Subtest: cinco etapas por sessão; a sessão de expressões inclui “mais natural” e a de ouvir reconhece frases da sessão
+ok 107 - cinco etapas por sessão; a sessão de expressões inclui “mais natural” e a de ouvir reconhece frases da sessão
+  ---
+  duration_ms: 3.552148
+  type: 'test'
+  ...
+# Subtest: exercício “mais natural” só existe onde há forma simples (Lucas e Karla não mudam)
+ok 108 - exercício “mais natural” só existe onde há forma simples (Lucas e Karla não mudam)
+  ---
+  duration_ms: 8.123631
+  type: 'test'
+  ...
+# Subtest: o corretor aceita as respostas-modelo e o texto integral (respostas por escrito na etapa Aplicar)
+ok 109 - o corretor aceita as respostas-modelo e o texto integral (respostas por escrito na etapa Aplicar)
+  ---
+  duration_ms: 7.394691
+  type: 'test'
+  ...
+# Subtest: áudio britânico local para frases, expressões e exemplos do Lukinhas
+ok 110 - áudio britânico local para frases, expressões e exemplos do Lukinhas
+  ---
+  duration_ms: 0.41524
+  type: 'test'
+  ...
+# Subtest: Speaking Lab (leitura): a comparação com a transcrição local funciona nas frases do Lukinhas — verde, âmbar e cinza; nunca “pronúncia correta”
+ok 111 - Speaking Lab (leitura): a comparação com a transcrição local funciona nas frases do Lukinhas — verde, âmbar e cinza; nunca “pronúncia correta”
+  ---
+  duration_ms: 3.684325
+  type: 'test'
+  ...
+# Subtest: etapas 1 e 2 de cada sessão usam o vocabulário prioritário aprovado e nenhuma fica vazia
+ok 112 - etapas 1 e 2 de cada sessão usam o vocabulário prioritário aprovado e nenhuma fica vazia
+  ---
+  duration_ms: 1.288068
+  type: 'test'
+  ...
+# Subtest: perfis: persona e jornada têm progresso separado; trocar não apaga nem mistura
+ok 113 - perfis: persona e jornada têm progresso separado; trocar não apaga nem mistura
+  ---
+  duration_ms: 2.376779
+  type: 'test'
+  ...
+# Subtest: perfis: o item genérico compartilhado não gera domínio na outra persona
+ok 114 - perfis: o item genérico compartilhado não gera domínio na outra persona
+  ---
+  duration_ms: 0.381719
+  type: 'test'
+  ...
+# Subtest: gravação: só o topo do perfil ativo é devolvido; nada duplicado; ida e volta preserva tudo
+ok 115 - gravação: só o topo do perfil ativo é devolvido; nada duplicado; ida e volta preserva tudo
+  ---
+  duration_ms: 0.944557
+  type: 'test'
+  ...
+# Subtest: migração do progresso único (esquema 1): cada cartão vai para o dono; XP total e histórico preservados
+ok 116 - migração do progresso único (esquema 1): cada cartão vai para o dono; XP total e histórico preservados
+  ---
+  duration_ms: 0.884147
+  type: 'test'
+  ...
+# Subtest: personas previstas: cadastradas sem conteúdo; visão vazia, nunca o conteúdo de outra persona
+ok 117 - personas previstas: cadastradas sem conteúdo; visão vazia, nunca o conteúdo de outra persona
+  ---
+  duration_ms: 0.311952
+  type: 'test'
+  ...
+# Subtest: módulos: cinco etapas na ordem; só a primeira começa aberta
+ok 118 - módulos: cinco etapas na ordem; só a primeira começa aberta
+  ---
+  duration_ms: 1.248478
+  type: 'test'
+  ...
+# Subtest: cadeados: concluir abre a próxima; não exige perfeição; um erro depois não fecha de novo
+ok 119 - cadeados: concluir abre a próxima; não exige perfeição; um erro depois não fecha de novo
+  ---
+  duration_ms: 0.699764
+  type: 'test'
+  ...
+# Subtest: sessão por etapa: só o conteúdo e as habilidades da etapa; etapa bloqueada não abre
+ok 120 - sessão por etapa: só o conteúdo e as habilidades da etapa; etapa bloqueada não abre
+  ---
+  duration_ms: 6.511926
+  type: 'test'
+  ...
+# Subtest: ouvir e entender: frase do módulo pelo som, texto só depois; alternativas do mesmo módulo
+ok 121 - ouvir e entender: frase do módulo pelo som, texto só depois; alternativas do mesmo módulo
+  ---
+  duration_ms: 2.712998
+  type: 'test'
+  ...
+# Subtest: aplicar e conversar: inclui perguntas abertas de transferência nas rotinas; jornada concluída = unidade concluída
+ok 122 - aplicar e conversar: inclui perguntas abertas de transferência nas rotinas; jornada concluída = unidade concluída
+  ---
+  duration_ms: 1.907602
+  type: 'test'
+  ...
+# Subtest: 1 — “chicken” ouvido como “kitten” num contexto de comida: âmbar, sugestão rotulada, transcrição intacta
+ok 123 - 1 — “chicken” ouvido como “kitten” num contexto de comida: âmbar, sugestão rotulada, transcrição intacta
+  ---
+  duration_ms: 185.940546
+  type: 'test'
+  ...
+# Subtest: 2 — “lettuce” ouvido como “a little” numa lista de acompanhamentos
+ok 124 - 2 — “lettuce” ouvido como “a little” numa lista de acompanhamentos
+  ---
+  duration_ms: 30.330205
+  type: 'test'
+  ...
+# Subtest: 3 — “Uber” ouvido como “over” (e “destination” como “station”) num contexto de deslocamento
+ok 125 - 3 — “Uber” ouvido como “over” (e “destination” como “station”) num contexto de deslocamento
+  ---
+  duration_ms: 81.000853
+  type: 'test'
+  ...
+# Subtest: 4 — frase gramaticalmente errada mas compreensível: correção de gramática, sem suspeita de reconhecimento
+ok 126 - 4 — frase gramaticalmente errada mas compreensível: correção de gramática, sem suspeita de reconhecimento
+  ---
+  duration_ms: 76.452092
+  type: 'test'
+  ...
+# Subtest: 5 — resposta correta com vocabulário diferente do modelo: aceita, nada marcado
+ok 127 - 5 — resposta correta com vocabulário diferente do modelo: aceita, nada marcado
+  ---
+  duration_ms: 81.737036
+  type: 'test'
+  ...
+# Subtest: 6 — alternativa válida que não está na referência (ônibus × carro, presunto × frango): não é erro
+ok 128 - 6 — alternativa válida que não está na referência (ônibus × carro, presunto × frango): não é erro
+  ---
+  duration_ms: 138.711621
+  type: 'test'
+  ...
+# Subtest: 7 — frase incomum mas plausível (“pumpkin sandwich”): não é rejeitada nem marcada
+ok 129 - 7 — frase incomum mas plausível (“pumpkin sandwich”): não é rejeitada nem marcada
+  ---
+  duration_ms: 13.613173
+  type: 'test'
+  ...
+# Subtest: 8 — elemento solicitado realmente ausente (transcrição íntegra): “responde em parte” com orientação
+ok 130 - 8 — elemento solicitado realmente ausente (transcrição íntegra): “responde em parte” com orientação
+  ---
+  duration_ms: 18.002133
+  type: 'test'
+  ...
+# Subtest: 9 — aluno disse o elemento mas a transcrição o omitiu (lacuna “at and”): “não confirmado”, não “faltou”
+ok 131 - 9 — aluno disse o elemento mas a transcrição o omitiu (lacuna “at and”): “não confirmado”, não “faltou”
+  ---
+  duration_ms: 12.001924
+  type: 'test'
+  ...
+# Subtest: 10 — transcrição truncada, trecho perdido ou corte no meio da fala: integridade avisa e a avaliação se ajusta
+ok 132 - 10 — transcrição truncada, trecho perdido ou corte no meio da fala: integridade avisa e a avaliação se ajusta
+  ---
+  duration_ms: 22.097293
+  type: 'test'
+  ...
+# Subtest: 10b — sem falso aviso de corte nas 101 leituras reais do Moonshine (duração real de cada áudio)
+ok 133 - 10b — sem falso aviso de corte nas 101 leituras reais do Moonshine (duração real de cada áudio)
+  ---
+  duration_ms: 1.858894
+  type: 'test'
+  ...
+# Subtest: 11 — palavra desconhecida ou nome próprio: não é substituída por adivinhação contextual
+ok 134 - 11 — palavra desconhecida ou nome próprio: não é substituída por adivinhação contextual
+  ---
+  duration_ms: 11.789361
+  type: 'test'
+  ...
+# Subtest: 12 — texto completo com contradição relevante: apontada sem decidir qual informação vale
+ok 135 - 12 — texto completo com contradição relevante: apontada sem decidir qual informação vale
+  ---
+  duration_ms: 19.515202
+  type: 'test'
+  ...
+# Subtest: 13 — grafias britânica e americana válidas: aceitas na resposta livre e na leitura
+ok 136 - 13 — grafias britânica e americana válidas: aceitas na resposta livre e na leitura
+  ---
+  duration_ms: 30.278916
+  type: 'test'
+  ...
+# Subtest: 14 — pausas e segmentação: trechos contíguos, sem perda nem duplicação; cortes nas pausas
+ok 137 - 14 — pausas e segmentação: trechos contíguos, sem perda nem duplicação; cortes nas pausas
+  ---
+  duration_ms: 68.534825
+  type: 'test'
+  ...
+# Subtest: 15 — impossível decidir entre erro do aluno e do reconhecimento: as duas hipóteses, sem culpar o aluno
+ok 138 - 15 — impossível decidir entre erro do aluno e do reconhecimento: as duas hipóteses, sem culpar o aluno
+  ---
+  duration_ms: 45.018821
+  type: 'test'
+  ...
+# Subtest: sem falsos alarmes: respostas-modelo, frases e blocos do conteúdo e as 101 leituras reais do Moonshine
+ok 139 - sem falsos alarmes: respostas-modelo, frases e blocos do conteúdo e as 101 leituras reais do Moonshine
+  ---
+  duration_ms: 9796.671121
+  type: 'test'
+  ...
+# Subtest: cores = evidência: verde só com vocabulário/contexto compatível; âmbar só com sinal; cinza sem evidência
+ok 140 - cores = evidência: verde só com vocabulário/contexto compatível; âmbar só com sinal; cinza sem evidência
+  ---
+  duration_ms: 48.322657
+  type: 'test'
+  ...
+# Subtest: som parecido: critério estrito (pares do caso real sim; alternativas comuns não)
+ok 141 - som parecido: critério estrito (pares do caso real sim; alternativas comuns não)
+  ---
+  duration_ms: 0.805863
+  type: 'test'
+  ...
+# Subtest: palavra reconhecida não vira pendência; leitura correta → lista vazia e resumo positivo
+ok 142 - palavra reconhecida não vira pendência; leitura correta → lista vazia e resumo positivo
+  ---
+  duration_ms: 5.886278
+  type: 'test'
+  ...
+# Subtest: palavra substituída é sinalizada com o que foi ouvido (chess → chest), sem rótulo fonético
+ok 143 - palavra substituída é sinalizada com o que foi ouvido (chess → chest), sem rótulo fonético
+  ---
+  duration_ms: 1.229785
+  type: 'test'
+  ...
+# Subtest: palavra omitida é sinalizada como “não foi reconhecida”; várias palavras → resumo no plural
+ok 144 - palavra omitida é sinalizada como “não foi reconhecida”; várias palavras → resumo no plural
+  ---
+  duration_ms: 1.660868
+  type: 'test'
+  ...
+# Subtest: diferenças irrelevantes (pontuação, maiúsculas, horário, flexão, composto, nome próprio) não criam pendências
+ok 145 - diferenças irrelevantes (pontuação, maiúsculas, horário, flexão, composto, nome próprio) não criam pendências
+  ---
+  duration_ms: 0.908173
+  type: 'test'
+  ...
+# Subtest: tentativa inconclusiva (sem reconhecimento, silêncio, transcrição degenerada) não gera lista nem rótulo de erro
+ok 146 - tentativa inconclusiva (sem reconhecimento, silêncio, transcrição degenerada) não gera lista nem rótulo de erro
+  ---
+  duration_ms: 0.455212
+  type: 'test'
+  ...
+# Subtest: palavra repetida na frase aparece uma vez; se falhou em algum ponto, continua pendente
+ok 147 - palavra repetida na frase aparece uma vez; se falhou em algum ponto, continua pendente
+  ---
+  duration_ms: 0.469656
+  type: 'test'
+  ...
+# Subtest: cada palavra da lista tem áudio isolado embutido (mesma voz britânica das frases)
+ok 148 - cada palavra da lista tem áudio isolado embutido (mesma voz britânica das frases)
+  ---
+  duration_ms: 19.829946
+  type: 'test'
+  ...
+# Subtest: portão da tentativa mais recente: resultado atrasado é descartado
+ok 149 - portão da tentativa mais recente: resultado atrasado é descartado
+  ---
+  duration_ms: 0.284043
+  type: 'test'
+  ...
+# Subtest: lista de revisão: entra automaticamente; só sai após 2 tentativas favoráveis seguidas; marcação manual é preservada
+ok 150 - lista de revisão: entra automaticamente; só sai após 2 tentativas favoráveis seguidas; marcação manual é preservada
+  ---
+  duration_ms: 6.811838
+  type: 'test'
+  ...
+# Subtest: excluir a gravação de um exercício não afeta os outros nem o progresso
+ok 151 - excluir a gravação de um exercício não afeta os outros nem o progresso
+  ---
+  duration_ms: 0.50394
+  type: 'test'
+  ...
+# Subtest: Reed–Solomon: vetor “HELLO WORLD” 1-Q (13 bytes de correção)
+ok 152 - Reed–Solomon: vetor “HELLO WORLD” 1-Q (13 bytes de correção)
+  ---
+  duration_ms: 1.547085
+  type: 'test'
+  ...
+# Subtest: informação de formato: valores da tabela da norma
+ok 153 - informação de formato: valores da tabela da norma
+  ---
+  duration_ms: 0.29975
+  type: 'test'
+  ...
+# Subtest: QR lido de volta: endereço da página de instalação e outros textos (versões 1 a 6)
+ok 154 - QR lido de volta: endereço da página de instalação e outros textos (versões 1 a 6)
+  ---
+  duration_ms: 56.189837
+  type: 'test'
+  ...
+# Subtest: SVG publicado aponta para a página de instalação
+ok 155 - SVG publicado aponta para a página de instalação
+  ---
+  duration_ms: 0.668776
+  type: 'test'
+  ...
+# Subtest: 7 dias corridos = 168 h, contados a partir da gravação
+ok 156 - 7 dias corridos = 168 h, contados a partir da gravação
+  ---
+  duration_ms: 0.889081
+  type: 'test'
+  ...
+# Subtest: menos de 7 dias: fica; exatamente no limite: apagado; mais de 7 dias: apagado
+ok 157 - menos de 7 dias: fica; exatamente no limite: apagado; mais de 7 dias: apagado
+  ---
+  duration_ms: 0.18194
+  type: 'test'
+  ...
+# Subtest: nova gravação reinicia o prazo
+ok 158 - nova gravação reinicia o prazo
+  ---
+  duration_ms: 0.162257
+  type: 'test'
+  ...
+# Subtest: datas inválidas, ausentes ou no futuro nunca apagam (ficam para diagnóstico)
+ok 159 - datas inválidas, ausentes ou no futuro nunca apagam (ficam para diagnóstico)
+  ---
+  duration_ms: 0.15835
+  type: 'test'
+  ...
+# Subtest: idempotente: avaliar de novo dá o mesmo resultado
+ok 160 - idempotente: avaliar de novo dá o mesmo resultado
+  ---
+  duration_ms: 1.536963
+  type: 'test'
+  ...
+# Subtest: 1 — “offsy”, “ofcy” e “off-scene” → hipótese contextual “office”, rotulada, sem trocar a transcrição
+ok 161 - 1 — “offsy”, “ofcy” e “off-scene” → hipótese contextual “office”, rotulada, sem trocar a transcrição
+  ---
+  duration_ms: 106.706499
+  type: 'test'
+  ...
+# Subtest: 2 — resposta diferente do exemplo não é marcada só por ser diferente
+ok 162 - 2 — resposta diferente do exemplo não é marcada só por ser diferente
+  ---
+  duration_ms: 192.955732
+  type: 'test'
+  ...
+# Subtest: 3 — alternativa aceita: reconhecida como resposta válida e usada como contexto de hipótese
+ok 163 - 3 — alternativa aceita: reconhecida como resposta válida e usada como contexto de hipótese
+  ---
+  duration_ms: 229.088947
+  type: 'test'
+  ...
+# Subtest: 4 — “I gets ready” é erro de gramática (concordância), não do reconhecimento
+ok 164 - 4 — “I gets ready” é erro de gramática (concordância), não do reconhecimento
+  ---
+  duration_ms: 41.112399
+  type: 'test'
+  ...
+# Subtest: 5 — inserções e omissões não deslocam o destaque
+ok 165 - 5 — inserções e omissões não deslocam o destaque
+  ---
+  duration_ms: 35.119954
+  type: 'test'
+  ...
+# Subtest: 6 — contrações e variantes preservadas, sem marca
+ok 166 - 6 — contrações e variantes preservadas, sem marca
+  ---
+  duration_ms: 204.982246
+  type: 'test'
+  ...
+# Subtest: 7 — horários e números (“five thirty”, “5:30”) preservados e aceitos
+ok 167 - 7 — horários e números (“five thirty”, “5:30”) preservados e aceitos
+  ---
+  duration_ms: 100.485424
+  type: 'test'
+  ...
+# Subtest: 8 — transcrição curta ou ambígua: inconclusiva, sem hipótese nem excesso de confiança
+ok 168 - 8 — transcrição curta ou ambígua: inconclusiva, sem hipótese nem excesso de confiança
+  ---
+  duration_ms: 1.163735
+  type: 'test'
+  ...
+# Subtest: 9 — resposta correta e não literal ao exemplo: sem falso positivo
+ok 169 - 9 — resposta correta e não literal ao exemplo: sem falso positivo
+  ---
+  duration_ms: 51.44121
+  type: 'test'
+  ...
+# Subtest: 10 — resposta claramente inadequada mantém a avaliação de adequação
+ok 170 - 10 — resposta claramente inadequada mantém a avaliação de adequação
+  ---
+  duration_ms: 89.281475
+  type: 'test'
+  ...
+# Subtest: 11 — trechos não avaliáveis não são forçados em uma classe
+ok 171 - 11 — trechos não avaliáveis não são forçados em uma classe
+  ---
+  duration_ms: 35.497154
+  type: 'test'
+  ...
+# Subtest: 12 — coerência entre estado visual e lógico (casos acima + 101 transcrições reais do Moonshine)
+ok 172 - 12 — coerência entre estado visual e lógico (casos acima + 101 transcrições reais do Moonshine)
+  ---
+  duration_ms: 2338.316857
+  type: 'test'
+  ...
+# Subtest: segmentação reconstrói o texto exatamente (espaços, pontuação e ordem) em todas as frases e blocos
+ok 173 - segmentação reconstrói o texto exatamente (espaços, pontuação e ordem) em todas as frases e blocos
+  ---
+  duration_ms: 41.728358
+  type: 'test'
+  ...
+# Subtest: sem reconhecimento: todas as palavras ficam "uncertain" (nenhuma cor de acerto ou erro inventada)
+ok 174 - sem reconhecimento: todas as palavras ficam "uncertain" (nenhuma cor de acerto ou erro inventada)
+  ---
+  duration_ms: 0.642534
+  type: 'test'
+  ...
+# Subtest: gravação insuficiente e transcrição vazia: inconclusivo
+ok 175 - gravação insuficiente e transcrição vazia: inconclusivo
+  ---
+  duration_ms: 0.297843
+  type: 'test'
+  ...
+# Subtest: confiança baixa do reconhecedor: inconclusivo, não erro
+ok 176 - confiança baixa do reconhecedor: inconclusivo, não erro
+  ---
+  duration_ms: 0.634273
+  type: 'test'
+  ...
+# Subtest: leitura reconhecida inteira: palavras "good", com horas por extenso equivalentes a 5:00 a.m.
+ok 177 - leitura reconhecida inteira: palavras "good", com horas por extenso equivalentes a 5:00 a.m.
+  ---
+  duration_ms: 1.606453
+  type: 'test'
+  ...
+# Subtest: substituição: palavra de conteúdo vira "needs_practice" e o motivo cita o que foi ouvido, sem inventar o tipo de erro
+ok 178 - substituição: palavra de conteúdo vira "needs_practice" e o motivo cita o que foi ouvido, sem inventar o tipo de erro
+  ---
+  duration_ms: 0.586217
+  type: 'test'
+  ...
+# Subtest: omissão: palavra de conteúdo ausente = "needs_practice"; palavra átona ausente = "uncertain"
+ok 179 - omissão: palavra de conteúdo ausente = "needs_practice"; palavra átona ausente = "uncertain"
+  ---
+  duration_ms: 0.406133
+  type: 'test'
+  ...
+# Subtest: grafia americana na transcrição não é erro (analyze ↔ analyse)
+ok 180 - grafia americana na transcrição não é erro (analyze ↔ analyse)
+  ---
+  duration_ms: 1.456885
+  type: 'test'
+  ...
+# Subtest: todos os estados produzidos pertencem ao conjunto definido
+ok 181 - todos os estados produzidos pertencem ao conjunto definido
+  ---
+  duration_ms: 0.853704
+  type: 'test'
+  ...
+# Subtest: nota: sem reconhecimento não há nota geral; entonação nunca recebe nota inventada
+ok 182 - nota: sem reconhecimento não há nota geral; entonação nunca recebe nota inventada
+  ---
+  duration_ms: 0.715124
+  type: 'test'
+  ...
+# Subtest: nota: com reconhecimento, combina só as dimensões medidas (pesos renormalizados) e marca como parcial
+ok 183 - nota: com reconhecimento, combina só as dimensões medidas (pesos renormalizados) e marca como parcial
+  ---
+  duration_ms: 0.534108
+  type: 'test'
+  ...
+# Subtest: nota: gravação ruim não gera nota baixa (gera ausência de nota)
+ok 184 - nota: gravação ruim não gera nota baixa (gera ausência de nota)
+  ---
+  duration_ms: 0.43299
+  type: 'test'
+  ...
+# Subtest: nota: fala mais lenta (até 1,8× a referência) não perde pontos de duração
+ok 185 - nota: fala mais lenta (até 1,8× a referência) não perde pontos de duração
+  ---
+  duration_ms: 0.35698
+  type: 'test'
+  ...
+# Subtest: verificação sem gravação (só reconhecimento): ritmo e duração indisponíveis, nota parcial
+ok 186 - verificação sem gravação (só reconhecimento): ritmo e duração indisponíveis, nota parcial
+  ---
+  duration_ms: 0.536638
+  type: 'test'
+  ...
+# Subtest: transcrição do modelo local: formas equivalentes não viram erro (compostos, horas, flexões, nomes próprios)
+ok 187 - transcrição do modelo local: formas equivalentes não viram erro (compostos, horas, flexões, nomes próprios)
+  ---
+  duration_ms: 5.109856
+  type: 'test'
+  ...
+# Subtest: transcrição do modelo local: troca real de palavra continua sendo apontada
+ok 188 - transcrição do modelo local: troca real de palavra continua sendo apontada
+  ---
+  duration_ms: 0.995499
+  type: 'test'
+  ...
+# Subtest: transcrição degenerada (laço de repetição do modelo): tudo inconclusivo, sem nota
+ok 189 - transcrição degenerada (laço de repetição do modelo): tudo inconclusivo, sem nota
+  ---
+  duration_ms: 0.262431
+  type: 'test'
+  ...
+# Subtest: confiança 0 (o modelo local não informa confiança) não é tratada como confiança baixa
+ok 190 - confiança 0 (o modelo local não informa confiança) não é tratada como confiança baixa
+  ---
+  duration_ms: 1.992273
+  type: 'test'
+  ...
+# Subtest: acerto: a transcrição é a palavra-alvo
+ok 191 - acerto: a transcrição é a palavra-alvo
+  ---
+  duration_ms: 1.382605
+  type: 'test'
+  ...
+# Subtest: erro: outra palavra, mesmo parecida na escrita ou no som, não conta como acerto
+ok 192 - erro: outra palavra, mesmo parecida na escrita ou no som, não conta como acerto
+  ---
+  duration_ms: 0.647156
+  type: 'test'
+  ...
+# Subtest: vazio: silêncio, transcrição vazia ou só pontuação nunca é acerto
+ok 193 - vazio: silêncio, transcrição vazia ou só pontuação nunca é acerto
+  ---
+  duration_ms: 0.212223
+  type: 'test'
+  ...
+# Subtest: palavras extras: a palavra aparece junto com outras → inconclusivo
+ok 194 - palavras extras: a palavra aparece junto com outras → inconclusivo
+  ---
+  duration_ms: 0.182835
+  type: 'test'
+  ...
+# Subtest: normalização: maiúsculas, pontuação periférica e formas equivalentes
+ok 195 - normalização: maiúsculas, pontuação periférica e formas equivalentes
+  ---
+  duration_ms: 0.395587
+  type: 'test'
+  ...
+# Subtest: a transcrição original é preservada sem alteração
+ok 196 - a transcrição original é preservada sem alteração
+  ---
+  duration_ms: 0.158698
+  type: 'test'
+  ...
+# Subtest: repetir uma tentativa incorreta: continua “tente de novo” e conta as tentativas; o acerto conclui
+ok 197 - repetir uma tentativa incorreta: continua “tente de novo” e conta as tentativas; o acerto conclui
+  ---
+  duration_ms: 0.933574
+  type: 'test'
+  ...
+# Subtest: próxima palavra, voltar à anterior e conclusão (sem concluir a frase)
+ok 198 - próxima palavra, voltar à anterior e conclusão (sem concluir a frase)
+  ---
+  duration_ms: 0.277404
+  type: 'test'
+  ...
+# Subtest: falha do microfone ou do reconhecimento: volta ao estado anterior sem contar tentativa
+ok 199 - falha do microfone ou do reconhecimento: volta ao estado anterior sem contar tentativa
+  ---
+  duration_ms: 0.405038
+  type: 'test'
+  ...
+# Subtest: recorte da palavra isolada: só o trecho com voz, com margem de 0,15 s; sem voz, o áudio inteiro
+ok 200 - recorte da palavra isolada: só o trecho com voz, com margem de 0,15 s; sem voz, o áudio inteiro
+  ---
+  duration_ms: 9.20156
+  type: 'test'
+  ...
+1..200
+# tests 200
+# suites 0
+# pass 200
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12558.232829

@@ -1,0 +1,17 @@
+✔ P01 Manifesto e instalabilidade: sem erros no Chromium; id fixo igual à identidade atual; ícones e capturas — {"id":"http://localhost:8797/daily-routine-english/index.html","display":"standalone","icones":3,"capturas":["824x1830","824x1830","824x1830"]}
+✘ P02 Service worker ativo e controlando; um único cache do app; capturas fora do pré-cache — {"sw":{"active":false,"waiting":false,"controller":false},"keys":["drg-6db56e10bb5d"],"ver":null,"shotCached":false}
+✔ P03 Instalar: sem o pedido do navegador, só instruções (nada simulado pelo app); com o pedido, botão → recusa tratada → aceite — {"semPedido":"instruções","recusa":"manual","aceite":"installed-elsewhere"}
+✔ P04 Aberto como aplicativo (janela própria): nada de botão ou instrução de instalação; Ajustes informa — {"estado":"standalone","ajustes":"✓ Aberto como aplicativo instalado."}
+✔ P05 Versão nova publicada: baixada em segundo plano e ESPERA; aviso “Nova versão disponível”; a tela em uso continua na versão antiga — {"emUso":"6db56e10bb5d","caches":["asr-local-5ec6dd843fca","asr-local-teste","drg-6db56e10bb5d","drg-teste-v2"]}
+✔ P06 Durante uma sessão o aviso não aparece nem recarrega nada; ao sair, volta — {"naSessao":0,"depois":1}
+✔ P07 “Depois”: o aviso some nesta abertura; a versão continua pronta em Ajustes; nada recarrega — {"state":"ready","btn":true,"marker":"tela-antiga"}
+✔ P08 “Atualizar agora”: grava, ativa a versão nova e recarrega; progresso idêntico; cache antigo removido só depois da abertura; reconhecimento de fala preservado — {"versao":"teste-v2","caches":["asr-local-5ec6dd843fca","asr-local-teste","drg-teste-v2"],"progressoIgual":true}
+✔ P09 Falha no download da versão nova: a instalação dela é descartada (sem cache pela metade); o app segue na versão em uso e avisa — {"estado":"failed","caches":["asr-local-5ec6dd843fca","asr-local-teste","drg-teste-v2"],"emUso":"teste-v2"}
+✔ P10 Recuperação: a versão seguinte, íntegra, é baixada e aplicada normalmente; progresso intacto — {"versao":"teste-v4","caches":["asr-local-5ec6dd843fca","asr-local-teste","drg-teste-v4"]}
+✔ P11 Offline depois das atualizações (servidor desligado e rede cortada): abre, módulos, áudio, sessão e progresso — {"etapas":5,"audio":{"ok":true,"bytes":3506},"exercicio":"learn"}
+✔ P12 Página de instalação: identidade do app, instruções Chrome e Samsung Internet, offline, backup, QR; offline e sem rede externa; 412 px — {"qr":true,"offline":true}
+✔ P13 Nenhum erro de JavaScript nem requisição externa durante os testes — {"erros":0,"externas":0}
+[diagnóstico] página fechada
+[diagnóstico] navegador/contexto fechado
+
+12 aprovados, 1 reprovados

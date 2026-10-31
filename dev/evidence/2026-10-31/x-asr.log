@@ -1,0 +1,24 @@
+✔ L01 Primeira entrada em Falar: convite “Avalie sua pronúncia” com tamanho real; nada é baixado sem consentimento — {"tamanho":"38 MB","requisicoesAoModelo":0}
+✔ L02 “Agora não”: gravar, ouvir a própria voz e A/B continuam; análise informada como indisponível; nenhuma nota inventada — {"aviso":"Análise automática desligada até instalar o reconhecimento.I","minhaVoz":"tocou"}
+✔ L03 Download interrompido (rede cortada, simulada): mensagem clara e “Tentar de novo” conclui a instalação com progresso real — {"erro":"Não foi possível baixar agora. Verifique","progresso":"24 valores, 0% → 100%","estadoFinal":"result"}
+✔ L04 Análise automática REAL ao parar a gravação (fala sintética correta): “Analisando…”, resultado sem clique extra, lista vazia — {"ouvido":"I wake up at 5:00 a.m. take a shower and brush my teeth.","ms":9191,"nota":"100/100"}
+✔ L09 Recursos: sair do Speaking Lab encerra o worker do modelo (memória liberada) — {"workersAntes":1,"workersDepois":0}
+✔ L05 Transcrição REAL com troca de palavra: “Vamos praticar” lista só “teeth”; tocar reproduz o áudio da palavra — {"lista":["teeth"],"ouvido":"I wake up at 5am, take a shower and brush my tits.","resumo":"Vamos praticar 1 palavra."}
+✔ L12 Resultado guardado com a gravação: ao voltar à tela, a lista reaparece sem reanalisar (sem carregar o modelo) — {"lista":["teeth"],"workers":0}
+✔ L07 Falha do worker (SIMULADA): estado de erro recuperável, nenhuma nota; “Tentar de novo” analisa a mesma gravação — {"erro":"O reconhecimento não carregou neste momento. Nenhuma nota fo","recuperado":"resultado após “Tentar de novo”"}
+✔ L08 Offline: servidor desligado e rede cortada — o modelo em cache continua analisando — {"offline":true,"lista":["teeth"]}
+✔ L13 Regravar: a nova tentativa invalida a anterior e reconstrói a lista (“teeth” sai quando passa a ser reconhecida) — {"antes":["teeth"],"durante":{"chips":0,"colored":0},"depois":[]}
+✔ L11 Resultado atrasado não sobrescreve: nova gravação iniciada durante a análise cancela a anterior — {"resultadoFinal":{"state":"result","heard":"I wake up at 5, 0,"}}
+✔ L14 Modelo instalado mas corrompido (SIMULADO): falha ao carregar → “Verificar instalação” → novo download só com o toque do aluno — {"erro":"O reconhecimento não carregou neste momento. Nenhu","downloadsSemToque":0,"depois":"reinstalado e analisado"}
+✔ L15 Atualização do app com o modelo já instalado (versão anterior, SIMULADA): reaproveita os arquivos idênticos e baixa só o que mudou — {"tamanhoMostrado":"1 MB","baixados":["worker.js"],"analiseDepois":"ok"}
+✔ F01 Missão “Could you tell me about your daily routine?”: ao parar, transcrição REAL + avaliação contextual automática; vocabulário diferente do exemplo aceito; XP intacto — {"transcricao":"I wake up at six and have breakfast with my wife. Then I take the bus to work, and in the evening I study English for about an hour.","xp":"235 → 240 (gravação) → 240 (análise)","apos":258}
+✔ F02 Pergunta livre: sair da tela durante a análise cancela (worker encerrado); ao voltar, a gravação salva é analisada — {"workersAoSair":0,"aoVoltar":"result"}
+✔ F03 Nova gravação durante a análise: o resultado atrasado da anterior é descartado — {"resultadoFinal":"result"}
+✔ F04 Falha do worker na resposta livre (SIMULADA): erro recuperável, sem avaliação; “Tentar de novo” recupera — {"erro":"recuperável","depois":"resultado"}
+✔ F05 Divergência do reconhecedor (“chest” na pergunta sobre chess): marcada para revisar com a palavra provável; tocar toca a referência e a própria resposta — {"transcricao":"I heat up my lunch in the microwave and watch some chest videos on my phone.","marcadas":["chest"],"tocou":["9b48540f.ogg","fd2122d5-914"],"chaveChess":"9b48540f"}
+✔ F06 Resposta longa (65 s): transcrita em partes, por inteiro (início e fim), sem corte silencioso — {"partes":"parte 4 de 4","palavras":156,"inicio":"Well, my day starts very early. I usuall","fim":"ary. I go to sleep at around 11 o'clock."}
+✔ F07 Resposta acima do limite (3 min): recusada com motivo e duração, sem cortar nem avaliar parte dela — {"code":"too-long","secs":181,"max":180,"msg":"gravação longa demais para a análise (máx. 180 s)"}
+✔ L06 Gravação sem voz: inconclusivo (orientação, sem nota, sem lista) e o modelo nem é chamado — {"estado":"inconclusive","orientacao":"Sem nota geralQuase não captei voz nesta gravação. Grave de novo, num "}
+✔ L10 Nenhuma requisição externa e nenhum erro de JavaScript — {"externas":0,"requisicoesAoModelo":5}
+
+22 aprovados, 0 reprovados

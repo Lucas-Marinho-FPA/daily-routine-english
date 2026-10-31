@@ -1,0 +1,17 @@
+✔ W00 Preparação: modelo local instalado e frase gravada com troca de palavra → “Vamos praticar: teeth” — {"lista":["teeth:todo"]}
+✔ W01 Cartão da palavra: alvo em destaque, transcrição anterior, Ouvir/Devagar/Na frase e “Praticar esta palavra”; nada grava sozinho — {"anterior":"· na frase, o app ouviu “tits”","botoes":["Ouvir","Devagar","Na frase","Praticar esta palavra"]}
+✔ W12 Falhas: microfone bloqueado e reconhecimento com erro (SIMULADOS) — aviso claro, nada trava, tentativa não contada — {"microfone":"O microfone foi bloqueado. No Chrome: toque no cadeado ao la","reconhecimento":"O reconhecimento falhou nesta tentativa. Tente novamente."}
+✔ W02 A frase inteira dita no lugar da palavra: nunca acerto, e “O app ouviu” mostra a transcrição REAL, sem trocar pela palavra-alvo — {"ouvido":"“I wake up at 5am, take a shower and brush my teeth.”","resultado":"extra"}
+✔ W10 Separação: tentativas da palavra não alteram a gravação, o resultado nem o progresso da frase — {"audios":1,"bytesFrase":65396,"resultadoFrase":"I wake up at 5am, take a shower and brush my tits."}
+✔ W11 Nenhum áudio de palavra persistido: IndexedDB com as mesmas chaves e o mesmo nº de áudios — {"chavesKv":["state"],"audios":1}
+✔ W06 Erro de palavra isolada e repetição: microfone diz “fridge” para o alvo “teeth” → outra palavra; tentar de novo quantas vezes quiser — {"tentativas":["mismatch:“French.”","mismatch:“French.”"]}
+✔ W04 Palavras extras: a palavra-alvo aparece junto com outras → inconclusivo (“diga só a palavra”), não acerto — {"ouvido":"“I wake up at 5:00 a.m. Take a shower and brush my teeth.”","resultado":"extra"}
+✔ W03 Transcrição vazia/silêncio: “(nada)”, pede nova tentativa e nunca conta como acerto; o modelo nem é chamado — {"resultado":"empty","ouvido":"(nada)"}
+✔ W05 Acerto: “kitchen” dito isoladamente → reconhecida, confirmação positiva, aviso de que não é medição completa; “Praticar próxima palavra” — {"ouvido":"“Kitchen.”","chips":["kitchen:done","class:todo"]}
+✔ W07 Próxima palavra e retorno à anterior: estados por palavra preservados, repetir uma palavra já reconhecida — {"class":"“Kitchen.”","estados":["kitchen:done","class:retry"],"progresso":"Palavras reconhecidas: 1 de 2."}
+✔ W09 “Agora, pratique a frase completa” volta à gravação da frase (mesma tela) e o resultado da frase é o da nova gravação — {"gravacaoVisivel":true,"estado":"inconclusive","audios":2}
+✔ W13 Offline: servidor desligado e rede cortada — a prática da palavra continua funcionando — {"offline":true,"ouvido":"“Kitchen.”"}
+✔ W15 Layout 430 px: sem rolagem horizontal, navegação inferior visível, botões com ≥ 40 px, sem texto “null” — {"fullButtons":1,"nullText":false,"scrollW":430,"w":430,"nav":true,"small":[]}
+✔ W14 Nenhuma requisição externa e nenhum erro de JavaScript — {"externas":0,"erros":0}
+
+15 aprovados, 0 reprovados

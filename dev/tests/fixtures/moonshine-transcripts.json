@@ -1,0 +1,406 @@
+[
+ {
+  "id": "R01-B1-S1",
+  "heard": "I wake up at 5am, take a shower and brush my teeth."
+ },
+ {
+  "id": "R01-B1-S2",
+  "heard": "At around 5:20, I have a chicken sandwich with lettuce and tomato while playing a few three-minute chess games."
+ },
+ {
+  "id": "R01-B1-S3",
+  "heard": "At 5:30 I get ready to leave, open the Uber app and set my destination to my office."
+ },
+ {
+  "id": "R01-B1-S4",
+  "heard": "I leave home at 5:45 am and accept rides along the way."
+ },
+ {
+  "id": "R01-B2-S1",
+  "heard": "When I arrive near the office, I park on the street near my gym."
+ },
+ {
+  "id": "R01-B2-S2",
+  "heard": "I go in, do 10 minutes of cardio and complete a quick workout."
+ },
+ {
+  "id": "R01-B2-S3",
+  "heard": "After that, I take another shower at the gym, get changed and head to the office."
+ },
+ {
+  "id": "R01-B2-S4",
+  "heard": "I switch on my laptop at around nine a M."
+ },
+ {
+  "id": "R01-B3-S1",
+  "heard": "While my laptop starts up, I put my lunchbox in the fridge and have a quick snack, usually fruit and oats."
+ },
+ {
+  "id": "R01-B3-S2",
+  "heard": "Then I brush my teeth and start work."
+ },
+ {
+  "id": "R01-B3-S3",
+  "heard": "I work at a bank as a financial planning analyst, so my job is mentally demanding."
+ },
+ {
+  "id": "R01-B3-S4",
+  "heard": "I analyze profitability, efficiency and business performance, and prepare executive presentations for committee meetings."
+ },
+ {
+  "id": "R01-B4-S1",
+  "heard": "At around noon I go to the cafeteria. Heat up my lunch in the microwave and eat while watching a chess game on YouTube."
+ },
+ {
+  "id": "R01-B4-S2",
+  "heard": "Afterwards I wash and dry my food containers, put them away and return to my floor."
+ },
+ {
+  "id": "R01-B4-S3",
+  "heard": "I brush my teeth again and play one or two quick chest games before my break ends."
+ },
+ {
+  "id": "R01-B5-S1",
+  "heard": "I work until six p M.."
+ },
+ {
+  "id": "R01-B5-S2",
+  "heard": "When I leave the office, I get into my car, open the Uber app and accept rides towards home."
+ },
+ {
+  "id": "R01-B5-S3",
+  "heard": "I listen to music in English during the drive."
+ },
+ {
+  "id": "R01-B5-S4",
+  "heard": "I get home between eight thirty and ten P. M. depending on traffic."
+ },
+ {
+  "id": "R01-B6-S1",
+  "heard": "At home, I take a shower and sit down at the table with my wife and children."
+ },
+ {
+  "id": "R01-B6-S2",
+  "heard": "We say a prayer of thanks for the day and for our meal, and then we eat."
+ },
+ {
+  "id": "R01-B6-S3",
+  "heard": "Afterwards we tidy up the kitchen together."
+ },
+ {
+  "id": "R01-B6-S4",
+  "heard": "The children go upstairs to brush their teeth and get ready for bed, while I sit in the living room with my personal laptop and study English."
+ },
+ {
+  "id": "R01-B7-S1",
+  "heard": "Three times a week I have an online class with my English teachers at 11 p.m. while my wife goes to bed."
+ },
+ {
+  "id": "R01-B7-S2",
+  "heard": "I finish it around midnight, brush my teeth and go to bed, hoping to get a good night's sleep."
+ },
+ {
+  "id": "R02-B1-S1",
+  "heard": "I wake up at 5am, take a shower and brush my teeth."
+ },
+ {
+  "id": "R02-B1-S2",
+  "heard": "At around 5:20, I have breakfast and play a quick three-minute chess game."
+ },
+ {
+  "id": "R02-B1-S3",
+  "heard": "At 5:30 I open the Uber app and do a few trips around my neighbourhood."
+ },
+ {
+  "id": "R02-B1-S4",
+  "heard": "By 8:45 I get back home, park the car and set up my desk."
+ },
+ {
+  "id": "R02-B2-S1",
+  "heard": "At 9am, I log into my work laptop in my home office."
+ },
+ {
+  "id": "R02-B2-S2",
+  "heard": "Since I work from home today, I don't go to the gym"
+ },
+ {
+  "id": "R02-B2-S3",
+  "heard": "Instead, I use my short breaks to study English."
+ },
+ {
+  "id": "R02-B2-S4",
+  "heard": "At noon I have lunch with my family and helped tidy up the kitchen."
+ },
+ {
+  "id": "R02-B3-S1",
+  "heard": "In the afternoon, I analyze financial statements and work on strategic reports for the bank."
+ },
+ {
+  "id": "R02-B3-S2",
+  "heard": "I finish work at 6p. M. Get back in the car and drive for Uber in the surrounding area until around 8:30pm."
+ },
+ {
+  "id": "R02-B3-S3",
+  "heard": "Later I have dinner with my family, say a prayer with them and relax before bed."
+ },
+ {
+  "id": "R03-B1-S1",
+  "heard": "On some days I wake up a bit later at around 8 a.m. to get some extra rest."
+ },
+ {
+  "id": "R03-B1-S2",
+  "heard": "I brush my teeth, take a quick shower and make a cup of coffee."
+ },
+ {
+  "id": "R03-B1-S3",
+  "heard": "I also have a bowl of fruit and oats."
+ },
+ {
+  "id": "R03-B1-S4",
+  "heard": "I don't drive for you, but in the morning on these days, because I want to start work feeling rested."
+ },
+ {
+  "id": "R03-B2-S1",
+  "heard": "At 9am, I start my tasks as a financial planning analyst."
+ },
+ {
+  "id": "R03-B2-S2",
+  "heard": "I spend the morning working on efficiency analyses and updating financial models."
+ },
+ {
+  "id": "R03-B2-S3",
+  "heard": "For lunch, I have a meal at home while watching a chess match featuring a grandmaster on YouTube."
+ },
+ {
+  "id": "R03-B3-S1",
+  "heard": "After 6pm, I start my evening Ubershift."
+ },
+ {
+  "id": "R03-B3-S2",
+  "heard": "I drive around the city for a couple of hours, while listening to English podcasts or music."
+ },
+ {
+  "id": "R03-B3-S3",
+  "heard": "I get home at around nine thirty P. M. have dinner with my wife and get ready for bed."
+ },
+ {
+  "id": "R03-B3-S4",
+  "heard": "I don't have any late night English classes on these days."
+ },
+ {
+  "id": "R04-B1-S1",
+  "heard": "I wake up at 5am, get dressed and drive for youber on my way to the office."
+ },
+ {
+  "id": "R04-B1-S2",
+  "heard": "I parked near my gym, do a quick 10 minute cardio session and take a shower there."
+ },
+ {
+  "id": "R04-B1-S3",
+  "heard": "I get to the office and switch on my laptop at around nine a M."
+ },
+ {
+  "id": "R04-B2-S1",
+  "heard": "Today, I have a very busy day with several executive committee meetings."
+ },
+ {
+  "id": "R04-B2-S2",
+  "heard": "I spend hours presenting financial results, discussing profitability and explaining strategic forecasts to senior managers."
+ },
+ {
+  "id": "R04-B2-S3",
+  "heard": "Between meetings I grab a quick fruit snack and drink plenty of water."
+ },
+ {
+  "id": "R04-B3-S1",
+  "heard": "At noon I take my lunch box to the cafeteria, heat up my meal and eat."
+ },
+ {
+  "id": "R04-B3-S2",
+  "heard": "Afterwards, I wash my containers and play a quick online chess game to clear my head."
+ },
+ {
+  "id": "R04-B3-S3",
+  "heard": "I work until 6 p.m. drive for you, but on my way home and arrive at around 9 p.m."
+ },
+ {
+  "id": "R04-B3-S4",
+  "heard": "After dinner and our family prayer, I review my presentation notes and get some rest."
+ },
+ {
+  "id": "R05-B1-S1",
+  "heard": "I wake up at 5 a.m. Have my chicken sandwich with salad and hit the road for some early uber trips before heading to the office."
+ },
+ {
+  "id": "R05-B1-S2",
+  "heard": "After a full day of financial analysis and meetings, I finished work at 6pm and drive home."
+ },
+ {
+  "id": "R05-B2-S1",
+  "heard": "On this particular evening, I get home early at around 8pm."
+ },
+ {
+  "id": "R05-B2-S2",
+  "heard": "We sit together as a family, say a prayer and have dinner."
+ },
+ {
+  "id": "R05-B2-S3",
+  "heard": "After clearing the table and washing the dishes together, we spend some time as a family."
+ },
+ {
+  "id": "R05-B3-S1",
+  "heard": "Before my son goes to bed, we sit down and play a game of chess on a chessboard."
+ },
+ {
+  "id": "R05-B3-S2",
+  "heard": "Later my wife, the children and I watch an episode of the Simpsons in the living room."
+ },
+ {
+  "id": "R05-B3-S3",
+  "heard": "It is a rare and special evening, so I don't have an English class that night."
+ },
+ {
+  "id": "R05-B3-S4",
+  "heard": "I go to bed early at around ten thirty p M.."
+ },
+ {
+  "id": "R06-B1-S1",
+  "heard": "I wake up at five a. M. and do a short Uber shift in the morning."
+ },
+ {
+  "id": "R06-B1-S2",
+  "heard": "At 9am I start work at my desk at home and focus on a day of detailed financial analysis."
+ },
+ {
+  "id": "R06-B1-S3",
+  "heard": "Today I don't have any committee presentations or meetings, so I can concentrate on individual tasks."
+ },
+ {
+  "id": "R06-B2-S1",
+  "heard": "I spend several hours working on complex profitability calculations and strategic cost allocation analyses."
+ },
+ {
+  "id": "R06-B2-S2",
+  "heard": "During my lunch break at noon, I reheat my meal, eat at home, and practice English vocabulary for 20 minutes."
+ },
+ {
+  "id": "R06-B3-S1",
+  "heard": "In the afternoon, I finalize executive presentations and send my weekly reports."
+ },
+ {
+  "id": "R06-B3-S2",
+  "heard": "At 6pm I shut down my computer, do a short evening Uber shift and return home for dinner with my family and our evening prayer."
+ },
+ {
+  "id": "R07-B1-S1",
+  "heard": "I follow my usual morning routine. I wake up at 5:00 a.m. and drive for youber on my way to work."
+ },
+ {
+  "id": "R07-B1-S2",
+  "heard": "I work a full day as a financial planning analyst, preparing executive presentations and analyzing profitability until 6 p.m."
+ },
+ {
+  "id": "R07-B2-S1",
+  "heard": "When I get home at around 8:30pm, I take a shower, pray with my family and have dinner."
+ },
+ {
+  "id": "R07-B2-S2",
+  "heard": "After we tidy up the kitchen, I focus on preparing for my English class."
+ },
+ {
+  "id": "R07-B2-S3",
+  "heard": "I review my lesson materials and vocabulary lists for about an hour."
+ },
+ {
+  "id": "R07-B3-S1",
+  "heard": "At 11pm I join my live online class with my English teacher."
+ },
+ {
+  "id": "R07-B3-S2",
+  "heard": "During the lesson, I practice speaking and work on my pronunciation."
+ },
+ {
+  "id": "R07-B3-S3",
+  "heard": "I finish it around midnight, brush my teeth and go to bed."
+ },
+ {
+  "id": "R08-B1-S1",
+  "heard": "I wake up at five a M and drive for you but towards my workplace."
+ },
+ {
+  "id": "R08-B1-S2",
+  "heard": "I try to finish my last passenger trip near my gym by 7:30 a.m., which gives me extra time for a longer workout."
+ },
+ {
+  "id": "R08-B2-S1",
+  "heard": "I do 10 minutes of cardio and a full weight training session."
+ },
+ {
+  "id": "R08-B2-S2",
+  "heard": "After showering and getting changed at the gym, I walked to the office and switched on my laptop by around 8:50 a.m."
+ },
+ {
+  "id": "R08-B2-S3",
+  "heard": "While it starts up, I have a bowl of fruit and oats"
+ },
+ {
+  "id": "R08-B3-S1",
+  "heard": "Ideal with my usual financial tasks have lunch in the cafeteria at noon and play two quick chess games during my break."
+ },
+ {
+  "id": "R08-B3-S2",
+  "heard": "At 6 p.m. I drive home, listen to English songs in traffic, and spend a quiet evening with my wife and children."
+ },
+ {
+  "id": "R09-B1-S1",
+  "heard": "I wake up at eight a m on some home office days and skip my morning uber trips."
+ },
+ {
+  "id": "R09-B1-S2",
+  "heard": "I start work at 9 a.m. Sharp and focus on bank efficiency reports and data consolidation throughout the morning."
+ },
+ {
+  "id": "R09-B2-S1",
+  "heard": "At noon I have lunch at home, wash my dishes and spend fifty minutes reviewing my English notes."
+ },
+ {
+  "id": "R09-B2-S2",
+  "heard": "During my afternoon break, I run a quick errand nearby before returning to my desk."
+ },
+ {
+  "id": "R09-B3-S1",
+  "heard": "I finished work at 6p. M. Do a short two-hour Uber shift around my neighborhood and get home in time for dinner."
+ },
+ {
+  "id": "R09-B3-S2",
+  "heard": "We pray together, tidy up the kitchen and spend some time talking in the living room."
+ },
+ {
+  "id": "R10-B1-S1",
+  "heard": "I wake up at 5am. Do some early uber trips, go to the gym and start work at the bank at around 9am."
+ },
+ {
+  "id": "R10-B1-S2",
+  "heard": "I handle my usual strategic analyses and attend two committee alignment meetings."
+ },
+ {
+  "id": "R10-B2-S1",
+  "heard": "At 6pm I switch off my laptop and decide not to accept any Uber rides on my way home."
+ },
+ {
+  "id": "R10-B2-S2",
+  "heard": "I drive straight home and listen to an English audio book during the journey."
+ },
+ {
+  "id": "R10-B3-S1",
+  "heard": "I get home early at around seven fifteen p M."
+ },
+ {
+  "id": "R10-B3-S2",
+  "heard": "I have a relaxed dinner with my family, help the children with their bedtime routine, and spend the rest of the evening relaxing on the sofa with my wife."
+ },
+ {
+  "id": "R10-B3-S3",
+  "heard": "I go to bed at around ten thirty p M."
+ }
+]
