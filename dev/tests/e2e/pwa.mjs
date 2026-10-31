@@ -232,7 +232,7 @@ await check('P10', 'Recuperação: a versão seguinte, íntegra, é baixada e ap
   await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drgapp-')).length === 1), null, 20000);
   const ver = await swVersionNow();
   const keys = await cacheKeys();
-  assert(ready && ver === 'teste-v4' && appCaches(keys) === 'asr-local-teste,drg-teste-v4' && (await progress()) === before, JSON.stringify({ ready, ver, keys }));
+  assert(ready && ver === 'teste-v4' && appCaches(keys) === 'asr-local-teste,drgapp-teste-v4' && (await progress()) === before, JSON.stringify({ ready, ver, keys }));
   return { versao: ver, caches: keys };
 });
 
