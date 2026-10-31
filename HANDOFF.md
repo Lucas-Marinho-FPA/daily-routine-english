@@ -20,9 +20,9 @@
 |---|---|
 | Repositório | `https://github.com/Lucas-Marinho-FPA/daily-routine-english` |
 | Branch de desenvolvimento | `mvp-jornadas` — **no GitHub** desde 2026-10-31 |
-| Histórico de `mvp-jornadas` | commit de preservação ← `1181ea5` ← `523db11` ← `6a0c5b6` ← `0719ac7` ← `aa9c8f8` ← `b582c29` … |
+| Histórico de `mvp-jornadas` | `0d096ad` ← `be86c74` ← `1181ea5` ← `523db11` ← `6a0c5b6` ← `0719ac7` ← `aa9c8f8` ← `b582c29` … |
 | Lukinhas | `523db11` (módulo) e `1181ea5` (correção do “null”) — originais, preservados |
-| Preservação | commit seguinte a `1181ea5`: `dev/`, `CLAUDE.md`, `HANDOFF.md` |
+| Preservação | `be86c74` (`dev/`, `CLAUDE.md`, `HANDOFF.md`) e `0d096ad` (correção do `setup-workdir.sh`) |
 | Publicado (GitHub Pages) | `gh-pages` = `6a0c5b6` (MVP + PWA, **sem** o Lukinhas) |
 | `main` remota | `13de9d2` (não alterar sem autorização) |
 | `cp-publicacao` remota | `b582c29` (preserva também a versão publicada anterior ao MVP) |
@@ -110,8 +110,18 @@ Unitários: **200/200** (14 do Lukinhas). E2E (Chromium, viewport 412 px, simula
 
 A sessão em que o Lukinhas foi feito deixou commits e fontes só no ambiente temporário; uma sessão seguinte não os
 encontrou. Corrigido: `mvp-jornadas` foi enviada ao GitHub com os commits originais e um commit de preservação com
-`dev/`, `CLAUDE.md` e este arquivo. A verificação remota e o teste a partir de um clone limpo estão no relatório
-dessa entrega (resultado registrado abaixo pela própria sessão de preservação).
+`dev/`, `CLAUDE.md` e este arquivo. Resultado registrado pela própria sessão de preservação:
+
+- Antes do envio, `git ls-remote` não mostrava `mvp-jornadas` no remoto (sem divergência possível).
+- `git push -u origin mvp-jornadas` sem force: `[new branch]`; o remoto aponta para `0d096ad`.
+- Pela API do GitHub: os commits `0d096ad`, `be86c74`, `1181ea5`, `523db11` e `6a0c5b6` estão na branch, com os
+  mesmos hashes; `dev/content/characters/lucas-kid.json` está acessível.
+- Clone limpo do GitHub em outro diretório: autoria preservada, os dez textos estão na fixture, 1.787 arquivos em
+  `audio/`; `setup-workdir.sh`, `npm ci` e `npm test` deram **200/200**.
+- Num clone limpo, o rebuild (`node tools/build-app.mjs`) saiu **idêntico byte a byte** ao app do repositório. Nesse
+  ambiente: E2E Lukinhas **12/12**, PWA **13/13**, simulação do Pages (resultado na seção 4 / relatório da entrega).
+- `gh-pages` (`6a0c5b6`), `main` (`13de9d2`) e `cp-publicacao` (`b582c29`) ficaram inalteradas. Nada foi
+  publicado.
 
 ## 7. Limitações conhecidas
 

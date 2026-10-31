@@ -181,4 +181,4 @@ Conversation Book (sem licença), o Word original do usuário, o modelo Kokoro e
 | `0719ac7` | MVP de jornadas: progresso por perfil (esquema 2), módulos com 5 etapas e cadeados |
 | `6a0c5b6` | PWA: atualização controlada, instalação, página com QR — **versão publicada** |
 | `523db11` · `1181ea5` | Lukinhas (10 sessões) + correção do “null” nas páginas de texto — na branch remota `mvp-jornadas`, **não publicados** |
-| (commit seguinte) | Preservação: `dev/` (fontes, ferramentas, testes), `CLAUDE.md`, `HANDOFF.md` |
+| `be86c74` · `0d096ad` | Preservação: `dev/` (fontes, ferramentas, testes), `CLAUDE.md`, `HANDOFF.md` — `mvp-jornadas` no GitHub desde 2026-10-31 |
