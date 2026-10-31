@@ -15,6 +15,7 @@ const CHECK_EVERY_MS = 15 * 60 * 1000; // ao voltar ao app, no máximo uma verif
 const RETRY_AFTER_MS = 60 * 1000; // verificação que falhou (sem internet): nova tentativa só depois de 1 min
 const NO_BANNER = ['session']; // durante uma sessão o aviso não aparece (volta ao sair)
 const LS_INSTALLED = 'drg.installed';
+const LS_VERSION = 'drg.version'; // última versão do app vista neste navegador (para o aviso “Aplicativo atualizado”)
 
 const listeners = new Set();
 const notify = () => listeners.forEach((fn) => { try { fn(); } catch (e) { /* tela já fechada */ } });
@@ -50,7 +51,7 @@ export function isStandalone() {
 /**
  * Estado compartilhado (App.pwa):
  *   install: 'standalone' | 'available' | 'installed-elsewhere' | 'manual' | 'unsupported'
- *   update:  null | 'downloading' | 'ready' | 'applying' | 'failed'
+ *   update:  null | 'checking' | 'downloading' | 'ready' | 'applying' | 'failed'
  */
 export function initPwa(App) {
   const pwa = App.pwa = { install: 'manual', update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false };
@@ -71,7 +72,13 @@ export function initPwa(App) {
   try { matchMedia('(display-mode: standalone)').addEventListener('change', () => { refreshInstall(); notify(); }); } catch (e) { /* navegador antigo */ }
 
   // ----- service worker -----
-  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) { pwa.install = isStandalone() ? 'standalone' : 'unsupported'; return pwa; }
+  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+    pwa.install = isStandalone() ? 'standalone' : 'unsupported';
+    pwa.noSwReason = !('serviceWorker' in navigator)
+      ? 'este navegador não oferece service worker (o recurso que guarda o app no aparelho)'
+      : `o endereço foi aberto como ${location.protocol.replace(':', '')}, e o modo offline só funciona em https`;
+    return pwa;
+  }
   const sw = navigator.serviceWorker;
   const firstInstall = !sw.controller;
   let reloading = false;
@@ -79,36 +86,62 @@ export function initPwa(App) {
     if (pwa.update === 'applying') { if (!reloading) { reloading = true; location.reload(); } return; }
     if (firstInstall) toast('Pronto para uso offline: todo o conteúdo e o áudio estão salvos no aparelho.', 5000);
   });
+  const watched = new WeakSet();
   const watch = (worker) => {
     if (!worker) return;
-    if (sw.controller) { pwa.update = 'downloading'; notify(); }
+    if (sw.controller && pwa.update !== 'ready' && pwa.update !== 'applying') { pwa.update = 'downloading'; notify(); }
+    if (watched.has(worker)) return;
+    watched.add(worker);
     worker.addEventListener('statechange', () => {
       if (worker.state === 'installed' && sw.controller) { pwa.update = 'ready'; notify(); }
       if (worker.state === 'redundant' && pwa.update === 'downloading') { pwa.update = 'failed'; notify(); }
     });
   };
-  // procura versão nova: ao abrir o app e ao voltar a ele (no máximo a cada 15 min). A verificação só conta como feita
-  // quando o navegador de fato consultou o servidor; sem internet, tenta de novo (no máximo uma vez por minuto).
-  let checking = false;
-  const check = ({ opening = false } = {}) => {
+  // procura versão nova: ao abrir o app e ao voltar a ele (no máximo a cada 15 min); “Procurar atualização” (manual)
+  // sempre. A verificação só conta como feita quando o navegador de fato consultou o servidor; sem internet, tenta de
+  // novo (no máximo uma vez por minuto). Versão já baixando ou pronta: não há o que consultar — o estado é mostrado.
+  // Resultado: 'no-reg' | 'downloading' | 'ready' | 'checked' | 'skipped' | 'error'.
+  let checking = null;
+  const check = ({ opening = false, manual = false } = {}) => {
+    const reg = pwa.reg;
+    if (!reg) return Promise.resolve('no-reg');
+    if (reg.installing) { watch(reg.installing); return Promise.resolve('downloading'); }
+    if (reg.waiting && sw.controller) { if (pwa.update !== 'applying') { pwa.update = 'ready'; notify(); } return Promise.resolve('ready'); }
+    if (checking) return checking;
     const now = Date.now();
-    if (!pwa.reg || checking || document.visibilityState !== 'visible') return;
-    if (!opening && now - pwa.lastCheck < CHECK_EVERY_MS) return;
-    if (now - pwa.lastAttempt < RETRY_AFTER_MS) return;
+    if (!manual && document.visibilityState !== 'visible') return Promise.resolve('skipped');
+    if (!manual && !opening && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve('skipped');
+    if (!manual && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve('skipped');
     pwa.lastAttempt = now;
-    checking = true;
-    if (pwa.update === 'failed') { pwa.update = null; notify(); }
-    pwa.reg.update().then(() => { pwa.lastCheck = Date.now(); }).catch(() => {}).finally(() => { checking = false; });
+    if (pwa.update === 'failed') pwa.update = null;
+    if (manual) pwa.update = 'checking';
+    notify();
+    checking = reg.update()
+      .then(() => { pwa.lastCheck = Date.now(); return reg.installing ? 'downloading' : reg.waiting ? 'ready' : 'checked'; })
+      .catch(() => 'error')
+      .finally(() => { checking = null; if (pwa.update === 'checking') { pwa.update = null; notify(); } });
+    return checking;
   };
   pwa.check = check;
 
-  sw.register('sw.js').then((reg) => {
-    pwa.reg = reg;
-    if (reg.waiting && sw.controller) { pwa.update = 'ready'; notify(); }
+  // O registro vem de getRegistration(), que responde na hora. register() entra na fila do navegador e, enquanto uma
+  // versão nova está sendo instalada (baixando ~14 MB), só termina no fim do download — o app ficava sem o registro,
+  // sem aviso de download e com “Procurar atualização” indisponível durante todo esse tempo.
+  let opened = false;
+  const attach = (reg) => {
+    if (!reg) return;
+    if (pwa.reg !== reg) {
+      pwa.reg = reg;
+      reg.addEventListener('updatefound', () => watch(reg.installing));
+    }
+    if (reg.waiting && sw.controller && pwa.update !== 'applying') { pwa.update = 'ready'; notify(); }
     if (reg.installing) watch(reg.installing);
-    reg.addEventListener('updatefound', () => watch(reg.installing));
-    if (sw.controller) check({ opening: true }); // abertura (na 1ª instalação não há o que procurar)
-  }).catch((e) => console.warn('SW não registrado', e));
+    if (!opened && sw.controller) { opened = true; check({ opening: true }); } // abertura (na 1ª instalação não há o que procurar)
+    notify();
+  };
+  pwa.attach = () => sw.getRegistration().then((reg) => { attach(reg); return reg || null; }, () => null);
+  pwa.attach();
+  sw.register('sw.js').then(attach).catch((e) => { pwa.regError = (e && e.message) || String(e); console.warn('SW não registrado', e); notify(); });
 
   document.addEventListener('visibilitychange', () => check());
   window.addEventListener('focus', () => check());
@@ -125,7 +158,18 @@ export function confirmBoot(App) {
     ch.port1.onmessage = (e) => { clearTimeout(t); resolve(e.data); };
     ctrl.postMessage({ type }, [ch.port2]);
   });
-  ask('CLEANUP').then((r) => { if (r && App.pwa) { App.pwa.version = r.version; App.pwa.cleaned = r.removed; notify(); } });
+  ask('CLEANUP').then((r) => {
+    if (!r || !App.pwa) return;
+    const before = lsGet(LS_VERSION);
+    App.pwa.version = r.version; App.pwa.cleaned = r.removed;
+    // abriu numa versão diferente da última vista (ou acabou de apagar a anterior): “Aplicativo atualizado”
+    if ((before && before !== r.version) || (r.removed && r.removed.length)) {
+      App.pwa.updatedTo = r.version;
+      toast(`Aplicativo atualizado (versão ${r.version}). Seu progresso foi mantido.`, 6000);
+    }
+    lsSet(LS_VERSION, r.version);
+    notify();
+  });
 }
 
 /** O aluno escolheu atualizar: grava o progresso e ativa a versão nova (o app recarrega ao trocar). */
@@ -236,13 +280,27 @@ export function updateStatus(App) {
     const st = pwa.update;
     const action = st === 'ready' || st === 'applying'
       ? h('button', { class: 'btn small primary', 'data-role': 'update-now', disabled: st === 'applying', onclick: () => applyUpdate(App) }, st === 'applying' ? 'Atualizando…' : 'Atualizar agora')
-      : h('button', { class: 'btn small', 'data-role': 'update-check', onclick: async () => {
-        if (!pwa.reg) { toast('Atualização indisponível neste modo de abertura.'); return; }
-        pwa.lastAttempt = Date.now();
-        try { await pwa.reg.update(); pwa.lastCheck = Date.now(); toast(pwa.reg.installing || pwa.reg.waiting ? 'Baixando a nova versão…' : 'Você já está na versão mais recente.'); }
-        catch (e) { toast('Sem conexão: não foi possível procurar atualizações agora.'); }
+      : h('button', { class: 'btn small', 'data-role': 'update-check', disabled: st === 'checking', onclick: async () => {
+        if (!pwa.reg && pwa.attach) await pwa.attach();
+        if (!pwa.reg) {
+          // causa específica, nunca uma mensagem genérica
+          const why = pwa.noSwReason || (pwa.regError ? `o navegador recusou o registro do modo offline (${pwa.regError})`
+            : 'o modo offline ainda não foi registrado nesta abertura — abra o app com internet e tente de novo');
+          toast(`Não foi possível procurar atualização: ${why}.`, 7000);
+          return;
+        }
+        const res = await pwa.check({ manual: true });
+        toast(res === 'downloading' ? 'Baixando a nova versão… o aviso aparece quando ela estiver pronta.'
+          : res === 'ready' ? 'Nova versão pronta: toque em “Atualizar agora”.'
+          : res === 'error' ? 'Sem conexão: não foi possível procurar atualizações agora.'
+          : 'Você já está na versão mais recente.', 5000);
       } }, 'Procurar atualização');
-    const text = st === 'ready' ? 'Nova versão pronta para instalar.' : st === 'downloading' ? 'Baixando a nova versão em segundo plano…' : st === 'failed' ? 'O último download da atualização falhou; o app tentará de novo.' : 'O app procura atualizações ao ser aberto e ao voltar para ele.';
+    const text = st === 'checking' ? 'Verificando atualização…'
+      : st === 'ready' ? 'Nova versão pronta para instalar.'
+      : st === 'downloading' ? 'Baixando a nova versão em segundo plano…'
+      : st === 'failed' ? 'O último download da atualização falhou; o app tentará de novo.'
+      : pwa.updatedTo ? 'Aplicativo atualizado. O app procura atualizações ao ser aberto e ao voltar para ele.'
+      : 'O app procura atualizações ao ser aberto e ao voltar para ele.';
     return h('div', { class: 'card flat small', 'data-role': 'update-status', 'data-state': st || 'idle' },
       h('div', { class: 'row nowrap' }, h('div', { class: 'grow' }, h('b', { text: ver }), h('div', { class: 'muted', text })), action),
       h('div', { class: 'tiny muted', style: { marginTop: '6px' }, text: 'Atualizar não apaga seu progresso. O reconhecimento de fala baixado continua guardado.' }));

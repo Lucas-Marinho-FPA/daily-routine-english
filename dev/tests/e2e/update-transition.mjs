@@ -39,6 +39,7 @@ const BASE_PATH = '/daily-routine-english/';
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json', '.ogg': 'audio/ogg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.gz': 'application/gzip', '.txt': 'text/plain', '.wasm': 'application/wasm', '.mjs': 'text/javascript' };
 let root = OLD;
 let requests = 0;
+let slowMs = 0; // atraso por arquivo (exceto sw.js), como numa conexão de celular
 let server = null, PORT = 0;
 const startServer = () => new Promise((ok) => {
   server = http.createServer(async (req, res) => {
@@ -46,6 +47,7 @@ const startServer = () => new Promise((ok) => {
     let p = decodeURIComponent(req.url.split('?')[0]);
     if (!p.startsWith(BASE_PATH)) { res.writeHead(404); return res.end(); }
     p = p.slice(BASE_PATH.length) || 'index.html';
+    if (slowMs && !p.endsWith('sw.js')) await new Promise((r) => setTimeout(r, slowMs));
     let file = normalize(join(root, p));
     if (!file.startsWith(root)) { res.writeHead(403); return res.end(); }
     try {
@@ -240,6 +242,50 @@ console.log(`versão antiga ${V_OLD}${oldHasLukinhas ? ' (já tem o Lukinhas)' :
     return { emUso: s.controller, marcaNaTela: t.marca, offline: off.marca, progressoIgual: same };
   });
   await o.ctx.close();
+}
+
+// ---------- Download lento: reabrir durante o download (a causa de “Atualização indisponível neste modo de abertura”) ----------
+// Enquanto o navegador instala a versão nova, register() fica na fila até o fim do download. O app tem de obter o
+// registro sem depender dele: aviso de download visível, “Procurar atualização” informando o download, depois a
+// versão pronta e “Atualizar agora” com os dados novos. Em aba normal (T14) e em modo app instalado simulado (T15:
+// display-mode standalone; o Chromium de teste não cria um app instalado de verdade).
+for (const [id, standalone] of [['T14', false], ['T15', true]]) {
+  await check(id, `Download lento, ${standalone ? 'modo app instalado (simulado)' : 'aba normal do navegador'}: reabrir durante o download → aviso “Baixando…”, “Procurar atualização” informa o download; pronta → “Atualizar agora” → dados novos`, async () => {
+    fresh('lento-' + id); root = NEW;
+    const o = await open('lento-' + id);
+    if (standalone) await o.page.addInitScript(() => { const real = window.matchMedia.bind(window); window.matchMedia = (q) => (/display-mode:\s*standalone/.test(q) ? { matches: true, media: q, addEventListener() {}, removeEventListener() {} } : real(q)); });
+    await o.page.goto(BASE);
+    await waitSw(o.page, (x) => x.controller === V_NEW);
+    await o.page.reload(); await o.page.waitForTimeout(1500);
+    const mode = await app(o.page, () => window.DRG_APP.pwa.install);
+    root = NEXT; slowMs = 150;
+    try {
+      await o.page.goto(BASE); await o.page.waitForTimeout(2500); // abre: o navegador começa a instalar a seguinte (devagar)
+      await o.page.reload(); await o.page.waitForTimeout(2500);   // reabre durante o download
+      const during = await app(o.page, async () => {
+        const reg = await navigator.serviceWorker.getRegistration();
+        const pending = await Promise.race([navigator.serviceWorker.register('sw.js').then(() => 'resolvido'), new Promise((r) => setTimeout(() => r('pendente'), 1500))]);
+        return { installing: !!(reg && reg.installing), registerNaFila: pending, appTemReg: !!window.DRG_APP.pwa.reg, estado: window.DRG_APP.pwa.update, aviso: (document.querySelector('[data-role=update-downloading]') || {}).textContent || null };
+      });
+      await o.page.goto(BASE + '#/settings'); await o.page.waitForTimeout(800);
+      await o.page.locator('[data-role=update-status] [data-role=update-check]').click();
+      await o.page.waitForTimeout(600);
+      const toastTxt = await app(o.page, () => [...document.querySelectorAll('.toast')].map((t) => t.textContent).join(' | '));
+      const line = await app(o.page, () => document.querySelector('[data-role=update-status] .muted').textContent);
+      await o.page.goto(BASE + '#/');
+      const ready = await waitSw(o.page, (x) => x.waiting === V_NEXT, 240000);
+      await o.page.locator('[data-role=update-banner]').waitFor({ timeout: 10000 });
+      slowMs = 0;
+      await clickUpdate(o.page);
+      const s = await waitSw(o.page, (x) => x.controller === V_NEXT, 20000);
+      const t = await shown(o.page);
+      assert(mode === (standalone ? 'standalone' : 'manual') || (!standalone && mode !== 'standalone'), 'modo: ' + mode);
+      assert(during.installing && during.appTemReg && during.estado === 'downloading' && /Baixando uma nova versão do aplicativo/.test(during.aviso || ''), 'durante: ' + JSON.stringify(during));
+      assert(/Baixando a nova versão/.test(toastTxt) && !/indisponível/.test(toastTxt) && /Baixando/.test(line), 'Ajustes: ' + JSON.stringify({ toastTxt, line }));
+      assert(ready && s && t.marca === 'versao-seguinte', JSON.stringify({ ready: !!ready, s, t }));
+      return { modo: mode, durante: during, ajustes: toastTxt, depois: { emUso: s.controller, marca: t.marca } };
+    } finally { slowMs = 0; await o.ctx.close(); }
+  });
 }
 
 // ---------- Atualização imediata (o app fica aberto durante o download) ----------

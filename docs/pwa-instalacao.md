@@ -49,6 +49,17 @@ na versão nova:
 - ao instalar e ao assumir, a versão confere o próprio cache e baixa o que faltar; as telas só recebem arquivos depois;
 - arquivo ausente no cache da versão em uso vem da rede; o de outra versão só é usado sem internet.
 
+**Segundo defeito corrigido (2026-10-31): “Atualização indisponível neste modo de abertura.”** A mensagem não tinha
+relação com o modo de abertura: aparecia quando `pwa.reg` estava vazio, e `pwa.reg` só era preenchido quando
+`navigator.serviceWorker.register('sw.js')` resolvia. Enquanto o navegador instala uma versão nova (baixando ~14 MB),
+`register()` e `registration.update()` ficam na fila do navegador até o fim do download — no teste com download lento,
+170 s. Nesse tempo o app não tinha o registro: nenhum aviso de download, botão “Procurar atualização” indisponível (na
+aba do navegador e no app instalado), e a tela continuava na versão anterior. Correção: o registro vem de
+`getRegistration()`, que responde na hora; a instalação em andamento é acompanhada (aviso “Baixando…”); com versão
+baixando ou pronta, “Procurar atualização” informa isso em vez de consultar de novo; sem service worker, a mensagem
+diz a causa técnica. Estados visíveis: verificando (Ajustes), baixando, pronta, falhou e “Aplicativo atualizado”
+(aviso na primeira abertura da versão nova).
+
 **Primeira atualização a partir de uma versão com o defeito (`6a0c5b6` ou `ec33411`):** o aviso “Baixando…” só existe
 a partir da versão corrigida, então nessa primeira troca o download acontece sem aviso (o app precisa ficar aberto com
 internet até aparecer “Nova versão disponível”). Dali em diante vale o fluxo acima. (Versões anteriores a `6a0c5b6`

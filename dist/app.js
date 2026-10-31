@@ -2954,6 +2954,7 @@
   var RETRY_AFTER_MS = 60 * 1e3;
   var NO_BANNER = ["session"];
   var LS_INSTALLED = "drg.installed";
+  var LS_VERSION = "drg.version";
   var listeners2 = /* @__PURE__ */ new Set();
   var notify = () => listeners2.forEach((fn) => {
     try {
@@ -3022,6 +3023,7 @@
     }
     if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) {
       pwa.install = isStandalone() ? "standalone" : "unsupported";
+      pwa.noSwReason = !("serviceWorker" in navigator) ? "este navegador n\xE3o oferece service worker (o recurso que guarda o app no aparelho)" : `o endere\xE7o foi aberto como ${location.protocol.replace(":", "")}, e o modo offline s\xF3 funciona em https`;
       return pwa;
     }
     const sw = navigator.serviceWorker;
@@ -3037,12 +3039,15 @@
       }
       if (firstInstall) toast("Pronto para uso offline: todo o conte\xFAdo e o \xE1udio est\xE3o salvos no aparelho.", 5e3);
     });
+    const watched = /* @__PURE__ */ new WeakSet();
     const watch = (worker2) => {
       if (!worker2) return;
-      if (sw.controller) {
+      if (sw.controller && pwa.update !== "ready" && pwa.update !== "applying") {
         pwa.update = "downloading";
         notify();
       }
+      if (watched.has(worker2)) return;
+      watched.add(worker2);
       worker2.addEventListener("statechange", () => {
         if (worker2.state === "installed" && sw.controller) {
           pwa.update = "ready";
@@ -3054,36 +3059,71 @@
         }
       });
     };
-    let checking = false;
-    const check = ({ opening = false } = {}) => {
-      const now = Date.now();
-      if (!pwa.reg || checking || document.visibilityState !== "visible") return;
-      if (!opening && now - pwa.lastCheck < CHECK_EVERY_MS) return;
-      if (now - pwa.lastAttempt < RETRY_AFTER_MS) return;
-      pwa.lastAttempt = now;
-      checking = true;
-      if (pwa.update === "failed") {
-        pwa.update = null;
-        notify();
+    let checking = null;
+    const check = ({ opening = false, manual = false } = {}) => {
+      const reg = pwa.reg;
+      if (!reg) return Promise.resolve("no-reg");
+      if (reg.installing) {
+        watch(reg.installing);
+        return Promise.resolve("downloading");
       }
-      pwa.reg.update().then(() => {
+      if (reg.waiting && sw.controller) {
+        if (pwa.update !== "applying") {
+          pwa.update = "ready";
+          notify();
+        }
+        return Promise.resolve("ready");
+      }
+      if (checking) return checking;
+      const now = Date.now();
+      if (!manual && document.visibilityState !== "visible") return Promise.resolve("skipped");
+      if (!manual && !opening && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve("skipped");
+      if (!manual && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve("skipped");
+      pwa.lastAttempt = now;
+      if (pwa.update === "failed") pwa.update = null;
+      if (manual) pwa.update = "checking";
+      notify();
+      checking = reg.update().then(() => {
         pwa.lastCheck = Date.now();
-      }).catch(() => {
-      }).finally(() => {
-        checking = false;
+        return reg.installing ? "downloading" : reg.waiting ? "ready" : "checked";
+      }).catch(() => "error").finally(() => {
+        checking = null;
+        if (pwa.update === "checking") {
+          pwa.update = null;
+          notify();
+        }
       });
+      return checking;
     };
     pwa.check = check;
-    sw.register("sw.js").then((reg) => {
-      pwa.reg = reg;
-      if (reg.waiting && sw.controller) {
+    let opened = false;
+    const attach = (reg) => {
+      if (!reg) return;
+      if (pwa.reg !== reg) {
+        pwa.reg = reg;
+        reg.addEventListener("updatefound", () => watch(reg.installing));
+      }
+      if (reg.waiting && sw.controller && pwa.update !== "applying") {
         pwa.update = "ready";
         notify();
       }
       if (reg.installing) watch(reg.installing);
-      reg.addEventListener("updatefound", () => watch(reg.installing));
-      if (sw.controller) check({ opening: true });
-    }).catch((e) => console.warn("SW n\xE3o registrado", e));
+      if (!opened && sw.controller) {
+        opened = true;
+        check({ opening: true });
+      }
+      notify();
+    };
+    pwa.attach = () => sw.getRegistration().then((reg) => {
+      attach(reg);
+      return reg || null;
+    }, () => null);
+    pwa.attach();
+    sw.register("sw.js").then(attach).catch((e) => {
+      pwa.regError = e && e.message || String(e);
+      console.warn("SW n\xE3o registrado", e);
+      notify();
+    });
     document.addEventListener("visibilitychange", () => check());
     window.addEventListener("focus", () => check());
     return pwa;
@@ -3101,11 +3141,16 @@
       ctrl.postMessage({ type }, [ch.port2]);
     });
     ask("CLEANUP").then((r) => {
-      if (r && App2.pwa) {
-        App2.pwa.version = r.version;
-        App2.pwa.cleaned = r.removed;
-        notify();
+      if (!r || !App2.pwa) return;
+      const before = lsGet(LS_VERSION);
+      App2.pwa.version = r.version;
+      App2.pwa.cleaned = r.removed;
+      if (before && before !== r.version || r.removed && r.removed.length) {
+        App2.pwa.updatedTo = r.version;
+        toast(`Aplicativo atualizado (vers\xE3o ${r.version}). Seu progresso foi mantido.`, 6e3);
       }
+      lsSet(LS_VERSION, r.version);
+      notify();
     });
   }
   async function applyUpdate(App2) {
@@ -3263,21 +3308,17 @@
       const pwa = App2.pwa || {};
       const ver = pwa.version ? `Vers\xE3o ${pwa.version}` : "Vers\xE3o em uso";
       const st = pwa.update;
-      const action = st === "ready" || st === "applying" ? h("button", { class: "btn small primary", "data-role": "update-now", disabled: st === "applying", onclick: () => applyUpdate(App2) }, st === "applying" ? "Atualizando\u2026" : "Atualizar agora") : h("button", { class: "btn small", "data-role": "update-check", onclick: async () => {
+      const action = st === "ready" || st === "applying" ? h("button", { class: "btn small primary", "data-role": "update-now", disabled: st === "applying", onclick: () => applyUpdate(App2) }, st === "applying" ? "Atualizando\u2026" : "Atualizar agora") : h("button", { class: "btn small", "data-role": "update-check", disabled: st === "checking", onclick: async () => {
+        if (!pwa.reg && pwa.attach) await pwa.attach();
         if (!pwa.reg) {
-          toast("Atualiza\xE7\xE3o indispon\xEDvel neste modo de abertura.");
+          const why = pwa.noSwReason || (pwa.regError ? `o navegador recusou o registro do modo offline (${pwa.regError})` : "o modo offline ainda n\xE3o foi registrado nesta abertura \u2014 abra o app com internet e tente de novo");
+          toast(`N\xE3o foi poss\xEDvel procurar atualiza\xE7\xE3o: ${why}.`, 7e3);
           return;
         }
-        pwa.lastAttempt = Date.now();
-        try {
-          await pwa.reg.update();
-          pwa.lastCheck = Date.now();
-          toast(pwa.reg.installing || pwa.reg.waiting ? "Baixando a nova vers\xE3o\u2026" : "Voc\xEA j\xE1 est\xE1 na vers\xE3o mais recente.");
-        } catch (e) {
-          toast("Sem conex\xE3o: n\xE3o foi poss\xEDvel procurar atualiza\xE7\xF5es agora.");
-        }
+        const res = await pwa.check({ manual: true });
+        toast(res === "downloading" ? "Baixando a nova vers\xE3o\u2026 o aviso aparece quando ela estiver pronta." : res === "ready" ? "Nova vers\xE3o pronta: toque em \u201CAtualizar agora\u201D." : res === "error" ? "Sem conex\xE3o: n\xE3o foi poss\xEDvel procurar atualiza\xE7\xF5es agora." : "Voc\xEA j\xE1 est\xE1 na vers\xE3o mais recente.", 5e3);
       } }, "Procurar atualiza\xE7\xE3o");
-      const text = st === "ready" ? "Nova vers\xE3o pronta para instalar." : st === "downloading" ? "Baixando a nova vers\xE3o em segundo plano\u2026" : st === "failed" ? "O \xFAltimo download da atualiza\xE7\xE3o falhou; o app tentar\xE1 de novo." : "O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele.";
+      const text = st === "checking" ? "Verificando atualiza\xE7\xE3o\u2026" : st === "ready" ? "Nova vers\xE3o pronta para instalar." : st === "downloading" ? "Baixando a nova vers\xE3o em segundo plano\u2026" : st === "failed" ? "O \xFAltimo download da atualiza\xE7\xE3o falhou; o app tentar\xE1 de novo." : pwa.updatedTo ? "Aplicativo atualizado. O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele." : "O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele.";
       return h(
         "div",
         { class: "card flat small", "data-role": "update-status", "data-state": st || "idle" },
