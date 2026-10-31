@@ -20,13 +20,19 @@ Leia este arquivo e depois `HANDOFF.md` (estado atual e próximo passo) antes de
 
 ## 2. Metodologia pedagógica
 
-- **Jornadas → módulos → cinco etapas** (`js/engine/modules.js`), sempre sobre o mesmo contexto do módulo:
-  01 Palavras-chave · 02 Expressões práticas · 03 Ouvir e entender · 04 Falar na prática (Speaking Lab) ·
-  05 Aplicar e conversar (perguntas, leitura, montar/escrever falas, produção livre “sem ler o texto”).
-- **Cadeados:** uma etapa abre quando a anterior foi concluída. Concluir = acertar **ao menos uma vez** a maior parte
-  (80% dos itens; 6 frases ouvidas nas rotinas ou 75% dos trechos nas jornadas; 3 gravações; perguntas respondidas).
-  Visitar não conclui. Um erro depois não fecha a etapa (o item volta na revisão). Etapa sem itens conta como concluída.
-  A situação é **calculada a partir dos cartões** (não há armazenamento à parte).
+- **Ferramenta de aprendizagem, não jogo** (decisão do responsável, 2026-10-31): sem XP, recompensas, níveis, avatares
+  selecionáveis nem mensagens de recompensa na tela. O progresso mostra **domínio demonstrado**. (O estado ainda guarda
+  `xp`/conquistas antigos — só não são mostrados nem usados como mecanismo.)
+- **Ciclo pedagógico único** (`js/engine/modules.js`) para as DUAS jornadas, cada módulo com seis etapas sobre o mesmo
+  contexto: 1 Vocabulary (palavras) · 2 Collocations, phrasal verbs & expressions · 3 Sentence building (montar/escrever
+  frases, ordenar blocos) · 4 Listening · 5 Speaking (gravações; o reconhecimento nunca conta contra) · 6 Application
+  (perguntas, leitura, recontar, falar de si sem modelo). Palavra × combinação: item de uma palavra (ou categoria word/
+  verb/professional) vai para a etapa 1; o resto para a 2 (sessões do Lukinhas seguem o vocabulário aprovado).
+- **Domínio, não perfeição:** concluir = acertar **ao menos uma vez** a maior parte (80% palavras/combinações; 60% das
+  frases montadas/escritas, até 8; 6 frases ouvidas ou 75% dos trechos; 3 gravações; perguntas respondidas). Visitar não
+  conclui; um erro depois não fecha a etapa (volta na revisão). Etapa sem itens conta como concluída.
+- **Estados (fonte única de verdade = cartões + gravações):** Concluída · Em andamento · Não iniciada · Bloqueada. Uma
+  etapa abre quando a anterior foi concluída; uma etapa já concluída **nunca** volta a aparecer bloqueada.
 - **Aprendizagem cumulativa:** expressões de módulos anteriores voltam ligadas nos textos seguintes; revisão espaçada
   (Leitner, caixas 0–6) traz de volta o que foi errado ou está vencido.
 - **Vocabulário contextualizado:** cada item aparece numa frase real do texto; phrasal verbs, collocations, conectivos e
@@ -46,25 +52,27 @@ Leia este arquivo e depois `HANDOFF.md` (estado atual e próximo passo) antes de
 
 ## 3. Personagens narrativos
 
-São **protagonistas** dos conteúdos, não perfis de usuário. Não duplicar; não criar novos sistemas de seleção sem
-autorização. Registro: `data/characters.js` (gerado de `dev/content/characters/*.json` + `dev/content/personas-planned.json`).
+São **protagonistas** das histórias da Daily Routine, não perfis de usuário. Elenco fixo (definido pelo responsável):
+Lucas — pai, analista financeiro e motorista de aplicativo; Karla — mãe, cuida da família e pratica Pilates; Lukinhas —
+11 anos, estudante, gosta de esportes e jiu-jitsu; Heitor — 7 anos, estudante, criativo e brincalhão (`CAST` em
+`js/engine/characters.js`). O aluno escolhe a **história** (`#/stories`); cada história guarda o próprio progresso
+(perfil interno). Identidade visual só com imagens aprovadas (`dev/content/illustrations.json` → `data/illustrations.js`;
+sem imagem, espaço neutro — nunca imagem genérica). Não inventar personagens nem mudar características. Registro: `data/characters.js` (gerado de `dev/content/characters/*.json` + `dev/content/personas-planned.json`).
 
 | id | Nome exibido | Situação | Conteúdo |
 |---|---|---|---|
 | `lucas` | Lucas (adulto) | ativo | `data/content.js` (rotinas R01–R10 do Word + episódios R11–R18, “Lucas 2.0”) — `docs/lucas-jornada.md` |
 | `karla` | Karla | ativo (rótulo “em preparação” herdado) | 11 episódios K01–K11 — `docs/karla-jornada.md` |
-| `lucas-kid` | **Lukinhas** (11 anos) | ativo na branch `mvp-jornadas` (no GitHub; ainda **não publicado** no Pages) | 10 sessões L01–L10 — `docs/lukinhas.md` |
-| `heitor` | Heitor | previsto (sem conteúdo; idade não informada) | — |
+| `lucas-kid` | **Lukinhas** (11 anos) | ativo, publicado (`b25ebbc`) | 10 sessões L01–L10 — `docs/lukinhas.md` |
+| `heitor` | Heitor (7 anos) | previsto (sem conteúdo) | — |
 
 - **Conversation Practice** (`cp`) é uma **jornada** independente (não personagem): CP01 “First Steps: Meeting People”,
   CP02 “What I Think: Likes and Opinions” — `docs/conversation-practice.md`.
 - **Lukinhas:** id interno `lucas-kid`, nome de exibição Lukinhas; fonte `dev/content/characters/lucas-kid.json`, gerada
   por `dev/tools/lukinhas-source.mjs` (que confere os dez textos aprovados caractere por caractere); publicado em
   `data/characters.js`. Dias da semana dos treinos de jiu-jitsu **não informados** — não atribuir.
-- **Pendência de produto (decisão do usuário):** foi dito que o produto não deve ter XP, pontuação, recompensas,
-  seleção de personagens/avatares nem personagens como perfis. O código atual (MVP de jornadas, já publicado) **ainda
-  tem** XP, níveis, sequência, conquistas e “Trocar personagem” com progresso por personagem. Não acrescentar nada
-  disso; remover exige tarefa própria autorizada.
+- Gamificação **removida da interface** na branch `remodelagem` (XP, níveis, sequência, conquistas, mascote reagindo,
+  escolha de avatar). Não reintroduzir.
 
 ## 4. Arquitetura técnica (repositório = conteúdo publicado do app)
 
@@ -97,6 +105,12 @@ js/audio/, js/store/  áudio/gravação/ASR e persistência
   de conteúdo por personagem), `journeys.js`, `checker.js`, `freeanswer.js`/`coherence.js`/`context.js`/
   `integrity.js`/`agreement.js`/`wordfeedback.js` (avaliação de fala), `lexicon.js`, `text.js`, `practice.js`,
   `retention.js`.
+- **Navegação** (`js/main.js`): abas Início · Daily Routine (`#/dr`) · Conversation (`#/cp`) · Falar · Progresso; pilha
+  das telas da abertura (sessionStorage) — o Voltar do app volta à origem real, como o do Android; redirecionamentos
+  substituem o histórico (`App.go(h, { replace })`); toda tela interna tem Voltar (`App.back(fallback)`); a posição de
+  leitura volta ao voltar.
+- **Traduções de apoio** (`js/engine/translations.js`, `data/translations.js` ← `dev/content/translations/
+  questions-pt.json`): perguntas e respostas-modelo (o inglês aprovado não muda; marcadas na tela).
 - **Telas:** `home.js` (Início), `modules.js` (lista de módulos, módulo com etapas, Palavras-chave/Expressões),
   `explore.js` (texto do módulo/rotina — nas sessões do Lukinhas com expressões tocáveis via `expression.js`),
   `session.js` (sessão de exercícios), `lab.js` + `recwidget.js` + `freeanswer.js` + `inlinewords.js` (Speaking Lab),

@@ -90,7 +90,7 @@ export function renderStories(App) {
     const t = planned ? null : trackStatus(contentFor(App.baseContent, c.id), progressOf(App.state, c.id) || { cards: {}, recordingsMeta: {} });
     const current = App.character && App.character.id === c.id;
     const body = [
-      illustration({ kind: 'character', id: c.id, variant: 'idle', alt: c.name, label: c.name, ratio: '1 / 1', cls: 'ill-avatar' }),
+      illustration({ kind: 'character', id: c.id, variant: 'idle', alt: c.name, label: c.name.slice(0, 1), ratio: '1 / 1', cls: 'ill-avatar' }),
       h('div', { class: 'grow' },
         h('div', {}, h('b', { text: c.name }), cast.role ? h('span', { class: 'muted', text: ` · ${cast.role}` }) : null, current ? h('span', { class: 'chip accent', style: { marginLeft: '6px' }, text: 'Atual' }) : null),
         cast.about ? h('div', { class: 'small muted', text: cast.about }) : null,

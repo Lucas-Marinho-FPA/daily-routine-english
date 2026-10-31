@@ -6,7 +6,7 @@ import { segment, wordAudioText } from '../engine/wordfeedback.js';
 import * as player from '../audio/player.js';
 import { audioKey } from '../engine/text.js';
 
-const LABEL = { good: 'Reconhecida como esperado', needs_practice: 'Precisa de prática', uncertain: 'Não avaliada / inconclusiva' };
+const LABEL = { good: 'Reconhecida', needs_practice: 'Possível erro de reconhecimento (ou de pronúncia — o app não sabe qual)', uncertain: 'Não avaliada' };
 
 /** Toca o áudio isolado de uma palavra (voz britânica embutida; sem ele, a voz do sistema). */
 export const playWord = (audioText, opts) => player.play({ key: audioKey(audioText), text: audioText }, opts);
@@ -86,7 +86,7 @@ export function inlineWords(paragraphs) {
 export function legend() {
   const item = (st, label) => h('span', { class: 'lg', role: 'listitem' }, h('i', { class: `dot dot-${st}`, 'aria-hidden': 'true' }), label);
   return h('div', { class: 'w-legend', role: 'list', 'aria-label': 'Legenda das cores' },
-    item('good', 'Reconhecida'), item('needs_practice', 'Praticar'), item('uncertain', 'Não avaliada'));
+    item('good', 'Reconhecida'), item('needs_practice', 'Possível erro'), item('uncertain', 'Não avaliada'));
 }
 
 /**

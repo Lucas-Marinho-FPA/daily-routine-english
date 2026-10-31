@@ -9,7 +9,7 @@ import { freeAnswerPanel } from './freeanswer.js';
 import { inlineWords, legend, scoreLine, scoreDetails } from './inlinewords.js';
 import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
 import { questionPt } from '../engine/translations.js';
-import { analyseAttempt, practiceSummary, latestGate, wordPracticeSession } from '../engine/practice.js';
+import { analyseAttempt, practiceSummary, latestGate, wordPracticeSession, attemptTracker, calibrate, sentenceVerdict, PERSIST_AFTER } from '../engine/practice.js';
 import { wordPractice } from './wordpractice.js';
 import { updatePracticeWords } from '../engine/progress.js';
 import { asrSetupCard, asrOffNotice, runInstall } from './asrsetup.js';
@@ -186,7 +186,9 @@ function renderTarget(App, params) {
   // motor de reconhecimento (sempre no aparelho): 'model' = modelo local baixado; 'webspeech' = modo local do Chrome
   let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
   const gate = latestGate(); // só a tentativa mais recente pode mostrar resultado
-  const wordSession = wordPracticeSession(); // prática isolada das palavras: só na memória desta tela
+  const wordSession = wordPracticeSession();
+  const tracker = attemptTracker(); // tentativas da frase completa nesta visita
+  const confirmedKeys = () => wordSession.keys().filter((k) => wordSession.get(k).status === 'done'); // palavras confirmadas isoladamente nesta tela
   let wp = null;
 
   const resetFeedback = () => {
@@ -229,6 +231,9 @@ function renderTarget(App, params) {
     const integrity = saved ? saved.integrity || null : res && res.segments ? transcriptIntegrity({ text: res.text, segments: res.segments, secs: res.secs }) : null;
     const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
     let evaluation = evaluateWords(iw.text, res, { insufficient, tailUnreliable });
+    // calibração temporária: palavras confirmadas isoladamente NESTA visita não contam como erro na frase
+    let calibratedKeys = [];
+    if (!saved) { const c = calibrate(evaluation, iw.text, confirmedKeys()); evaluation = c.evaluation; calibratedKeys = c.calibrated; }
     if (tailUnreliable) evaluation = { ...evaluation, note: [evaluation.note, ...integrity.issues.map((x) => x.msg)].filter(Boolean).join(' ') };
     if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
     const score = scoreAttempt({ evaluation, analysis, expectedWords });
@@ -237,8 +242,8 @@ function renderTarget(App, params) {
     legendEl.classList.remove('hidden');
     if (!engine && !res) return; // sem reconhecimento: palavras cinza + aviso de indisponibilidade (já desenhado)
     if (attempt.conclusive) {
-      if (!saved) { updatePracticeWords(state, targetId, attempt); App.save(); }
-      showResult(score, attempt, res, evaluation.note);
+      if (!saved) { updatePracticeWords(state, targetId, attempt); App.save(); tracker.add(attempt.list.map((x) => x.key)); }
+      showResult(score, attempt, res, evaluation.note, calibratedKeys);
     } else {
       showFb('inconclusive',
         scoreLine(score, inconclusiveHint(evaluation, insufficient)),
@@ -252,11 +257,23 @@ function renderTarget(App, params) {
     ? 'Quase não captei voz nesta gravação. Grave de novo, num lugar silencioso e mais perto do microfone.'
     : `${evaluation.note || 'Não deu para avaliar esta tentativa.'} Grave novamente.`);
 
-  function showResult(score, attempt, res, note = '') {
-    const list = attempt.list;
+  function showResult(score, attempt, res, note = '', calibratedKeys = []) {
+    // palavras que continuam pendentes depois de PERSIST_AFTER tentativas vêm primeiro e destacadas
+    const persistent = tracker.persistent();
+    const list = [...attempt.list].sort((a, b) => Number(persistent.includes(b.key)) - Number(persistent.includes(a.key)));
+    const verdict = sentenceVerdict({ pending: list.map((x) => x.key), calibrated: calibratedKeys, persistent });
     if (wp) wp.cancel();
     wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
+    const persistBox = persistent.length ? h('div', { class: 'notice warn small', role: 'status', 'data-role': 'persistent-words' },
+      h('b', { text: `Depois de ${PERSIST_AFTER} tentativas: ` }), persistent.map((k) => `“${k}”`).join(', '),
+      h('ol', { style: { margin: '6px 0 0', paddingLeft: '18px' } },
+        h('li', { text: 'Ouça a referência da palavra.' }),
+        h('li', { text: 'Grave só a palavra (pode repeti-la duas ou três vezes na mesma gravação).' }),
+        h('li', { text: 'Quando ela for reconhecida, grave a frase completa de novo.' })),
+      h('p', { class: 'tiny', style: { margin: '6px 0 0' }, text: 'A confirmação vale só nesta tela, para interpretar a frase; o app não aprende a sua voz.' })) : null;
     showFb('result',
+      h('p', { class: 'small', 'data-role': 'sentence-verdict', 'data-reliability': verdict.reliability, text: verdict.text }),
+      persistBox,
       scoreLine(score, practiceSummary(list)),
       wp ? wp.el : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
       list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),

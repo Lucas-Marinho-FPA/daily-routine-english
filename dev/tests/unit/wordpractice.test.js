@@ -25,7 +25,10 @@ test('vazio: silêncio, transcrição vazia ou só pontuação nunca é acerto',
 
 test('palavras extras: a palavra aparece junto com outras → inconclusivo', () => {
   assert.equal(st('oats', 'I eat oats'), 'extra');
-  assert.equal(st('While', 'while while'), 'extra');
+  // repetir a própria palavra 2 ou 3 vezes na mesma gravação passou a valer (fluxo de recuperação, 2026-10-31);
+  // outras palavras junto continuam inconclusivas
+  assert.equal(st('While', 'while while'), 'match');
+  assert.equal(st('While', 'while while while while'), 'extra');
   assert.equal(st('fruit', 'fruit and oats'), 'extra');
   assert.equal(st('fruit', 'fridge and oats'), 'mismatch');
 });

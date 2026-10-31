@@ -56,12 +56,19 @@ export function recWidget(App, opts) {
   async function start() {
     if (session || destroyed) return;
     player.stopAll();
+    // o microfone leva um instante para abrir (no Android, centenas de milissegundos): falar antes disso corta o início
+    // da primeira palavra e o reconhecedor a marca mesmo com a pronúncia certa — por isso o aviso só sai quando grava
+    const prevTitle = title.textContent;
+    title.textContent = 'Preparando o microfone… espere';
+    recBtn.disabled = true;
     try {
       session = await recorder.start({ maxMs, onLevel: (v) => { meterFill.style.width = `${Math.round(v * 100)}%`; } });
     } catch (e) {
+      title.textContent = prevTitle;
+      recBtn.disabled = false;
       toast(e.userMessage || 'Não foi possível gravar.', 6000);
       return;
-    }
+    } finally { if (!destroyed) recBtn.disabled = false; }
     recBtn.classList.add('on');
     recBtn.setAttribute('aria-label', 'Parar gravação');
     clear(recBtn).append(icon('stop'));
@@ -69,7 +76,7 @@ export function recWidget(App, opts) {
     el.classList.add('recording');
     startedAt = Date.now();
     title.textContent = 'Gravando… 0:00';
-    time.textContent = 'Toque no botão para parar';
+    time.textContent = 'Fale agora. Toque no botão para parar.';
     if (opts.onStart) { try { opts.onStart(); } catch (e) { /* o feedback opcional nunca bloqueia a gravação */ } }
     timer = setInterval(() => { title.textContent = `Gravando… ${clock(Math.round((Date.now() - startedAt) / 1000))}`; }, 250);
     session.stopped.then(onStopped);

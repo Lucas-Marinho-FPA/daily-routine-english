@@ -17,7 +17,7 @@ const WORD_MAX_MS = 6000; // a gravação de uma palavra para sozinha em 6 s
 const RESULT = {
   match: { cls: 'ok', mark: 'check', label: 'Reconhecida', text: (w) => `O app reconheceu “${w}”.` },
   mismatch: { cls: 'bad', mark: 'x', label: 'Não reconhecida corretamente', text: () => 'Ouça de novo e tente outra vez.' },
-  extra: { cls: 'warn', mark: 'refresh', label: 'Inconclusivo', text: (w) => `O app ouviu outras palavras junto. Diga só “${w}”.` },
+  extra: { cls: 'warn', mark: 'refresh', label: 'Inconclusivo', text: (w) => `O app ouviu outras palavras junto. Diga só “${w}” (pode repetir duas ou três vezes na mesma gravação).` },
   empty: { cls: 'warn', mark: 'refresh', label: 'Nenhuma palavra captada', text: () => 'Fale mais perto do microfone e tente de novo.' },
 };
 const CHIP = { done: ['check', 'reconhecida'], retry: ['x', 'tente de novo'], todo: ['speaker', 'não praticada'] };

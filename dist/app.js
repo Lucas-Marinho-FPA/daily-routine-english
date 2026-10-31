@@ -2719,7 +2719,7 @@
       const t = planned ? null : trackStatus(contentFor(App2.baseContent, c.id), progressOf(App2.state, c.id) || { cards: {}, recordingsMeta: {} });
       const current2 = App2.character && App2.character.id === c.id;
       const body = [
-        illustration({ kind: "character", id: c.id, variant: "idle", alt: c.name, label: c.name, ratio: "1 / 1", cls: "ill-avatar" }),
+        illustration({ kind: "character", id: c.id, variant: "idle", alt: c.name, label: c.name.slice(0, 1), ratio: "1 / 1", cls: "ill-avatar" }),
         h(
           "div",
           { class: "grow" },
@@ -3987,13 +3987,20 @@
     async function start2() {
       if (session || destroyed) return;
       stopAll();
+      const prevTitle = title.textContent;
+      title.textContent = "Preparando o microfone\u2026 espere";
+      recBtn.disabled = true;
       try {
         session = await start({ maxMs, onLevel: (v) => {
           meterFill.style.width = `${Math.round(v * 100)}%`;
         } });
       } catch (e) {
+        title.textContent = prevTitle;
+        recBtn.disabled = false;
         toast(e.userMessage || "N\xE3o foi poss\xEDvel gravar.", 6e3);
         return;
+      } finally {
+        if (!destroyed) recBtn.disabled = false;
       }
       recBtn.classList.add("on");
       recBtn.setAttribute("aria-label", "Parar grava\xE7\xE3o");
@@ -4002,7 +4009,7 @@
       el.classList.add("recording");
       startedAt = Date.now();
       title.textContent = "Gravando\u2026 0:00";
-      time.textContent = "Toque no bot\xE3o para parar";
+      time.textContent = "Fale agora. Toque no bot\xE3o para parar.";
       if (opts.onStart) {
         try {
           opts.onStart();
@@ -4456,9 +4463,49 @@
     const H = wordTokens(heard);
     if (!H.length || !T.length) return { status: "empty", heard };
     const eqAt = (i) => T.every((t, k) => H[i + k] !== void 0 && sameWordForm(t, H[i + k]));
-    if (H.length === T.length && eqAt(0) || H.join("") === T.join("")) return { status: "match", heard };
+    if (H.length === T.length && eqAt(0) || H.join("") === T.join("")) return { status: "match", heard, reps: 1 };
+    for (const k of [2, 3]) {
+      if (H.length === T.length * k && Array.from({ length: k }, (_, j) => eqAt(j * T.length)).every(Boolean)) return { status: "match", heard, reps: k };
+    }
     for (let i = 0; i + T.length <= H.length; i++) if (eqAt(i)) return { status: "extra", heard };
     return { status: "mismatch", heard };
+  }
+  var PERSIST_AFTER = 3;
+  function attemptTracker(after = PERSIST_AFTER) {
+    const history2 = [];
+    return {
+      add: (keys) => {
+        history2.push(new Set(keys));
+      },
+      count: () => history2.length,
+      persistent: () => {
+        if (history2.length < after) return [];
+        const last = history2.slice(-after);
+        return [...last[last.length - 1]].filter((k) => last.every((s) => s.has(k)));
+      }
+    };
+  }
+  function calibrate(evaluation, text, confirmedKeys) {
+    const keys = new Set(confirmedKeys || []);
+    if (!evaluation || !evaluation.evaluated || !keys.size) return { evaluation, calibrated: [] };
+    const segs = wordsOf(text);
+    const calibrated = /* @__PURE__ */ new Set();
+    const words2 = evaluation.words.map((r, i) => {
+      const seg = segs[i];
+      if (!seg || r.state !== "needs_practice") return r;
+      const key = wordAudioText(seg).toLowerCase();
+      if (!keys.has(key)) return r;
+      calibrated.add(key);
+      return { ...r, state: "uncertain", calibrated: true, reason: "Voc\xEA confirmou esta palavra gravando-a isolada; na frase, o reconhecedor divergiu. Conta como limite do reconhecimento, n\xE3o como erro." };
+    });
+    return { evaluation: { ...evaluation, words: words2 }, calibrated: [...calibrated] };
+  }
+  function sentenceVerdict({ pending: pending3 = [], calibrated = [], persistent = [] }) {
+    const unconfirmedPersistent = persistent.filter((k) => !calibrated.includes(k));
+    if (!pending3.length && !calibrated.length) return { reliability: "high", text: "Frase reconhecida por completo." };
+    if (!pending3.length) return { reliability: "qualified", text: `Frase reconhecida. ${calibrated.length === 1 ? "Em 1 palavra" : `Em ${calibrated.length} palavras`} o reconhecedor divergiu, mas voc\xEA a${calibrated.length === 1 ? "" : "s"} confirmou isoladamente \u2014 n\xE3o conta como erro.` };
+    if (unconfirmedPersistent.length) return { reliability: "inconclusive", text: `Reconhecimento inconclusivo para ${unconfirmedPersistent.map((k) => `\u201C${k}\u201D`).join(", ")} depois de ${PERSIST_AFTER} tentativas. Isso pode ser limite do reconhecedor; ou\xE7a a refer\xEAncia e grave s\xF3 a palavra.` };
+    return { reliability: "partial", text: pending3.length === 1 ? "1 palavra n\xE3o foi reconhecida nesta tentativa." : `${pending3.length} palavras n\xE3o foram reconhecidas nesta tentativa.` };
   }
   function wordPracticeSession() {
     const words2 = /* @__PURE__ */ new Map();
@@ -4470,6 +4517,7 @@
     };
     return {
       get,
+      keys: () => [...words2.keys()],
       start: (key) => set2(key, { status: "recording", prev: get(key).status }),
       processing: (key) => set2(key, { status: "processing" }),
       /** Gravação cancelada/falhou antes do resultado: volta ao estado anterior, sem contar tentativa. */
@@ -5348,7 +5396,7 @@
   }
 
   // app/js/ui/inlinewords.js
-  var LABEL = { good: "Reconhecida como esperado", needs_practice: "Precisa de pr\xE1tica", uncertain: "N\xE3o avaliada / inconclusiva" };
+  var LABEL = { good: "Reconhecida", needs_practice: "Poss\xEDvel erro de reconhecimento (ou de pron\xFAncia \u2014 o app n\xE3o sabe qual)", uncertain: "N\xE3o avaliada" };
   var playWord = (audioText, opts) => play({ key: audioKey(audioText), text: audioText }, opts);
   function inlineWords(paragraphs) {
     const text = paragraphs.join("\n\n");
@@ -5437,7 +5485,7 @@
       "div",
       { class: "w-legend", role: "list", "aria-label": "Legenda das cores" },
       item("good", "Reconhecida"),
-      item("needs_practice", "Praticar"),
+      item("needs_practice", "Poss\xEDvel erro"),
       item("uncertain", "N\xE3o avaliada")
     );
   }
@@ -6857,7 +6905,7 @@
   var RESULT = {
     match: { cls: "ok", mark: "check", label: "Reconhecida", text: (w) => `O app reconheceu \u201C${w}\u201D.` },
     mismatch: { cls: "bad", mark: "x", label: "N\xE3o reconhecida corretamente", text: () => "Ou\xE7a de novo e tente outra vez." },
-    extra: { cls: "warn", mark: "refresh", label: "Inconclusivo", text: (w) => `O app ouviu outras palavras junto. Diga s\xF3 \u201C${w}\u201D.` },
+    extra: { cls: "warn", mark: "refresh", label: "Inconclusivo", text: (w) => `O app ouviu outras palavras junto. Diga s\xF3 \u201C${w}\u201D (pode repetir duas ou tr\xEAs vezes na mesma grava\xE7\xE3o).` },
     empty: { cls: "warn", mark: "refresh", label: "Nenhuma palavra captada", text: () => "Fale mais perto do microfone e tente de novo." }
   };
   var CHIP = { done: ["check", "reconhecida"], retry: ["x", "tente de novo"], todo: ["speaker", "n\xE3o praticada"] };
@@ -7245,6 +7293,8 @@
     let engine = null, engineInfo = null, listener = null, alive = true, savedPending = null, lastBlob = null, lastAnalysis = null;
     const gate = latestGate();
     const wordSession = wordPracticeSession();
+    const tracker = attemptTracker();
+    const confirmedKeys = () => wordSession.keys().filter((k) => wordSession.get(k).status === "done");
     let wp = null;
     const resetFeedback = () => {
       gate.invalidate();
@@ -7295,6 +7345,12 @@
       const integrity = saved ? saved.integrity || null : res && res.segments ? transcriptIntegrity({ text: res.text, segments: res.segments, secs: res.secs }) : null;
       const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === "possibly-truncated" || x.code === "lost-part");
       let evaluation = evaluateWords(iw.text, res, { insufficient, tailUnreliable });
+      let calibratedKeys = [];
+      if (!saved) {
+        const c = calibrate(evaluation, iw.text, confirmedKeys());
+        evaluation = c.evaluation;
+        calibratedKeys = c.calibrated;
+      }
       if (tailUnreliable) evaluation = { ...evaluation, note: [evaluation.note, ...integrity.issues.map((x) => x.msg)].filter(Boolean).join(" ") };
       if (!res && !insufficient && why) evaluation = { ...evaluation, note: why };
       const score = scoreAttempt({ evaluation, analysis, expectedWords });
@@ -7306,8 +7362,9 @@
         if (!saved) {
           updatePracticeWords(state, targetId, attempt);
           App2.save();
+          tracker.add(attempt.list.map((x) => x.key));
         }
-        showResult(score, attempt, res, evaluation.note);
+        showResult(score, attempt, res, evaluation.note, calibratedKeys);
       } else {
         showFb(
           "inconclusive",
@@ -7319,12 +7376,30 @@
       if (res && !saved && engine === "model") w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
     }
     const inconclusiveHint = (evaluation, insufficient) => insufficient ? "Quase n\xE3o captei voz nesta grava\xE7\xE3o. Grave de novo, num lugar silencioso e mais perto do microfone." : `${evaluation.note || "N\xE3o deu para avaliar esta tentativa."} Grave novamente.`;
-    function showResult(score, attempt, res, note = "") {
-      const list = attempt.list;
+    function showResult(score, attempt, res, note = "", calibratedKeys = []) {
+      const persistent = tracker.persistent();
+      const list = [...attempt.list].sort((a, b) => Number(persistent.includes(b.key)) - Number(persistent.includes(a.key)));
+      const verdict = sentenceVerdict({ pending: list.map((x) => x.key), calibrated: calibratedKeys, persistent });
       if (wp) wp.cancel();
       wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
+      const persistBox = persistent.length ? h(
+        "div",
+        { class: "notice warn small", role: "status", "data-role": "persistent-words" },
+        h("b", { text: `Depois de ${PERSIST_AFTER} tentativas: ` }),
+        persistent.map((k) => `\u201C${k}\u201D`).join(", "),
+        h(
+          "ol",
+          { style: { margin: "6px 0 0", paddingLeft: "18px" } },
+          h("li", { text: "Ou\xE7a a refer\xEAncia da palavra." }),
+          h("li", { text: "Grave s\xF3 a palavra (pode repeti-la duas ou tr\xEAs vezes na mesma grava\xE7\xE3o)." }),
+          h("li", { text: "Quando ela for reconhecida, grave a frase completa de novo." })
+        ),
+        h("p", { class: "tiny", style: { margin: "6px 0 0" }, text: "A confirma\xE7\xE3o vale s\xF3 nesta tela, para interpretar a frase; o app n\xE3o aprende a sua voz." })
+      ) : null;
       showFb(
         "result",
+        h("p", { class: "small", "data-role": "sentence-verdict", "data-reliability": verdict.reliability, text: verdict.text }),
+        persistBox,
         scoreLine(score, practiceSummary(list)),
         wp ? wp.el : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
         list.length ? null : h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
