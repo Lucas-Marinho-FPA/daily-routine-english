@@ -157,7 +157,7 @@ await check('M03', 'Palavras-chave: significado, classe, áudio, exemplo do mód
   return { itens: w.length, exemplo: w[0], marcadaAposRecarregar: marked };
 });
 
-await check('M04', 'Etapa concluída pela prática (não por visita): sessão de Palavras-chave dá XP no perfil e abre Expressões práticas; mesma revisão espaçada', async () => {
+await check('M04', 'Etapa concluída pela prática (não por visita): sessão de Vocabulário registra a prática no perfil e libera Combinações e expressões; mesma revisão espaçada', async () => {
   const before = await profile();
   await go('#/module/R02');
   const visited = await stages(); // só visitar não muda nada
@@ -167,7 +167,7 @@ await check('M04', 'Etapa concluída pela prática (não por visita): sessão de
   const p = await profile();
   const due = await app(() => Object.values(window.DRG_APP.state.cards).filter((c) => c.k.startsWith('item:')).every((c) => c.due > window.DRG_APP.today() - 1 && typeof c.box === 'number'));
   lucasAfter = p;
-  assert(visited[0] === 'vocab:open' && after[0] === 'vocab:done' && after[1] === 'expr:open' && p.xp > before.xp && p.cards > before.cards && due && types.every((t) => ['learn', 'mc', 'pairs', 'recall'].includes(t)), JSON.stringify({ visited, after, before, p, types }));
+  assert(visited[0] === 'vocab:open' && after[0] === 'vocab:done' && ['expr:open', 'expr:progress'].includes(after[1]) && /* liberada: não iniciada, ou em andamento se já houver prática registrada */ p.xp > before.xp && p.cards > before.cards && due && types.every((t) => ['learn', 'mc', 'pairs', 'recall'].includes(t)), JSON.stringify({ visited, after, before, p, types }));
   return { tipos: [...new Set(types)], xp: `${before.xp} → ${p.xp}`, etapas: after.slice(0, 3) };
 });
 
