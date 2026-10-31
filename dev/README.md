@@ -52,6 +52,9 @@ node tools/build-app.mjs                    # rebuild (gera app/dist, app/data, 
 mkdir -p ../site && cp -a app ../site/daily-routine-english
 node tests/e2e/lukinhas.mjs ../site /daily-routine-english/ ../ev-lukinhas
 node tests/e2e/pwa.mjs ../site /daily-routine-english/ ../ev-pwa
+# troca real de versão (conteúdo diferente): versão antiga publicada → app/ desta cópia
+mkdir -p ../v-antiga && git -C <clone> archive 6a0c5b6 | tar -x -C ../v-antiga
+node tests/e2e/update-transition.mjs ../v-antiga app ../ev-transicao
 node tests/e2e/run.mjs ../ev-local          # (run.mjs e run-pages.mjs têm caminhos de saída próprios)
 ```
 

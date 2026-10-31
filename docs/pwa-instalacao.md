@@ -28,18 +28,31 @@ Página para divulgar: `install.html` (no endereço público, `…/daily-routine
 | Momento | O que acontece |
 |---|---|
 | Publicação | O site novo tem um `sw.js` com outra `VERSION` (hash de todos os arquivos). |
-| Ao abrir o app e ao voltar para ele | O app pede ao navegador para procurar versão nova (no máximo a cada 15 min; silencioso sem internet). |
-| Download | A versão nova baixa os ~1.560 arquivos para um cache próprio (`drg-<versão>`), sempre da rede. Se qualquer arquivo falhar, esse cache incompleto é apagado e a versão em uso continua; o app avisa e tenta de novo depois. |
+| Ao abrir o app e ao voltar para ele | O app pede ao navegador para procurar versão nova: sempre ao abrir; ao voltar, no máximo a cada 15 min. A verificação só conta como feita quando o navegador consultou o servidor; sem internet, tenta de novo (no máximo uma vez por minuto). |
+| Download | A versão nova baixa os ~1.800 arquivos para um cache próprio (`drgapp-<versão>`), sempre da rede. Enquanto baixa, aparece “Baixando uma nova versão do aplicativo…” (fora das sessões). Se qualquer arquivo falhar, esse cache incompleto é apagado e a versão em uso continua; o app avisa e tenta de novo depois. |
 | Pronta | A versão nova **espera**. O app mostra “Nova versão disponível — Depois / Atualizar agora”. Durante uma sessão de estudo o aviso não aparece (volta ao sair). “Depois” esconde até a próxima abertura; em Ajustes → Aplicativo o botão continua. Fechar o app por completo também ativa a versão nova na próxima abertura. |
 | “Atualizar agora” | O progresso é gravado, a versão nova assume e o app recarrega. Se a troca não acontecer em 10 s, nada é perdido e o aviso volta. |
-| Depois da abertura | O app, já funcionando na versão nova, pede a limpeza: só então os caches `drg-` antigos são apagados. Até lá, arquivos de uma versão anterior continuam disponíveis para qualquer tela antiga. |
+| Depois da abertura | O app, já funcionando na versão nova, pede a limpeza: só então os caches de versões anteriores (`drgapp-…` e os antigos `drg-…`) são apagados — e só se o cache da versão em uso estiver completo e nenhuma outra versão estiver baixando ou esperando. |
 
 - O cache do **reconhecimento de fala** (`asr-local-…`, ~38 MB, baixado sob demanda) nunca é apagado por uma atualização.
 - Antes: a versão nova assumia sozinha e apagava o cache anterior na mesma hora, com a tela antiga ainda aberta.
 
-**Primeira atualização a partir da versão hoje publicada (`b582c29`):** o código antigo não tem o botão “Atualizar
-agora”. A versão nova fica esperando até o app ser fechado por completo; ao reabrir, ela assume. O aviso antigo (“Feche
-e reabra o app”) já orienta isso. Dali em diante vale o fluxo acima.
+**Defeito corrigido (2026-10-31).** Nas versões até `6db56e10bb5d` (`ec33411`), a limpeza pedida a cada abertura do app
+apagava todo cache `drg-` que não fosse o da versão em uso — inclusive o da versão nova já baixada e em espera. Quem
+abria o app com uma atualização pendente perdia o download; ao tocar “Atualizar agora”, a versão nova assumia sem
+arquivos próprios, servia os da versão antiga (a tela continuava antiga) e, depois da limpeza seguinte, o app ficava
+sem cache e **não abria sem internet**. Esse código antigo continua nos aparelhos até a troca, por isso a correção fica
+na versão nova:
+- cache com outro prefixo (`drgapp-`), fora do alcance da limpeza antiga;
+- a limpeza nova não apaga nada com outra versão baixando ou em espera (conferido de novo logo antes de apagar) e só
+  apaga as anteriores com o próprio cache completo;
+- ao instalar e ao assumir, a versão confere o próprio cache e baixa o que faltar; as telas só recebem arquivos depois;
+- arquivo ausente no cache da versão em uso vem da rede; o de outra versão só é usado sem internet.
+
+**Primeira atualização a partir de uma versão com o defeito (`6a0c5b6` ou `ec33411`):** o aviso “Baixando…” só existe
+a partir da versão corrigida, então nessa primeira troca o download acontece sem aviso (o app precisa ficar aberto com
+internet até aparecer “Nova versão disponível”). Dali em diante vale o fluxo acima. (Versões anteriores a `6a0c5b6`
+assumem sozinhas a versão nova; o aviso antigo pede para fechar e reabrir o app.)
 
 ## 3. Dados
 
@@ -58,7 +71,14 @@ e reabra o app”) já orienta isso. Dali em diante vale o fluxo acima.
   pré-cache, botão de instalação (evento do navegador simulado pelo teste: recusa e aceite), modo janela própria,
   versão nova esperando, aviso fora da sessão, “Depois”, “Atualizar agora” com progresso idêntico e limpeza só depois da
   abertura, cache do reconhecimento preservado, falha no download sem cache pela metade, recuperação na versão
-  seguinte, offline depois das atualizações, página de instalação offline e sem rede externa.
+  seguinte, offline depois das atualizações, página de instalação offline e sem rede externa; P05 confere também o
+  aviso de download e P05b a reabertura com a versão nova em espera (o cache dela continua completo).
+- `tests/e2e/update-transition.mjs` (T01–T13, T21–T22): troca **real** entre duas versões publicadas (conteúdo
+  diferente), conferindo o que a tela mostra — não só a versão do service worker: instalação, abertura, download,
+  aviso de download, “Depois”, reabertura com a versão em espera, “Atualizar agora” com dados novos na hora, progresso
+  de Lucas e Karla, módulos dos três personagens, offline, atualização imediata, fechar por completo, download
+  interrompido e a troca seguinte (com a correção dos dois lados). Uso: `git archive <commit> | tar -x -C <pasta>`
+  para a versão antiga; `app/` da cópia de trabalho para a nova.
 - `tests/unit/qr.test.js`: Reed–Solomon e formato contra valores conhecidos; o QR é lido de volta por um decodificador
   escrito à parte.
 

@@ -2951,6 +2951,7 @@
 
   // app/js/ui/pwa.js
   var CHECK_EVERY_MS = 15 * 60 * 1e3;
+  var RETRY_AFTER_MS = 60 * 1e3;
   var NO_BANNER = ["session"];
   var LS_INSTALLED = "drg.installed";
   var listeners2 = /* @__PURE__ */ new Set();
@@ -2997,7 +2998,7 @@
     }
   }
   function initPwa(App2) {
-    const pwa = App2.pwa = { install: "manual", update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, postponed: false };
+    const pwa = App2.pwa = { install: "manual", update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false };
     const refreshInstall = () => {
       pwa.install = isStandalone() ? "standalone" : pwa.deferred ? "available" : lsGet(LS_INSTALLED) ? "installed-elsewhere" : "manual";
     };
@@ -3053,6 +3054,26 @@
         }
       });
     };
+    let checking = false;
+    const check = ({ opening = false } = {}) => {
+      const now = Date.now();
+      if (!pwa.reg || checking || document.visibilityState !== "visible") return;
+      if (!opening && now - pwa.lastCheck < CHECK_EVERY_MS) return;
+      if (now - pwa.lastAttempt < RETRY_AFTER_MS) return;
+      pwa.lastAttempt = now;
+      checking = true;
+      if (pwa.update === "failed") {
+        pwa.update = null;
+        notify();
+      }
+      pwa.reg.update().then(() => {
+        pwa.lastCheck = Date.now();
+      }).catch(() => {
+      }).finally(() => {
+        checking = false;
+      });
+    };
+    pwa.check = check;
     sw.register("sw.js").then((reg) => {
       pwa.reg = reg;
       if (reg.waiting && sw.controller) {
@@ -3061,17 +3082,10 @@
       }
       if (reg.installing) watch(reg.installing);
       reg.addEventListener("updatefound", () => watch(reg.installing));
-      pwa.lastCheck = Date.now();
+      if (sw.controller) check({ opening: true });
     }).catch((e) => console.warn("SW n\xE3o registrado", e));
-    const check = () => {
-      if (!pwa.reg || document.visibilityState !== "visible" || Date.now() - pwa.lastCheck < CHECK_EVERY_MS) return;
-      pwa.lastCheck = Date.now();
-      if (pwa.update === "failed") pwa.update = null;
-      pwa.reg.update().catch(() => {
-      });
-    };
-    document.addEventListener("visibilitychange", check);
-    window.addEventListener("focus", check);
+    document.addEventListener("visibilitychange", () => check());
+    window.addEventListener("focus", () => check());
     return pwa;
   }
   function confirmBoot(App2) {
@@ -3125,6 +3139,14 @@
     const pwa = App2.pwa;
     if (!pwa || NO_BANNER.includes(currentRoute())) return null;
     const st = pwa.update;
+    if (st === "downloading") {
+      return h(
+        "div",
+        { class: "update-bar", role: "status", "aria-live": "polite", "data-role": "update-downloading" },
+        icon("download"),
+        h("span", { class: "grow", text: "Baixando uma nova vers\xE3o do aplicativo\u2026" })
+      );
+    }
     if (st === "failed") {
       return h(
         "div",
@@ -3246,9 +3268,10 @@
           toast("Atualiza\xE7\xE3o indispon\xEDvel neste modo de abertura.");
           return;
         }
-        pwa.lastCheck = Date.now();
+        pwa.lastAttempt = Date.now();
         try {
           await pwa.reg.update();
+          pwa.lastCheck = Date.now();
           toast(pwa.reg.installing || pwa.reg.waiting ? "Baixando a nova vers\xE3o\u2026" : "Voc\xEA j\xE1 est\xE1 na vers\xE3o mais recente.");
         } catch (e) {
           toast("Sem conex\xE3o: n\xE3o foi poss\xEDvel procurar atualiza\xE7\xF5es agora.");

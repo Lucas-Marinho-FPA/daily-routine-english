@@ -12,6 +12,7 @@ import { h, icon, toast } from './dom.js';
 import { requestPersistence } from '../store/db.js';
 
 const CHECK_EVERY_MS = 15 * 60 * 1000; // ao voltar ao app, no máximo uma verificação a cada 15 min
+const RETRY_AFTER_MS = 60 * 1000; // verificação que falhou (sem internet): nova tentativa só depois de 1 min
 const NO_BANNER = ['session']; // durante uma sessão o aviso não aparece (volta ao sair)
 const LS_INSTALLED = 'drg.installed';
 
@@ -52,7 +53,7 @@ export function isStandalone() {
  *   update:  null | 'downloading' | 'ready' | 'applying' | 'failed'
  */
 export function initPwa(App) {
-  const pwa = App.pwa = { install: 'manual', update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, postponed: false };
+  const pwa = App.pwa = { install: 'manual', update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false };
   const refreshInstall = () => {
     pwa.install = isStandalone() ? 'standalone' : pwa.deferred ? 'available' : lsGet(LS_INSTALLED) ? 'installed-elsewhere' : 'manual';
   };
@@ -86,23 +87,31 @@ export function initPwa(App) {
       if (worker.state === 'redundant' && pwa.update === 'downloading') { pwa.update = 'failed'; notify(); }
     });
   };
+  // procura versão nova: ao abrir o app e ao voltar a ele (no máximo a cada 15 min). A verificação só conta como feita
+  // quando o navegador de fato consultou o servidor; sem internet, tenta de novo (no máximo uma vez por minuto).
+  let checking = false;
+  const check = ({ opening = false } = {}) => {
+    const now = Date.now();
+    if (!pwa.reg || checking || document.visibilityState !== 'visible') return;
+    if (!opening && now - pwa.lastCheck < CHECK_EVERY_MS) return;
+    if (now - pwa.lastAttempt < RETRY_AFTER_MS) return;
+    pwa.lastAttempt = now;
+    checking = true;
+    if (pwa.update === 'failed') { pwa.update = null; notify(); }
+    pwa.reg.update().then(() => { pwa.lastCheck = Date.now(); }).catch(() => {}).finally(() => { checking = false; });
+  };
+  pwa.check = check;
+
   sw.register('sw.js').then((reg) => {
     pwa.reg = reg;
     if (reg.waiting && sw.controller) { pwa.update = 'ready'; notify(); }
     if (reg.installing) watch(reg.installing);
     reg.addEventListener('updatefound', () => watch(reg.installing));
-    pwa.lastCheck = Date.now();
+    if (sw.controller) check({ opening: true }); // abertura (na 1ª instalação não há o que procurar)
   }).catch((e) => console.warn('SW não registrado', e));
 
-  // ao voltar ao app: procura versão nova (silencioso offline)
-  const check = () => {
-    if (!pwa.reg || document.visibilityState !== 'visible' || Date.now() - pwa.lastCheck < CHECK_EVERY_MS) return;
-    pwa.lastCheck = Date.now();
-    if (pwa.update === 'failed') pwa.update = null;
-    pwa.reg.update().catch(() => {});
-  };
-  document.addEventListener('visibilitychange', check);
-  window.addEventListener('focus', check);
+  document.addEventListener('visibilitychange', () => check());
+  window.addEventListener('focus', () => check());
   return pwa;
 }
 
@@ -136,11 +145,16 @@ export async function applyUpdate(App) {
 
 const currentRoute = () => location.hash.replace(/^#\/?/, '').split(/[/?]/)[0] || '';
 
-/** Aviso de versão nova (fora das sessões). “Depois” esconde até a próxima abertura do app. */
+/** Aviso de versão nova (fora das sessões): baixando, pronta ou falhou. “Depois” esconde até a próxima abertura. */
 export function updateBanner(App) {
   const pwa = App.pwa;
   if (!pwa || NO_BANNER.includes(currentRoute())) return null;
   const st = pwa.update;
+  if (st === 'downloading') {
+    return h('div', { class: 'update-bar', role: 'status', 'aria-live': 'polite', 'data-role': 'update-downloading' },
+      icon('download'),
+      h('span', { class: 'grow', text: 'Baixando uma nova versão do aplicativo…' }));
+  }
   if (st === 'failed') {
     return h('div', { class: 'update-bar warn', role: 'status', 'data-role': 'update-failed' },
       h('span', { class: 'grow', text: 'Não foi possível baixar a nova versão agora. O app continua funcionando; tentaremos de novo mais tarde.' }),
@@ -224,8 +238,8 @@ export function updateStatus(App) {
       ? h('button', { class: 'btn small primary', 'data-role': 'update-now', disabled: st === 'applying', onclick: () => applyUpdate(App) }, st === 'applying' ? 'Atualizando…' : 'Atualizar agora')
       : h('button', { class: 'btn small', 'data-role': 'update-check', onclick: async () => {
         if (!pwa.reg) { toast('Atualização indisponível neste modo de abertura.'); return; }
-        pwa.lastCheck = Date.now();
-        try { await pwa.reg.update(); toast(pwa.reg.installing || pwa.reg.waiting ? 'Baixando a nova versão…' : 'Você já está na versão mais recente.'); }
+        pwa.lastAttempt = Date.now();
+        try { await pwa.reg.update(); pwa.lastCheck = Date.now(); toast(pwa.reg.installing || pwa.reg.waiting ? 'Baixando a nova versão…' : 'Você já está na versão mais recente.'); }
         catch (e) { toast('Sem conexão: não foi possível procurar atualizações agora.'); }
       } }, 'Procurar atualização');
     const text = st === 'ready' ? 'Nova versão pronta para instalar.' : st === 'downloading' ? 'Baixando a nova versão em segundo plano…' : st === 'failed' ? 'O último download da atualização falhou; o app tentará de novo.' : 'O app procura atualizações ao ser aberto e ao voltar para ele.';

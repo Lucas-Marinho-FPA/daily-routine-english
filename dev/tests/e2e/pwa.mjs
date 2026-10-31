@@ -92,7 +92,7 @@ await check('P02', 'Service worker ativo e controlando; um único cache do app; 
   const keys = await cacheKeys();
   const ver = await swVersionNow();
   const shotCached = await app(async () => !!(await caches.match(new URL('screenshots/modulo.png', location.href).href)));
-  assert(sw.active && sw.controller && !sw.waiting && ver === V1 && keys.join() === `drg-${V1}` && !shotCached, JSON.stringify({ sw, keys, ver, shotCached }));
+  assert(sw.active && sw.controller && !sw.waiting && ver === V1 && keys.join() === `drgapp-${V1}` && !shotCached, JSON.stringify({ sw, keys, ver, shotCached }));
   return { versao: ver, caches: keys };
 });
 
@@ -142,16 +142,32 @@ await check('P05', 'Versão nova publicada: baixada em segundo plano e ESPERA; a
   before = await progress();
   await app(() => { window.__marker = 'tela-antiga'; });
   swServed = swVersion('teste-v2');
+  // aviso discreto enquanto baixa (C2): registra se apareceu e com que texto, sem depender do tempo do download
+  await app(() => { window.__dl = []; new MutationObserver(() => { const el = document.querySelector('[data-role=update-downloading]'); if (el && !window.__dl.includes(el.textContent)) window.__dl.push(el.textContent); }).observe(document.body, { childList: true, subtree: true }); });
   await app(() => window.DRG_APP.pwa.reg.update());
   const ready = await waitFor(() => window.DRG_APP.pwa.update === 'ready');
+  const downloading = await app(() => ({ textos: window.__dl, aindaVisivel: !!document.querySelector('[data-role=update-downloading]') }));
   await go('#/');
   await app(() => { window.__marker = 'tela-antiga'; });
   const banner = await page.locator('[data-role=update-banner]').count();
   const keys = await cacheKeys();
   const ver = await swVersionNow();
   await shot('P05-atualizacao-disponivel');
-  assert(ready && banner === 1 && ver === V1 && keys.includes(`drg-${V1}`) && keys.includes('drg-teste-v2') && keys.includes('asr-local-teste'), JSON.stringify({ ready, banner, ver, keys }));
-  return { emUso: ver, caches: keys };
+  assert(ready && banner === 1 && ver === V1 && keys.includes(`drgapp-${V1}`) && keys.includes('drgapp-teste-v2') && keys.includes('asr-local-teste'), JSON.stringify({ ready, banner, ver, keys }));
+  assert(downloading.textos.length === 1 && /Baixando uma nova versão do aplicativo/.test(downloading.textos[0]) && !downloading.aindaVisivel, 'aviso de download: ' + JSON.stringify(downloading));
+  return { emUso: ver, caches: keys, avisoDownload: downloading.textos[0] };
+});
+
+await check('P05b', 'Reabrir o app com a versão nova em espera: o cache dela continua completo (a limpeza da abertura não o apaga); aviso volta', async () => {
+  await page.reload(); await page.waitForTimeout(1500); // abertura completa: o app pede a limpeza (CLEANUP)
+  const ready = await waitFor(() => window.DRG_APP.pwa.update === 'ready');
+  await app(() => { window.__marker = 'tela-antiga'; });
+  const keys = await cacheKeys();
+  const files = await app(async () => (await (await caches.open('drgapp-teste-v2')).keys()).length);
+  const expected = (swOriginal.match(/^const FILES = (.*);$/m) && JSON.parse(/^const FILES = (.*);$/m.exec(swOriginal)[1]).length) || -1;
+  const banner = await page.locator('[data-role=update-banner]').count();
+  assert(ready && banner === 1 && keys.includes('drgapp-teste-v2') && files === expected, JSON.stringify({ ready, banner, keys, files, expected }));
+  return { caches: keys, arquivosDaVersaoNova: files };
 });
 
 await check('P06', 'Durante uma sessão o aviso não aparece nem recarrega nada; ao sair, volta', async () => {
@@ -180,12 +196,12 @@ await check('P07', '“Depois”: o aviso some nesta abertura; a versão continu
 await check('P08', '“Atualizar agora”: grava, ativa a versão nova e recarrega; progresso idêntico; cache antigo removido só depois da abertura; reconhecimento de fala preservado', async () => {
   await page.locator('[data-role=update-status] [data-role=update-now]').click();
   await page.waitForFunction(() => !window.__marker, null, { timeout: 15000 }); // recarregou
-  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drg-')).length === 1), null, 20000); // abertura + limpeza
+  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drgapp-')).length === 1), null, 20000); // abertura + limpeza
   const ver = await swVersionNow();
   const after = await progress();
   const keys = await cacheKeys();
   const asr = await app(async () => !!(await caches.match(new URL('asr/teste.bin', location.href).href)));
-  assert(ver === 'teste-v2' && after === before && appCaches(keys) === 'asr-local-teste,drg-teste-v2' && asr, JSON.stringify({ ver, keys, asr, same: after === before }));
+  assert(ver === 'teste-v2' && after === before && appCaches(keys) === 'asr-local-teste,drgapp-teste-v2' && asr, JSON.stringify({ ver, keys, asr, same: after === before }));
   return { versao: ver, caches: keys, progressoIgual: true };
 });
 
@@ -200,7 +216,7 @@ await check('P09', 'Falha no download da versão nova: a instalação dela é de
   const ver = await swVersionNow();
   await go('#/module/R02');
   const works = await page.locator('[data-role=stage]').count();
-  assert(failed && banner === 1 && !keys.includes('drg-teste-v3') && ver === 'teste-v2' && works === 5 && (await progress()) === before, JSON.stringify({ failed, banner, keys, ver, works }));
+  assert(failed && banner === 1 && !keys.includes('drgapp-teste-v3') && ver === 'teste-v2' && works === 5 && (await progress()) === before, JSON.stringify({ failed, banner, keys, ver, works }));
   return { estado: 'failed', caches: keys, emUso: ver };
 });
 
@@ -213,7 +229,7 @@ await check('P10', 'Recuperação: a versão seguinte, íntegra, é baixada e ap
   await app(() => { window.__marker = 'antes'; });
   await page.locator('[data-role=update-banner] [data-role=update-now]').click();
   await page.waitForFunction(() => !window.__marker, null, { timeout: 15000 });
-  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drg-')).length === 1), null, 20000);
+  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drgapp-')).length === 1), null, 20000);
   const ver = await swVersionNow();
   const keys = await cacheKeys();
   assert(ready && ver === 'teste-v4' && appCaches(keys) === 'asr-local-teste,drg-teste-v4' && (await progress()) === before, JSON.stringify({ ready, ver, keys }));

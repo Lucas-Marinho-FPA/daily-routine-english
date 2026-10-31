@@ -122,12 +122,16 @@ js/audio/, js/store/  áudio/gravação/ASR e persistência
 
 ## 6. PWA e offline
 
-- Service worker: pré-cache de todos os arquivos (exceto `js/`, `asr/`, `screenshots/`) num cache `drg-<VERSION>`
+- Service worker: pré-cache de todos os arquivos (exceto `js/`, `asr/`, `screenshots/`) num cache `drgapp-<VERSION>` (até `6db56e10bb5d`: `drg-<VERSION>`)
   (VERSION = hash dos arquivos), “cache primeiro”, respostas parciais (Range) para áudio.
 - **Atualização controlada:** a versão nova baixa tudo e **espera**; o app mostra “Nova versão disponível” (nunca
   durante uma sessão); só com “Atualizar agora” (ou fechando o app por completo) ela assume; o cache antigo só é
   apagado depois que o app abriu na versão nova (mensagem `CLEANUP`); download com falha descarta o cache incompleto.
-  Verificação ao abrir e ao voltar ao app (no máximo a cada 15 min). Cache do reconhecimento nunca é apagado.
+  Verificação sempre ao abrir e, ao voltar ao app, no máximo a cada 15 min (só conta como feita quando o navegador
+  consultou o servidor). Enquanto baixa: “Baixando uma nova versão do aplicativo…”. Cache do reconhecimento nunca é
+  apagado. **Lição (defeito de 2026-10-31):** a limpeza nunca pode tocar o cache de uma versão baixando ou em espera,
+  e testes de atualização precisam conferir o **conteúdo da tela**, não só a versão do service worker
+  (`tests/e2e/update-transition.mjs`, troca real entre duas versões publicadas).
 - Instalação: botão “Instalar aplicativo” só com `beforeinstallprompt` (Chrome); senão, instruções pelo menu
   (Chrome / Samsung Internet); nada aparece quando aberto como app. Página `install.html` com QR.
 - **Tamanho offline:** ~11,8 MB antes do Lukinhas → **~14,5 MB** com o Lukinhas (não publicado ainda); +~38 MB se o
@@ -147,7 +151,7 @@ Conversation Book (sem licença), o Word original do usuário, o modelo Kokoro e
 - Áudio: `tools/gen_audio.py <kokoro.onnx> <voices.bin>` (Kokoro offline; Lukinhas usa a voz `bm_lewis`).
 - Testes: `npm test` (unitários, `node --test`); E2E Chromium: `node tests/e2e/<suíte>.mjs <site> <base> <evidências>`
   — `run.mjs`, `run-pages.mjs`, `asr-local.mjs`, `storage.mjs`, `wordpractice.mjs`, `characters.mjs`, `journey.mjs`,
-  `mvp.mjs`, `pwa.mjs`, `lukinhas.mjs`. Rodar as suítes **em sequência** (rodar em paralelo já corrompeu resultados).
+  `mvp.mjs`, `pwa.mjs`, `lukinhas.mjs`, `update-transition.mjs` (argumentos próprios: site antigo, site novo). Rodar as suítes **em sequência** (rodar em paralelo já corrompeu resultados).
   A simulação do Pages usa `../site/daily-routine-english` (ou `DRG_PAGES_SITE`).
 
 ## 8. Regras permanentes
