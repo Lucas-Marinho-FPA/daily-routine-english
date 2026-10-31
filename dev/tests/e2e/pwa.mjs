@@ -216,7 +216,7 @@ await check('P09', 'Falha no download da versão nova: a instalação dela é de
   const ver = await swVersionNow();
   await go('#/module/R02');
   const works = await page.locator('[data-role=stage]').count();
-  assert(failed && banner === 1 && !keys.includes('drgapp-teste-v3') && ver === 'teste-v2' && works === 5 && (await progress()) === before, JSON.stringify({ failed, banner, keys, ver, works }));
+  assert(failed && banner === 1 && !keys.includes('drgapp-teste-v3') && ver === 'teste-v2' && works === 6 && (await progress()) === before, JSON.stringify({ failed, banner, keys, ver, works }));
   return { estado: 'failed', caches: keys, emUso: ver };
 });
 
@@ -247,7 +247,7 @@ await check('P11', 'Offline depois das atualizações (servidor desligado e rede
   const ex = await app(() => window.DRG_APP.debugExercise && window.DRG_APP.debugExercise.type);
   await ctx.setOffline(false);
   server = await serve(SITE, PORT, { intercept });
-  assert(p === before && stages === 5 && audio.ok && audio.bytes > 1000 && ex && ex !== 'summary', JSON.stringify({ same: p === before, stages, audio, ex }));
+  assert(p === before && stages === 6 && audio.ok && audio.bytes > 1000 && ex && ex !== 'summary', JSON.stringify({ same: p === before, stages, audio, ex }));
   return { etapas: stages, audio, exercicio: ex };
 });
 

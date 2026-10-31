@@ -165,16 +165,13 @@ await check('T01', 'Abre em localhost e registra o service worker', async () => 
   await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 30000 }).catch(async () => { await page.reload(); });
   await page.waitForFunction(() => navigator.serviceWorker.controller, null, { timeout: 30000 });
   const cached = await page.evaluate(async () => { const keys = await caches.keys(); const c = await caches.open(keys[0]); return (await c.keys()).length; });
-  // primeira abertura: escolha do personagem (Lucas marcado); confirmar leva ao Início de sempre
-  const pick = await page.locator('[data-role=character-pick] [role=radio][aria-checked=true]').getAttribute('data-character');
-  await shot('01-escolha');
-  await page.locator('[data-role=character-pick] [data-role=confirm-character]').click();
-  await page.waitForTimeout(400);
-  const home = await page.locator('[data-role=active-name]').textContent();
+  // primeira abertura: sem escolha obrigatória — o Início já orienta, com a história do Lucas como padrão
+  const pick = await page.locator('[data-role=character-pick]').count();
+  const home = await page.evaluate(() => { const m = /História de (\S+)/.exec((document.querySelector('[data-role=journey-context]') || {}).textContent || ''); return m ? m[1] : null; });
   await shot('01-home');
   assert(cached >= 540, `pré-cache com ${cached} arquivos`);
-  assert(pick === 'lucas' && home === 'Lucas', `escolha inicial: ${pick} → ${home}`);
-  return `${cached} arquivos em cache; escolha inicial: ${home}`;
+  assert(pick === 0 && home === 'Lucas', `primeira abertura: escolha=${pick}, história=${home}`);
+  return `${cached} arquivos em cache; história inicial: ${home}`;
 });
 
 await check('T02', 'Primeira sessão completa (respostas corretas)', async () => {

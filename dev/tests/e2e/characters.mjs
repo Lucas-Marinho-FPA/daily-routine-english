@@ -64,44 +64,33 @@ const savedSettings = () => app(async () => {
 });
 // grava o estado e o põe também na memória do app (o app grava o que tem na memória ao recarregar)
 const putState = (st) => app((x) => new Promise((res) => { window.DRG_APP.state = JSON.parse(JSON.stringify(x)); const r = indexedDB.open('drg'); r.onsuccess = () => { const tx = r.result.transaction('kv', 'readwrite'); tx.objectStore('kv').put(x, 'state'); tx.oncomplete = () => { r.result.close(); res(); }; }; }), st);
-const homeName = () => page.locator('[data-role=active-character] [data-role=active-name]').textContent();
+// personagens são protagonistas das histórias (não perfis nem avatares): o Início mostra a história estudada e a troca
+// é feita em “Histórias” (#/stories)
+const homeName = () => page.evaluate(() => { const t = (document.querySelector('[data-role=journey-context]') || {}).textContent || ''; const m = /História de (\S+)/.exec(t); return m ? m[1] : null; });
+const chooseStory = async (id) => { await go('#/stories'); await page.locator(`[data-role=story][data-character=${id}]`).click(); await page.waitForTimeout(400); await go('#/'); };
 
-await check('C01', 'Primeira abertura: escolha pelo nome (Lucas marcado como padrão); sem confirmar nada é escolhido; escolher a Karla e continuar', async () => {
+await check('C01', 'Primeira abertura: sem tela obrigatória de escolha; a história do Lucas é a padrão; escolher a da Karla em “Histórias” troca o conteúdo e persiste', async () => {
   await go('#/');
   await page.waitForTimeout(2500); // service worker instala e pré-cacheia
-  const pick = page.locator('[data-role=character-pick]');
-  assert(await pick.isVisible(), 'tela de escolha não apareceu');
-  const opts = await pick.locator('[role=radio]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.getAttribute('aria-checked'), e.querySelector('.char-name').textContent]));
-  assert(JSON.stringify(opts) === '[["lucas","true","Lucas"],["karla","false","Karla"],["lucas-kid","false","Lukinhas"],["heitor","false","Heitor"]]', JSON.stringify(opts));
-  assert(await pick.locator('img').count() === 0, 'imagem na escolha');
+  assert(await page.locator('[data-role=character-pick]').count() === 0, 'tela de escolha obrigatória ainda aparece');
   const s0 = await app(() => ({ ch: window.DRG_APP.character.id, same: window.DRG_APP.content === window.DRG_APP.baseContent }));
-  assert(s0.ch === 'lucas' && s0.same, JSON.stringify(s0));
-  await page.screenshot({ path: join(OUT, 'C01-escolha-inicial.png') });
-  // sem confirmar: reabrir mostra a escolha de novo (nada foi marcado como escolhido)
-  await go('#/');
-  assert(await page.locator('[data-role=character-pick]').isVisible(), 'a escolha sumiu sem confirmação');
-  assert((await savedSettings()).chosen === false, 'marcado como escolhido sem confirmar');
-  await page.locator('[data-role=character-pick] [role=radio][data-character=karla]').click();
-  const btn = page.locator('[data-role=character-pick] [data-role=confirm-character]');
-  assert(/Continuar com Karla/.test(await btn.textContent()), await btn.textContent());
-  await btn.click();
+  assert(s0.ch === 'lucas' && s0.same && await homeName() === 'Lucas', JSON.stringify(s0));
+  await go('#/stories');
+  const opts = await page.locator('[data-role=story]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.querySelector('b').textContent, e.getAttribute('aria-pressed') || 'planned']));
+  assert(JSON.stringify(opts) === '[["lucas","Lucas","true"],["karla","Karla","false"],["lucas-kid","Lukinhas","false"],["heitor","Heitor","planned"]]', JSON.stringify(opts));
+  assert(await page.locator('[data-role=stories] img').count() === 0, 'imagem genérica no lugar de personagem');
+  await page.screenshot({ path: join(OUT, 'C01-historias.png') });
+  await page.locator('[data-role=story][data-character=karla]').click();
   await page.waitForTimeout(500);
-  assert(await homeName() === 'Karla', 'Início não mostra a Karla');
-  assert(await page.locator('[data-role=character-pick]').count() === 0, 'escolha continua na tela');
-  const s = await app(() => ({ ch: window.DRG_APP.character.id, routines: window.DRG_APP.content.routines.map((r) => r.id), cards: Object.keys(window.DRG_APP.state.cards).length }));
-  assert(s.ch === 'karla' && s.routines[0] === 'K01' && s.cards === 0, JSON.stringify(s));
-  // recarregar: a escolha persiste e a tela de escolha não volta
+  const s = await app(() => ({ ch: window.DRG_APP.character.id, routines: window.DRG_APP.content.routines.map((r) => r.id), cards: Object.keys(window.DRG_APP.state.cards).length, hash: location.hash }));
+  assert(s.ch === 'karla' && s.routines[0] === 'K01' && s.cards === 0 && s.hash === '#/dr', JSON.stringify(s));
   await go('#/');
   const saved = await savedSettings();
-  assert(await homeName() === 'Karla' && await page.locator('[data-role=character-pick]').count() === 0 && saved.character === 'karla' && saved.chosen === true, JSON.stringify(saved));
+  assert(await homeName() === 'Karla' && saved.character === 'karla' && saved.chosen === true, JSON.stringify(saved));
   await page.screenshot({ path: join(OUT, 'C01-inicio-karla.png') });
-  // volta ao Lucas pelo Início para criar a base de progresso dele
-  await page.locator('[data-role=switch-character]').click();
-  await page.locator('[data-role=active-character] [role=radio][data-character=lucas]').click();
-  await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
-  await page.waitForTimeout(500);
+  await chooseStory('lucas');
   assert(await homeName() === 'Lucas', 'troca para o Lucas falhou');
-  return { opcoes: opts.map((o) => o[2]), padrao: 'lucas', escolhido: 'karla', salvo: saved };
+  return { historias: opts.map((o) => o[1]), padrao: 'lucas', escolhida: 'karla', salvo: saved };
 });
 
 let lucasAfter = null, xpBefore = 0;
@@ -115,18 +104,17 @@ await check('C02', 'Progresso do Lucas criado numa sessão (base para conferir o
   return { vistos: seen.slice(0, 6), cartoes: { ...lucasAfter, lucasState: undefined }, xp: xpBefore };
 });
 
-await check('C03', 'Ajustes → Personagem: escolher a Karla troca o conteúdo (jornada K01–K11), sem perder o progresso', async () => {
-  await go('#/settings');
-  const opts = await page.locator('[data-role=characters] [role=radio]').allTextContents();
-  assert(opts.length === 4 && /Lucas/.test(opts[0]) && /Karla/.test(opts[1]) && /em preparação/.test(opts[1]) && /Imagens: 0 de 6 prontas/.test(opts[1]) && /Lukinhas.*10 rotina\(s\), 66 frases/.test(opts[2]) && /Heitor/.test(opts[3]), JSON.stringify(opts));
-  await page.locator('[data-role=characters] [role=radio][data-character=karla]').click();
+await check('C03', 'Histórias: elenco fixo com quem é cada um; escolher a da Karla troca o conteúdo (K01–K11) sem perder o progresso', async () => {
+  await go('#/stories');
+  const opts = await page.locator('[data-role=story]').allTextContents();
+  assert(opts.length === 4 && /Lucas.*Pai.*Analista financeiro/.test(opts[0]) && /Karla.*Mãe.*Pilates/.test(opts[1]) && /Lukinhas.*11 anos.*jiu-jitsu/.test(opts[2]) && /Heitor.*7 anos.*em preparação/.test(opts[3]), JSON.stringify(opts));
+  await page.locator('[data-role=story][data-character=karla]').click();
   await page.waitForTimeout(400);
   const s = await app(() => ({ ch: window.DRG_APP.character.id, set: window.DRG_APP.state.settings.character, routines: window.DRG_APP.content.routines.map((r) => r.id) }));
-  const checked = await page.locator('[data-role=characters] [role=radio][data-character=karla]').getAttribute('aria-checked');
-  assert(s.ch === 'karla' && s.set === 'karla' && JSON.stringify(s.routines) === '["K01","K02","K03","K04","K05","K06","K07","K08","K09","K10","K11"]' && checked === 'true', JSON.stringify(s));
-  assert(JSON.stringify(await cardsBy()) === JSON.stringify(lucasAfter), 'o progresso mudou ao trocar de personagem');
-  await page.screenshot({ path: join(OUT, 'C03-ajustes-personagem.png'), fullPage: true });
-  return { rotinas: s.routines, opcoes: opts.map((o) => o.replace(/\s+/g, ' ').slice(0, 60)) };
+  assert(s.ch === 'karla' && s.set === 'karla' && JSON.stringify(s.routines) === '["K01","K02","K03","K04","K05","K06","K07","K08","K09","K10","K11"]', JSON.stringify(s));
+  assert(JSON.stringify(await cardsBy()) === JSON.stringify(lucasAfter), 'o progresso mudou ao trocar de história');
+  await page.screenshot({ path: join(OUT, 'C03-historias.png'), fullPage: true });
+  return { rotinas: s.routines, historias: opts.map((o) => o.replace(/\s+/g, ' ').slice(0, 60)) };
 });
 
 await check('C04', 'Sessão com a Karla: só conteúdo dela (e vocabulário genérico compartilhado); telas de Estudar e Falar com K01–K03', async () => {
@@ -155,8 +143,7 @@ await check('C04', 'Sessão com a Karla: só conteúdo dela (e vocabulário gen�
 
 await check('C05', 'Voltar ao Lucas: conteúdo, progresso e XP dele intactos; a Karla tem XP próprio (não somam)', async () => {
   const xpK = await app(() => window.DRG_APP.state.xp);
-  await go('#/settings');
-  await page.locator('[data-role=characters] [role=radio][data-character=lucas]').click();
+  await chooseStory('lucas');
   await page.waitForTimeout(300);
   const s = await app(() => ({ ch: window.DRG_APP.character.id, same: window.DRG_APP.content === window.DRG_APP.baseContent, xp: window.DRG_APP.state.xp }));
   const c = await cardsBy();
@@ -168,8 +155,7 @@ await check('C05', 'Voltar ao Lucas: conteúdo, progresso e XP dele intactos; a 
 });
 
 await check('C06', 'Preferência persistida: recarregar mantém o personagem escolhido; a escolha fica no estado salvo (o mesmo do backup)', async () => {
-  await go('#/settings');
-  await page.locator('[data-role=characters] [role=radio][data-character=karla]').click();
+  await chooseStory('karla');
   await page.waitForTimeout(300);
   await app(() => window.DRG_APP.flush());
   await go('#/');
@@ -203,80 +189,72 @@ await check('C07', 'Offline (servidor desligado e rede cortada): Karla abre, est
   return { offline: true, vistos: seen, inicioOffline: offName };
 });
 
-await check('C08', 'Layout 430 px: sem rolagem horizontal em Início, Ajustes, Estudar, Falar e rotina da Karla; marcador sem imagem genérica', async () => {
+await check('C08', 'Layout 430 px: sem rolagem horizontal em Início, Ajustes, jornadas, Histórias, Falar e rotina da Karla; nenhuma imagem genérica de personagem', async () => {
   const over = [];
-  for (const hsh of ['#/', '#/settings', '#/explore', '#/lab', '#/routine/K01', '#/stats', '#/review']) {
+  for (const hsh of ['#/', '#/settings', '#/explore', '#/lab', '#/routine/K01', '#/stats', '#/review', '#/stories', '#/dr', '#/cp']) {
     await go(hsh);
     const m = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, w: innerWidth }));
     if (m.sw > m.w) over.push(`${hsh}:${m.sw}`);
   }
   await go('#/');
-  const marks = await page.locator('[data-role=active-character] .char-ph, [data-role=active-character] img').count();
+  const marks = await page.locator('[data-role=illustration] img').count(); // nenhuma ilustração aprovada ainda: só o espaço neutro
   const imgs = await page.locator('img.char-img').count();
   await page.screenshot({ path: join(OUT, 'C08-inicio-430.png') });
   assert(!over.length && marks === 0 && imgs === 0, JSON.stringify({ over, marks, imgs }));
   return { semRolagem: true, inicio: 'só o nome, sem imagem' };
 });
 
-await check('C10', 'Início → “Trocar personagem”: seletor leve marca o atual; Cancelar não muda nada; Karla → Lucas → Karla, nome atualizado na hora e mantido ao recarregar', async () => {
+await check('C10', 'Histórias: marca a atual; tocar na atual não muda nada; Karla → Lucas → Karla, nome atualizado na hora e mantido ao recarregar', async () => {
   await go('#/');
   const start = await homeName();
   const before = await cardsBy();
-  await page.locator('[data-role=switch-character]').click();
-  const opts = await page.locator('[data-role=active-character] [role=radio]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.getAttribute('aria-checked'), /atual/.test(e.textContent)]));
+  await go('#/stories');
+  const opts = await page.locator('[data-role=story]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.getAttribute('aria-pressed'), /Atual/.test(e.textContent)]));
+  const cur = opts.find((o) => o[0] === start.toLowerCase());
+  assert(cur && cur[1] === 'true' && cur[2], JSON.stringify(opts));
+  await page.screenshot({ path: join(OUT, 'C10-historias.png') });
+  await page.locator(`[data-role=story][data-character=${start.toLowerCase()}]`).click(); await page.waitForTimeout(300);
+  await go('#/');
+  assert(await homeName() === start, 'tocar na história atual trocou algo');
   const other = start === 'Karla' ? 'lucas' : 'karla';
-  assert(opts.find((o) => o[0] === start.toLowerCase())[1] === 'true' && opts.find((o) => o[0] === start.toLowerCase())[2], JSON.stringify(opts));
-  assert(await page.locator('[data-role=active-character] [data-role=confirm-character]').isDisabled(), 'confirmar sem mudar');
-  await page.screenshot({ path: join(OUT, 'C10-seletor-inicio.png') });
-  await page.locator(`[data-role=active-character] [role=radio][data-character=${other}]`).click();
-  await page.locator('[data-role=cancel-character]').click();
-  assert(await homeName() === start, 'Cancelar trocou o personagem');
   const seq = [];
   for (const id of [other, start.toLowerCase(), other]) {
-    await page.locator('[data-role=switch-character]').click();
-    await page.locator(`[data-role=active-character] [role=radio][data-character=${id}]`).click();
-    await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
-    await page.waitForTimeout(400);
+    await chooseStory(id);
     const n = await homeName();
-    const r1 = await page.locator('[data-role=track-dr] h3').textContent();
-    seq.push(`${n} (${r1.slice(0, 24)})`);
+    await go('#/dr');
+    const head = await page.locator('[data-role=story-head]').textContent();
+    seq.push(`${n} (${head.replace(/\s+/g, ' ').slice(0, 30)})`);
     assert(n.toLowerCase() === id && (await app(() => window.DRG_APP.character.id)) === id, `${n} ≠ ${id}`);
-    assert(r1 === `Daily Routine · ${n}`, r1);
+    assert(head.includes(n), head);
   }
   await go('#/');
   const saved = await savedSettings();
   const after = await cardsBy();
   assert(await homeName() === (other === 'karla' ? 'Karla' : 'Lucas') && saved.character === other, JSON.stringify(saved));
-  assert(JSON.stringify(after) === JSON.stringify(before), 'trocar mudou progresso ou XP de alguma persona');
+  assert(JSON.stringify(after) === JSON.stringify(before), 'trocar mudou o progresso de alguma história');
   return { inicio: start, sequencia: seq, salvo: saved.character };
 });
 
-await check('C11', 'Atividade em andamento: dentro da sessão não há troca; respostas já dadas ficam no personagem certo; trocar e voltar não perde nada', async () => {
+await check('C11', 'Atividade em andamento: dentro da sessão não há troca de história; respostas já dadas ficam na história certa; trocar e voltar não perde nada', async () => {
   await go('#/');
   if (await homeName() !== 'Lucas') {
-    await page.locator('[data-role=switch-character]').click();
-    await page.locator('[data-role=active-character] [role=radio][data-character=lucas]').click();
-    await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
+    await chooseStory('lucas');
     await page.waitForTimeout(400);
   }
   const snap = () => app(() => JSON.stringify([window.DRG_APP.state.xp, Object.entries(window.DRG_APP.state.cards).sort().map(([k, c]) => [k, c.box, c.due, c.reps])]));
   const before = await cardsBy(), snap0 = await snap();
   await go('#/session?routine=R02'); // rotina ainda não praticada: a sessão registra algo novo
-  const inSession = await page.locator('[data-role=switch-character], .nav, [data-role=characters]').count();
+  const inSession = await page.locator('[data-role=change-story], .nav, [data-role=stories]').count();
   const seen = await study(4); // “aprender” rende XP; múltipla escolha cria/atualiza cartões
   const mid = await cardsBy(), snap1 = await snap();
   const savedKeys = await app((b) => Object.keys(window.DRG_APP.state.cards).filter((k) => !JSON.parse(b)[1].some((x) => x[0] === k)), snap0);
   const saved = await app(async () => { await window.DRG_APP.flush(); return Object.keys(window.DRG_APP.state.cards).length; });
   // a pessoa sai da sessão e troca de personagem: as respostas já dadas continuam no Lucas
   await go('#/');
-  await page.locator('[data-role=switch-character]').click();
-  await page.locator('[data-role=active-character] [role=radio][data-character=karla]').click();
-  await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
+  await chooseStory('karla');
   await page.waitForTimeout(400);
   const withK = await cardsBy(), snapK = await snap();
-  await page.locator('[data-role=switch-character]').click();
-  await page.locator('[data-role=active-character] [role=radio][data-character=lucas]').click();
-  await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
+  await chooseStory('lucas');
   await page.waitForTimeout(400);
   const back = await cardsBy(), snapL = await snap();
   assert(inSession === 0, 'controle de troca visível durante a sessão');
@@ -323,9 +301,7 @@ await check('C12', 'Dados ausentes ou inválidos: personagem desconhecido/ invá
 await check('C13', 'Jornada da Karla: 11 episódios em Estudar; episódio com etapa, foco da língua, diálogo com quem fala e tipos de pergunta; sessão do episódio só com conteúdo dele; R01 do Lucas continua rotina do Word', async () => {
   await go('#/');
   if (await homeName() !== 'Karla') {
-    await page.locator('[data-role=switch-character]').click();
-    await page.locator('[data-role=active-character] [role=radio][data-character=karla]').click();
-    await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
+    await chooseStory('karla');
     await page.waitForTimeout(400);
   }
   await go('#/explore');
@@ -349,9 +325,7 @@ await check('C13', 'Jornada da Karla: 11 episódios em Estudar; episódio com et
   // Lucas: a rotina R01 continua sem etapa, sem diálogo e com o chip de sempre
   await page.locator('a[href="#/"]').first().click().catch(() => {});
   await go('#/');
-  await page.locator('[data-role=switch-character]').click();
-  await page.locator('[data-role=active-character] [role=radio][data-character=lucas]').click();
-  await page.locator('[data-role=active-character] [data-role=confirm-character]').click();
+  await chooseStory('lucas');
   await page.waitForTimeout(400);
   await go('#/routine/R01');
   const lucas = { stage: await page.locator('[data-role=stage]').count(), dialogue: await page.locator('.para.dialogue').count(), chip: await page.locator('main .chips').first().textContent(), routines: await app(() => window.DRG_APP.content.routines.length), same: await app(() => window.DRG_APP.content === window.DRG_APP.baseContent) };

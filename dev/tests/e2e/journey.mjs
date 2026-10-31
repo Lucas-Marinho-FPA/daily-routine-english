@@ -35,15 +35,15 @@ const seedDue = (keys) => app(async (ks) => { const st = window.DRG_APP.state, t
   for (const k of ks) st.cards[k] = { k, box: 0, due: t, reps: 1, lapses: 0, streak: 0, last: t - 1, lastResult: 'ok', created: t - 1 }; await window.DRG_APP.flush(); }, keys);
 
 let lucasBefore = null;
-await check('J01', 'Acesso fora do seletor de personagem: cartão no Início das rotinas abre a jornada; a escolha persiste ao recarregar', async () => {
+await check('J01', 'Jornada própria (não é história de personagem): cartão no Início abre a lista de unidades; a escolha persiste ao recarregar', async () => {
   await go('#/');
   await page.waitForTimeout(2500); // service worker instala e pré-cacheia
-  await page.locator('[data-role=character-pick] [data-role=confirm-character]').click();
-  await page.waitForTimeout(400);
   assert(await page.locator('[data-role=journey-entry]').isVisible(), 'cartão da jornada ausente');
-  const pickerHasCp = await page.locator('[data-role=active-character]').textContent();
+  await go('#/stories');
+  const pickerHasCp = await page.locator('main').textContent(); // escolha de histórias: só personagens
+  await go('#/');
   lucasBefore = await cardsOf(/^(item:it\.|sent:R|block:R|q:R)/);
-  await page.locator('[data-role=open-journey]').click();
+  await page.locator('[data-role=journey-entry-all]').click();
   await page.waitForTimeout(600);
   const units = await page.locator('[data-role=journey-unit]').evaluateAll((els) => els.map((e) => [e.dataset.unit, e.dataset.complete]));
   await page.screenshot({ path: join(OUT, 'J01-inicio-jornada.png'), fullPage: true });
@@ -118,26 +118,23 @@ await check('J04', 'Ler e responder: diálogo à vista com a fala de referência
 await check('J05', 'Progresso próprio: praticar a jornada não toca nos cartões das rotinas; sair volta ao Lucas; R01 continua igual', async () => {
   const cp = await cardsOf(/^(item:cp\.|lq:|rq:|sent:CP|q:CP)/);
   await go('#/modules');
-  await page.locator('[data-role=leave-journey]').click();
+  await page.locator('nav.nav a[href="#/dr"]').click(); // aba da Daily Routine: sai da jornada sem misturar contextos
   await page.waitForTimeout(500);
   const lucasAfter = await cardsOf(/^(item:it\.|sent:R|block:R|q:R)/); // perfil do Lucas (a jornada tem perfil próprio)
   await go('#/');
-  const home = { name: await page.locator('[data-role=active-name]').textContent(), r1: await page.locator('[data-role=track-dr] h3').textContent(), entry: await page.locator('[data-role=journey-entry]').count() };
+  const home = { name: await page.evaluate(() => { const m = /História de (\S+)/.exec((document.querySelector('[data-role=journey-context]') || {}).textContent || ''); return m ? m[1] : null; }), r1: await page.locator('[data-role=track-dr]').textContent(), entry: await page.locator('[data-role=journey-entry]').count() };
   const s = await app(() => ({ j: window.DRG_APP.journey, saved: window.DRG_APP.state.settings.journey, same: window.DRG_APP.content === window.DRG_APP.baseContent }));
   assert(JSON.stringify(lucasAfter) === JSON.stringify(lucasBefore), 'cartões das rotinas mudaram');
-  assert(cp.length >= 4 && home.name === 'Lucas' && /Daily Routine · Lucas/.test(home.r1) && home.entry === 1 && s.j === null && s.saved === null && s.same, JSON.stringify({ home, s, cp: cp.length }));
+  assert(cp.length >= 4 && home.name === 'Lucas' && /Daily Routine/.test(home.r1) && /R01/.test(home.r1) && home.entry === 1 && s.j === null && s.saved === null && s.same, JSON.stringify({ home, s, cp: cp.length }));
   // Karla também não vê nada da jornada
-  await go('#/settings');
-  await page.locator('[data-role=characters] [role=radio][data-character=karla]').click();
-  await page.waitForTimeout(300);
+  await go('#/stories'); await page.locator('[data-role=story][data-character=karla]').click(); await page.waitForTimeout(300);
   const k = await app(() => ({ routines: window.DRG_APP.content.routines.map((r) => r.id).join(','), lq: !!window.DRG_APP.content.listening }));
-  await page.locator('[data-role=characters] [role=radio][data-character=lucas]').click();
-  await page.waitForTimeout(300);
+  await go('#/stories'); await page.locator('[data-role=story][data-character=lucas]').click(); await page.waitForTimeout(300);
   assert(/^K01/.test(k.routines) && !k.lq, JSON.stringify(k));
   return { cartoesJornada: cp.length, rotinasIntactas: true };
 });
 
-await check('J06', 'Conclusão: CP01 concluída quando as cinco etapas (palavras, expressões, ouvir, falar, aplicar) são cumpridas; CP02 continua em andamento', async () => {
+await check('J06', 'Conclusão: CP01 concluída quando as seis etapas (palavras, combinações, construção de frases, ouvir, falar, aplicar) são cumpridas; CP02 continua em andamento', async () => {
   await go('#/');
   await page.locator('[data-role=open-journey]').click();
   await page.waitForTimeout(400);
@@ -159,7 +156,7 @@ await check('J06', 'Conclusão: CP01 concluída quando as cinco etapas (palavras
   const skills = await page.locator('[data-role=stage]').evaluateAll((els) => els.map((e) => `${e.dataset.state === 'done' ? '✅' : '⬜'}${e.textContent.trim()}`));
   await page.screenshot({ path: join(OUT, 'J06-conclusao.png'), fullPage: true });
   assert(JSON.stringify(units) === '[["CP01","true"],["CP02","false"]]', JSON.stringify(units));
-  assert(skills.length === 5 && skills.every((x) => x.startsWith('✅')), JSON.stringify(skills));
+  assert(skills.length === 6 && skills.every((x) => x.startsWith('✅')), JSON.stringify(skills));
   return { unidades: units, habilidades: skills.map((x) => x.replace(/\s+/g, ' ').slice(0, 30)) };
 });
 

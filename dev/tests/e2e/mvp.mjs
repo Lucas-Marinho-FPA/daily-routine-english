@@ -117,19 +117,24 @@ await check('M00', 'Migração: progresso antigo (esquema 1) é dividido por per
   return { ...s, copiaOriginal: `esquema ${prev}` };
 });
 
-await check('M01', 'Início: quem estuda (persona, nível, progresso), onde continuar e as duas jornadas (Daily Routine e Conversation Practice)', async () => {
+await check('M01', 'Início orientador: as duas jornadas separadas, cada uma com sessão atual, contexto, etapa atual, próxima atividade e Continuar; sem XP, nível ou avatar', async () => {
   await go('#/');
-  const h = await app(() => ({ persona: document.querySelector('[data-role=persona] .persona-name').textContent, stats: document.querySelector('[data-role=persona-stats]').textContent,
-    cont: document.querySelector('[data-role=continue]').disabled, where: (document.querySelector('[data-role=continue-where]') || {}).textContent,
-    tracks: [...document.querySelectorAll('section.track h3')].map((x) => x.textContent), next: [...document.querySelectorAll('[data-role=next-step]')].map((x) => x.textContent) }));
+  const h = await app(() => ({
+    tracks: [...document.querySelectorAll('section.journey .journey-title')].map((x) => x.textContent),
+    next: [...document.querySelectorAll('[data-role=next-step]')].map((x) => x.textContent),
+    ctx: (document.querySelector('[data-role=journey-context]') || {}).textContent || '',
+    cont: [...document.querySelectorAll('[data-role=continue-dr], [data-role=open-journey]')].map((b) => b.disabled),
+    reward: /\bXP\b|Nível|Conquista|dias seguidos/.test(document.querySelector('main').textContent),
+    avatar: document.querySelectorAll('[data-role=persona], [data-role=switch-character], img.char-img').length }));
   await shot('M01-inicio');
-  assert(h.persona === 'Lucas' && /Nível \d+ · 640 XP/.test(h.stats) && !h.cont && h.tracks.length === 2 && /Conversation Practice/.test(h.tracks[1]) && h.next.length === 2 && await noHScroll(), JSON.stringify(h));
+  assert(JSON.stringify(h.tracks) === '["Daily Routine","Conversation Practice"]' && h.next.length === 2 && h.next.every((t) => /Sessão atual.*Etapa atual.*Próxima atividade/.test(t))
+    && /História de Lucas/.test(h.ctx) && h.cont.join() === 'false,false' && !h.reward && h.avatar === 0 && await noHScroll(), JSON.stringify(h));
   return h;
 });
 
 let lucasAfter = null;
-await check('M02', 'Navegação: Daily Routine → módulos → módulo com cinco etapas; só a primeira aberta, as demais com cadeado; etapa bloqueada não abre por link direto', async () => {
-  await page.click('[data-role=open-track]'); await page.waitForTimeout(600);
+await check('M02', 'Navegação: aba Daily Routine → módulos → módulo com as seis etapas; só a primeira aberta, as demais com cadeado; etapa bloqueada não abre por link direto', async () => {
+  await page.click('nav.nav a[href="#/dr"]'); await page.waitForTimeout(600);
   const mods = await page.locator('[data-role=module-card]').count();
   await page.click('[data-unit=R02]'); await page.waitForTimeout(500);
   const st = await stages();
@@ -137,7 +142,7 @@ await check('M02', 'Navegação: Daily Routine → módulos → módulo com cinc
   await shot('M02-modulo');
   await go('#/session?routine=R02&stage=apply');
   const redirected = await app(() => location.hash);
-  assert(mods === 18 && st.join() === 'vocab:open,expr:locked,listen:locked,speak:locked,apply:locked' && lockedLinks === 0 && redirected === '#/module/R02', JSON.stringify({ mods, st, redirected }));
+  assert(mods === 18 && st.join() === 'vocab:open,expr:locked,build:locked,listen:locked,speak:locked,apply:locked' && lockedLinks === 0 && redirected === '#/module/R02', JSON.stringify({ mods, st, redirected }));
   return { modulos: mods, etapas: st, linkDireto: redirected };
 });
 
@@ -166,8 +171,9 @@ await check('M04', 'Etapa concluída pela prática (não por visita): sessão de
   return { tipos: [...new Set(types)], xp: `${before.xp} → ${p.xp}`, etapas: after.slice(0, 3) };
 });
 
-await check('M05', 'Expressões práticas → Ouvir e entender: a frase toca sem texto na tela; o texto aparece só depois da resposta', async () => {
+await check('M05', 'Combinações → Construção de frases → Ouvir e entender: a frase toca sem texto na tela; o texto aparece só depois da resposta', async () => {
   await completeStage('R02', 'expr');
+  await completeStage('R02', 'build');
   const st = await stages();
   await go('#/session?routine=R02&stage=listen');
   const ex = await app(() => window.DRG_APP.debugExercise && window.DRG_APP.debugExercise.type);
@@ -178,29 +184,28 @@ await check('M05', 'Expressões práticas → Ouvir e entender: a frase toca sem
   await page.waitForTimeout(300);
   const after = await app(() => !!document.querySelector('.ex-area .para.dialogue'));
   await shot('M05-ouvir-depois');
-  assert(st[1] === 'expr:done' && st[2] === 'listen:open' && ex === 'listen' && before.play && !before.revealed && after, JSON.stringify({ st, ex, before, after }));
-  return { etapas: st.slice(1, 3), antes: before, textoDepois: after };
+  assert(st[1] === 'expr:done' && st[2] === 'build:done' && st[3] === 'listen:open' && ex === 'listen' && before.play && !before.revealed && after, JSON.stringify({ st, ex, before, after }));
+  return { etapas: st.slice(1, 4), antes: before, textoDepois: after };
 });
 
-await check('M06', 'Troca de persona: Karla tem progresso próprio (XP e cartões); o do Lucas volta intacto; nada se mistura depois de recarregar', async () => {
-  await go('#/');
-  await page.click('[data-role=switch-character]'); await page.click('[data-character=karla]'); await page.click('[data-role=confirm-character]'); await page.waitForTimeout(700);
+await check('M06', 'Troca de história: a da Karla tem progresso próprio (cartões e registro interno); o do Lucas volta intacto; nada se mistura depois de recarregar', async () => {
+  await go('#/stories'); await page.click('[data-role=story][data-character=karla]'); await page.waitForTimeout(700);
   const k0 = await profile();
-  const kHome = await app(() => document.querySelector('[data-role=persona-stats]').textContent);
+  await go('#/');
+  const kHome = await app(() => (document.querySelector('[data-role=journey-context]') || {}).textContent || '');
   await runSession('#/session?routine=K01&stage=vocab');
   const k1 = await profile();
-  await go('#/');
-  await page.click('[data-role=switch-character]'); await page.click('[data-character=lucas]'); await page.click('[data-role=confirm-character]'); await page.waitForTimeout(700);
+  await go('#/stories'); await page.click('[data-role=story][data-character=lucas]'); await page.waitForTimeout(700);
   await page.reload(); await page.waitForTimeout(900);
   const l = await profile();
-  assert(k0.active === 'karla' && k0.cards === 1 && k0.xp === 0 && /0 XP/.test(kHome) && k1.xp > 0 && l.active === 'lucas' && l.xp === lucasAfter.xp + 0 + (l.xp - lucasAfter.xp) && l.xp >= lucasAfter.xp && l.cards >= lucasAfter.cards, JSON.stringify({ k0, k1, l, lucasAfter }));
+  assert(k0.active === 'karla' && k0.cards === 1 && k0.xp === 0 && /História de Karla/.test(kHome) && k1.xp > 0 && l.active === 'lucas' && l.xp === lucasAfter.xp + 0 + (l.xp - lucasAfter.xp) && l.xp >= lucasAfter.xp && l.cards >= lucasAfter.cards, JSON.stringify({ k0, k1, l, lucasAfter }));
   return { karlaAntes: k0, karlaDepois: k1, lucas: l };
 });
 
 await check('M07', 'Conversation Practice: jornada à parte (perfil próprio), módulos com etapas; praticar não toca na Daily Routine', async () => {
   const l0 = await profile();
   await go('#/');
-  await page.click('[data-role=open-journey]'); await page.waitForTimeout(600);
+  await page.click('[data-role=journey-entry-all]'); await page.waitForTimeout(600);
   const units = await page.locator('[data-role=journey-unit]').count();
   const titles = await app(() => [...document.querySelectorAll('[data-role=journey-unit] h3')].map((x) => x.textContent));
   const c0 = await profile();
@@ -208,7 +213,7 @@ await check('M07', 'Conversation Practice: jornada à parte (perfil próprio), m
   await completeStage('CP01', 'expr');
   const c1 = await profile();
   await go('#/modules');
-  await page.click('[data-role=leave-journey]'); await page.waitForTimeout(500);
+  await page.click('nav.nav a[href="#/dr"]'); await page.waitForTimeout(500); // aba própria: sai da jornada
   const l1 = await profile();
   assert(units === 2 && c0.active === 'journey:cp' && c0.cards === 1 && c1.xp > c0.xp && l1.active === 'lucas' && l1.cards === l0.cards && l1.xp === l0.xp && !titles.some((t) => /Introducing Yourself|Expressing Opinions/.test(t)), JSON.stringify({ units, titles, c0, c1, l0, l1 }));
   return { unidades: titles, cp: `${c0.cards} → ${c1.cards} cartões`, lucasIntacto: l1 };
@@ -216,6 +221,7 @@ await check('M07', 'Conversation Practice: jornada à parte (perfil próprio), m
 
 await check('M08', 'Speaking Lab com o contexto do módulo: só as frases e perguntas dele; gravar conta para “Falar na prática”', async () => {
   await app(async () => { await window.DRG_APP.setJourney('cp'); });
+  await completeStage('CP01', 'build');
   await completeStage('CP01', 'listen');
   const st = await stages();
   await go('#/lab?routine=CP01&module=1');
@@ -229,11 +235,11 @@ await check('M08', 'Speaking Lab com o contexto do módulo: só as frases e perg
   }
   await go('#/module/CP01');
   const st2 = await stages();
-  assert(st[3] === 'speak:open' && head && !tabs.includes('Drills') && !/R01|wake up at 5/.test(list) && st2[3] === 'speak:done' && st2[4] === 'apply:open', JSON.stringify({ st, head, tabs, st2 }));
-  return { antes: st[3], abas: tabs, depois: st2.slice(3) };
+  assert(st[4] === 'speak:open' && head && !tabs.includes('Drills') && !/R01|wake up at 5/.test(list) && st2[4] === 'speak:done' && st2[5] === 'apply:open', JSON.stringify({ st, head, tabs, st2 }));
+  return { antes: st[4], abas: tabs, depois: st2.slice(4) };
 });
 
-await check('M09', 'Aplicar e conversar: sessão integrada (ler, montar falas, responder por escrito/fala, falar de você) e conclusão do módulo', async () => {
+await check('M09', 'Aplicar: sessão integrada (ler, responder por escrito/fala, recontar, falar de você) e conclusão do módulo', async () => {
   const types = new Set(await completeStage('CP01', 'apply'));
   const st = await stages();
   const text = await page.locator('[data-role=module-text]').count();
@@ -244,29 +250,33 @@ await check('M09', 'Aplicar e conversar: sessão integrada (ler, montar falas, r
   return { tipos: [...types], concluido: done };
 });
 
-await check('M10', 'XP, nível e revisão: o Início mostra o progresso de cada trilha; itens vencidos voltam na revisão da trilha aberta', async () => {
+await check('M10', 'Progresso e revisão: o Início mostra o progresso de cada jornada (etapas demonstradas); itens vencidos voltam na revisão da jornada aberta', async () => {
   await app(async () => { const st = window.DRG_APP.state, t = window.DRG_APP.today(); for (const c of Object.values(st.cards).slice(0, 3)) c.due = t; await window.DRG_APP.flush(); });
   await go('#/');
   const h = await app(() => ({ due: (document.querySelector('[data-role=due]') || {}).textContent || '', cp: document.querySelector('[data-role=journey-entry]').textContent }));
   await go('#/session?mode=review');
   const t = await app(() => window.DRG_APP.debugExercise && window.DRG_APP.debugExercise.type);
-  const cpDone = (h.cp.match(/(\d+) de 10 etapas/) || [])[1];
-  assert(/3 para revisar/.test(h.due) && cpDone === '5' && t && t !== 'summary', JSON.stringify({ h, t }));
-  return { revisao: '3 para revisar', cp: `${cpDone} de 10 etapas`, exercicio: t };
+  const cpDone = (h.cp.match(/(\d+)\/12 etapas/) || [])[1];
+  assert(/Revisão: 3 itens/.test(h.due) && cpDone === '6' && /1 de 2 sessões concluídas/.test(h.cp) && t && t !== 'summary', JSON.stringify({ h, t }));
+  return { revisao: '3 itens', cp: `${cpDone} de 12 etapas`, exercicio: t };
 });
 
-await check('M11', 'Persona prevista (Heitor): progresso próprio vazio, Daily Routine “em preparação”, telas de estudo não mostram conteúdo de outra persona; Conversation Practice disponível', async () => {
+await check('M11', 'História prevista (Heitor): aparece “em preparação” e não pode ser escolhida; quem já a tinha ativa vê a Daily Routine em preparação, sem conteúdo de outra história; Conversation Practice disponível', async () => {
   await app(async () => { await window.DRG_APP.setJourney(null); });
+  await go('#/stories');
+  const card = await app(() => { const e = document.querySelector('[data-role=story][data-character=heitor]'); return { tag: e.tagName, disabled: e.getAttribute('aria-disabled'), text: e.textContent }; });
+  // estado antigo com o Heitor ativo (escolhido antes desta versão)
+  await app(async () => { await window.DRG_APP.chooseCharacter('heitor'); });
   await go('#/');
-  await page.click('[data-role=switch-character]'); await page.click('[data-character=heitor]'); await page.click('[data-role=confirm-character]'); await page.waitForTimeout(700);
-  const h = await app(() => ({ p: window.DRG_APP.state.activeProfile, cards: Object.keys(window.DRG_APP.state.cards).length, dr: document.querySelector('[data-role=open-track]').disabled, cp: document.querySelector('[data-role=open-journey]').disabled }));
+  const h = await app(() => ({ p: window.DRG_APP.state.activeProfile, cards: Object.keys(window.DRG_APP.state.cards).length, dr: document.querySelector('[data-role=continue-dr]').disabled, cp: document.querySelector('[data-role=open-journey]').disabled }));
   await shot('M11-heitor');
   await go('#/session'); const s = await page.locator('[data-role=planned]').count();
   await go('#/lab'); const lab = await page.locator('[data-role=planned]').count();
-  await go('#/');
-  await page.click('[data-role=switch-character]'); await page.click('[data-character=lucas]'); await page.click('[data-role=confirm-character]'); await page.waitForTimeout(600);
-  assert(h.p === 'heitor' && h.cards === 0 && h.dr === true && h.cp === false && s === 1 && lab === 1, JSON.stringify({ h, s, lab }));
-  return h;
+  await go('#/dr'); const dr = await page.locator('[data-role=planned]').count();
+  await go('#/stories'); await page.click('[data-role=story][data-character=lucas]'); await page.waitForTimeout(600);
+  assert(card.tag === 'DIV' && card.disabled === 'true' && /7 anos/.test(card.text) && /em preparação/.test(card.text), JSON.stringify(card));
+  assert(h.p === 'heitor' && h.cards === 0 && h.dr === true && h.cp === false && s === 1 && lab === 1 && dr === 1, JSON.stringify({ h, s, lab, dr }));
+  return { ...h, escolhaBloqueada: true };
 });
 
 await check('M12', 'PWA offline (servidor desligado e rede cortada): abre, navega por módulo e palavras, áudio local, progresso intacto', async () => {
@@ -281,18 +291,18 @@ await check('M12', 'PWA offline (servidor desligado e rede cortada): abre, naveg
   const sw = await app(() => !!navigator.serviceWorker.controller);
   await ctx.setOffline(false);
   server = await serve(SITE, PORT);
-  assert(sw && after.xp === before.xp && after.cards === before.cards && st.length === 5 && words > 3 && audio.ok && audio.bytes > 1000, JSON.stringify({ sw, before, after, st, words, audio }));
+  assert(sw && after.xp === before.xp && after.cards === before.cards && st.length === 6 && words > 3 && audio.ok && audio.bytes > 1000, JSON.stringify({ sw, before, after, st, words, audio }));
   return { serviceWorker: sw, progresso: after, palavras: words, audio };
 });
 
 await check('M13', 'Layout 412 px sem rolagem horizontal nas telas novas; nenhuma requisição externa nem erro', async () => {
   const bad = [];
-  for (const hsh of ['#/', '#/modules', '#/module/R02', '#/words/R02?kind=expr', '#/lab?routine=R02&module=1', '#/session?routine=R02&stage=listen', '#/settings']) {
+  for (const hsh of ['#/', '#/dr', '#/cp', '#/stories', '#/stats', '#/modules', '#/module/R02', '#/words/R02?kind=expr', '#/lab?routine=R02&module=1', '#/session?routine=R02&stage=listen', '#/settings']) {
     await go(hsh);
     if (!(await noHScroll())) bad.push(hsh);
   }
   assert(!bad.length && !external.length && !errors.length, JSON.stringify({ bad, external: external.slice(0, 3), errors: errors.slice(0, 3) }));
-  return { telas: 7, externas: 0, erros: 0 };
+  return { telas: 11, externas: 0, erros: 0 };
 });
 
 await ctx.close();

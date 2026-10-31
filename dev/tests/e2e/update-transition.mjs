@@ -189,7 +189,7 @@ console.log(`versão antiga ${V_OLD}${oldHasLukinhas ? ' (já tem o Lukinhas)' :
     assert(after === before, 'progresso mudou');
     return { identico: true };
   });
-  await check('T09', 'Compatibilidade: módulos do Lucas, da Karla e do Lukinhas abrem com as cinco etapas', async () => {
+  await check('T09', 'Compatibilidade: módulos do Lucas, da Karla e do Lukinhas abrem com as seis etapas', async () => {
     const out = {};
     for (const [who, mod] of [['lucas', 'R02'], ['karla', 'K01'], ['lucas-kid', 'L01']]) {
       await app(o.page, (id) => window.DRG_APP.chooseCharacter(id), who);
@@ -197,7 +197,7 @@ console.log(`versão antiga ${V_OLD}${oldHasLukinhas ? ' (já tem o Lukinhas)' :
       out[mod] = await o.page.locator('[data-role=stage]').count();
     }
     await app(o.page, () => window.DRG_APP.chooseCharacter('lucas'));
-    assert(out.R02 === 5 && out.K01 === 5 && out.L01 === 5 && o.errors.length === 0, JSON.stringify({ out, errors: o.errors }));
+    assert(out.R02 === 6 && out.K01 === 6 && out.L01 === 6 && o.errors.length === 0, JSON.stringify({ out, errors: o.errors }));
     return out;
   });
   await check('T10', 'Offline depois da atualização (servidor desligado e rede cortada): app, Lukinhas, áudio dele e progresso', async () => {
@@ -213,7 +213,7 @@ console.log(`versão antiga ${V_OLD}${oldHasLukinhas ? ' (já tem o Lukinhas)' :
     return { t, audio, stages, same };
     });
     const { t, audio, stages, same } = r;
-    assert(t.lukinhas && t.codigoNovo && audio.ok && audio.bytes > 1000 && stages === 5 && same, JSON.stringify({ t, audio, stages, same }));
+    assert(t.lukinhas && t.codigoNovo && audio.ok && audio.bytes > 1000 && stages === 6 && same, JSON.stringify({ t, audio, stages, same }));
     return { lukinhas: t.lukinhas, audio, etapasL01: stages, progressoIgual: same };
   });
 
