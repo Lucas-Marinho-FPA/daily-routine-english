@@ -465,3 +465,12 @@ a.stage-row:active { transform: scale(.99); }
 .update-bar .grow { min-width: 160px; }
 .install-card summary { cursor: pointer; }
 .stack > .pwa-slot:empty { display: none; }
+
+/* ---------- sessões do Lukinhas: expressões destacadas e tocáveis ---------- */
+.hl-expr { font: inherit; color: inherit; background: var(--orange-soft); border: 0; border-bottom: 2px solid var(--orange); border-radius: 4px;
+  padding: 0 2px; margin: 0; cursor: pointer; line-height: inherit; }
+.hl-expr:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hl-chip { cursor: pointer; border-color: var(--orange); }
+mark.nat-plain { background: var(--warn-soft); color: inherit; padding: 0 2px; border-radius: 4px; text-decoration: underline wavy var(--warn); }
+.session-text { margin-top: 12px; }
+.expr-card .word-en { font-size: 1.2rem; }

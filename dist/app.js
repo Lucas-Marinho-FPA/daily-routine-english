@@ -744,6 +744,8 @@
       if (!cards[rcl] && box(cards, rec) >= 2) out.push({ k: rcl, unit: "item", id: it.id, skill: "rcl" });
       const bld = cardKey("item", it.id, "bld");
       if (!cards[bld] && box(cards, rcl) >= 1 && it.sentences.length && ["collocation", "phrasal", "time", "professional"].includes(it.c)) out.push({ k: bld, unit: "item", id: it.id, skill: "bld" });
+      const nat = cardKey("item", it.id, "nat");
+      if (it.plain && it.sentences.length && !cards[nat] && box(cards, rec) >= 1) out.push({ k: nat, unit: "item", id: it.id, skill: "nat" });
     }
     for (const s of orderedSentences(content, inFocus)) {
       const ord = cardKey("sent", s.id, "ord");
@@ -879,7 +881,7 @@
     const due = Object.values(cards).filter((c) => c.due <= today && exists(c.k) && !graduated(c.k)).sort((a, b) => unitInFocus(b.k) - unitInFocus(a.k) || a.due - b.due || a.box - b.box || rand() - 0.5).map(toEntry);
     const fresh = unlockedNew(content, cards, focus);
     const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
-    const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== "conv"), (f) => f.skill, ["lis", "retell", "tell", "rdq", "seq", "wrt", "ord", "rcl", "bld", "vb3"]);
+    const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== "conv"), (f) => f.skill, ["lis", "retell", "tell", "rdq", "seq", "wrt", "ord", "nat", "rcl", "bld", "vb3"]);
     const conv = fresh.filter((f) => f.skill === "conv");
     const queue = [];
     const take = (list, n) => {
@@ -908,7 +910,7 @@
     }).filter(filter).sort((a, b) => a.due - b.due || a.box - b.box || rand() - 0.5);
     const fresh = unlockedNew(content, cards, focus).filter(filter);
     const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
-    const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ["lis", "rdq", "conv", "ord", "wrt", "seq", "tell", "retell", "rcl", "bld"]);
+    const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ["lis", "rdq", "conv", "ord", "wrt", "seq", "tell", "retell", "nat", "rcl", "bld"]);
     const queue = [];
     const take = (list, n) => queue.push(...list.splice(0, Math.max(0, n)));
     take(due, Math.round(size / 2));
@@ -2161,7 +2163,7 @@
       ...base,
       character: ch.id,
       meta: { ...base.meta, intro: [ch.profile && ch.profile.summary].filter(Boolean) },
-      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", episode: "Epis\xF3dio", ...base.dayTypes },
+      dayTypes: { club: "Dia no clube", short: "Dia mais curto", variation: "Varia\xE7\xE3o", episode: "Epis\xF3dio", session: "Sess\xE3o de pr\xE1tica", ...base.dayTypes },
       routines: pack.routines,
       blocks: pack.blocks,
       sentences: pack.sentences,
@@ -2227,6 +2229,9 @@
   var moduleOf = (view, id) => view.routines.find((r) => r.id === id) || null;
   var moduleSentences = (view, r) => r.blocks.flatMap((b) => view.blocks[b] ? view.blocks[b].sentences : []);
   function moduleItems(view, r, kind) {
+    if (r.session && r.session.vocabIds) {
+      return r.session.vocabIds.map((i) => view.items[i]).filter(Boolean).filter((it) => kind === "vocab" ? it.c !== "phrasal" : it.c === "phrasal");
+    }
     const ids = r.items && r.items.length ? r.items : [...new Set(moduleSentences(view, r).flatMap((s) => view.sentences[s] ? view.sentences[s].items : []))];
     return ids.map((i) => view.items[i]).filter((it) => it && !(it.tags || []).includes("grammar-model")).filter((it) => kind === "vocab" ? VOCAB_CATS.has(it.c) : !VOCAB_CATS.has(it.c));
   }
@@ -2296,7 +2301,7 @@
     const sents = new Set(moduleSentences(view, r));
     if (stageId === "vocab" || stageId === "expr") {
       const set2 = ids(stageId);
-      const skills = stageId === "vocab" ? ["rec", "rcl"] : ["rec", "rcl", "bld"];
+      const skills = stageId === "vocab" ? ["rec", "rcl", "nat"] : ["rec", "rcl", "bld", "nat"];
       return (e) => e.unit === "item" && set2.has(e.id) && skills.includes(e.skill);
     }
     if (stageId === "listen") {
@@ -2488,6 +2493,24 @@
       if (skill === "rcl") {
         const ex = item.ex.find((x) => x.pt);
         return { type: "recall", entry, item, targets: itemTargets(item), cue: ex ? ex.pt : null, label: categoryLabel(item.c) };
+      }
+      if (skill === "nat") {
+        const s = content.sentences[item.sentences[0]];
+        const loc = s ? locate(item, s.en) : null;
+        if (!loc || !item.plain) return makeExercise(content, { ...entry, skill: "rec" }, rand);
+        const pool = Object.values(content.items).filter((x) => x.id !== item.id && x.en !== item.en && x.routines.some((r) => item.routines.includes(r)) && ["phrasal", "collocation", "time", "connector"].includes(x.c));
+        const others = shuffle(pool, rand).slice(0, 3);
+        const options = shuffle([{ text: item.en, correct: true }, ...others.map((x) => ({ text: x.en, correct: false }))], rand);
+        return {
+          type: "nat",
+          entry,
+          item: { ...item, q: `Qual express\xE3o diz \u201C${item.plain}\u201D de um jeito mais natural?`, explain: `\u201C${item.en}\u201D = ${item.pt}.${item.explain ? " " + item.explain : ""}` },
+          sentence: s,
+          before: loc.before,
+          plain: item.plain,
+          after: loc.after,
+          options
+        };
       }
       if (skill === "bld") {
         const sid = item.sentences[Math.floor(rand() * item.sentences.length)];
@@ -2763,10 +2786,30 @@
       r.goal ? h("p", { class: "small", style: { marginTop: "6px" } }, h("b", { text: "Objetivo: " }), r.goal) : null,
       h("div", { class: "row nowrap", style: { marginTop: "8px" } }, h("div", { class: "grow" }, bar(m.doneCount / STAGES.length)), h("span", { class: "small muted", text: `${m.doneCount}/${STAGES.length}` }))
     ));
+    if (r.session) {
+      view.append(h(
+        "a",
+        { class: "card link session-text", href: `#/routine/${r.id}`, "data-role": "session-text" },
+        h(
+          "div",
+          { class: "row nowrap" },
+          h("span", { class: "stage-mark open", "aria-hidden": "true" }, icon("book")),
+          h(
+            "div",
+            { class: "grow" },
+            h("b", { text: "Texto da sess\xE3o e express\xF5es" }),
+            h("div", { class: "small muted", text: `${r.session.level} \xB7 ${r.session.focus}` }),
+            h("div", { class: "small", text: "Leia, ou\xE7a, veja a tradu\xE7\xE3o e toque nas express\xF5es destacadas." })
+          ),
+          icon("next")
+        )
+      ));
+    }
     const list = h("ol", { class: "stages", "data-role": "stages" });
     for (const s of m.stages) list.append(stageRow(App2, r, s));
     view.append(list);
-    if (m.stages.find((s) => s.id === "listen").complete) {
+    if (r.session) {
+    } else if (m.stages.find((s) => s.id === "listen").complete) {
       view.append(h("a", { class: "btn block", "data-role": "module-text", href: `#/routine/${r.id}`, style: { marginTop: "12px" } }, icon("book"), App2.journey ? "Ver o di\xE1logo completo" : "Ver o texto completo"));
     } else {
       view.append(h("p", { class: "tiny muted", style: { marginTop: "12px" }, text: "O texto completo fica dispon\xEDvel depois de \u201COuvir e entender\u201D, para voc\xEA treinar o ouvido antes de ler." }));
@@ -2880,6 +2923,13 @@
       ex ? h("p", { class: "small en ex", style: { margin: "8px 0 2px" } }, ...loc ? [loc.before, h("b", { text: loc.target }), loc.after] : [ex.en]) : null,
       ex && ex.pt ? h("div", { class: "tiny muted", text: ex.pt }) : null,
       noteOf(it) ? h("div", { class: "tiny", style: { marginTop: "4px" }, text: `Uso: ${noteOf(it)}` }) : null,
+      it.explain ? h("div", { class: "small", style: { marginTop: "4px" }, "data-role": "explain", text: it.explain }) : null,
+      it.extra ? h(
+        "div",
+        { class: "row nowrap", style: { marginTop: "6px", alignItems: "flex-start" }, "data-role": "extra" },
+        h("div", { class: "grow" }, h("div", { class: "small en", text: it.extra.en }), h("div", { class: "tiny muted", text: it.extra.pt })),
+        speakerButton({ key: it.extra.au, text: it.extra.en }, { label: "Ouvir o outro exemplo", cls: "icon-btn ghost" })
+      ) : null,
       it.tip ? h("div", { class: "tiny muted", text: `Dica: ${it.tip}` }) : null,
       h(
         "div",
@@ -3365,6 +3415,73 @@
     return box2;
   }
 
+  // app/js/ui/expression.js
+  var hasExpressionCard = (it) => !!(it && it.explain && it.extra);
+  var play2 = async (clip) => {
+    const r = await play(clip);
+    if (!r.ok) toast("\xC1udio indispon\xEDvel neste aparelho.");
+  };
+  function openExpression(it, { sentence = null } = {}) {
+    const say = it.en.replace(/\.\.\.$|…$/, "");
+    return sheet(
+      h(
+        "div",
+        { class: "expr-card", "data-role": "expression", "data-item": it.id },
+        h(
+          "div",
+          { class: "row nowrap" },
+          h("div", { class: "grow" }, h("div", { class: "word-en en", text: it.en }), h("div", { class: "small muted", text: categoryLabel(it.c) })),
+          h("button", { class: "icon-btn accent", "aria-label": `Ouvir \u201C${say}\u201D`, "data-role": "expr-audio", onclick: () => play2({ key: it.au, text: say }) }, icon("speaker"))
+        ),
+        h("p", { style: { margin: "10px 0 4px" } }, h("b", { text: "Significado: " }), it.pt),
+        h("p", { class: "small", style: { margin: "4px 0 10px" }, text: it.explain }),
+        sentence ? h("div", { class: "small muted", style: { marginBottom: "8px" } }, "No texto: ", h("span", { class: "en", text: sentence.en })) : null,
+        h(
+          "div",
+          { class: "card flat" },
+          h("div", { class: "tiny muted", text: "Outro exemplo" }),
+          h("p", { class: "en", style: { margin: "2px 0" }, text: it.extra.en }),
+          h("p", { class: "small muted", style: { margin: 0 }, text: it.extra.pt }),
+          h("button", { class: "btn small", style: { marginTop: "6px" }, "data-role": "expr-example-audio", onclick: () => play2({ key: it.extra.au, text: it.extra.en }) }, icon("speaker"), "Ouvir o exemplo")
+        )
+      ),
+      { label: `Express\xE3o: ${it.en}` }
+    );
+  }
+  function highlightedSentence(content, s, { onSentence } = {}) {
+    const hits = [];
+    for (const id of s.items) {
+      const it = content.items[id];
+      if (!hasExpressionCard(it)) continue;
+      const loc = locate(it, s.en);
+      if (!loc) continue;
+      const start2 = loc.before.length, end = start2 + loc.target.length;
+      if (hits.some((x) => start2 < x.end && end > x.start)) continue;
+      hits.push({ start: start2, end, it });
+    }
+    hits.sort((a, b) => a.start - b.start);
+    const el = h("span", { class: "sent", role: "button", tabindex: "0", "aria-label": `Ouvir: ${s.en}` });
+    let pos = 0;
+    for (const x of hits) {
+      el.append(s.en.slice(pos, x.start));
+      const b = h("button", { type: "button", class: "hl-expr", "data-role": "hl", "data-item": x.it.id, "aria-label": `${x.it.en}: ver significado` }, s.en.slice(x.start, x.end));
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openExpression(x.it, { sentence: s });
+      });
+      el.append(b);
+      pos = x.end;
+    }
+    el.append(s.en.slice(pos));
+    if (onSentence) {
+      el.addEventListener("click", () => onSentence(s.id));
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.target === el) onSentence(s.id);
+      });
+    }
+    return el;
+  }
+
   // app/js/ui/explore.js
   var exploreTab = "routines";
   function renderExplore(App2) {
@@ -3454,11 +3571,13 @@
         r.priority ? h("span", { class: "chip accent", text: "Priorit\xE1ria para a aula" }) : null,
         h("span", { class: "chip", text: content.dayTypes[r.dayType] }),
         r.stage ? h("span", { class: "chip", "data-role": "stage", text: `Etapa ${r.stage}` }) : null,
-        h("span", { class: "chip", text: r.kind === "episode" ? "Situa\xE7\xE3o ilustrativa" : r.kind === "unit" ? "Di\xE1logo do Conversation Book + pr\xE1tica" : "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })
+        r.session ? h("span", { class: "chip", "data-role": "level", text: r.session.level }) : h("span", { class: "chip", text: r.kind === "episode" ? "Situa\xE7\xE3o ilustrativa" : r.kind === "unit" ? "Di\xE1logo do Conversation Book + pr\xE1tica" : "Tipo de dia \u2014 n\xE3o \xE9 todo dia" })
       ),
       h("p", { class: "en muted", style: { margin: "8px 0 2px" }, text: r.title }),
-      h("p", { class: "small", text: r.goal }),
-      r.grammar ? h("p", { class: "small", "data-role": "grammar" }, h("b", { text: "Foco da l\xEDngua: " }), r.grammar) : null,
+      r.session ? h("p", { class: "small", "data-role": "focus", style: { margin: "2px 0" } }, h("b", { text: "Foco: " }), h("span", { class: "en", text: r.session.focus })) : null,
+      h("p", { class: "small", text: r.session ? `Objetivo: ${r.goal}` : r.goal }),
+      r.grammar ? h("p", { class: "small", "data-role": "grammar" }, h("b", { text: r.session ? "L\xEDngua em contexto: " : "Foco da l\xEDngua: " }), r.grammar) : null,
+      r.session ? sessionVocab(content, r) : null,
       bar(m.ratio),
       h(
         "div",
@@ -3467,7 +3586,7 @@
         h("button", { class: "btn", onclick: () => listenAll() }, icon("speaker"), "Ouvir tudo"),
         h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
       ),
-      r.kind === "unit" ? null : h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")
+      r.kind === "unit" || r.kind === "session" ? null : h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")
     );
     const blocksBox = h("div", {});
     const ptToggle = h("button", { class: "btn small", "aria-pressed": "false", onclick: () => {
@@ -3487,11 +3606,13 @@
         const para = h(b.kind === "dialogue" ? "div" : "p", { class: b.kind === "dialogue" ? "para dialogue" : "para" });
         b.sentences.forEach((sid, i) => {
           const s = content.sentences[sid];
-          const el = h("span", { class: "sent", role: "button", tabindex: "0", "aria-label": `Ouvir: ${s.en}`, text: s.en });
-          el.addEventListener("click", () => playOne(sid));
-          el.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") playOne(sid);
-          });
+          const el = r.session ? highlightedSentence(content, s, { onSentence: playOne }) : h("span", { class: "sent", role: "button", tabindex: "0", "aria-label": `Ouvir: ${s.en}`, text: s.en });
+          if (!r.session) {
+            el.addEventListener("click", () => playOne(sid));
+            el.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") playOne(sid);
+            });
+          }
           sentenceEls.set(sid, el);
           if (b.kind === "dialogue") para.append(h("p", { class: "line" }, h("b", { class: "speaker", text: `${s.speaker}: ` }), el));
           else para.append(el, i < b.sentences.length - 1 ? " " : "");
@@ -3624,6 +3745,17 @@
     if (cat.id === "sentence") {
       view.append(h("p", { class: "small muted", style: { marginTop: "10px" }, text: `Al\xE9m destes, as ${Object.keys(content.sentences).length} frases das rotinas s\xE3o praticadas nos exerc\xEDcios de constru\xE7\xE3o.` }));
     }
+  }
+  function sessionVocab(content, r) {
+    return h(
+      "div",
+      { class: "card flat", "data-role": "session-vocab", style: { marginTop: "8px" } },
+      h("div", { class: "small", style: { marginBottom: "6px" } }, h("b", { text: "Vocabul\xE1rio priorit\xE1rio" }), h("span", { class: "muted", text: " \u2014 toque para ver o significado" })),
+      h("div", { class: "chips" }, r.session.vocabIds.map((id, i) => {
+        const it = content.items[id];
+        return h("button", { type: "button", class: "chip hl-chip", "data-item": id, onclick: () => openExpression(it) }, r.session.vocab[i] || it.en);
+      }))
+    );
   }
 
   // app/js/audio/recorder.js
@@ -6055,9 +6187,9 @@
     const RENDER = {
       listen(ex) {
         area.append(kind("Ou\xE7a e responda"), h("p", { class: "small muted", text: "Ou\xE7a o trecho do di\xE1logo (quantas vezes quiser) e escolha a resposta. O texto aparece depois." }));
-        const play2 = () => playSequence(ex.clips.map((c) => ({ key: c.key, text: c.text })));
+        const play3 = () => playSequence(ex.clips.map((c) => ({ key: c.key, text: c.text })));
         area.append(
-          h("button", { class: "btn primary block lg", "data-role": "listen-play", onclick: play2 }, icon("speaker"), "Ouvir o trecho"),
+          h("button", { class: "btn primary block lg", "data-role": "listen-play", onclick: play3 }, icon("speaker"), "Ouvir o trecho"),
           h("div", { class: "big-en", style: { marginTop: "14px" }, text: ex.item.q })
         );
         const opts = h("div", { class: "options" });
@@ -6067,12 +6199,31 @@
           { style: { marginTop: "10px" } },
           h("div", { class: "small muted", text: "O que foi dito:" }),
           dialogueLines(ex.clips),
-          h("button", { class: "btn small", onclick: play2 }, icon("speaker"), "Ouvir de novo")
+          h("button", { class: "btn small", onclick: play3 }, icon("speaker"), "Ouvir de novo")
         );
         area.append(opts);
         if (state.settings.autoplay) setTimeout(() => {
-          if (App2.debugExercise === ex) play2();
+          if (App2.debugExercise === ex) play3();
         }, 300);
+        actions(h("button", { class: "btn ghost", onclick: () => chooseOption(ex, opts, null, { reveal }) }, "N\xE3o sei"));
+      },
+      nat(ex) {
+        area.append(
+          kind("Mais natural"),
+          h("p", { class: "small muted", text: "A frase abaixo usa uma forma simples. Escolha a express\xE3o que um falante brit\xE2nico usaria no lugar dela." }),
+          h("div", { class: "card flat" }, h("p", { class: "en", "data-role": "nat-sentence", style: { margin: 0 } }, ex.before, h("mark", { class: "nat-plain", text: ex.plain }), ex.after)),
+          h("div", { class: "big-en", style: { marginTop: "14px" }, text: ex.item.q })
+        );
+        const opts = h("div", { class: "options" });
+        ex.options.forEach((o) => opts.append(h("button", { class: "option en", text: o.text, onclick: () => chooseOption(ex, opts, o, { reveal }) })));
+        const reveal = () => h(
+          "div",
+          { style: { marginTop: "10px" } },
+          h("div", { class: "small muted", text: "No texto:" }),
+          h("p", { class: "en", text: ex.sentence.en }),
+          h("button", { class: "btn small", onclick: () => play({ key: ex.sentence.au, text: ex.sentence.en }) }, icon("speaker"), "Ouvir a frase")
+        );
+        area.append(opts);
         actions(h("button", { class: "btn ghost", onclick: () => chooseOption(ex, opts, null, { reveal }) }, "N\xE3o sei"));
       },
       read(ex) {

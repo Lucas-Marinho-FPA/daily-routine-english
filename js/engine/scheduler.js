@@ -3,6 +3,7 @@
 // Habilidades: rec (reconhecer), rcl (recuperar), bld (completar na frase), ord (ordenar palavras),
 //              wrt (escrever a frase), seq (ordenar frases do bloco), tell (contar o bloco),
 //              retell (contar a rotina), conv (responder pergunta), vb3 (3ª pessoa),
+//              nat (escolher a forma mais natural no lugar de uma expressão simples — itens com `plain`, ex.: Lukinhas),
 //              lis (ouvir um trecho sem ver o texto e responder — unidade lq; na etapa “Ouvir e entender” de módulos
 //              sem trechos de diálogo, ouvir uma frase do módulo e reconhecê-la — unidade sent), rdq (ler e responder — unidade rq).
 // lq/rq só existem em conteúdos que trazem listening/reading (jornadas); os demais não mudam.
@@ -61,6 +62,9 @@ export function unlockedNew(content, cards, focus) {
     if (!cards[rcl] && box(cards, rec) >= 2) out.push({ k: rcl, unit: 'item', id: it.id, skill: 'rcl' });
     const bld = cardKey('item', it.id, 'bld');
     if (!cards[bld] && box(cards, rcl) >= 1 && it.sentences.length && ['collocation', 'phrasal', 'time', 'professional'].includes(it.c)) out.push({ k: bld, unit: 'item', id: it.id, skill: 'bld' });
+    // forma mais natural: depois de reconhecer o item, escolher a expressão no lugar da forma simples (só itens com `plain`)
+    const nat = cardKey('item', it.id, 'nat');
+    if (it.plain && it.sentences.length && !cards[nat] && box(cards, rec) >= 1) out.push({ k: nat, unit: 'item', id: it.id, skill: 'nat' });
   }
   for (const s of orderedSentences(content, inFocus)) {
     const ord = cardKey('sent', s.id, 'ord');
@@ -216,7 +220,7 @@ export function buildSession(content, cards, { focus = {}, size = 12, maxNewItem
   const fresh = unlockedNew(content, cards, focus);
   const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
   // desbloqueios: alterna tipos para não vir só um tipo de exercício
-  const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== 'conv'), (f) => f.skill, ['lis', 'retell', 'tell', 'rdq', 'seq', 'wrt', 'ord', 'rcl', 'bld', 'vb3']);
+  const higher = roundRobin(fresh.filter((f) => !f.isNewItem && f.skill !== 'conv'), (f) => f.skill, ['lis', 'retell', 'tell', 'rdq', 'seq', 'wrt', 'ord', 'nat', 'rcl', 'bld', 'vb3']);
   const conv = fresh.filter((f) => f.skill === 'conv');
 
   const queue = [];
@@ -247,7 +251,7 @@ function stageSession(content, cards, { focus, size, maxNewItems, today, rand, f
     .filter(filter).sort((a, b) => (a.due - b.due) || (a.box - b.box) || (rand() - 0.5));
   const fresh = unlockedNew(content, cards, focus).filter(filter);
   const newItems = fresh.filter((f) => f.isNewItem).map((f) => ({ ...f, learn: true }));
-  const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ['lis', 'rdq', 'conv', 'ord', 'wrt', 'seq', 'tell', 'retell', 'rcl', 'bld']);
+  const higher = roundRobin(fresh.filter((f) => !f.isNewItem), (f) => f.skill, ['lis', 'rdq', 'conv', 'ord', 'wrt', 'seq', 'tell', 'retell', 'nat', 'rcl', 'bld']);
   const queue = [];
   const take = (list, n) => queue.push(...list.splice(0, Math.max(0, n)));
   take(due, Math.round(size / 2));

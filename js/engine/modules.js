@@ -35,6 +35,11 @@ export const moduleSentences = (view, r) => r.blocks.flatMap((b) => (view.blocks
 
 /** Itens do módulo de um tipo: 'vocab' ou 'expr' (sem os modelos de gramática). */
 export function moduleItems(view, r, kind) {
+  // sessões (Lukinhas): o vocabulário prioritário aprovado da sessão — palavras, conectivos e collocations na etapa 1,
+  // phrasal verbs na etapa 2 (as expressões de sessões anteriores que reaparecem voltam pela revisão espaçada)
+  if (r.session && r.session.vocabIds) {
+    return r.session.vocabIds.map((i) => view.items[i]).filter(Boolean).filter((it) => (kind === 'vocab' ? it.c !== 'phrasal' : it.c === 'phrasal'));
+  }
   const ids = r.items && r.items.length ? r.items
     : [...new Set(moduleSentences(view, r).flatMap((s) => (view.sentences[s] ? view.sentences[s].items : [])))];
   return ids.map((i) => view.items[i]).filter((it) => it && !(it.tags || []).includes('grammar-model'))
@@ -125,7 +130,7 @@ export function stageFilter(view, moduleId, stageId) {
   const sents = new Set(moduleSentences(view, r));
   if (stageId === 'vocab' || stageId === 'expr') {
     const set = ids(stageId);
-    const skills = stageId === 'vocab' ? ['rec', 'rcl'] : ['rec', 'rcl', 'bld'];
+    const skills = stageId === 'vocab' ? ['rec', 'rcl', 'nat'] : ['rec', 'rcl', 'bld', 'nat'];
     return (e) => e.unit === 'item' && set.has(e.id) && skills.includes(e.skill);
   }
   if (stageId === 'listen') {

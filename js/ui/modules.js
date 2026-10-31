@@ -70,10 +70,22 @@ export function renderModule(App, { arg }) {
     r.title && r.title !== r.pt ? h('div', { class: 'small', text: r.pt }) : null,
     r.goal ? h('p', { class: 'small', style: { marginTop: '6px' } }, h('b', { text: 'Objetivo: ' }), r.goal) : null,
     h('div', { class: 'row nowrap', style: { marginTop: '8px' } }, h('div', { class: 'grow' }, bar(m.doneCount / STAGES.length)), h('span', { class: 'small muted', text: `${m.doneCount}/${STAGES.length}` }))));
+  // sessões (Lukinhas): o texto da sessão vem primeiro — ler, ouvir e tocar nas expressões antes das etapas
+  if (r.session) {
+    view.append(h('a', { class: 'card link session-text', href: `#/routine/${r.id}`, 'data-role': 'session-text' },
+      h('div', { class: 'row nowrap' },
+        h('span', { class: 'stage-mark open', 'aria-hidden': 'true' }, icon('book')),
+        h('div', { class: 'grow' }, h('b', { text: 'Texto da sessão e expressões' }),
+          h('div', { class: 'small muted', text: `${r.session.level} · ${r.session.focus}` }),
+          h('div', { class: 'small', text: 'Leia, ouça, veja a tradução e toque nas expressões destacadas.' })),
+        icon('next'))));
+  }
   const list = h('ol', { class: 'stages', 'data-role': 'stages' });
   for (const s of m.stages) list.append(stageRow(App, r, s));
   view.append(list);
-  if (m.stages.find((s) => s.id === 'listen').complete) {
+  if (r.session) {
+    // texto já aberto acima
+  } else if (m.stages.find((s) => s.id === 'listen').complete) {
     view.append(h('a', { class: 'btn block', 'data-role': 'module-text', href: `#/routine/${r.id}`, style: { marginTop: '12px' } }, icon('book'), App.journey ? 'Ver o diálogo completo' : 'Ver o texto completo'));
   } else {
     view.append(h('p', { class: 'tiny muted', style: { marginTop: '12px' }, text: 'O texto completo fica disponível depois de “Ouvir e entender”, para você treinar o ouvido antes de ler.' }));
@@ -161,6 +173,10 @@ function wordCard(App, r, it, today) {
     ex ? h('p', { class: 'small en ex', style: { margin: '8px 0 2px' } }, ...(loc ? [loc.before, h('b', { text: loc.target }), loc.after] : [ex.en])) : null,
     ex && ex.pt ? h('div', { class: 'tiny muted', text: ex.pt }) : null,
     noteOf(it) ? h('div', { class: 'tiny', style: { marginTop: '4px' }, text: `Uso: ${noteOf(it)}` }) : null,
+    it.explain ? h('div', { class: 'small', style: { marginTop: '4px' }, 'data-role': 'explain', text: it.explain }) : null,
+    it.extra ? h('div', { class: 'row nowrap', style: { marginTop: '6px', alignItems: 'flex-start' }, 'data-role': 'extra' },
+      h('div', { class: 'grow' }, h('div', { class: 'small en', text: it.extra.en }), h('div', { class: 'tiny muted', text: it.extra.pt })),
+      speakerButton({ key: it.extra.au, text: it.extra.en }, { label: 'Ouvir o outro exemplo', cls: 'icon-btn ghost' })) : null,
     it.tip ? h('div', { class: 'tiny muted', text: `Dica: ${it.tip}` }) : null,
     h('div', { class: 'row', style: { marginTop: '8px' } },
       h('span', { class: cls, text: lab }),

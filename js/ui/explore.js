@@ -1,4 +1,5 @@
 // Navegação por rotina, contexto e categoria + leitura das rotinas.
+import { highlightedSentence, openExpression } from './expression.js';
 import { h, icon, bar, clear, toast } from './dom.js';
 import { cardKey, mastery } from '../engine/scheduler.js';
 import * as player from '../audio/player.js';
@@ -77,16 +78,18 @@ export function renderRoutine(App, { arg }) {
   view.append(
     h('div', { class: 'chips' }, r.priority ? h('span', { class: 'chip accent', text: 'Prioritária para a aula' }) : null, h('span', { class: 'chip', text: content.dayTypes[r.dayType] }),
       r.stage ? h('span', { class: 'chip', 'data-role': 'stage', text: `Etapa ${r.stage}` }) : null,
-      h('span', { class: 'chip', text: r.kind === 'episode' ? 'Situação ilustrativa' : r.kind === 'unit' ? 'Diálogo do Conversation Book + prática' : 'Tipo de dia — não é todo dia' })),
+      r.session ? h('span', { class: 'chip', 'data-role': 'level', text: r.session.level }) : h('span', { class: 'chip', text: r.kind === 'episode' ? 'Situação ilustrativa' : r.kind === 'unit' ? 'Diálogo do Conversation Book + prática' : 'Tipo de dia — não é todo dia' })),
     h('p', { class: 'en muted', style: { margin: '8px 0 2px' }, text: r.title }),
-    h('p', { class: 'small', text: r.goal }),
-    r.grammar ? h('p', { class: 'small', 'data-role': 'grammar' }, h('b', { text: 'Foco da língua: ' }), r.grammar) : null,
+    r.session ? h('p', { class: 'small', 'data-role': 'focus', style: { margin: '2px 0' } }, h('b', { text: 'Foco: ' }), h('span', { class: 'en', text: r.session.focus })) : null,
+    h('p', { class: 'small', text: r.session ? `Objetivo: ${r.goal}` : r.goal }),
+    r.grammar ? h('p', { class: 'small', 'data-role': 'grammar' }, h('b', { text: r.session ? 'Língua em contexto: ' : 'Foco da língua: ' }), r.grammar) : null,
+    r.session ? sessionVocab(content, r) : null,
     bar(m.ratio),
     h('div', { class: 'row', style: { marginTop: '14px' } },
       h('a', { class: 'btn primary', href: sessionHref({ routine: r.id }) }, icon('play'), 'Praticar'),
       h('button', { class: 'btn', onclick: () => listenAll() }, icon('speaker'), 'Ouvir tudo'),
       h('a', { class: 'btn', href: `#/lab?routine=${r.id}` }, icon('mic'), 'Falar')),
-    r.kind === 'unit' ? null : h('a', { class: 'btn block', href: sessionHref({ routine: r.id, mode: 'present' }), style: { marginTop: '10px' } }, icon('target'), 'Treino para a aula: contar blocos + perguntas'));
+    r.kind === 'unit' || r.kind === 'session' ? null : h('a', { class: 'btn block', href: sessionHref({ routine: r.id, mode: 'present' }), style: { marginTop: '10px' } }, icon('target'), 'Treino para a aula: contar blocos + perguntas'));
 
   const blocksBox = h('div', {});
   const ptToggle = h('button', { class: 'btn small', 'aria-pressed': 'false', onclick: () => { showPt = !showPt; ptToggle.setAttribute('aria-pressed', String(showPt)); ptToggle.textContent = showPt ? 'Ocultar tradução' : 'Mostrar tradução'; drawBlocks(); } }, 'Mostrar tradução');
@@ -103,9 +106,12 @@ export function renderRoutine(App, { arg }) {
       const para = h(b.kind === 'dialogue' ? 'div' : 'p', { class: b.kind === 'dialogue' ? 'para dialogue' : 'para' });
       b.sentences.forEach((sid, i) => {
         const s = content.sentences[sid];
-        const el = h('span', { class: 'sent', role: 'button', tabindex: '0', 'aria-label': `Ouvir: ${s.en}`, text: s.en });
-        el.addEventListener('click', () => playOne(sid));
-        el.addEventListener('keydown', (e) => { if (e.key === 'Enter') playOne(sid); });
+        // sessões (Lukinhas): expressões destacadas e tocáveis; tocar no resto da frase continua tocando o áudio
+        const el = r.session ? highlightedSentence(content, s, { onSentence: playOne }) : h('span', { class: 'sent', role: 'button', tabindex: '0', 'aria-label': `Ouvir: ${s.en}`, text: s.en });
+        if (!r.session) {
+          el.addEventListener('click', () => playOne(sid));
+          el.addEventListener('keydown', (e) => { if (e.key === 'Enter') playOne(sid); });
+        }
         sentenceEls.set(sid, el);
         if (b.kind === 'dialogue') para.append(h('p', { class: 'line' }, h('b', { class: 'speaker', text: `${s.speaker}: ` }), el));
         else para.append(el, i < b.sentences.length - 1 ? ' ' : '');
@@ -212,4 +218,14 @@ export function renderCategory(App, { arg }) {
   if (cat.id === 'sentence') {
     view.append(h('p', { class: 'small muted', style: { marginTop: '10px' }, text: `Além destes, as ${Object.keys(content.sentences).length} frases das rotinas são praticadas nos exercícios de construção.` }));
   }
+}
+
+/** Vocabulário prioritário da sessão, na ordem da lista aprovada; cada expressão abre o painel (significado, exemplo, áudio). */
+function sessionVocab(content, r) {
+  return h('div', { class: 'card flat', 'data-role': 'session-vocab', style: { marginTop: '8px' } },
+    h('div', { class: 'small', style: { marginBottom: '6px' } }, h('b', { text: 'Vocabulário prioritário' }), h('span', { class: 'muted', text: ' — toque para ver o significado' })),
+    h('div', { class: 'chips' }, r.session.vocabIds.map((id, i) => {
+      const it = content.items[id];
+      return h('button', { type: 'button', class: 'chip hl-chip', 'data-item': id, onclick: () => openExpression(it) }, r.session.vocab[i] || it.en);
+    })));
 }

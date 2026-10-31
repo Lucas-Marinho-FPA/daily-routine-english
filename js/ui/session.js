@@ -296,6 +296,18 @@ export function renderSession(App, { params }) {
       if (state.settings.autoplay) setTimeout(() => { if (App.debugExercise === ex) play(); }, 300); // trecho inteiro, só se ainda estiver neste exercício
       actions(h('button', { class: 'btn ghost', onclick: () => chooseOption(ex, opts, null, { reveal }) }, 'Não sei'));
     },
+    nat(ex) {
+      // forma mais natural: a frase do texto com a forma simples destacada; escolher a expressão que soa mais natural
+      area.append(kind('Mais natural'), h('p', { class: 'small muted', text: 'A frase abaixo usa uma forma simples. Escolha a expressão que um falante britânico usaria no lugar dela.' }),
+        h('div', { class: 'card flat' }, h('p', { class: 'en', 'data-role': 'nat-sentence', style: { margin: 0 } }, ex.before, h('mark', { class: 'nat-plain', text: ex.plain }), ex.after)),
+        h('div', { class: 'big-en', style: { marginTop: '14px' }, text: ex.item.q }));
+      const opts = h('div', { class: 'options' });
+      ex.options.forEach((o) => opts.append(h('button', { class: 'option en', text: o.text, onclick: () => chooseOption(ex, opts, o, { reveal }) })));
+      const reveal = () => h('div', { style: { marginTop: '10px' } }, h('div', { class: 'small muted', text: 'No texto:' }), h('p', { class: 'en', text: ex.sentence.en }),
+        h('button', { class: 'btn small', onclick: () => player.play({ key: ex.sentence.au, text: ex.sentence.en }) }, icon('speaker'), 'Ouvir a frase'));
+      area.append(opts);
+      actions(h('button', { class: 'btn ghost', onclick: () => chooseOption(ex, opts, null, { reveal }) }, 'Não sei'));
+    },
     read(ex) {
       // ler e responder: o diálogo à vista, com a fala de referência destacada
       area.append(kind('Leia e responda'), h('p', { class: 'small muted', text: 'Leia o diálogo e responda. A fala destacada é a referência.' }),

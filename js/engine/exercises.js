@@ -72,6 +72,17 @@ export function makeExercise(content, entry, rand = Math.random) {
       const ex = item.ex.find((x) => x.pt);
       return { type: 'recall', entry, item, targets: itemTargets(item), cue: ex ? ex.pt : null, label: categoryLabel(item.c) };
     }
+    if (skill === 'nat') {
+      // forma mais natural: a frase do texto com a forma simples no lugar da expressão; escolher a expressão britânica
+      const s = content.sentences[item.sentences[0]];
+      const loc = s ? locate(item, s.en) : null;
+      if (!loc || !item.plain) return makeExercise(content, { ...entry, skill: 'rec' }, rand);
+      const pool = Object.values(content.items).filter((x) => x.id !== item.id && x.en !== item.en && x.routines.some((r) => item.routines.includes(r)) && ['phrasal', 'collocation', 'time', 'connector'].includes(x.c));
+      const others = shuffle(pool, rand).slice(0, 3);
+      const options = shuffle([{ text: item.en, correct: true }, ...others.map((x) => ({ text: x.en, correct: false }))], rand);
+      return { type: 'nat', entry, item: { ...item, q: `Qual expressão diz “${item.plain}” de um jeito mais natural?`, explain: `“${item.en}” = ${item.pt}.${item.explain ? ' ' + item.explain : ''}` },
+        sentence: s, before: loc.before, plain: item.plain, after: loc.after, options };
+    }
     if (skill === 'bld') {
       const sid = item.sentences[Math.floor(rand() * item.sentences.length)];
       const s = content.sentences[sid];
