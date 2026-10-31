@@ -112,7 +112,6 @@ export function recWidget(App, opts) {
       }
       const r = recordRecording(App.state, targetId, { ms: res.ms });
       App.save();
-      if (r.xp) toast(`+${r.xp} XP pela prática oral`);
     }
     opts.onRecorded && opts.onRecorded(blob, analysis);
   }

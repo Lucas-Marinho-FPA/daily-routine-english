@@ -103,9 +103,9 @@ test('produção independente: cada sessão termina com uma pergunta aberta sem 
   assert.equal(lk.questions['L.Q3'].q, 'Now, tell me about your morning without reading the text.');
 });
 
-test('cinco etapas por sessão; a sessão de expressões inclui “mais natural” e a de ouvir reconhece frases da sessão', () => {
+test('seis etapas por sessão (ciclo único); a sessão de expressões inclui “mais natural” e a de ouvir reconhece frases da sessão', () => {
   const m = moduleStatus(lk, 'L06', { cards: {}, recordingsMeta: {} });
-  assert.deepEqual(m.stages.map((s) => s.id), ['vocab', 'expr', 'listen', 'speak', 'apply']);
+  assert.deepEqual(m.stages.map((s) => s.id), ['vocab', 'expr', 'build', 'listen', 'speak', 'apply']);
   const r = moduleOf(lk, 'L06');
   const expr = moduleItems(lk, r, 'expr');
   const cards = Object.fromEntries(expr.map((it) => [cardKey('item', it.id, 'rec'), card(cardKey('item', it.id, 'rec'))]));
@@ -165,6 +165,6 @@ test('etapas 1 e 2 de cada sessão usam o vocabulário prioritário aprovado e n
     assert.ok(v.length >= 2 && e.length >= 1, `${r.id}: ${v.length}/${e.length}`);
     assert.deepEqual([...v, ...e].sort(), [...r.session.vocabIds].sort(), r.id);
     const m = moduleStatus(lk, r.id, { cards: {}, recordingsMeta: {} });
-    assert.deepEqual(m.stages.map((x) => x.state), ['open', 'locked', 'locked', 'locked', 'locked'], r.id);
+    assert.deepEqual(m.stages.map((x) => x.state), ['open', 'locked', 'locked', 'locked', 'locked', 'locked'], r.id);
   }
 });

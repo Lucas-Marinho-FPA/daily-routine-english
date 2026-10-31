@@ -1,126 +1,98 @@
-// Início: quem está estudando, qual o progresso e onde continuar. Persona ativa (avatar, nível e progresso da
-// Daily Routine dela), troca de persona e as duas jornadas: a Daily Routine da persona e o Conversation Practice
-// (jornada comunicativa própria, com progresso separado). Os números vêm de engine/modules.js e engine/profiles.js.
+// Início: orienta para a PRÓXIMA atividade de cada jornada. Daily Routine (histórias da família) e Conversation
+// Practice (situações de conversa) aparecem separadas, cada uma com sessão atual, contexto, etapa atual, próxima
+// atividade e um botão para continuar. Sem XP, níveis, sequências ou avatares: o progresso mostrado é o de
+// engine/modules.js (etapas concluídas por domínio demonstrado), o mesmo de todas as outras telas.
 import { h, icon, bar } from './dom.js';
-import { streak, levelForXp } from '../engine/progress.js';
 import { cardInContent } from '../engine/scheduler.js';
 import { requestPersistence } from '../store/db.js';
-import { registry, contentFor, isPlanned } from '../engine/characters.js';
+import { contentFor, isPlanned, CAST } from '../engine/characters.js';
 import { journeyRegistry, journeyView } from '../engine/journeys.js';
 import { progressOf, journeyProfile } from '../engine/profiles.js';
-import { trackStatus, moduleOf } from '../engine/modules.js';
-import { characterSwitcher, characterBadge } from './character.js';
-import { stageHref } from './modules.js';
+import { trackStatus, moduleOf, STAGES, STATE_LABEL } from '../engine/modules.js';
+import { stageHref, moduleTitle } from './modules.js';
 import { installCard } from './pwa.js';
+import { illustration } from './illustration.js';
 
-const EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
+const EMPTY = { cards: {}, recordingsMeta: {} };
 
 export function renderHome(App) {
   const { state } = App;
   const view = App.layout('Daily Routine English', {
     actions: [h('a', { class: 'icon-btn ghost', href: '#/settings', 'aria-label': 'Ajustes' }, icon('gear'))],
   });
-  const today = App.today();
-  const ch = App.character;
-  const name = ch.short || ch.name;
-  const planned = isPlanned(ch);
-
-  // Daily Routine da persona e Conversation Practice, cada um com o próprio perfil de progresso
-  const drView = contentFor(App.baseContent, ch.id);
-  const drProg = progressOf(state, ch.id) || EMPTY;
-  const dr = planned ? null : trackStatus(drView, drProg);
-  const j = journeyRegistry()[0] || null;
-  const cpView = j ? journeyView(App.baseContent, j.id) : null;
-  const cpProg = j ? progressOf(state, journeyProfile(j.id)) || EMPTY : EMPTY;
-  const cp = j ? trackStatus(cpView, cpProg) : null;
-
   if (App.isNew && !state.welcomed) view.append(welcome(App));
 
-  // 1. quem está estudando e qual o progresso
-  const lvl = levelForXp(drProg.xp || 0);
-  const st = streak({ days: drProg.days || {}, firstDay: drProg.firstDay ?? today }, today);
-  // “continuar de onde parou”: a trilha aberta por último (jornada) ou a Daily Routine da persona
-  const resume = App.journey && cp ? { track: 'journey', t: cp } : dr && dr.next ? { track: 'dr', t: dr } : cp ? { track: 'journey', t: cp } : null;
-  const resumeHref = resume && resume.t.current && resume.t.next ? stageHref(resume.t.current.id, resume.t.next.id) : null;
-  const resumeLabel = resumeHref ? `${resume.track === 'journey' ? j.name : 'Daily Routine'} · ${resume.t.current.id} · ${resume.t.next.title}` : '';
-  const continueBtn = h('button', { class: 'btn primary block lg', 'data-role': 'continue', disabled: !resumeHref,
-    onclick: async () => { await App.setJourney(resume.track === 'journey' ? j.id : null); App.go(resumeHref); } }, icon('play'), 'Continuar de onde parou');
+  const ch = App.character;
+  const planned = isPlanned(ch);
+  const drView = contentFor(App.baseContent, ch.id);
+  const dr = planned ? null : trackStatus(drView, progressOf(state, ch.id) || EMPTY);
+  const j = journeyRegistry()[0] || null;
+  const cpView = j ? journeyView(App.baseContent, j.id) : null;
+  const cp = j ? trackStatus(cpView, progressOf(state, journeyProfile(j.id)) || EMPTY) : null;
+  const cast = CAST[ch.id] || {};
 
-  view.append(h('section', { class: 'hero persona', 'data-role': 'persona', 'data-character': ch.id },
-    h('div', { class: 'row nowrap' },
-      characterBadge(ch, 'idle', { size: 56 }),
-      h('div', { class: 'grow', style: { minWidth: 0 } },
-        h('div', { class: 'small muted', text: greeting() }),
-        h('div', { class: 'persona-name', text: name }),
-        h('div', { class: 'small muted', 'data-role': 'persona-stats', text: planned ? 'Jornada em preparação' : `Nível ${lvl.level} · ${drProg.xp || 0} XP · ${st.days} ${st.days === 1 ? 'dia seguido' : 'dias seguidos'}` }))),
-    dr ? h('div', { style: { marginTop: '12px' } },
-      h('div', { class: 'row nowrap small' }, h('span', { class: 'grow', text: 'Progresso da Daily Routine' }), h('b', { text: `${Math.round(dr.ratio * 100)}%` })),
-      bar(dr.ratio)) : null,
-    h('div', { style: { marginTop: '14px' } }, continueBtn),
-    resumeLabel ? h('div', { class: 'small muted center', style: { marginTop: '6px' }, 'data-role': 'continue-where', text: resumeLabel }) : null));
-
-  // troca de persona (só aparece com mais de uma cadastrada); cada uma guarda o próprio progresso
-  if (registry().characters.length > 1) view.append(characterSwitcher(App));
-
-  // 2. minhas jornadas
-  view.append(h('h2', { text: 'Minhas jornadas' }));
-  view.append(trackCard({
-    role: 'track-dr', title: `Daily Routine · ${name}`,
-    desc: planned ? 'As rotinas desta persona ainda estão em preparação. O progresso dela já é separado.' : 'A rotina da persona em módulos: palavras, expressões, ouvir, falar e conversar.',
+  view.append(h('h2', { class: 'section-title', text: 'Suas jornadas' }));
+  view.append(journeyCard(App, {
+    role: 'track-dr', title: 'Daily Routine', tag: 'Histórias do dia a dia',
+    context: `História de ${ch.name}${cast.role ? ` (${cast.role})` : ''}`,
     t: dr, view: drView, planned,
-    onOpen: async () => { await App.setJourney(null); App.go('#/modules'); },
+    open: async () => { await App.setJourney(null); },
+    root: '#/dr',
   }));
   if (j) {
-    view.append(trackCard({
-      role: 'journey-entry', title: j.name,
-      desc: 'Jornada comunicativa: entender e participar de conversas reais, com progresso próprio (o mesmo para todas as personas).',
-      t: cp, view: cpView, button: 'open-journey',
-      onOpen: async () => { await App.setJourney(j.id); App.go('#/modules'); },
+    view.append(journeyCard(App, {
+      role: 'journey-entry', title: j.name, tag: 'Situações de conversa',
+      context: null, t: cp, view: cpView, planned: false,
+      open: async () => { await App.setJourney(j.id); },
+      root: '#/cp',
     }));
   }
 
-  // revisão do que está vencido na trilha aberta + lembrete de backup
-  const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App.content, c.k)).length;
+  // revisão espaçada da jornada aberta por último (o que venceu ou foi errado volta aqui)
+  const due = Object.values(state.cards).filter((c) => c.due <= App.today() && cardInContent(App.content, c.k)).length;
   if (due) view.append(h('a', { class: 'card link flat', href: '#/review', style: { marginTop: '12px' }, 'data-role': 'due' },
-    h('div', { class: 'row nowrap' }, h('span', { class: 'icon-btn accent' }, icon('refresh')),
-      h('div', { class: 'grow' }, h('b', { text: `${due} para revisar` }), h('div', { class: 'small muted', text: App.journey ? j.name : `Daily Routine · ${name}` })), icon('next'))));
+    h('div', { class: 'row nowrap' }, h('span', { class: 'icon-btn accent', 'aria-hidden': 'true' }, icon('refresh')),
+      h('div', { class: 'grow' }, h('b', { text: `Revisão: ${due} ${due === 1 ? 'item' : 'itens'}` }), h('div', { class: 'small muted', text: App.journey ? j.name : `Daily Routine · ${ch.name}` })), icon('next'))));
   const allCards = Object.values(state.profiles).reduce((n, p) => n + Object.keys((p && p.cards) || {}).length, 0);
   if (state.lastBackupAt === null && allCards > 30) {
     view.append(h('div', { class: 'notice warn', style: { marginTop: '16px' } }, 'Seu progresso fica só neste aparelho. ', h('a', { href: '#/settings', text: 'Faça um backup' }), ' de vez em quando.'));
   }
-  // instalar como aplicativo (some quando já está instalado ou aberto pelo ícone)
   view.append(h('div', { style: { marginTop: '16px' } }, installCard(App, { compact: true })));
 }
 
-/** Cartão de jornada: nome, descrição, progresso, próxima etapa e botão. */
-function trackCard({ role, title, desc, t, view, planned = false, onOpen, button = 'open-track' }) {
-  const next = t && t.current && t.next ? `${t.current.id} · ${moduleTitleOf(view, t.current.id)} — ${t.next.title}` : t && t.total ? 'Todas as etapas concluídas 🎉' : null;
-  return h('section', { class: 'card track', 'data-role': role },
-    h('h3', { text: title }),
-    h('p', { class: 'small muted', style: { margin: '2px 0 8px' }, text: desc }),
-    t && t.total ? h('div', {}, h('div', { class: 'row nowrap small' }, h('span', { class: 'grow', text: `${t.done} de ${t.total} etapas` }), h('b', { text: `${Math.round(t.ratio * 100)}%` })), bar(t.ratio)) : null,
-    next ? h('div', { class: 'small', style: { marginTop: '6px' }, 'data-role': 'next-step' }, h('span', { class: 'muted', text: 'Próxima etapa: ' }), next) : null,
-    h('button', { class: `btn block${planned ? '' : ' primary'}`, 'data-role': button, style: { marginTop: '10px' }, disabled: planned, onclick: onOpen },
+/** Cartão de jornada: contexto, sessão atual, etapa atual, próxima atividade e Continuar. */
+function journeyCard(App, { role, title, tag, context, t, view, planned, open, root }) {
+  const cur = t && t.current ? moduleOf(view, t.current.id) : null;
+  const next = t && t.next;
+  const allDone = t && t.total && !t.current;
+  const href = cur && next ? stageHref(cur.id, next.id) : root;
+  const go = async () => { await open(); App.go(href); };
+  return h('section', { class: 'card journey', 'data-role': role },
+    cur ? illustration({ kind: 'session', id: cur.id, variant: 'cover', alt: moduleTitle(cur), label: moduleTitle(cur), ratio: '16 / 6' }) : null,
+    h('div', { class: 'row nowrap' },
+      h('div', { class: 'grow' }, h('div', { class: 'eyebrow', text: tag }), h('h3', { class: 'journey-title', text: title })),
+      h('a', { class: 'btn small ghost', href: root, 'data-role': `${role}-all`, onclick: (e) => { e.preventDefault(); open().then(() => App.go(root)); } }, 'Ver sessões')),
+    context ? h('div', { class: 'small', 'data-role': 'journey-context' }, context, ' · ', h('a', { href: '#/stories', text: 'trocar' })) : null,
+    planned ? h('p', { class: 'small', text: 'As sessões desta história estão em preparação. Escolha outra história para continuar.' }) : null,
+    cur ? h('dl', { class: 'next-info', 'data-role': 'next-step' },
+      h('dt', { text: 'Sessão atual' }), h('dd', {}, h('b', { text: `${cur.id} · ${moduleTitle(cur)}` })),
+      h('dt', { text: 'Etapa atual' }), h('dd', { text: next ? `${next.n} de ${STAGES.length} · ${next.title} (${STATE_LABEL[next.state].toLowerCase()})` : '—' }),
+      next && next.goal ? [h('dt', { text: 'Próxima atividade' }), h('dd', { text: next.goal })] : null) : null,
+    allDone ? h('p', { class: 'small', 'data-role': 'next-step', text: 'Todas as sessões desta jornada estão concluídas. A revisão espaçada continua trazendo o que precisa ser reforçado.' }) : null,
+    t && t.total ? h('div', { class: 'journey-progress' },
+      h('div', { class: 'row nowrap small' }, h('span', { class: 'grow', text: `${t.modules.filter((m) => m.complete).length} de ${t.modules.length} sessões concluídas` }), h('span', { class: 'muted', text: `${t.done}/${t.total} etapas` })),
+      bar(t.ratio)) : null,
+    h('button', { class: `btn block${planned ? '' : ' primary'}`, 'data-role': role === 'track-dr' ? 'continue-dr' : 'open-journey', style: { marginTop: '10px' }, disabled: planned, onclick: planned ? null : go },
       icon(planned ? 'lock' : 'play'), planned ? 'Em preparação' : t && t.done ? 'Continuar' : 'Começar'));
 }
 
-function moduleTitleOf(view, id) {
-  const r = moduleOf(view, id);
-  return r ? (r.title && r.title !== r.pt ? r.title : r.pt) : id;
-}
-
-function greeting() {
-  const hr = new Date().getHours();
-  return hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
-}
-
 function welcome(App) {
-  const box = h('section', { class: 'card', style: { marginTop: '8px' } },
-    h('h3', { text: 'Bem-vindo! Como funciona' }),
-    h('ul', { class: 'small', style: { paddingLeft: '18px', margin: '6px 0 10px' } },
-      h('li', { text: 'Cada jornada é feita de módulos com cinco etapas: palavras, expressões, ouvir, falar e conversar.' }),
-      h('li', { text: 'Uma etapa abre quando a anterior é concluída. Erros voltam para revisão; não é preciso acertar tudo.' }),
-      h('li', { text: 'Cada persona e o Conversation Practice têm progresso próprio.' }),
+  const box = h('section', { class: 'card', style: { marginTop: '8px' }, 'data-role': 'welcome' },
+    h('h3', { text: 'Como funciona' }),
+    h('ol', { class: 'small', style: { paddingLeft: '18px', margin: '6px 0 10px' } },
+      h('li', { text: 'Cada sessão segue seis etapas: vocabulário, combinações e expressões, construção de frases, ouvir, falar e aplicar.' }),
+      h('li', { text: 'Uma etapa abre quando a anterior está concluída. Não é preciso acertar tudo: o que você errar volta na revisão.' }),
+      h('li', { text: 'Daily Routine e Conversation Practice têm progresso separado.' }),
       h('li', { text: 'Tudo funciona sem internet e fica só neste aparelho.' })),
     h('button', { class: 'btn primary block', onclick: async () => {
       App.state.welcomed = true;

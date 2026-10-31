@@ -8,6 +8,7 @@ import { recWidget } from './recwidget.js';
 import { freeAnswerPanel } from './freeanswer.js';
 import { inlineWords, legend, scoreLine, scoreDetails } from './inlinewords.js';
 import { evaluateWords, scoreAttempt } from '../engine/wordfeedback.js';
+import { questionPt } from '../engine/translations.js';
 import { analyseAttempt, practiceSummary, latestGate, wordPracticeSession } from '../engine/practice.js';
 import { wordPractice } from './wordpractice.js';
 import { updatePracticeWords } from '../engine/progress.js';
@@ -18,6 +19,7 @@ import { speakerButton, sessionHref } from './common.js';
 
 let labTab = 'sentences';
 let labRoutine = 'R01';
+let listPt = false; // tradução visível nas listas (mantida enquanto o app está aberto)
 
 export function renderLab(App, { params }) {
   if (params.q || params.block || params.routine && params.full || params.sentence || params.drill) return renderTarget(App, params);
@@ -50,10 +52,14 @@ export function renderLab(App, { params }) {
   const body = h('div', {});
   const tabs = [['sentences', 'Frases'], ['blocks', 'Blocos'], ['questions', 'Perguntas'], ...(fromModule || !content.drills.length ? [] : [['drills', 'Drills']])];
   const rec = (id) => state.recordingsMeta[id] ? h('span', { class: 'chip ok', text: 'gravado' }) : null;
+  // tradução nas listas (frases, blocos e perguntas): um botão para a aba inteira
+  const ptLine = (text, support = false) => (listPt && text ? h('div', { class: 'small pt-line', lang: 'pt-BR', text: support ? `${text} (tradução de apoio)` : text }) : null);
+  const ptToggle = () => h('button', { class: 'btn small ghost', type: 'button', 'aria-pressed': String(listPt), 'data-role': 'list-pt', onclick: () => { listPt = !listPt; draw(); } }, listPt ? 'Ocultar tradução' : 'Mostrar tradução');
 
   const draw = () => {
     clear(seg).append(...tabs.map(([id, label]) => h('button', { 'aria-pressed': String(labTab === id), onclick: () => { labTab = id; draw(); } }, label)));
     clear(filter);
+    if (labTab !== 'drills') filter.append(ptToggle());
     if ((labTab === 'sentences' || labTab === 'blocks') && !fromModule) {
       filter.append(...content.routines.map((r) => h('button', { class: 'chip', 'aria-pressed': String(labRoutine === r.id), onclick: () => { labRoutine = r.id; draw(); } }, r.id)));
     }
@@ -62,7 +68,7 @@ export function renderLab(App, { params }) {
     if (labTab === 'sentences') {
       body.append(h('ul', { class: 'list card' }, r.blocks.flatMap((b) => content.blocks[b].sentences).map((sid) => {
         const s = content.sentences[sid];
-        return h('li', {}, h('a', { class: 'list-btn', href: `#/lab?sentence=${sid}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: s.en })), rec(`sent:${sid}`), icon('mic')));
+        return h('li', {}, h('a', { class: 'list-btn', href: `#/lab?sentence=${sid}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: s.en }), ptLine(s.pt)), rec(`sent:${sid}`), icon('mic')));
       })));
     }
     if (labTab === 'blocks') {
@@ -70,12 +76,13 @@ export function renderLab(App, { params }) {
         const b = content.blocks[bid];
         return h('a', { class: 'card link', href: `#/lab?block=${bid}` },
           h('div', { class: 'row' }, h('span', { class: 'chip', text: `Bloco ${b.index}` }), ...b.ctx.map((c) => h('span', { class: 'chip', text: content.contexts.find((x) => x.id === c).pt })), h('span', { class: 'spacer' }), rec(`block:${bid}`)),
-          h('p', { class: 'en small', style: { marginTop: '8px' }, text: b.en.slice(0, 140) + (b.en.length > 140 ? '…' : '') }));
+          h('p', { class: 'en small', style: { marginTop: '8px' }, text: b.en.slice(0, 140) + (b.en.length > 140 ? '…' : '') }),
+          ptLine(b.pt ? b.pt.slice(0, 160) + (b.pt.length > 160 ? '…' : '') : ''));
       }), h('a', { class: 'btn block', href: `#/lab?routine=${r.id}&full=1` }, icon('mic'), `Gravar a ${r.id} completa`));
     }
     if (labTab === 'questions' && fromModule) {
       const qs = r.questions.map((id) => content.questions[id]).filter(Boolean);
-      body.append(qs.length ? h('ul', { class: 'list card' }, qs.map((q) => h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q })), rec(`q:${q.id}`), icon('mic')))))
+      body.append(qs.length ? h('ul', { class: 'list card' }, qs.map((q) => h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), ptLine(questionPt(q).q, questionPt(q).support)), rec(`q:${q.id}`), icon('mic')))))
         : h('p', { class: 'small muted', text: 'Este módulo não tem perguntas; pratique as frases e os blocos.' }));
     } else if (labTab === 'questions') {
       const r1 = content.routines[0].id;
@@ -83,7 +90,7 @@ export function renderLab(App, { params }) {
       for (const [title, pred] of groups) {
         if (!Object.values(content.questions).some(pred)) continue; // grupo vazio (ex.: personagem sem perguntas “do Word”)
         body.append(h('h2', { text: title }), h('ul', { class: 'list card' }, Object.values(content.questions).filter(pred).map((q) =>
-          h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), q.routine ? h('div', { class: 'small muted', text: q.routine }) : null), rec(`q:${q.id}`), icon('mic'))))));
+          h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), ptLine(questionPt(q).q, questionPt(q).support), q.routine ? h('div', { class: 'small muted', text: q.routine }) : null), rec(`q:${q.id}`), icon('mic'))))));
       }
     }
     if (labTab === 'drills') {
@@ -120,8 +127,11 @@ function renderTarget(App, params) {
     const q = content.questions[params.q];
     title = 'Pergunta da teacher'; targetId = `q:${q.id}`;
     en = q.a ? [q.a] : []; clips = q.a ? [{ key: q.aau, text: q.a }] : [];
+    const qp = questionPt(q);
+    pt = qp.a ? `${qp.a}\n(tradução de apoio)` : '';
     extra = h('div', {},
       h('div', { class: 'row nowrap' }, h('div', { class: 'big-en', style: { flex: 1 }, text: q.q }), speakerButton({ key: q.au, text: q.q })),
+      qp.q ? h('details', { class: 'small', 'data-role': 'q-pt' }, h('summary', { text: 'Ver a pergunta em português' }), h('p', { lang: 'pt-BR', style: { margin: '4px 0' }, text: `${qp.q} (tradução de apoio)` })) : null,
       q.hint ? h('div', { class: 'notice small', text: q.hint }) : null,
       h('p', { class: 'small muted', text: 'Responda em voz alta antes de olhar o modelo.' }),
       state.myAnswers[q.id] ? h('div', { class: 'card flat' }, h('div', { class: 'small muted', text: 'Minha versão' }), h('div', { class: 'en', text: state.myAnswers[q.id].text })) : null,
@@ -163,7 +173,7 @@ function renderTarget(App, params) {
     const drawRates = () => clear(rateSeg).append(...[0.75, 1, 1.25].map((r) => h('button', { type: 'button', 'aria-pressed': String(r === rate), onclick: () => { rate = r; drawRates(); } }, `${String(r).replace('.', ',')}×`)));
     drawRates();
     view.append(h('section', { class: 'card phrase-card' },
-      h('div', { class: 'phrase-top' }, h('span', { class: 'eyebrow', text: params.q ? 'Resposta-modelo' : 'Leia em voz alta' }), ptBtn),
+      h('div', { class: 'phrase-top' }, h('span', { class: 'eyebrow', text: params.q ? 'Resposta-modelo' : 'Leia em voz alta' }), pt ? ptBtn : null), // sem tradução: nada de botão que não faz nada
       iw.el, legendEl, iw.detail, ptBox,
       h('div', { class: 'listen-row' },
         h('button', { class: 'btn primary', type: 'button', onclick: () => player.playSequence(clips, { rate }) }, icon('speaker'), 'Ouvir referência'),

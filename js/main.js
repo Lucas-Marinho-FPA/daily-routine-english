@@ -14,10 +14,11 @@ import { renderStats } from './ui/stats.js';
 import { renderSettings, renderChecklist } from './ui/settings.js';
 import { contentFor, characterById, registry, isPlanned } from './engine/characters.js';
 import { activate, profileIdFor, journeyProfile, makeOwnerOf } from './engine/profiles.js';
-import { renderCharacterPick } from './ui/character.js';
 import { journeyById, journeyView, journeyRegistry } from './engine/journeys.js';
-import { renderModules, renderModule, renderWords, plannedNotice } from './ui/modules.js';
+import { renderModules, renderModule, renderWords, renderStories, plannedNotice } from './ui/modules.js';
 import { initPwa, confirmBoot, updateBanner, live } from './ui/pwa.js';
+import { applyTranslations } from './engine/translations.js';
+applyTranslations(); // traduções de apoio (perguntas e respostas-modelo) antes de montar qualquer visão
 
 export const APP_VERSION = '1.0.0';
 
@@ -33,7 +34,17 @@ const App = {
   today: () => dayNumber(),
   save() { db.saveSoon(App.state); },
   flush() { return db.flush(App.state); },
-  go(hash) { if (location.hash === hash) route(); else location.hash = hash; },
+  /** Abre uma tela. Redirecionamento (durante a montagem de uma tela, ou { replace: true }) SUBSTITUI a entrada do
+   *  histórico: o Voltar do Android e o do app não caem de novo na tela que redirecionou (sem ciclos). */
+  go(hash, { replace = rendering } = {}) {
+    if (location.hash === hash) { route(); return; }
+    if (replace) { nav.replaceNext = true; location.replace(hash); } else location.hash = hash;
+  },
+  /** Volta à tela de origem real (a mesma do Voltar do Android); sem origem nesta abertura, vai para `fallback`. */
+  back(fallback = '#/') {
+    if (nav.stack.length >= 2) history.back();
+    else App.go(fallback, { replace: true });
+  },
   rebuildChecker() { App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants }); },
   /** Troca a persona ativa: visão de conteúdo e perfil de progresso dela; o progresso das outras fica intacto. */
   setCharacter(id) {
@@ -84,29 +95,56 @@ const App = {
 App.asr = { local: localasr }; // diagnóstico (usado pelos testes automatizados)
 globalThis.DRG_APP = App; // usado pelos testes automatizados
 
+// navegação inferior: as duas jornadas têm entrada própria (contextos nunca se misturam), o Speaking Lab é uma
+// ferramenta à parte (ligada aos módulos) e o Progresso mostra as duas jornadas separadas
+const STUDY = ['modules', 'module', 'words', 'explore', 'routine', 'context', 'category', 'checklist', 'stories'];
 const TABS = [
   { hash: '#/', label: 'Início', icon: 'home', match: (r) => r === '' },
-  { hash: '#/modules', label: 'Estudar', icon: 'book', match: (r) => ['modules', 'module', 'words', 'explore', 'routine', 'context', 'category', 'checklist'].includes(r) },
+  { hash: '#/dr', label: 'Daily Routine', icon: 'book', match: (r) => r === 'dr' || (STUDY.includes(r) && !App.journey) },
+  { hash: '#/cp', label: 'Conversation', icon: 'chat', match: (r) => r === 'cp' || (STUDY.includes(r) && !!App.journey) },
   { hash: '#/lab', label: 'Falar', icon: 'mic', match: (r) => r === 'lab' },
   { hash: '#/stats', label: 'Progresso', icon: 'chart', match: (r) => ['stats', 'review'].includes(r) },
 ];
+const TAB_ROOTS = ['', 'dr', 'cp', 'lab', 'stats'];
+
+// pilha das telas desta abertura (sessionStorage: sobrevive a recarregar a página, não a fechar o app). Serve para o
+// Voltar do app ir à origem real e para restaurar a posição de leitura ao voltar.
+const NAV_KEY = 'drg.nav';
+const nav = { stack: [], scroll: {}, replaceNext: false, wentBack: false };
+try { const saved = JSON.parse(sessionStorage.getItem(NAV_KEY) || 'null'); if (saved && Array.isArray(saved.stack)) Object.assign(nav, { stack: saved.stack, scroll: saved.scroll || {} }); } catch (e) { /* sem armazenamento */ }
+const navSave = () => { try { sessionStorage.setItem(NAV_KEY, JSON.stringify({ stack: nav.stack.slice(-50), scroll: nav.scroll })); } catch (e) { /* ok */ } };
+const currentHash = () => location.hash || '#/';
+function navRecord() {
+  const h = currentHash();
+  const st = nav.stack;
+  nav.wentBack = false;
+  if (st.length && st[st.length - 1] === h) return; // mesma tela (recarregou)
+  if (nav.replaceNext) { nav.replaceNext = false; if (st.length) st[st.length - 1] = h; else st.push(h); }
+  else if (st.length >= 2 && st[st.length - 2] === h) { st.pop(); nav.wentBack = true; } // Voltar (app ou Android)
+  else st.push(h);
+  navSave();
+}
+let rendering = false;
+App.nav = nav; // diagnóstico (testes)
 
 const root = document.getElementById('app');
 let cleanup = null;
 
-function layout(title, { back = null, actions = [], nav = true } = {}) {
+function layout(title, { back, actions = [], nav: showNav = true } = {}) {
   clear(root);
+  // toda tela interna tem Voltar: volta à origem real; `back` é só o destino quando não há origem nesta abertura
+  const routeName = (location.hash.replace(/^#\/?/, '').split(/[/?]/)[0]) || '';
+  const fallback = back === undefined ? (TAB_ROOTS.includes(routeName) ? null : '#/') : back === true ? '#/' : back;
   const top = h('header', { class: 'topbar' },
-    back ? h('button', { class: 'icon-btn ghost', 'aria-label': 'Voltar', onclick: () => (back === true ? history.back() : App.go(back)) }, icon('back')) : null,
+    fallback ? h('button', { class: 'icon-btn ghost', 'aria-label': 'Voltar', 'data-role': 'back', onclick: () => App.back(fallback) }, icon('back')) : null,
     h('h1', { text: title }),
     ...actions);
-  const view = h('main', { class: `view${nav ? '' : ' no-nav'}`, id: 'view' });
+  const view = h('main', { class: `view${showNav ? '' : ' no-nav'}`, id: 'view' });
   root.append(top, view);
   if (App.pwa) view.append(live(() => updateBanner(App))); // “Nova versão disponível” (nunca dentro de uma sessão)
-  if (nav) {
-    const r = (location.hash.replace(/^#\/?/, '').split(/[/?]/)[0]) || '';
+  if (showNav) {
     root.append(h('nav', { class: 'nav', 'aria-label': 'Principal' },
-      TABS.map((t) => h('a', { href: t.hash, 'aria-current': t.match(r) ? 'page' : null }, icon(t.icon), t.label))));
+      TABS.map((t) => h('a', { href: t.hash, 'aria-current': t.match(routeName) ? 'page' : null }, icon(t.icon), h('span', { text: t.label })))));
   }
   return view;
 }
@@ -120,31 +158,40 @@ function parseRoute() {
   return { name: parts[0] || '', arg: parts[1] ? decodeURIComponent(parts[1]) : null, params };
 }
 
+let shownHash = null;
 function route() {
   player.stopAll();
   if (cleanup) { try { cleanup(); } catch (e) { /* ok */ } cleanup = null; }
+  if (shownHash) nav.scroll[shownHash] = window.scrollY; // posição de leitura da tela que sai
+  navRecord();
+  shownHash = currentHash();
   const r = parseRoute();
   window.scrollTo(0, 0);
+  rendering = true;
   try {
     const screens = {
       '': renderHome, explore: renderExplore, routine: renderRoutine, context: renderContext, category: renderCategory,
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
-      modules: renderModules, module: renderModule, words: renderWords,
+      modules: renderModules, module: renderModule, words: renderWords, stories: renderStories,
+      dr: (A, x) => { if (A.journey) A.setJourney(null); return renderModules(A, x); },
+      cp: (A, x) => { const j = journeyRegistry()[0]; if (j && (!A.journey || A.journey.id !== j.id)) A.setJourney(j.id); return renderModules(A, x); },
     };
     // persona prevista (sem conteúdo ainda): telas de estudo da Daily Routine mostram “em preparação”
     const needsContent = ['explore', 'routine', 'context', 'category', 'session', 'lab', 'review', 'checklist', 'module', 'words'];
     if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {
-      layout(`Daily Routine · ${App.character.name}`, { back: '#/' }).append(plannedNotice(App));
+      layout('Daily Routine', { back: '#/' }).append(plannedNotice(App));
       return;
     }
     // primeira abertura (estado novo, sem escolha salva): Início mostra antes a escolha do personagem
-    const fn = r.name === '' && !App.state.settings.characterChosen ? renderCharacterPick : (screens[r.name] || renderHome);
+    const fn = screens[r.name] || renderHome;
     cleanup = fn(App, r) || null;
   } catch (e) {
     console.error(e);
     const v = layout('Algo deu errado', { back: '#/' });
     v.append(h('div', { class: 'notice bad' }, `Erro ao abrir a tela: ${e.message}. Seu progresso está salvo.`));
-  }
+  } finally { rendering = false; }
+  // voltou para esta tela: a posição de leitura volta junto
+  if (nav.wentBack && nav.scroll[shownHash]) { const y = nav.scroll[shownHash]; requestAnimationFrame(() => window.scrollTo(0, y)); }
 }
 
 async function boot() {

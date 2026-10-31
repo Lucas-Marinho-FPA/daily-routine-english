@@ -105,17 +105,17 @@ test('personas previstas: cadastradas sem conteúdo; visão vazia, nunca o conte
     assert.deepEqual(trackStatus(v, { cards: {} }).total, 0);
   }
   assert.equal(registry(REG).characters.find((c) => c.id === 'lucas-kid').age, 11);
-  assert.equal(registry(REG).characters.find((c) => c.id === 'heitor').age, null, 'idade do Heitor não inventada');
+  assert.equal(registry(REG).characters.find((c) => c.id === 'heitor').age, 7, 'idade do Heitor: a informada pelo responsável (2026-10-31), nunca inventada');
 });
 
-test('módulos: cinco etapas na ordem; só a primeira começa aberta', () => {
+test('módulos: as seis etapas do ciclo único, na ordem, nas duas jornadas; só a primeira começa aberta', () => {
   for (const [v, id] of [[base, 'R01'], [karla, 'K01'], [cp, 'CP01']]) {
     const m = moduleStatus(v, id, { cards: {}, recordingsMeta: {} });
-    assert.deepEqual(m.stages.map((s) => s.id), ['vocab', 'expr', 'listen', 'speak', 'apply']);
-    assert.deepEqual(m.stages.map((s) => s.state), ['open', 'locked', 'locked', 'locked', 'locked'], id);
+    assert.deepEqual(m.stages.map((s) => s.id), ['vocab', 'expr', 'build', 'listen', 'speak', 'apply']);
+    assert.deepEqual(m.stages.map((s) => s.state), ['open', 'locked', 'locked', 'locked', 'locked', 'locked'], id);
     assert.equal(m.next.id, 'vocab');
   }
-  assert.equal(STAGES.length, 5);
+  assert.equal(STAGES.length, 6);
 });
 
 test('cadeados: concluir abre a próxima; não exige perfeição; um erro depois não fecha de novo', () => {

@@ -12,8 +12,6 @@ import { makeOwnerOf, syncActive } from '../engine/profiles.js';
 
 /** Cartões de todos os perfis (persona e jornadas) de um estado. */
 const totalCards = (st) => { syncActive(st); return Object.values(st.profiles).reduce((n, p) => n + Object.keys(p.cards || {}).length, 0); };
-import { registry, visualStatus } from '../engine/characters.js';
-import { characterBadge } from './character.js';
 
 export function renderSettings(App) {
   const { state } = App;
@@ -36,31 +34,10 @@ export function renderSettings(App) {
   // ---------- áudio ----------
   const voiceSel = h('select', { class: 'field', 'aria-label': 'Voz do sistema' });
   const diag = h('div', { class: 'kv small', style: { marginTop: '10px' } });
-  // personagem: troca só o conteúdo praticado; o progresso de cada um fica guardado
-  const chars = h('div', { class: 'list card', role: 'radiogroup', 'aria-label': 'Personagem', 'data-role': 'characters' });
-  const drawChars = () => clear(chars).append(...registry().characters.map((c) => {
-    const on = App.character.id === c.id;
-    const vs = visualStatus(c);
-    const pack = c.content === 'base' ? App.baseContent : c.content;
-    const sub = c.profile && c.profile.occupation ? `${c.profile.occupation.pt} · ` : '';
-    const btn = h('button', { class: 'list-btn char-opt', type: 'button', role: 'radio', 'aria-checked': String(on), 'data-character': c.id },
-      characterBadge(c, 'idle'),
-      h('div', { class: 'grow' },
-        h('div', { class: 'title' }, c.name, c.status === 'preview' || c.status === 'planned' ? h('span', { class: 'chip', style: { marginLeft: '8px' }, text: 'em preparação' }) : null),
-        h('div', { class: 'small muted', text: pack ? `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` : 'Conteúdo em preparação · progresso próprio' }),
-        h('div', { class: 'tiny muted', text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === 'preview' ? ' · áudio de referência: voz do aparelho' : ''}` })),
-      on ? icon('check') : null);
-    btn.onclick = () => {
-      if (on) return;
-      App.chooseCharacter(c.id); // grava já: trocar e fechar o app logo em seguida não pode perder a escolha
-      toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
-      drawChars();
-    };
-    return h('li', {}, btn);
-  }));
-  drawChars();
-  view.append(h('h2', { text: 'Personagem' }), chars,
-    h('p', { class: 'tiny muted', text: 'Cada personagem tem rotinas e frases próprias. Palavras comuns às duas rotinas são revisadas juntas; XP, nível e sequência de dias são os mesmos.' }));
+  // história da Daily Routine: os personagens são protagonistas das histórias (não perfis); escolher a história
+  // troca só o conteúdo estudado, e o progresso de cada história continua guardado
+  view.append(h('h2', { text: 'História da Daily Routine' }), h('a', { class: 'card link flat', href: '#/stories', 'data-role': 'stories-link' },
+    h('div', { class: 'row nowrap' }, h('div', { class: 'grow' }, h('b', { text: `Estudando: ${App.character.name}` }), h('div', { class: 'small muted', text: 'Trocar a história estudada' })), icon('next'))));
 
   view.append(h('h2', { text: 'Áudio' }), h('div', { class: 'card' },
     seg('Fonte da voz de referência', 'audioSource', [['embedded', 'Embutida (britânica)'], ['system', 'Voz do sistema']]),
@@ -163,7 +140,7 @@ export function renderSettings(App) {
   }
 
   async function wipe() {
-    const ok = await confirmSheet('Apagar todo o progresso?', 'XP, revisões, conquistas, respostas e gravações serão apagados deste aparelho. Recomendo exportar um backup antes. Esta ação não pode ser desfeita.', { ok: 'Exportar backup e apagar', danger: true });
+    const ok = await confirmSheet('Apagar todo o progresso?', 'O progresso das jornadas, revisões, respostas e gravações serão apagados deste aparelho. Recomendo exportar um backup antes. Esta ação não pode ser desfeita.', { ok: 'Exportar backup e apagar', danger: true });
     if (!ok) return;
     exportNow();
     const sure = await confirmSheet('Confirmar exclusão', 'O backup foi baixado. Apagar agora?', { ok: 'Apagar', danger: true });

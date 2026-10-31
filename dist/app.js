@@ -1063,11 +1063,6 @@
     if (!state.days[today]) state.days[today] = { xp: 0, ex: 0, good: 0, bad: 0, sessions: 0, rec: 0, recXp: 0, rewarded: {}, effort: {} };
     return state.days[today];
   }
-  var levelForXp = (xp) => {
-    let n = 1;
-    while (xp >= 50 * n * (n + 1)) n++;
-    return { level: n, from: 50 * n * (n - 1), to: 50 * n * (n + 1) };
-  };
   function recordAnswer(state, k, outcome, opts = {}) {
     const today = opts.today ?? dayNumber();
     const d = day(state, today);
@@ -2116,17 +2111,7 @@
     const list = registry(reg).characters;
     return list.find((c) => c.id === id) || list.find((c) => c.id === DEFAULT_CHARACTER) || list[0];
   }
-  function assetFor(character, state) {
-    const v = character && character.visual;
-    const s = v && v.states && (v.states[state] || v.states.idle);
-    if (!s || s.status !== "ready") return null;
-    return `${v.dir}/${s.file}.${v.ext || "png"}`;
-  }
   var isPlanned = (character) => !!character && character.status === "planned";
-  function visualStatus(character) {
-    const st = character && character.visual && character.visual.states || {};
-    return { ready: STATES.filter((s) => st[s] && st[s].status === "ready"), pending: STATES.filter((s) => !st[s] || st[s].status !== "ready") };
-  }
   var views = /* @__PURE__ */ new WeakMap();
   function contentFor(base, id, reg) {
     const ch = characterById(id, reg);
@@ -2177,6 +2162,12 @@
     cache.set(ch.id, view);
     return view;
   }
+  var CAST = {
+    lucas: { role: "Pai", about: "Analista financeiro e motorista de aplicativo." },
+    karla: { role: "M\xE3e", about: "Cuida da fam\xEDlia e pratica Pilates." },
+    "lucas-kid": { role: "11 anos", about: "Estudante; gosta de esportes e de jiu-jitsu." },
+    heitor: { role: "7 anos", about: "Estudante, criativo e brincalh\xE3o." }
+  };
 
   // app/js/engine/journeys.js
   var journeyRegistry = (reg = globalThis.DRG_JOURNEYS) => reg && Array.isArray(reg.journeys) ? reg.journeys : [];
@@ -2212,18 +2203,22 @@
 
   // app/js/engine/modules.js
   var STAGES = [
-    { id: "vocab", n: 1, title: "Palavras-chave", en: "Vocabulary", icon: "book" },
-    { id: "expr", n: 2, title: "Express\xF5es pr\xE1ticas", en: "Phrasal verbs & expressions", icon: "chat" },
-    { id: "listen", n: 3, title: "Ouvir e entender", en: "Listening", icon: "speaker" },
-    { id: "speak", n: 4, title: "Falar na pr\xE1tica", en: "Speaking Lab", icon: "mic" },
-    { id: "apply", n: 5, title: "Aplicar e conversar", en: "Conversation practice", icon: "target" }
+    { id: "vocab", n: 1, title: "Vocabul\xE1rio", en: "Vocabulary", icon: "book", goal: "Conhecer as palavras: significado, tradu\xE7\xE3o e pron\xFAncia." },
+    { id: "expr", n: 2, title: "Combina\xE7\xF5es e express\xF5es", en: "Collocations, phrasal verbs & expressions", icon: "chat", goal: "Usar as palavras juntas, como os nativos falam." },
+    { id: "build", n: 3, title: "Constru\xE7\xE3o de frases", en: "Sentence building", icon: "list", goal: "Montar e escrever as frases da situa\xE7\xE3o." },
+    { id: "listen", n: 4, title: "Ouvir e entender", en: "Listening", icon: "speaker", goal: "Reconhecer as frases e os di\xE1logos pelo som." },
+    { id: "speak", n: 5, title: "Falar", en: "Speaking", icon: "mic", goal: "Ouvir a refer\xEAncia, gravar e comparar." },
+    { id: "apply", n: 6, title: "Aplicar", en: "Application", icon: "target", goal: "Responder e falar da situa\xE7\xE3o sem ler o modelo." }
   ];
+  var STATE_LABEL = { done: "Conclu\xEDda", progress: "Em andamento", open: "N\xE3o iniciada", locked: "Bloqueada" };
   var stageById = (id) => STAGES.find((s) => s.id === id) || null;
   var VOCAB_CATS = /* @__PURE__ */ new Set(["word", "verb", "professional"]);
+  var isWord = (it) => VOCAB_CATS.has(it.c) || it.c !== "phrasal" && it.c !== "sentence" && /^[A-Za-z'’-]+$/.test(String(it.en || "").trim());
   var RATIO = 0.8;
   var LISTEN_MIN = 6;
   var SPEAK_MIN = 3;
-  var WRITE_MAX = 6;
+  var BUILD_RATIO = 0.6;
+  var BUILD_MAX = 8;
   var everRight = (c) => !!c && c.reps > c.lapses;
   var answered = (c) => !!c && c.reps > 0;
   var moduleOf = (view, id) => view.routines.find((r) => r.id === id) || null;
@@ -2233,7 +2228,7 @@
       return r.session.vocabIds.map((i) => view.items[i]).filter(Boolean).filter((it) => kind === "vocab" ? it.c !== "phrasal" : it.c === "phrasal");
     }
     const ids = r.items && r.items.length ? r.items : [...new Set(moduleSentences(view, r).flatMap((s) => view.sentences[s] ? view.sentences[s].items : []))];
-    return ids.map((i) => view.items[i]).filter((it) => it && !(it.tags || []).includes("grammar-model")).filter((it) => kind === "vocab" ? VOCAB_CATS.has(it.c) : !VOCAB_CATS.has(it.c));
+    return ids.map((i) => view.items[i]).filter((it) => it && !(it.tags || []).includes("grammar-model")).filter((it) => kind === "vocab" ? isWord(it) : !isWord(it));
   }
   var hasListening = (r) => !!(r.listening && r.listening.length);
   function stageKeys(view, r) {
@@ -2247,7 +2242,8 @@
       questions: qs.filter((q) => q.kind !== "transfer" && !q.openPersonal).map((q) => cardKey("q", q.id, "conv")),
       transfer: qs.filter((q) => q.kind === "transfer" || q.openPersonal).map((q) => cardKey("q", q.id, "conv")),
       reading: (r.reading || []).map((id) => cardKey("rq", id, "rdq")),
-      writing: sents
+      build: sents,
+      blocks: r.blocks.filter((b) => view.blocks[b] && view.blocks[b].sentences.length > 1).map((b) => cardKey("block", b, "seq"))
     };
   }
   function moduleStatus(view, moduleId, progress) {
@@ -2263,24 +2259,29 @@
     st.expr = ratio(K.expr);
     st.listen = hasListening(r) ? { done: count(K.listen, everRight), total: K.listen.length, need: Math.ceil(K.listen.length * 0.75) } : { done: count(K.listen, everRight), total: K.listen.length, need: Math.min(K.listen.length, LISTEN_MIN) };
     st.speak = { done: K.speak.filter((t) => recs[t]).length, total: K.speak.length, need: Math.min(SPEAK_MIN, K.speak.length) };
-    const written = K.writing.filter((s) => answered(cards[cardKey("sent", s, "ord")]) || answered(cards[cardKey("sent", s, "wrt")])).length;
+    const built = K.build.filter((s) => everRight(cards[cardKey("sent", s, "ord")]) || everRight(cards[cardKey("sent", s, "wrt")])).length;
+    st.build = { done: built, total: K.build.length, need: Math.min(BUILD_MAX, Math.ceil(K.build.length * BUILD_RATIO)) };
     const parts = [
       { id: "questions", label: "Responder \xE0s perguntas", done: count(K.questions, answered), total: K.questions.length, need: K.questions.length },
       { id: "reading", label: "Ler e responder", done: count(K.reading, everRight), total: K.reading.length, need: K.reading.length },
-      { id: "writing", label: "Montar ou escrever falas", done: written, total: K.writing.length, need: hasListening(r) ? Math.ceil(K.writing.length / 2) : Math.min(WRITE_MAX, Math.ceil(K.writing.length / 2)) },
       { id: "transfer", label: "Falar de voc\xEA (situa\xE7\xE3o nova)", done: count(K.transfer, answered), total: K.transfer.length, need: Math.min(1, K.transfer.length) }
     ].filter((p) => p.total > 0);
     st.apply = { done: parts.reduce((n, p) => n + Math.min(p.done, p.need), 0), need: parts.reduce((n, p) => n + p.need, 0), total: parts.reduce((n, p) => n + p.total, 0), parts };
     let open = true;
     const stages = STAGES.map((s) => {
       const x = st[s.id];
-      const complete = x.done >= x.need;
-      const state = !open ? "locked" : complete ? "done" : "open";
-      if (!complete) open = false;
-      return { ...s, ...x, complete, state };
+      const complete2 = x.done >= x.need;
+      const started2 = x.done > 0;
+      const state2 = complete2 ? "done" : !open ? "locked" : started2 ? "progress" : "open";
+      if (!complete2) open = false;
+      return { ...s, ...x, complete: complete2, started: started2, state: state2 };
     });
-    const next = stages.find((s) => s.state === "open") || null;
-    return { id: r.id, stages, complete: stages.every((s) => s.complete), next, doneCount: stages.filter((s) => s.complete).length };
+    const next = stages.find((s) => s.state === "progress" || s.state === "open") || null;
+    const doneCount = stages.filter((s) => s.complete).length;
+    const complete = doneCount === stages.length;
+    const started = stages.some((s) => s.started && s.total > 0);
+    const state = complete ? "done" : started ? "progress" : "open";
+    return { id: r.id, stages, complete, state, next, doneCount, ratio: doneCount / stages.length };
   }
   function trackStatus(view, progress) {
     const mods = view.routines.map((r) => moduleStatus(view, r.id, progress));
@@ -2308,116 +2309,15 @@
       const lq = new Set(r.listening || []);
       return hasListening(r) ? (e) => e.unit === "lq" && lq.has(e.id) : (e) => e.unit === "sent" && e.skill === "lis" && sents.has(e.id);
     }
+    if (stageId === "build") {
+      const blocks = new Set(r.blocks);
+      return (e) => e.unit === "sent" && ["ord", "wrt"].includes(e.skill) && sents.has(e.id) || e.unit === "block" && e.skill === "seq" && blocks.has(e.id);
+    }
     if (stageId === "apply") {
       const qs = new Set(r.questions || []), rq = new Set(r.reading || []), blocks = new Set(r.blocks);
-      return (e) => e.unit === "q" && qs.has(e.id) || e.unit === "rq" && rq.has(e.id) || e.unit === "sent" && ["ord", "wrt"].includes(e.skill) && sents.has(e.id) || e.unit === "block" && blocks.has(e.id) || e.unit === "routine" && e.id === r.id;
+      return (e) => e.unit === "q" && qs.has(e.id) || e.unit === "rq" && rq.has(e.id) || e.unit === "block" && e.skill === "tell" && blocks.has(e.id) || e.unit === "routine" && e.id === r.id;
     }
     return () => false;
-  }
-
-  // app/js/ui/character.js
-  var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
-  function characterImage(ch, state, { size = 56 } = {}) {
-    if (!ch || !STATES.includes(state)) return null;
-    const src = assetFor(ch, state);
-    if (!src) return null;
-    return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
-  }
-  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
-    const img = characterImage(ch, state, { size });
-    if (img) return img;
-    return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
-  }
-  function choiceSub(c) {
-    const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : c.profile && c.profile.summary || "";
-    if (c.status === "planned") return "Jornada em prepara\xE7\xE3o \xB7 progresso pr\xF3prio desde j\xE1";
-    return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === "preview" ? " \xB7 em prepara\xE7\xE3o" : ""}`;
-  }
-  function characterChoices({ selected, current: current2 = null, onSelect, role = "character-choices" }) {
-    const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
-    const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
-      const on = c.id === sel;
-      return h(
-        "button",
-        {
-          type: "button",
-          class: "char-choice",
-          role: "radio",
-          "aria-checked": String(on),
-          "data-character": c.id,
-          onclick: () => {
-            draw(c.id);
-            onSelect(c.id);
-          }
-        },
-        h("span", { class: "char-name", text: c.name }),
-        c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
-        h("span", { class: "char-sub small muted", text: choiceSub(c) })
-      );
-    }));
-    draw(selected);
-    return box2;
-  }
-  function renderCharacterPick(App2) {
-    const view = App2.layout("Daily Routine English", { nav: false });
-    let pick = App2.character.id;
-    const go = h("button", { class: "btn primary block lg", "data-role": "confirm-character", onclick: async () => {
-      go.disabled = true;
-      await App2.chooseCharacter(pick);
-      App2.go("#/");
-    } });
-    const label = () => {
-      go.textContent = `Continuar com ${registry().characters.find((c) => c.id === pick).name}`;
-    };
-    view.append(h(
-      "section",
-      { class: "char-pick", "data-role": "character-pick" },
-      h("h2", { text: "Quem vai acompanhar voc\xEA?" }),
-      h("p", { class: "small muted", text: "Cada personagem tem a pr\xF3pria rotina para voc\xEA praticar. D\xE1 para trocar depois, na tela inicial, sem perder o progresso." }),
-      characterChoices({ selected: pick, onSelect: (id) => {
-        pick = id;
-        label();
-      } }),
-      go
-    ));
-    label();
-  }
-  function characterSwitcher(App2) {
-    const wrap = h("section", { class: "card char-switch", "data-role": "active-character" });
-    const closed = () => clear(wrap).append(h(
-      "div",
-      { class: "row nowrap" },
-      h("div", { class: "grow" }, h("span", { class: "small muted", text: "Personagem atual: " }), h("b", { "data-role": "active-name", text: App2.character.name })),
-      h("button", { class: "btn small", "aria-expanded": "false", "data-role": "switch-character", onclick: open, text: "Trocar personagem" })
-    ));
-    function open() {
-      let pick = App2.character.id;
-      const ok = h("button", { class: "btn primary", "data-role": "confirm-character", disabled: true, onclick: async () => {
-        ok.disabled = true;
-        const name = registry().characters.find((c) => c.id === pick).name;
-        await App2.chooseCharacter(pick);
-        toast(`Agora com ${name}. O progresso com cada personagem continua salvo.`);
-        App2.go("#/");
-      } }, "Confirmar");
-      clear(wrap).append(
-        h("div", { class: "small muted", text: "Escolha quem vai acompanhar voc\xEA:" }),
-        characterChoices({ selected: pick, current: App2.character.id, onSelect: (id) => {
-          pick = id;
-          ok.disabled = id === App2.character.id;
-          ok.textContent = id === App2.character.id ? "Confirmar" : `Usar ${registry().characters.find((c) => c.id === id).name}`;
-        } }),
-        h(
-          "div",
-          { class: "row nowrap", style: { justifyContent: "flex-end", gap: "8px" } },
-          h("button", { class: "btn ghost", "data-role": "cancel-character", onclick: closed, text: "Cancelar" }),
-          ok
-        )
-      );
-      const first = wrap.querySelector("[aria-checked=true]");
-      if (first) first.focus();
-    }
-    closed();
-    return wrap;
   }
 
   // app/js/engine/exercises.js
@@ -2697,29 +2597,72 @@
     return `#/session${q ? "?" + q : ""}`;
   }
 
+  // app/js/ui/illustration.js
+  var registry2 = () => globalThis.DRG_ILLUSTRATIONS || { characters: {}, sessions: {} };
+  function illustrationSrc(kind, id, variant = "cover") {
+    const reg = registry2();
+    const entry = kind === "character" ? (reg.characters || {})[id] : (reg.sessions || {})[id];
+    if (!entry) return null;
+    return typeof entry === "string" ? entry : entry[variant] || null;
+  }
+  function illustration({ kind = "session", id, variant = "cover", alt = "", label = "", ratio = "16 / 7", cls = "" } = {}) {
+    const src = illustrationSrc(kind, id, variant);
+    const fallback = () => h("div", { class: "ill-fallback", "aria-hidden": "true" }, label ? h("span", { text: label }) : null);
+    const box2 = h("figure", { class: `ill ${cls}`.trim(), style: { aspectRatio: ratio }, "data-role": "illustration", "data-state": src ? "image" : "empty" });
+    if (!src) {
+      box2.append(fallback());
+      return box2;
+    }
+    const img = h("img", { src, alt, loading: "lazy", decoding: "async" });
+    img.addEventListener("error", () => {
+      box2.dataset.state = "missing";
+      box2.replaceChildren(fallback());
+    }, { once: true });
+    box2.append(img);
+    return box2;
+  }
+
   // app/js/ui/modules.js
-  var STATE_LABEL2 = { done: "conclu\xEDda", open: "dispon\xEDvel", locked: "bloqueada" };
-  var trackName = (App2) => App2.journey ? App2.journey.name : `Daily Routine \xB7 ${App2.character.short || App2.character.name}`;
+  var MODULE_LABEL = { done: "Conclu\xEDdo", progress: "Em andamento", open: "N\xE3o iniciado" };
+  var trackName = (App2) => App2.journey ? App2.journey.name : "Daily Routine";
+  var trackRoot = (App2) => App2.journey ? "#/cp" : "#/dr";
+  var moduleTitle = (r) => r.title && r.title !== r.pt ? r.title : r.pt;
   function stageHref(moduleId, stageId) {
     if (stageId === "vocab" || stageId === "expr") return `#/words/${moduleId}?kind=${stageId}`;
     if (stageId === "speak") return `#/lab?routine=${moduleId}&module=1`;
     return sessionHref({ routine: moduleId, stage: stageId });
   }
-  var moduleTitle = (r) => r.title && r.title !== r.pt ? r.title : r.pt;
   function stageDots(m) {
     return h(
       "div",
-      { class: "stage-dots", "aria-label": `${m.doneCount} de ${STAGES.length} etapas conclu\xEDdas` },
+      { class: "stage-dots", role: "img", "aria-label": `${m.doneCount} de ${STAGES.length} etapas conclu\xEDdas` },
       m.stages.map((s) => h(
         "span",
-        { class: `sdot ${s.state}`, title: `${s.n}. ${s.title} \u2014 ${STATE_LABEL2[s.state]}`, "aria-hidden": "true" },
+        { class: `sdot ${s.state}`, title: `${s.n}. ${s.title} \u2014 ${STATE_LABEL[s.state]}`, "aria-hidden": "true" },
         s.state === "locked" ? icon("lock") : s.state === "done" ? icon("check") : String(s.n)
       ))
     );
   }
+  function storyHead(App2) {
+    const ch = App2.character;
+    const cast = CAST[ch.id] || {};
+    return h(
+      "section",
+      { class: "story-head", "data-role": "story-head", "data-character": ch.id },
+      h(
+        "div",
+        { class: "grow" },
+        h("div", { class: "eyebrow", text: "Hist\xF3ria" }),
+        h("div", { class: "story-name" }, h("b", { text: ch.name }), cast.role ? h("span", { class: "muted", text: ` \xB7 ${cast.role}` }) : null),
+        cast.about ? h("div", { class: "small muted", text: cast.about }) : null
+      ),
+      h("a", { class: "btn small", href: "#/stories", "data-role": "change-story" }, "Trocar hist\xF3ria")
+    );
+  }
   function renderModules(App2) {
     const { content, state } = App2;
-    const view = App2.layout(trackName(App2), { back: "#/" });
+    const view = App2.layout(trackName(App2));
+    if (!App2.journey) view.append(storyHead(App2));
     if (!App2.journey && isPlanned(App2.character)) {
       view.append(plannedNotice(App2));
       return;
@@ -2727,116 +2670,141 @@
     const tr = trackStatus(content, state);
     view.append(h(
       "section",
-      { class: "card track-head", "data-role": App2.journey ? "journey-bar" : "track-bar" },
-      h(
-        "div",
-        { class: "row nowrap" },
-        h(
-          "div",
-          { class: "grow" },
-          h("div", { class: "small muted", text: App2.journey ? "Jornada comunicativa \xB7 progresso pr\xF3prio" : `Jornada pessoal de ${App2.character.short || App2.character.name}` }),
-          h("b", { text: `${tr.done} de ${tr.total} etapas conclu\xEDdas` })
-        ),
-        App2.journey ? h("button", { class: "btn small", "data-role": "leave-journey", onclick: async () => {
-          await App2.setJourney(null);
-          App2.go("#/modules");
-        } }, `Daily Routine (${App2.character.short || App2.character.name})`) : null
-      ),
-      h("div", { style: { marginTop: "8px" } }, bar(tr.ratio))
+      { class: "track-head", "data-role": App2.journey ? "journey-bar" : "track-bar" },
+      h("p", { class: "small muted", style: { margin: "0 0 6px" }, text: App2.journey ? "Situa\xE7\xF5es de conversa do dia a dia, com progresso pr\xF3prio." : "Sess\xF5es da rotina, cada uma com as mesmas seis etapas." }),
+      h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: `${tr.modules.filter((m) => m.complete).length} de ${tr.modules.length} sess\xF5es conclu\xEDdas` }), h("b", { text: `${tr.done}/${tr.total} etapas` })),
+      bar(tr.ratio)
     ));
-    if (App2.journey) view.append(h("p", { class: "small muted", style: { marginTop: "10px" }, text: "Di\xE1logos originais do app em situa\xE7\xF5es do dia a dia: voc\xEA aprende as palavras e express\xF5es, ouve, fala e depois usa tudo numa conversa." }));
+    const list = h("ol", { class: "module-list", "data-role": "module-list" });
     for (const m of tr.modules) {
       const r = moduleOf(content, m.id);
       const isNext = tr.current && tr.current.id === m.id;
-      view.append(h(
+      const nextTxt = !m.complete && m.next ? `Pr\xF3xima: ${m.next.n}. ${m.next.title}` : null;
+      list.append(h("li", {}, h(
         "a",
-        { class: `card link module-card${isNext ? " current" : ""}`, href: `#/module/${r.id}`, "data-role": App2.journey ? "journey-unit" : "module-card", "data-unit": r.id, "data-complete": String(m.complete) },
+        { class: `card link module-card${isNext ? " current" : ""}`, href: `#/module/${r.id}`, "data-role": App2.journey ? "journey-unit" : "module-card", "data-unit": r.id, "data-complete": String(m.complete), "data-state": m.state },
         h(
           "div",
           { class: "row nowrap" },
           h(
             "div",
             { class: "grow" },
-            h("div", { class: "chips" }, h("span", { class: "chip", text: r.id }), m.complete ? h("span", { class: "chip ok", text: "Conclu\xEDdo \u2713" }) : isNext ? h("span", { class: "chip accent", text: "Continue aqui" }) : null),
-            h("h3", { style: { marginTop: "6px" }, text: moduleTitle(r) }),
-            r.title && r.title !== r.pt ? h("div", { class: "small muted", text: r.pt }) : null
+            h(
+              "div",
+              { class: "chips" },
+              h("span", { class: "chip", text: r.id }),
+              h("span", { class: `chip state-${m.state}`, "data-role": "module-state", text: m.complete ? `${MODULE_LABEL.done} \u2713` : MODULE_LABEL[m.state] }),
+              isNext ? h("span", { class: "chip accent", text: "Continue aqui" }) : null
+            ),
+            h("h3", { class: "module-title", text: moduleTitle(r) }),
+            r.title && r.title !== r.pt ? h("div", { class: "small muted", text: r.pt }) : null,
+            nextTxt ? h("div", { class: "small", "data-role": "module-next", text: nextTxt }) : null
           ),
           icon("next")
         ),
         stageDots(m)
-      ));
+      )));
     }
-    if (!App2.journey) view.append(h("a", { class: "btn block ghost", href: "#/explore", style: { marginTop: "12px" } }, icon("list"), "Explorar por momento do dia ou categoria"));
+    view.append(list);
+    if (!App2.journey) view.append(h("a", { class: "btn block ghost", href: "#/explore", style: { marginTop: "12px" } }, icon("list"), "Consultar por momento do dia ou categoria"));
+  }
+  function renderStories(App2) {
+    if (App2.journey) App2.setJourney(null);
+    const view = App2.layout("Hist\xF3rias da Daily Routine", { back: "#/dr" });
+    view.append(h("p", { class: "small muted", text: "Escolha a hist\xF3ria que voc\xEA quer estudar. O progresso de cada uma fica guardado separadamente." }));
+    const list = h("div", { class: "stack", "data-role": "stories" });
+    for (const c of registry().characters) {
+      const cast = CAST[c.id] || {};
+      const planned = isPlanned(c);
+      const t = planned ? null : trackStatus(contentFor(App2.baseContent, c.id), progressOf(App2.state, c.id) || { cards: {}, recordingsMeta: {} });
+      const current2 = App2.character && App2.character.id === c.id;
+      const body = [
+        illustration({ kind: "character", id: c.id, variant: "idle", alt: c.name, label: c.name, ratio: "1 / 1", cls: "ill-avatar" }),
+        h(
+          "div",
+          { class: "grow" },
+          h("div", {}, h("b", { text: c.name }), cast.role ? h("span", { class: "muted", text: ` \xB7 ${cast.role}` }) : null, current2 ? h("span", { class: "chip accent", style: { marginLeft: "6px" }, text: "Atual" }) : null),
+          cast.about ? h("div", { class: "small muted", text: cast.about }) : null,
+          planned ? h("div", { class: "small", text: "Hist\xF3rias em prepara\xE7\xE3o." }) : h("div", { class: "small", text: `${t.modules.filter((m) => m.complete).length} de ${t.modules.length} sess\xF5es conclu\xEDdas` })
+        )
+      ];
+      list.append(planned ? h("div", { class: "card story disabled", "data-role": "story", "data-character": c.id, "aria-disabled": "true" }, h("div", { class: "row nowrap" }, ...body)) : h("button", {
+        class: "card link story",
+        type: "button",
+        "data-role": "story",
+        "data-character": c.id,
+        "aria-pressed": String(current2),
+        onclick: async () => {
+          await App2.chooseCharacter(c.id);
+          App2.go("#/dr", { replace: true });
+        }
+      }, h("div", { class: "row nowrap" }, ...body, icon("next"))));
+    }
+    view.append(list);
   }
   function renderModule(App2, { arg }) {
     const { content, state } = App2;
     const r = moduleOf(content, arg);
     if (!r) {
-      App2.go("#/modules");
+      App2.go(trackRoot(App2));
       return;
     }
     const m = moduleStatus(content, r.id, state);
-    const view = App2.layout(`${r.id} \xB7 ${moduleTitle(r)}`, { back: "#/modules" });
+    const view = App2.layout(`${r.id} \xB7 ${moduleTitle(r)}`, { back: trackRoot(App2) });
     view.append(h(
       "section",
-      { class: "card module-head" },
-      h("div", { class: "small muted", text: trackName(App2) }),
+      { class: "module-head" },
+      illustration({ kind: "session", id: r.id, variant: "cover", alt: moduleTitle(r), label: moduleTitle(r) }),
+      h("div", { class: "small muted", text: App2.journey ? trackName(App2) : `Daily Routine \xB7 ${App2.character.name}` }),
       h("h2", { style: { margin: "4px 0" }, text: moduleTitle(r) }),
       r.title && r.title !== r.pt ? h("div", { class: "small", text: r.pt }) : null,
-      r.goal ? h("p", { class: "small", style: { marginTop: "6px" } }, h("b", { text: "Objetivo: " }), r.goal) : null,
-      h("div", { class: "row nowrap", style: { marginTop: "8px" } }, h("div", { class: "grow" }, bar(m.doneCount / STAGES.length)), h("span", { class: "small muted", text: `${m.doneCount}/${STAGES.length}` }))
+      r.goal ? h("p", { class: "small", style: { marginTop: "6px" } }, h("b", { text: "O que voc\xEA vai aprender: " }), r.goal) : null,
+      h("div", { class: "row nowrap", style: { marginTop: "8px" } }, h("div", { class: "grow" }, bar(m.ratio)), h("span", { class: "small", "data-role": "module-state", text: `${MODULE_LABEL[m.state]} \xB7 ${m.doneCount}/${STAGES.length}` }))
     ));
-    if (r.session) {
-      view.append(h(
-        "a",
-        { class: "card link session-text", href: `#/routine/${r.id}`, "data-role": "session-text" },
+    view.append(h(
+      "a",
+      { class: "card link session-text", href: `#/routine/${r.id}`, "data-role": r.session ? "session-text" : "module-text" },
+      h(
+        "div",
+        { class: "row nowrap" },
+        h("span", { class: "stage-mark open", "aria-hidden": "true" }, icon("book")),
         h(
           "div",
-          { class: "row nowrap" },
-          h("span", { class: "stage-mark open", "aria-hidden": "true" }, icon("book")),
-          h(
-            "div",
-            { class: "grow" },
-            h("b", { text: "Texto da sess\xE3o e express\xF5es" }),
-            h("div", { class: "small muted", text: `${r.session.level} \xB7 ${r.session.focus}` }),
-            h("div", { class: "small", text: "Leia, ou\xE7a, veja a tradu\xE7\xE3o e toque nas express\xF5es destacadas." })
-          ),
-          icon("next")
-        )
-      ));
-    }
+          { class: "grow" },
+          h("b", { text: App2.journey ? "Di\xE1logo da situa\xE7\xE3o" : r.session ? "Texto da sess\xE3o e express\xF5es" : "Texto da hist\xF3ria" }),
+          r.session ? h("div", { class: "small muted", text: `${r.session.level} \xB7 ${r.session.focus}` }) : null,
+          h("div", { class: "small", text: "Leia, ou\xE7a e veja a tradu\xE7\xE3o." })
+        ),
+        icon("next")
+      )
+    ));
     const list = h("ol", { class: "stages", "data-role": "stages" });
     for (const s of m.stages) list.append(stageRow(App2, r, s));
-    view.append(list);
-    if (r.session) {
-    } else if (m.stages.find((s) => s.id === "listen").complete) {
-      view.append(h("a", { class: "btn block", "data-role": "module-text", href: `#/routine/${r.id}`, style: { marginTop: "12px" } }, icon("book"), App2.journey ? "Ver o di\xE1logo completo" : "Ver o texto completo"));
-    } else {
-      view.append(h("p", { class: "tiny muted", style: { marginTop: "12px" }, text: "O texto completo fica dispon\xEDvel depois de \u201COuvir e entender\u201D, para voc\xEA treinar o ouvido antes de ler." }));
-    }
-    view.append(h("p", { class: "tiny muted", text: "Uma etapa abre quando a anterior \xE9 conclu\xEDda: basta acertar a maior parte ao menos uma vez \u2014 o que voc\xEA errar volta na revis\xE3o. Abrir uma etapa n\xE3o a conclui." }));
+    view.append(h("h3", { class: "section-title", text: "Etapas" }), list);
+    view.append(h("p", { class: "tiny muted", text: "Cada etapa abre quando a anterior est\xE1 conclu\xEDda. Concluir \xE9 acertar a maior parte ao menos uma vez; o que voc\xEA errar volta na revis\xE3o." }));
   }
   function stageRow(App2, r, s) {
     const locked = s.state === "locked";
-    const counter = s.total === 0 ? "sem itens neste m\xF3dulo" : s.id === "speak" ? `${Math.min(s.done, s.need)}/${s.need} grava\xE7\xF5es` : `${Math.min(s.done, s.need)}/${s.need}`;
+    const counter = s.total === 0 ? "sem itens nesta sess\xE3o" : s.id === "speak" ? `${Math.min(s.done, s.need)}/${s.need} grava\xE7\xF5es` : `${Math.min(s.done, s.need)}/${s.need}`;
     const mark = h("span", { class: `stage-mark ${s.state}`, "aria-hidden": "true" }, locked ? icon("lock") : s.state === "done" ? icon("check") : String(s.n));
     const body = h(
       "div",
       { class: "grow" },
-      h("div", { class: "stage-title" }, h("b", { text: `${String(s.n).padStart(2, "0")}. ${s.title}` }), h("span", { class: "small muted", text: ` \xB7 ${s.en}` })),
-      h("div", { class: "small muted", text: locked ? "Bloqueada \u2014 conclua a etapa anterior" : `${STATE_LABEL2[s.state][0].toUpperCase()}${STATE_LABEL2[s.state].slice(1)} \xB7 ${counter}` }),
+      h("div", { class: "stage-title" }, h("b", { text: `${s.n}. ${s.title}` }), h("span", { class: "small muted en", text: ` \xB7 ${s.en}` })),
+      h("div", { class: "small", "data-role": "stage-state" }, h("span", { class: `state-tag ${s.state}`, text: STATE_LABEL[s.state] }), locked ? " \u2014 conclua a etapa anterior" : ` \xB7 ${counter}`),
+      !locked && s.state !== "done" && s.goal ? h("div", { class: "tiny muted", text: s.goal }) : null,
       s.parts && !locked ? h("ul", { class: "tiny muted parts" }, s.parts.map((p) => h("li", { text: `${p.done >= p.need ? "\u2713" : "\u25CB"} ${p.label}: ${Math.min(p.done, p.need)}/${p.need}` }))) : null
     );
     const attrs = { class: `stage ${s.state}`, "data-role": "stage", "data-stage": s.id, "data-state": s.state };
     if (locked) return h("li", attrs, h("div", { class: "stage-row", "aria-disabled": "true" }, mark, body, icon("lock")));
-    return h("li", attrs, h("a", { class: "stage-row", href: stageHref(r.id, s.id), "aria-label": `${s.title}: ${STATE_LABEL2[s.state]}` }, mark, body, icon("next")));
+    return h("li", attrs, h("a", { class: "stage-row", href: stageHref(r.id, s.id), "aria-label": `${s.n}. ${s.title}: ${STATE_LABEL[s.state]}` }, mark, body, icon("next")));
   }
   function renderWords(App2, { arg, params }) {
     const { content, state } = App2;
     const r = moduleOf(content, arg);
     const kind = params.kind === "expr" ? "expr" : "vocab";
     if (!r) {
-      App2.go("#/modules");
+      App2.go(trackRoot(App2));
       return;
     }
     const stage = moduleStatus(content, r.id, state).stages.find((s) => s.id === kind);
@@ -2844,13 +2812,13 @@
       App2.go(`#/module/${r.id}`);
       return;
     }
-    const view = App2.layout(kind === "vocab" ? "Palavras-chave" : "Express\xF5es pr\xE1ticas", { back: `#/module/${r.id}` });
+    const view = App2.layout(kind === "vocab" ? "1. Vocabul\xE1rio" : "2. Combina\xE7\xF5es e express\xF5es", { back: `#/module/${r.id}` });
     const items = moduleItems(content, r, kind);
     const today = App2.today();
     const favs = state.favorites || (state.favorites = {});
     let onlyMarked = false;
     view.append(
-      h("p", { class: "small muted", text: kind === "vocab" ? `Palavras de que voc\xEA precisa em \u201C${moduleTitle(r)}\u201D. Ou\xE7a, veja o exemplo e pratique.` : `Phrasal verbs, collocations e express\xF5es naturais de \u201C${moduleTitle(r)}\u201D, sempre num exemplo da situa\xE7\xE3o.` }),
+      h("p", { class: "small muted", text: kind === "vocab" ? `As palavras de \u201C${moduleTitle(r)}\u201D: significado, \xE1udio e um exemplo da situa\xE7\xE3o.` : `Como as palavras se combinam em \u201C${moduleTitle(r)}\u201D: collocations, phrasal verbs e express\xF5es, cada uma num exemplo.` }),
       h(
         "div",
         { class: "row", style: { margin: "8px 0 12px" } },
@@ -2943,9 +2911,9 @@
     return h(
       "section",
       { class: "card", "data-role": "planned" },
-      h("h3", { text: `Jornada de ${App2.character.name} em prepara\xE7\xE3o` }),
-      h("p", { class: "small", text: "As rotinas desta persona ainda n\xE3o foram criadas. O progresso dela j\xE1 \xE9 separado: quando o conte\xFAdo chegar, come\xE7a do zero, sem misturar com as outras personas." }),
-      h("a", { class: "btn primary block", href: "#/", "data-role": "planned-home" }, icon("home"), "Voltar ao In\xEDcio")
+      h("h3", { text: `Hist\xF3rias de ${App2.character.name} em prepara\xE7\xE3o` }),
+      h("p", { class: "small", text: "As sess\xF5es desta hist\xF3ria ainda n\xE3o foram criadas. Enquanto isso, escolha outra hist\xF3ria da fam\xEDlia." }),
+      h("a", { class: "btn primary block", href: "#/stories", "data-role": "planned-home" }, "Escolher outra hist\xF3ria")
     );
   }
 
@@ -3329,99 +3297,59 @@
   }
 
   // app/js/ui/home.js
-  var EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
+  var EMPTY = { cards: {}, recordingsMeta: {} };
   function renderHome(App2) {
     const { state } = App2;
     const view = App2.layout("Daily Routine English", {
       actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))]
     });
-    const today = App2.today();
+    if (App2.isNew && !state.welcomed) view.append(welcome(App2));
     const ch = App2.character;
-    const name = ch.short || ch.name;
     const planned = isPlanned(ch);
     const drView = contentFor(App2.baseContent, ch.id);
-    const drProg = progressOf(state, ch.id) || EMPTY;
-    const dr = planned ? null : trackStatus(drView, drProg);
+    const dr = planned ? null : trackStatus(drView, progressOf(state, ch.id) || EMPTY);
     const j = journeyRegistry()[0] || null;
     const cpView = j ? journeyView(App2.baseContent, j.id) : null;
-    const cpProg = j ? progressOf(state, journeyProfile(j.id)) || EMPTY : EMPTY;
-    const cp = j ? trackStatus(cpView, cpProg) : null;
-    if (App2.isNew && !state.welcomed) view.append(welcome(App2));
-    const lvl = levelForXp(drProg.xp || 0);
-    const st = streak({ days: drProg.days || {}, firstDay: drProg.firstDay ?? today }, today);
-    const resume = App2.journey && cp ? { track: "journey", t: cp } : dr && dr.next ? { track: "dr", t: dr } : cp ? { track: "journey", t: cp } : null;
-    const resumeHref = resume && resume.t.current && resume.t.next ? stageHref(resume.t.current.id, resume.t.next.id) : null;
-    const resumeLabel = resumeHref ? `${resume.track === "journey" ? j.name : "Daily Routine"} \xB7 ${resume.t.current.id} \xB7 ${resume.t.next.title}` : "";
-    const continueBtn = h("button", {
-      class: "btn primary block lg",
-      "data-role": "continue",
-      disabled: !resumeHref,
-      onclick: async () => {
-        await App2.setJourney(resume.track === "journey" ? j.id : null);
-        App2.go(resumeHref);
-      }
-    }, icon("play"), "Continuar de onde parou");
-    view.append(h(
-      "section",
-      { class: "hero persona", "data-role": "persona", "data-character": ch.id },
-      h(
-        "div",
-        { class: "row nowrap" },
-        characterBadge(ch, "idle", { size: 56 }),
-        h(
-          "div",
-          { class: "grow", style: { minWidth: 0 } },
-          h("div", { class: "small muted", text: greeting() }),
-          h("div", { class: "persona-name", text: name }),
-          h("div", { class: "small muted", "data-role": "persona-stats", text: planned ? "Jornada em prepara\xE7\xE3o" : `N\xEDvel ${lvl.level} \xB7 ${drProg.xp || 0} XP \xB7 ${st.days} ${st.days === 1 ? "dia seguido" : "dias seguidos"}` })
-        )
-      ),
-      dr ? h(
-        "div",
-        { style: { marginTop: "12px" } },
-        h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: "Progresso da Daily Routine" }), h("b", { text: `${Math.round(dr.ratio * 100)}%` })),
-        bar(dr.ratio)
-      ) : null,
-      h("div", { style: { marginTop: "14px" } }, continueBtn),
-      resumeLabel ? h("div", { class: "small muted center", style: { marginTop: "6px" }, "data-role": "continue-where", text: resumeLabel }) : null
-    ));
-    if (registry().characters.length > 1) view.append(characterSwitcher(App2));
-    view.append(h("h2", { text: "Minhas jornadas" }));
-    view.append(trackCard({
+    const cp = j ? trackStatus(cpView, progressOf(state, journeyProfile(j.id)) || EMPTY) : null;
+    const cast = CAST[ch.id] || {};
+    view.append(h("h2", { class: "section-title", text: "Suas jornadas" }));
+    view.append(journeyCard(App2, {
       role: "track-dr",
-      title: `Daily Routine \xB7 ${name}`,
-      desc: planned ? "As rotinas desta persona ainda est\xE3o em prepara\xE7\xE3o. O progresso dela j\xE1 \xE9 separado." : "A rotina da persona em m\xF3dulos: palavras, express\xF5es, ouvir, falar e conversar.",
+      title: "Daily Routine",
+      tag: "Hist\xF3rias do dia a dia",
+      context: `Hist\xF3ria de ${ch.name}${cast.role ? ` (${cast.role})` : ""}`,
       t: dr,
       view: drView,
       planned,
-      onOpen: async () => {
+      open: async () => {
         await App2.setJourney(null);
-        App2.go("#/modules");
-      }
+      },
+      root: "#/dr"
     }));
     if (j) {
-      view.append(trackCard({
+      view.append(journeyCard(App2, {
         role: "journey-entry",
         title: j.name,
-        desc: "Jornada comunicativa: entender e participar de conversas reais, com progresso pr\xF3prio (o mesmo para todas as personas).",
+        tag: "Situa\xE7\xF5es de conversa",
+        context: null,
         t: cp,
         view: cpView,
-        button: "open-journey",
-        onOpen: async () => {
+        planned: false,
+        open: async () => {
           await App2.setJourney(j.id);
-          App2.go("#/modules");
-        }
+        },
+        root: "#/cp"
       }));
     }
-    const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App2.content, c.k)).length;
+    const due = Object.values(state.cards).filter((c) => c.due <= App2.today() && cardInContent(App2.content, c.k)).length;
     if (due) view.append(h(
       "a",
       { class: "card link flat", href: "#/review", style: { marginTop: "12px" }, "data-role": "due" },
       h(
         "div",
         { class: "row nowrap" },
-        h("span", { class: "icon-btn accent" }, icon("refresh")),
-        h("div", { class: "grow" }, h("b", { text: `${due} para revisar` }), h("div", { class: "small muted", text: App2.journey ? j.name : `Daily Routine \xB7 ${name}` })),
+        h("span", { class: "icon-btn accent", "aria-hidden": "true" }, icon("refresh")),
+        h("div", { class: "grow" }, h("b", { text: `Revis\xE3o: ${due} ${due === 1 ? "item" : "itens"}` }), h("div", { class: "small muted", text: App2.journey ? j.name : `Daily Routine \xB7 ${ch.name}` })),
         icon("next")
       )
     ));
@@ -3431,42 +3359,65 @@
     }
     view.append(h("div", { style: { marginTop: "16px" } }, installCard(App2, { compact: true })));
   }
-  function trackCard({ role, title, desc, t, view, planned = false, onOpen, button = "open-track" }) {
-    const next = t && t.current && t.next ? `${t.current.id} \xB7 ${moduleTitleOf(view, t.current.id)} \u2014 ${t.next.title}` : t && t.total ? "Todas as etapas conclu\xEDdas \u{1F389}" : null;
+  function journeyCard(App2, { role, title, tag, context, t, view, planned, open, root: root2 }) {
+    const cur = t && t.current ? moduleOf(view, t.current.id) : null;
+    const next = t && t.next;
+    const allDone = t && t.total && !t.current;
+    const href = cur && next ? stageHref(cur.id, next.id) : root2;
+    const go = async () => {
+      await open();
+      App2.go(href);
+    };
     return h(
       "section",
-      { class: "card track", "data-role": role },
-      h("h3", { text: title }),
-      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: desc }),
-      t && t.total ? h("div", {}, h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: `${t.done} de ${t.total} etapas` }), h("b", { text: `${Math.round(t.ratio * 100)}%` })), bar(t.ratio)) : null,
-      next ? h("div", { class: "small", style: { marginTop: "6px" }, "data-role": "next-step" }, h("span", { class: "muted", text: "Pr\xF3xima etapa: " }), next) : null,
+      { class: "card journey", "data-role": role },
+      cur ? illustration({ kind: "session", id: cur.id, variant: "cover", alt: moduleTitle(cur), label: moduleTitle(cur), ratio: "16 / 6" }) : null,
+      h(
+        "div",
+        { class: "row nowrap" },
+        h("div", { class: "grow" }, h("div", { class: "eyebrow", text: tag }), h("h3", { class: "journey-title", text: title })),
+        h("a", { class: "btn small ghost", href: root2, "data-role": `${role}-all`, onclick: (e) => {
+          e.preventDefault();
+          open().then(() => App2.go(root2));
+        } }, "Ver sess\xF5es")
+      ),
+      context ? h("div", { class: "small", "data-role": "journey-context" }, context, " \xB7 ", h("a", { href: "#/stories", text: "trocar" })) : null,
+      planned ? h("p", { class: "small", text: "As sess\xF5es desta hist\xF3ria est\xE3o em prepara\xE7\xE3o. Escolha outra hist\xF3ria para continuar." }) : null,
+      cur ? h(
+        "dl",
+        { class: "next-info", "data-role": "next-step" },
+        h("dt", { text: "Sess\xE3o atual" }),
+        h("dd", {}, h("b", { text: `${cur.id} \xB7 ${moduleTitle(cur)}` })),
+        h("dt", { text: "Etapa atual" }),
+        h("dd", { text: next ? `${next.n} de ${STAGES.length} \xB7 ${next.title} (${STATE_LABEL[next.state].toLowerCase()})` : "\u2014" }),
+        next && next.goal ? [h("dt", { text: "Pr\xF3xima atividade" }), h("dd", { text: next.goal })] : null
+      ) : null,
+      allDone ? h("p", { class: "small", "data-role": "next-step", text: "Todas as sess\xF5es desta jornada est\xE3o conclu\xEDdas. A revis\xE3o espa\xE7ada continua trazendo o que precisa ser refor\xE7ado." }) : null,
+      t && t.total ? h(
+        "div",
+        { class: "journey-progress" },
+        h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: `${t.modules.filter((m) => m.complete).length} de ${t.modules.length} sess\xF5es conclu\xEDdas` }), h("span", { class: "muted", text: `${t.done}/${t.total} etapas` })),
+        bar(t.ratio)
+      ) : null,
       h(
         "button",
-        { class: `btn block${planned ? "" : " primary"}`, "data-role": button, style: { marginTop: "10px" }, disabled: planned, onclick: onOpen },
+        { class: `btn block${planned ? "" : " primary"}`, "data-role": role === "track-dr" ? "continue-dr" : "open-journey", style: { marginTop: "10px" }, disabled: planned, onclick: planned ? null : go },
         icon(planned ? "lock" : "play"),
         planned ? "Em prepara\xE7\xE3o" : t && t.done ? "Continuar" : "Come\xE7ar"
       )
     );
   }
-  function moduleTitleOf(view, id) {
-    const r = moduleOf(view, id);
-    return r ? r.title && r.title !== r.pt ? r.title : r.pt : id;
-  }
-  function greeting() {
-    const hr = (/* @__PURE__ */ new Date()).getHours();
-    return hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
-  }
   function welcome(App2) {
     const box2 = h(
       "section",
-      { class: "card", style: { marginTop: "8px" } },
-      h("h3", { text: "Bem-vindo! Como funciona" }),
+      { class: "card", style: { marginTop: "8px" }, "data-role": "welcome" },
+      h("h3", { text: "Como funciona" }),
       h(
-        "ul",
+        "ol",
         { class: "small", style: { paddingLeft: "18px", margin: "6px 0 10px" } },
-        h("li", { text: "Cada jornada \xE9 feita de m\xF3dulos com cinco etapas: palavras, express\xF5es, ouvir, falar e conversar." }),
-        h("li", { text: "Uma etapa abre quando a anterior \xE9 conclu\xEDda. Erros voltam para revis\xE3o; n\xE3o \xE9 preciso acertar tudo." }),
-        h("li", { text: "Cada persona e o Conversation Practice t\xEAm progresso pr\xF3prio." }),
+        h("li", { text: "Cada sess\xE3o segue seis etapas: vocabul\xE1rio, combina\xE7\xF5es e express\xF5es, constru\xE7\xE3o de frases, ouvir, falar e aplicar." }),
+        h("li", { text: "Uma etapa abre quando a anterior est\xE1 conclu\xEDda. N\xE3o \xE9 preciso acertar tudo: o que voc\xEA errar volta na revis\xE3o." }),
+        h("li", { text: "Daily Routine e Conversation Practice t\xEAm progresso separado." }),
         h("li", { text: "Tudo funciona sem internet e fica s\xF3 neste aparelho." })
       ),
       h("button", { class: "btn primary block", onclick: async () => {
@@ -3614,7 +3565,7 @@
         "a",
         { class: "list-btn", href: `#/category/${c.id}` },
         h("div", { class: "grow" }, h("div", { class: "title", text: c.pt }), h("div", { class: "small muted", text: `${count} ${c.id === "qa" ? "perguntas" : c.id === "text" ? "textos" : "itens"}` })),
-        ids.length ? h("span", { class: "small muted", text: `${Math.round(m.ratio * 100)}%` }) : null,
+        ids.length ? h("span", { class: "small muted", text: `${Math.round(m.ratio * 100)}% dominado` }) : null,
         icon("next")
       ));
     }));
@@ -3624,9 +3575,9 @@
     const { content, state } = App2;
     const r = content.routines.find((x) => x.id === arg);
     if (!r) return App2.go("#/explore");
-    const view = App2.layout(`${r.id} \xB7 ${r.pt}`, { back: "#/explore" });
+    const view = App2.layout(`${r.id} \xB7 ${r.pt}`, { back: `#/module/${r.id}` });
     let showPt = false;
-    const m = mastery(state.cards, r.items.map((i) => cardKey("item", i, "rec")));
+    const ms = moduleStatus(content, r.id, state);
     const revNotes = content.review.rev.filter((x) => x.note && (x.where.startsWith(r.id + "-") || x.where.startsWith(r.id + ".")));
     view.append(...[
       h(
@@ -3642,11 +3593,12 @@
       h("p", { class: "small", text: r.session ? `Objetivo: ${r.goal}` : r.goal }),
       r.grammar ? h("p", { class: "small", "data-role": "grammar" }, h("b", { text: r.session ? "L\xEDngua em contexto: " : "Foco da l\xEDngua: " }), r.grammar) : null,
       r.session ? sessionVocab(content, r) : null,
-      bar(m.ratio),
+      ms ? h("div", { class: "row nowrap small", "data-role": "module-state" }, h("span", { class: "grow", text: ms.complete ? "Sess\xE3o conclu\xEDda" : `${ms.doneCount} de ${ms.stages.length} etapas conclu\xEDdas` }), h("a", { href: `#/module/${r.id}`, text: "Ver etapas" })) : null,
+      ms ? bar(ms.ratio) : null,
       h(
         "div",
         { class: "row", style: { marginTop: "14px" } },
-        h("a", { class: "btn primary", href: sessionHref({ routine: r.id }) }, icon("play"), "Praticar"),
+        ms && ms.next ? h("a", { class: "btn primary", "data-role": "next-stage", href: stageHref(r.id, ms.next.id) }, icon("play"), `${ms.next.n}. ${ms.next.title}`) : h("a", { class: "btn primary", href: sessionHref({ routine: r.id }) }, icon("play"), "Praticar"),
         h("button", { class: "btn", onclick: () => listenAll() }, icon("speaker"), "Ouvir tudo"),
         h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
       ),
@@ -3741,7 +3693,7 @@
       return h("li", {}, h(
         "a",
         { class: "list-btn", href: `#/lab?q=${qid}` },
-        h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), h("div", { class: "small muted", text: `${QKIND[q.kind] ? QKIND[q.kind] + " \xB7 " : ""}${done ? "praticada" : "ainda n\xE3o praticada"}` })),
+        h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), q.qpt ? h("div", { class: "small pt-line", lang: "pt-BR", text: q.qpt }) : null, h("div", { class: "small muted", text: `${QKIND[q.kind] ? QKIND[q.kind] + " \xB7 " : ""}${done ? "praticada" : "ainda n\xE3o praticada"}` })),
         icon("mic")
       ));
     })));
@@ -3783,7 +3735,7 @@
       view.append(h("a", { class: "btn primary block", href: sessionHref({ category: "qa" }) }, icon("play"), "Praticar perguntas"));
       const groups = [["Das rotinas (Word)", (q) => q.source === "word" && q.routine], ["Gerais (Word)", (q) => q.source === "word" && !q.routine], ["Perguntas inesperadas (novas)", (q) => q.source === "new"]];
       for (const [title, pred] of groups) {
-        view.append(h("h2", { text: title }), h("ul", { class: "list card" }, Object.values(content.questions).filter(pred).map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), h("div", { class: "small muted", text: q.routine || (q.source === "new" ? "conte\xFAdo novo" : "geral") })), icon("mic"))))));
+        view.append(h("h2", { text: title }), h("ul", { class: "list card" }, Object.values(content.questions).filter(pred).map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), q.qpt ? h("div", { class: "small pt-line", lang: "pt-BR", text: q.qpt }) : null, h("div", { class: "small muted", text: q.routine || (q.source === "new" ? "conte\xFAdo novo" : "geral") })), icon("mic"))))));
       }
       return;
     }
@@ -4106,7 +4058,6 @@
         }
         const r = recordRecording(App2.state, targetId, { ms: res.ms });
         App2.save();
-        if (r.xp) toast(`+${r.xp} XP pela pr\xE1tica oral`);
       }
       opts.onRecorded && opts.onRecorded(blob, analysis);
     }
@@ -5610,7 +5561,7 @@
     return vocabCache.get(content);
   };
   var fmt2 = (n) => String(n).replace(".", ",");
-  var STATE_LABEL3 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
+  var STATE_LABEL2 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
   function freeAnswerPanel(App2, { question = "", model = "", alternatives = [], modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
@@ -5864,7 +5815,7 @@
           continue;
         }
         const info = states.get(seg.w) || { state: "uncertain", reason: "" };
-        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL3[info.state]}`, text: seg.text });
+        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL2[info.state]}`, text: seg.text });
         const pick = () => {
           spans.forEach((s) => s.classList.toggle("w-focus", s === span));
           if (onPick && info.state === "needs_practice") {
@@ -5878,7 +5829,7 @@
               "div",
               { class: "row nowrap" },
               h("b", { class: "en", text: seg.text }),
-              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL3[info.state] }),
+              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL2[info.state] }),
               h("span", { class: "spacer" }),
               hasEmbedded(key) ? h("button", { class: "btn small", type: "button", onclick: () => play({ key, text: clean }) }, icon("speaker"), "Ouvir") : null
             ),
@@ -5899,7 +5850,7 @@
       }
       const lg = legend();
       lg.querySelectorAll(".lg").forEach((el2, i) => {
-        el2.lastChild.textContent = [STATE_LABEL3.good, STATE_LABEL3.needs_practice, STATE_LABEL3.uncertain][i];
+        el2.lastChild.textContent = [STATE_LABEL2.good, STATE_LABEL2.needs_practice, STATE_LABEL2.uncertain][i];
       });
       const box2 = h(
         "div",
@@ -5976,7 +5927,6 @@
     const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
     let queue;
     const today = App2.today();
-    const startLevel = levelForXp(state.xp).level;
     if (focus.mode === "review") {
       queue = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).sort((a, b) => a.box - b.box).slice(0, 20).map((c) => {
         const [unit, id, skill] = c.k.split(":");
@@ -6023,9 +5973,8 @@
       area.append(h(
         "div",
         { class: "card center", style: { marginTop: "24px" } },
-        h("div", { style: { fontSize: "2rem" }, text: "\u{1F389}" }),
-        h("h3", { text: "Nada pendente por aqui agora" }),
-        h("p", { class: "muted small", text: "Voc\xEA est\xE1 em dia neste foco. Escolha outra rotina ou momento do dia, ou pratique a fala." })
+        h("h3", { text: focus.stage ? "Nada novo nesta etapa agora" : "Nada pendente por aqui agora" }),
+        h("p", { class: "muted small", text: focus.stage ? "Os exerc\xEDcios desta etapa dependem das anteriores ou j\xE1 foram feitos; o que voc\xEA errou volta na revis\xE3o. Volte ao m\xF3dulo para ver o pr\xF3ximo passo." : "Voc\xEA est\xE1 em dia neste foco. Volte ao In\xEDcio para ver a pr\xF3xima atividade." })
       ));
       if (focus.stage) actions(h("a", { class: "btn primary", href: `#/module/${focus.routine}` }, "Voltar ao m\xF3dulo"));
       else actions(h("a", { class: "btn", href: "#/explore" }, "Explorar"), h("a", { class: "btn primary", href: "#/lab" }, "Speaking Lab"));
@@ -6037,7 +5986,7 @@
         if (!ok) return;
       }
       App2.flush();
-      App2.go("#/");
+      App2.back(focus.stage && focus.routine ? `#/module/${focus.routine}` : "#/");
     }
     function updateTop() {
       progress.firstChild.style.width = `${Math.round(idx / queue.length * 100)}%`;
@@ -6110,11 +6059,11 @@
     };
     function feedback(res, { model, au, pt, example, tip, k, onClaim, extra } = {}) {
       const [tone, title] = HEAD[res.cls] || ["mid", res.cls];
-      const face = characterImage(App2.character, { good: "correct", bad: "wrong", mid: "thinking" }[tone] || "thinking", { size: 40 });
+      const face = null;
       const panel = h(
         "div",
         { class: `feedback ${tone}`, role: "status", "aria-live": "polite" },
-        h("div", { class: "head" }, face, title, h("span", { class: "spacer" }), res.xp ? h("span", { class: "chip ok", text: `+${res.xp} XP` }) : null)
+        h("div", { class: "head" }, face, title, h("span", { class: "spacer" }))
       );
       if (res.cls !== "correct") {
         panel.append(h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Resposta-modelo" }));
@@ -6593,6 +6542,7 @@
       area.append(kind(title), h("p", { class: "small muted", text: intro }));
       if (isQ) {
         area.append(h("div", { class: "row nowrap" }, h("div", { class: "big-en", style: { flex: 1 }, text: ex.q.q }), speakerButton({ key: ex.q.au, text: ex.q.q })));
+        if (ex.q.qpt) area.append(h("details", { class: "small", "data-role": "q-pt" }, h("summary", { text: "Ver a pergunta em portugu\xEAs" }), h("p", { lang: "pt-BR", style: { margin: "4px 0" }, text: `${ex.q.qpt} (tradu\xE7\xE3o de apoio)` })));
         if (ex.q.hint) area.append(h("div", { class: "notice small", text: ex.q.hint }));
         autoplay({ key: ex.q.au, text: ex.q.q });
       } else if (unit === "block") {
@@ -6669,7 +6619,6 @@
               state.myAnswers[ex.q.id] = { text, at: Date.now() };
               App2.save();
             }
-            if (r.xp) toast(`+${r.xp} XP`);
             idx++;
             next();
           } }, label)))
@@ -6721,29 +6670,28 @@
     function summary() {
       const good = results.filter((r) => r.outcome !== "bad").length;
       const bad = results.filter((r) => r.outcome === "bad");
-      const sr = recordSession(state, { count: results.length, bad: bad.length }, App2.today());
-      xpGained += sr.xp;
-      events.push(...sr.events);
+      recordSession(state, { count: results.length, bad: bad.length }, App2.today());
       App2.flush();
       progress.firstChild.style.width = "100%";
       const wrongUnits = [...new Map(bad.map((r) => [r.entry.k, r.entry])).values()];
-      const leveled = levelForXp(state.xp).level > startLevel;
-      const face = characterImage(App2.character, leveled ? "levelup" : "celebrate", { size: 96 });
+      const st = focus.stage ? moduleStatus(content, focus.routine, state) : null;
+      const stage = st ? st.stages.find((x) => x.id === focus.stage) : null;
+      const nextStage = st ? st.next : null;
       area.append(
         h(
           "div",
-          { class: "card center", style: { marginTop: "16px" } },
-          face || h("div", { style: { fontSize: "2.2rem" }, text: bad.length ? "\u{1F4AA}" : "\u{1F31F}" }),
+          { class: "card", style: { marginTop: "16px" }, "data-role": "session-summary" },
           h("h3", { text: "Sess\xE3o conclu\xEDda" }),
-          h(
-            "div",
-            { class: "stat-grid", style: { marginTop: "12px" } },
-            h("div", { class: "stat" }, h("b", { text: `+${xpGained}` }), h("span", { text: "XP" })),
-            h("div", { class: "stat" }, h("b", { text: `${results.length ? Math.round(good / results.length * 100) : 0}%` }), h("span", { text: "acertos" })),
-            h("div", { class: "stat" }, h("b", { text: String(results.length) }), h("span", { text: "exerc\xEDcios" }))
-          )
+          h("p", { class: "small", text: `${good} de ${results.length} respostas certas na primeira tentativa.` }),
+          stage ? h(
+            "p",
+            { class: "small", "data-role": "stage-result", "data-state": stage.state },
+            h("b", { text: `${stage.title}: ` }),
+            stage.complete ? "conclu\xEDda." : `${Math.min(stage.done, stage.need)} de ${stage.need} para concluir.`
+          ) : null,
+          stage && stage.complete && nextStage ? h("p", { class: "small", text: `Pr\xF3xima etapa: ${nextStage.n}. ${nextStage.title}.` }) : null,
+          st && st.complete ? h("p", { class: "small", text: "Todas as etapas deste m\xF3dulo est\xE3o conclu\xEDdas." }) : null
         ),
-        events.length ? h("div", { class: "card" }, h("h3", { text: "Conquistas" }), ...events.map((a) => h("div", { class: "row" }, h("span", { style: { fontSize: "1.4rem" }, text: a.icon }), h("div", {}, h("b", { text: a.title }), h("div", { class: "small muted", text: a.desc }))))) : null,
         wrongUnits.length ? h(
           "div",
           { class: "card" },
@@ -6751,10 +6699,9 @@
           ...wrongUnits.map((e) => h("div", { class: "small en", text: "\u2022 " + unitLabel(content, e) }))
         ) : null
       );
-      if (events.length) toast(`Conquista: ${events[0].title}`);
       actions(
         focus.stage ? h("a", { class: "btn", "data-role": "back-module", href: `#/module/${focus.routine}` }, "Voltar ao m\xF3dulo") : h("a", { class: "btn", href: "#/" }, "In\xEDcio"),
-        h("button", { class: "btn primary", onclick: () => App2.go(sessionHref(focus.mode ? {} : focus)) }, focus.stage ? "Praticar de novo" : "Nova sess\xE3o")
+        h("button", { class: "btn primary", onclick: () => App2.go(sessionHref(focus.mode ? {} : focus), { replace: true }) }, focus.stage && stage && !stage.complete ? "Continuar praticando" : focus.stage ? "Praticar de novo" : "Nova sess\xE3o")
       );
     }
     next();
@@ -6880,6 +6827,30 @@
       failed: () => failed
     };
   }
+
+  // app/js/engine/translations.js
+  function applyTranslations(g = globalThis) {
+    const pt = g.DRG_PT && g.DRG_PT.questions;
+    if (!pt) return 0;
+    let n = 0;
+    const fill = (qs) => {
+      for (const q of Object.values(qs || {})) {
+        const t = pt[q.id];
+        if (!t) continue;
+        if (!q.qpt && t.q) {
+          q.qpt = t.q;
+          n++;
+        }
+        if (!q.apt && t.a && q.a) q.apt = t.a;
+        q.ptSupport = true;
+      }
+    };
+    fill(g.DRG_CONTENT && g.DRG_CONTENT.questions);
+    for (const c of g.DRG_CHARACTERS && g.DRG_CHARACTERS.characters || []) if (c.content && typeof c.content === "object") fill(c.content.questions);
+    for (const j of g.DRG_JOURNEYS && g.DRG_JOURNEYS.journeys || []) if (j.content) fill(j.content.questions);
+    return n;
+  }
+  var questionPt = (q) => ({ q: q && q.qpt || "", a: q && q.apt || "", support: !!(q && q.ptSupport) });
 
   // app/js/ui/wordpractice.js
   var WORD_MAX_MS = 6e3;
@@ -7070,6 +7041,7 @@
   // app/js/ui/lab.js
   var labTab = "sentences";
   var labRoutine = "R01";
+  var listPt = false;
   function renderLab(App2, { params }) {
     if (params.q || params.block || params.routine && params.full || params.sentence || params.drill) return renderTarget(App2, params);
     if (params.routine) labRoutine = params.routine;
@@ -7105,12 +7077,18 @@
     const body = h("div", {});
     const tabs = [["sentences", "Frases"], ["blocks", "Blocos"], ["questions", "Perguntas"], ...fromModule || !content.drills.length ? [] : [["drills", "Drills"]]];
     const rec = (id) => state.recordingsMeta[id] ? h("span", { class: "chip ok", text: "gravado" }) : null;
+    const ptLine = (text, support = false) => listPt && text ? h("div", { class: "small pt-line", lang: "pt-BR", text: support ? `${text} (tradu\xE7\xE3o de apoio)` : text }) : null;
+    const ptToggle = () => h("button", { class: "btn small ghost", type: "button", "aria-pressed": String(listPt), "data-role": "list-pt", onclick: () => {
+      listPt = !listPt;
+      draw();
+    } }, listPt ? "Ocultar tradu\xE7\xE3o" : "Mostrar tradu\xE7\xE3o");
     const draw = () => {
       clear(seg).append(...tabs.map(([id, label]) => h("button", { "aria-pressed": String(labTab === id), onclick: () => {
         labTab = id;
         draw();
       } }, label)));
       clear(filter);
+      if (labTab !== "drills") filter.append(ptToggle());
       if ((labTab === "sentences" || labTab === "blocks") && !fromModule) {
         filter.append(...content.routines.map((r2) => h("button", { class: "chip", "aria-pressed": String(labRoutine === r2.id), onclick: () => {
           labRoutine = r2.id;
@@ -7122,7 +7100,7 @@
       if (labTab === "sentences") {
         body.append(h("ul", { class: "list card" }, r.blocks.flatMap((b) => content.blocks[b].sentences).map((sid) => {
           const s = content.sentences[sid];
-          return h("li", {}, h("a", { class: "list-btn", href: `#/lab?sentence=${sid}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: s.en })), rec(`sent:${sid}`), icon("mic")));
+          return h("li", {}, h("a", { class: "list-btn", href: `#/lab?sentence=${sid}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: s.en }), ptLine(s.pt)), rec(`sent:${sid}`), icon("mic")));
         })));
       }
       if (labTab === "blocks") {
@@ -7132,19 +7110,20 @@
             "a",
             { class: "card link", href: `#/lab?block=${bid}` },
             h("div", { class: "row" }, h("span", { class: "chip", text: `Bloco ${b.index}` }), ...b.ctx.map((c) => h("span", { class: "chip", text: content.contexts.find((x) => x.id === c).pt })), h("span", { class: "spacer" }), rec(`block:${bid}`)),
-            h("p", { class: "en small", style: { marginTop: "8px" }, text: b.en.slice(0, 140) + (b.en.length > 140 ? "\u2026" : "") })
+            h("p", { class: "en small", style: { marginTop: "8px" }, text: b.en.slice(0, 140) + (b.en.length > 140 ? "\u2026" : "") }),
+            ptLine(b.pt ? b.pt.slice(0, 160) + (b.pt.length > 160 ? "\u2026" : "") : "")
           );
         }), h("a", { class: "btn block", href: `#/lab?routine=${r.id}&full=1` }, icon("mic"), `Gravar a ${r.id} completa`));
       }
       if (labTab === "questions" && fromModule) {
         const qs = r.questions.map((id) => content.questions[id]).filter(Boolean);
-        body.append(qs.length ? h("ul", { class: "list card" }, qs.map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q })), rec(`q:${q.id}`), icon("mic"))))) : h("p", { class: "small muted", text: "Este m\xF3dulo n\xE3o tem perguntas; pratique as frases e os blocos." }));
+        body.append(qs.length ? h("ul", { class: "list card" }, qs.map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), ptLine(questionPt(q).q, questionPt(q).support)), rec(`q:${q.id}`), icon("mic"))))) : h("p", { class: "small muted", text: "Este m\xF3dulo n\xE3o tem perguntas; pratique as frases e os blocos." }));
       } else if (labTab === "questions") {
         const r1 = content.routines[0].id;
         const groups = [["Rotina 1 (priorit\xE1ria)", (q) => q.routine === r1], ["Gerais (Word)", (q) => q.source === "word" && !q.routine], ["Outras rotinas", (q) => q.routine && q.routine !== r1], ["Inesperadas (novas)", (q) => q.source === "new"]];
         for (const [title, pred] of groups) {
           if (!Object.values(content.questions).some(pred)) continue;
-          body.append(h("h2", { text: title }), h("ul", { class: "list card" }, Object.values(content.questions).filter(pred).map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), q.routine ? h("div", { class: "small muted", text: q.routine }) : null), rec(`q:${q.id}`), icon("mic"))))));
+          body.append(h("h2", { text: title }), h("ul", { class: "list card" }, Object.values(content.questions).filter(pred).map((q) => h("li", {}, h("a", { class: "list-btn", href: `#/lab?q=${q.id}` }, h("div", { class: "grow" }, h("div", { class: "title en", text: q.q }), ptLine(questionPt(q).q, questionPt(q).support), q.routine ? h("div", { class: "small muted", text: q.routine }) : null), rec(`q:${q.id}`), icon("mic"))))));
         }
       }
       if (labTab === "drills") {
@@ -7192,10 +7171,14 @@
       targetId = `q:${q.id}`;
       en = q.a ? [q.a] : [];
       clips = q.a ? [{ key: q.aau, text: q.a }] : [];
+      const qp = questionPt(q);
+      pt = qp.a ? `${qp.a}
+(tradu\xE7\xE3o de apoio)` : "";
       extra = h(
         "div",
         {},
         h("div", { class: "row nowrap" }, h("div", { class: "big-en", style: { flex: 1 }, text: q.q }), speakerButton({ key: q.au, text: q.q })),
+        qp.q ? h("details", { class: "small", "data-role": "q-pt" }, h("summary", { text: "Ver a pergunta em portugu\xEAs" }), h("p", { lang: "pt-BR", style: { margin: "4px 0" }, text: `${qp.q} (tradu\xE7\xE3o de apoio)` })) : null,
         q.hint ? h("div", { class: "notice small", text: q.hint }) : null,
         h("p", { class: "small muted", text: "Responda em voz alta antes de olhar o modelo." }),
         state.myAnswers[q.id] ? h("div", { class: "card flat" }, h("div", { class: "small muted", text: "Minha vers\xE3o" }), h("div", { class: "en", text: state.myAnswers[q.id].text })) : null,
@@ -7243,7 +7226,8 @@
       view.append(h(
         "section",
         { class: "card phrase-card" },
-        h("div", { class: "phrase-top" }, h("span", { class: "eyebrow", text: params.q ? "Resposta-modelo" : "Leia em voz alta" }), ptBtn),
+        h("div", { class: "phrase-top" }, h("span", { class: "eyebrow", text: params.q ? "Resposta-modelo" : "Leia em voz alta" }), pt ? ptBtn : null),
+        // sem tradução: nada de botão que não faz nada
         iw.el,
         legendEl,
         iw.detail,
@@ -7622,77 +7606,76 @@
   }
 
   // app/js/ui/stats.js
+  var EMPTY2 = { cards: {}, recordingsMeta: {} };
+  var SESSION_LABEL = { done: "Conclu\xEDda", progress: "Em andamento", open: "N\xE3o iniciada" };
   function renderStats(App2) {
-    const { state, content } = App2;
+    const { state } = App2;
     const view = App2.layout("Progresso", { actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))] });
     const today = App2.today();
-    const lvl = levelForXp(state.xp);
-    const st = streak(state, today);
-    const cards = Object.values(state.cards);
-    view.append(h(
-      "div",
-      { class: "card" },
-      h(
-        "div",
-        { class: "row nowrap" },
-        h("div", { style: { flex: 1 } }, h("div", { class: "small muted", text: "N\xEDvel" }), h("div", { style: { fontSize: "1.6rem", fontWeight: 800 }, text: String(lvl.level) })),
-        h("div", { class: "center" }, h("div", { style: { fontSize: "1.4rem", fontWeight: 800 } }, h("span", { class: "flame", text: "\u{1F525}" }), ` ${st.days}`), h("div", { class: "tiny muted", text: "dias seguidos" }))
-      ),
-      h("div", { class: "small muted", style: { margin: "8px 0 4px" }, text: `${state.xp} XP \xB7 faltam ${lvl.to - state.xp} para o n\xEDvel ${lvl.level + 1}` }),
-      bar((state.xp - lvl.from) / (lvl.to - lvl.from)),
-      h("p", { class: "tiny muted", style: { marginTop: "8px" }, text: "Um dia sem estudo por semana n\xE3o quebra a sequ\xEAncia." })
-    ));
-    view.append(h("a", { class: "card link flat", href: "#/review" }, h(
+    const ch = App2.character;
+    const j = journeyRegistry()[0] || null;
+    const tracks = [];
+    if (!isPlanned(ch)) tracks.push({ role: "progress-dr", title: `Daily Routine \xB7 ${ch.name}`, view: contentFor(App2.baseContent, ch.id), prog: progressOf(state, ch.id) || EMPTY2, journey: null });
+    if (j) tracks.push({ role: "progress-cp", title: j.name, view: journeyView(App2.baseContent, j.id), prog: progressOf(state, journeyProfile(j.id)) || EMPTY2, journey: j.id });
+    const due = Object.values(state.cards).filter((c) => c.due <= today).length;
+    view.append(h("a", { class: "card link flat", href: "#/review", "data-role": "review-link" }, h(
       "div",
       { class: "row nowrap" },
-      h("span", { class: "icon-btn accent" }, icon("refresh")),
-      h("div", { style: { flex: 1 } }, h("b", { text: "Revisar erros e dificuldades" }), h("div", { class: "small muted", text: `${cards.filter((c) => c.due <= today).length} pendente(s) hoje` })),
+      h("span", { class: "icon-btn accent", "aria-hidden": "true" }, icon("refresh")),
+      h("div", { class: "grow" }, h("b", { text: "Revisar erros e dificuldades" }), h("div", { class: "small muted", text: due ? `${due} para revisar hoje na jornada aberta` : "Nada vencido hoje na jornada aberta" })),
       icon("next")
     )));
-    const heat = h("div", { class: "heat", "aria-label": "Atividade das \xFAltimas 5 semanas" });
-    for (let n = today - 34; n <= today; n++) {
-      const d = state.days[n];
-      const lvlCls = !d || !d.ex ? "" : d.ex >= (state.settings.dailyGoal || 12) ? "l3" : d.ex >= 5 ? "l2" : "l1";
-      heat.append(h("i", { class: lvlCls, title: d ? `${d.ex} exerc\xEDcios` : "sem estudo" }));
+    for (const t of tracks) {
+      const tr = trackStatus(t.view, t.prog);
+      const counts = { done: 0, progress: 0, open: 0 };
+      for (const m of tr.modules) counts[m.state]++;
+      const cards = Object.values(t.prog.cards || {});
+      const items = cards.filter((c) => c.k.startsWith("item:") && c.k.endsWith(":rec"));
+      const learned = items.filter((c) => c.box >= MASTERED_BOX).length;
+      const toReview = cards.filter((c) => c.due <= today).length;
+      const recs = Object.keys(t.prog.recordingsMeta || {}).length;
+      view.append(h(
+        "section",
+        { class: "card", "data-role": t.role },
+        h("h2", { style: { marginTop: 0 }, text: t.title }),
+        h("div", { class: "row nowrap small" }, h("span", { class: "grow", text: `${tr.done} de ${tr.total} etapas conclu\xEDdas` })),
+        bar(tr.ratio),
+        h(
+          "div",
+          { class: "stat-grid", style: { marginTop: "12px" } },
+          h("div", { class: "stat" }, h("b", { text: String(counts.done) }), h("span", { text: "sess\xF5es conclu\xEDdas" })),
+          h("div", { class: "stat" }, h("b", { text: String(counts.progress) }), h("span", { text: "em andamento" })),
+          h("div", { class: "stat" }, h("b", { text: String(counts.open) }), h("span", { text: "n\xE3o iniciadas" }))
+        ),
+        h("p", { class: "small", style: { margin: "10px 0 4px" }, text: `Itens dominados: ${learned} de ${items.length} estudados \xB7 ${toReview} para revisar \xB7 ${recs} grava\xE7\xF5es` }),
+        h(
+          "details",
+          { "data-role": "sessions" },
+          h("summary", { class: "small", text: "Situa\xE7\xE3o de cada sess\xE3o" }),
+          h("ul", { class: "list" }, tr.modules.map((m) => {
+            const r = moduleOf(t.view, m.id);
+            return h("li", {}, h(
+              "div",
+              { class: "list-btn static" },
+              h(
+                "div",
+                { class: "grow" },
+                h("div", { class: "title", text: `${r.id} \xB7 ${moduleTitle(r)}` }),
+                h("div", { class: "small muted", text: `${SESSION_LABEL[m.state]} \xB7 ${m.doneCount}/${STAGES.length} etapas${m.next && !m.complete ? ` \xB7 pr\xF3xima: ${m.next.title} (${STATE_LABEL[m.next.state].toLowerCase()})` : ""}` })
+              )
+            ));
+          }))
+        )
+      ));
     }
-    view.append(h("h2", { text: "\xDAltimas 5 semanas" }), h("div", { class: "card flat" }, heat));
-    let ex = 0, good = 0, rec = 0;
-    for (let n = today - 13; n <= today; n++) {
-      const d = state.days[n];
-      if (d) {
-        ex += d.ex;
-        good += d.good;
-        rec += d.rec;
-      }
-    }
-    view.append(h(
-      "div",
-      { class: "stat-grid", style: { marginTop: "12px" } },
-      h("div", { class: "stat" }, h("b", { text: String(ex) }), h("span", { text: "exerc\xEDcios (14d)" })),
-      h("div", { class: "stat" }, h("b", { text: ex ? `${Math.round(good / ex * 100)}%` : "\u2014" }), h("span", { text: "acertos (14d)" })),
-      h("div", { class: "stat" }, h("b", { text: String(rec) }), h("span", { text: "grava\xE7\xF5es (14d)" }))
-    ));
-    const SK = [["rec", "Reconhecer"], ["rcl", "Lembrar (recuperar)"], ["bld", "Completar na frase"], ["ord", "Montar frases"], ["wrt", "Escrever frases"], ["tell", "Contar blocos"], ["retell", "Contar rotinas"], ["conv", "Perguntas da teacher"]];
-    view.append(h("h2", { text: "Por habilidade" }), h("div", { class: "card flat stack" }, SK.map(([s, label]) => {
-      const cs = cards.filter((c) => c.k.endsWith(":" + s));
+    const all = Object.values(state.profiles).flatMap((p) => Object.values(p && p.cards || {}));
+    const SK = [["rec", "Reconhecer palavras e express\xF5es"], ["rcl", "Lembrar (recuperar)"], ["bld", "Completar na frase"], ["ord", "Montar frases"], ["wrt", "Escrever frases"], ["lis", "Ouvir e entender"], ["tell", "Contar blocos"], ["conv", "Responder perguntas"]];
+    view.append(h("h2", { text: "Por habilidade" }), h("div", { class: "card flat stack", "data-role": "skills" }, SK.map(([s, label]) => {
+      const cs = all.filter((c) => c.k.endsWith(":" + s));
       const m = cs.filter((c) => c.box >= MASTERED_BOX).length;
-      return h("div", {}, h("div", { class: "row small" }, h("span", { style: { flex: 1 }, text: label }), h("span", { class: "muted", text: `${m} dominados \xB7 ${cs.length} em estudo` })), bar(cs.length ? m / cs.length : 0, "ok"));
+      return h("div", {}, h("div", { class: "row small" }, h("span", { class: "grow", text: label }), h("span", { class: "muted", text: `${m} dominados de ${cs.length}` })), bar(cs.length ? m / cs.length : 0));
     })));
-    view.append(h("h2", { text: "Por rotina" }), h("div", { class: "card flat stack" }, content.routines.map((r) => {
-      const m = mastery(state.cards, r.items.map((i) => cardKey("item", i, "rec")));
-      const told = r.blocks.filter((b) => state.cards[cardKey("block", b, "tell")]).length;
-      return h(
-        "a",
-        { href: `#/routine/${r.id}`, style: { textDecoration: "none", color: "inherit", display: "block" } },
-        h("div", { class: "row small" }, h("span", { style: { flex: 1 }, text: `${r.id} \xB7 ${r.pt}` }), h("span", { class: "muted", text: `${told}/${r.blocks.length} blocos` })),
-        bar(m.ratio)
-      );
-    })));
-    view.append(h("h2", { text: "Por momento do dia" }), h("div", { class: "card flat stack" }, content.contexts.map((c) => {
-      const ids = Object.values(content.items).filter((it) => it.ctx.includes(c.id)).map((it) => cardKey("item", it.id, "rec"));
-      return h("div", {}, h("div", { class: "row small" }, h("span", { style: { flex: 1 }, text: `${c.icon} ${c.pt}` })), bar(mastery(state.cards, ids).ratio));
-    })));
-    view.append(h("h2", { text: "Conquistas" }), h("div", { class: "ach" }, ACHIEVEMENTS.map((a) => h("div", { class: state.achievements[a.id] ? "" : "locked", title: a.desc }, h("span", { class: "ico", text: a.icon }), a.title))));
+    view.append(h("p", { class: "tiny muted", text: `\u201CDominado\u201D = item que se manteve certo na revis\xE3o espa\xE7ada (caixa ${MASTERED_BOX} ou mais).` }));
   }
 
   // app/js/store/storage.js
@@ -7775,39 +7758,11 @@
     };
     const voiceSel = h("select", { class: "field", "aria-label": "Voz do sistema" });
     const diag = h("div", { class: "kv small", style: { marginTop: "10px" } });
-    const chars = h("div", { class: "list card", role: "radiogroup", "aria-label": "Personagem", "data-role": "characters" });
-    const drawChars = () => clear(chars).append(...registry().characters.map((c) => {
-      const on = App2.character.id === c.id;
-      const vs = visualStatus(c);
-      const pack = c.content === "base" ? App2.baseContent : c.content;
-      const sub = c.profile && c.profile.occupation ? `${c.profile.occupation.pt} \xB7 ` : "";
-      const btn = h(
-        "button",
-        { class: "list-btn char-opt", type: "button", role: "radio", "aria-checked": String(on), "data-character": c.id },
-        characterBadge(c, "idle"),
-        h(
-          "div",
-          { class: "grow" },
-          h("div", { class: "title" }, c.name, c.status === "preview" || c.status === "planned" ? h("span", { class: "chip", style: { marginLeft: "8px" }, text: "em prepara\xE7\xE3o" }) : null),
-          h("div", { class: "small muted", text: pack ? `${sub}${pack.routines.length} rotina(s), ${Object.keys(pack.sentences).length} frases` : "Conte\xFAdo em prepara\xE7\xE3o \xB7 progresso pr\xF3prio" }),
-          h("div", { class: "tiny muted", text: `Imagens: ${vs.ready.length} de 6 prontas${c.status === "preview" ? " \xB7 \xE1udio de refer\xEAncia: voz do aparelho" : ""}` })
-        ),
-        on ? icon("check") : null
-      );
-      btn.onclick = () => {
-        if (on) return;
-        App2.chooseCharacter(c.id);
-        toast(`Praticando com ${c.name}. O progresso com cada personagem continua salvo.`);
-        drawChars();
-      };
-      return h("li", {}, btn);
-    }));
-    drawChars();
-    view.append(
-      h("h2", { text: "Personagem" }),
-      chars,
-      h("p", { class: "tiny muted", text: "Cada personagem tem rotinas e frases pr\xF3prias. Palavras comuns \xE0s duas rotinas s\xE3o revisadas juntas; XP, n\xEDvel e sequ\xEAncia de dias s\xE3o os mesmos." })
-    );
+    view.append(h("h2", { text: "Hist\xF3ria da Daily Routine" }), h(
+      "a",
+      { class: "card link flat", href: "#/stories", "data-role": "stories-link" },
+      h("div", { class: "row nowrap" }, h("div", { class: "grow" }, h("b", { text: `Estudando: ${App2.character.name}` }), h("div", { class: "small muted", text: "Trocar a hist\xF3ria estudada" })), icon("next"))
+    ));
     view.append(h("h2", { text: "\xC1udio" }), h(
       "div",
       { class: "card" },
@@ -7945,7 +7900,7 @@
       }
     }
     async function wipe() {
-      const ok = await confirmSheet("Apagar todo o progresso?", "XP, revis\xF5es, conquistas, respostas e grava\xE7\xF5es ser\xE3o apagados deste aparelho. Recomendo exportar um backup antes. Esta a\xE7\xE3o n\xE3o pode ser desfeita.", { ok: "Exportar backup e apagar", danger: true });
+      const ok = await confirmSheet("Apagar todo o progresso?", "O progresso das jornadas, revis\xF5es, respostas e grava\xE7\xF5es ser\xE3o apagados deste aparelho. Recomendo exportar um backup antes. Esta a\xE7\xE3o n\xE3o pode ser desfeita.", { ok: "Exportar backup e apagar", danger: true });
       if (!ok) return;
       exportNow();
       const sure = await confirmSheet("Confirmar exclus\xE3o", "O backup foi baixado. Apagar agora?", { ok: "Apagar", danger: true });
@@ -8007,6 +7962,7 @@
   }
 
   // app/js/main.js
+  applyTranslations();
   var APP_VERSION = "1.0.0";
   var App = {
     baseContent: globalThis.DRG_CONTENT,
@@ -8027,9 +7983,22 @@
     flush() {
       return flush(App.state);
     },
-    go(hash) {
-      if (location.hash === hash) route();
-      else location.hash = hash;
+    /** Abre uma tela. Redirecionamento (durante a montagem de uma tela, ou { replace: true }) SUBSTITUI a entrada do
+     *  histórico: o Voltar do Android e o do app não caem de novo na tela que redirecionou (sem ciclos). */
+    go(hash, { replace = rendering } = {}) {
+      if (location.hash === hash) {
+        route();
+        return;
+      }
+      if (replace) {
+        nav.replaceNext = true;
+        location.replace(hash);
+      } else location.hash = hash;
+    },
+    /** Volta à tela de origem real (a mesma do Voltar do Android); sem origem nesta abertura, vai para `fallback`. */
+    back(fallback = "#/") {
+      if (nav.stack.length >= 2) history.back();
+      else App.go(fallback, { replace: true });
     },
     rebuildChecker() {
       App.checker = createChecker(App.content.language, { userVariants: App.state.userVariants });
@@ -8085,32 +8054,67 @@
   };
   App.asr = { local: localasr_exports };
   globalThis.DRG_APP = App;
+  var STUDY = ["modules", "module", "words", "explore", "routine", "context", "category", "checklist", "stories"];
   var TABS = [
     { hash: "#/", label: "In\xEDcio", icon: "home", match: (r) => r === "" },
-    { hash: "#/modules", label: "Estudar", icon: "book", match: (r) => ["modules", "module", "words", "explore", "routine", "context", "category", "checklist"].includes(r) },
+    { hash: "#/dr", label: "Daily Routine", icon: "book", match: (r) => r === "dr" || STUDY.includes(r) && !App.journey },
+    { hash: "#/cp", label: "Conversation", icon: "chat", match: (r) => r === "cp" || STUDY.includes(r) && !!App.journey },
     { hash: "#/lab", label: "Falar", icon: "mic", match: (r) => r === "lab" },
     { hash: "#/stats", label: "Progresso", icon: "chart", match: (r) => ["stats", "review"].includes(r) }
   ];
+  var TAB_ROOTS = ["", "dr", "cp", "lab", "stats"];
+  var NAV_KEY = "drg.nav";
+  var nav = { stack: [], scroll: {}, replaceNext: false, wentBack: false };
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(NAV_KEY) || "null");
+    if (saved && Array.isArray(saved.stack)) Object.assign(nav, { stack: saved.stack, scroll: saved.scroll || {} });
+  } catch (e) {
+  }
+  var navSave = () => {
+    try {
+      sessionStorage.setItem(NAV_KEY, JSON.stringify({ stack: nav.stack.slice(-50), scroll: nav.scroll }));
+    } catch (e) {
+    }
+  };
+  var currentHash = () => location.hash || "#/";
+  function navRecord() {
+    const h2 = currentHash();
+    const st = nav.stack;
+    nav.wentBack = false;
+    if (st.length && st[st.length - 1] === h2) return;
+    if (nav.replaceNext) {
+      nav.replaceNext = false;
+      if (st.length) st[st.length - 1] = h2;
+      else st.push(h2);
+    } else if (st.length >= 2 && st[st.length - 2] === h2) {
+      st.pop();
+      nav.wentBack = true;
+    } else st.push(h2);
+    navSave();
+  }
+  var rendering = false;
+  App.nav = nav;
   var root = document.getElementById("app");
   var cleanup = null;
-  function layout(title, { back = null, actions = [], nav = true } = {}) {
+  function layout(title, { back, actions = [], nav: showNav = true } = {}) {
     clear(root);
+    const routeName = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
+    const fallback = back === void 0 ? TAB_ROOTS.includes(routeName) ? null : "#/" : back === true ? "#/" : back;
     const top = h(
       "header",
       { class: "topbar" },
-      back ? h("button", { class: "icon-btn ghost", "aria-label": "Voltar", onclick: () => back === true ? history.back() : App.go(back) }, icon("back")) : null,
+      fallback ? h("button", { class: "icon-btn ghost", "aria-label": "Voltar", "data-role": "back", onclick: () => App.back(fallback) }, icon("back")) : null,
       h("h1", { text: title }),
       ...actions
     );
-    const view = h("main", { class: `view${nav ? "" : " no-nav"}`, id: "view" });
+    const view = h("main", { class: `view${showNav ? "" : " no-nav"}`, id: "view" });
     root.append(top, view);
     if (App.pwa) view.append(live(() => updateBanner(App)));
-    if (nav) {
-      const r = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
+    if (showNav) {
       root.append(h(
         "nav",
         { class: "nav", "aria-label": "Principal" },
-        TABS.map((t) => h("a", { href: t.hash, "aria-current": t.match(r) ? "page" : null }, icon(t.icon), t.label))
+        TABS.map((t) => h("a", { href: t.hash, "aria-current": t.match(routeName) ? "page" : null }, icon(t.icon), h("span", { text: t.label })))
       ));
     }
     return view;
@@ -8123,6 +8127,7 @@
     const params = Object.fromEntries(new URLSearchParams(query));
     return { name: parts[0] || "", arg: parts[1] ? decodeURIComponent(parts[1]) : null, params };
   }
+  var shownHash = null;
   function route() {
     stopAll();
     if (cleanup) {
@@ -8132,8 +8137,12 @@
       }
       cleanup = null;
     }
+    if (shownHash) nav.scroll[shownHash] = window.scrollY;
+    navRecord();
+    shownHash = currentHash();
     const r = parseRoute();
     window.scrollTo(0, 0);
+    rendering = true;
     try {
       const screens = {
         "": renderHome,
@@ -8149,19 +8158,35 @@
         checklist: renderChecklist,
         modules: renderModules,
         module: renderModule,
-        words: renderWords
+        words: renderWords,
+        stories: renderStories,
+        dr: (A, x) => {
+          if (A.journey) A.setJourney(null);
+          return renderModules(A, x);
+        },
+        cp: (A, x) => {
+          const j = journeyRegistry()[0];
+          if (j && (!A.journey || A.journey.id !== j.id)) A.setJourney(j.id);
+          return renderModules(A, x);
+        }
       };
       const needsContent = ["explore", "routine", "context", "category", "session", "lab", "review", "checklist", "module", "words"];
       if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {
-        layout(`Daily Routine \xB7 ${App.character.name}`, { back: "#/" }).append(plannedNotice(App));
+        layout("Daily Routine", { back: "#/" }).append(plannedNotice(App));
         return;
       }
-      const fn = r.name === "" && !App.state.settings.characterChosen ? renderCharacterPick : screens[r.name] || renderHome;
+      const fn = screens[r.name] || renderHome;
       cleanup = fn(App, r) || null;
     } catch (e) {
       console.error(e);
       const v = layout("Algo deu errado", { back: "#/" });
       v.append(h("div", { class: "notice bad" }, `Erro ao abrir a tela: ${e.message}. Seu progresso est\xE1 salvo.`));
+    } finally {
+      rendering = false;
+    }
+    if (nav.wentBack && nav.scroll[shownHash]) {
+      const y = nav.scroll[shownHash];
+      requestAnimationFrame(() => window.scrollTo(0, y));
     }
   }
   async function boot() {

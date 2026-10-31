@@ -5,6 +5,8 @@ import { cardKey, mastery } from '../engine/scheduler.js';
 import * as player from '../audio/player.js';
 import { speakerButton, openItem, statusDot, sessionHref, sourceChip } from './common.js';
 import { categoryLabel } from '../engine/exercises.js';
+import { moduleStatus } from '../engine/modules.js';
+import { stageHref } from './modules.js';
 
 let exploreTab = 'routines';
 
@@ -59,7 +61,7 @@ function categoryList(App) {
     const count = c.id === 'qa' ? Object.keys(content.questions).length : c.id === 'text' ? content.routines.length : c.id === 'verb' ? content.verbs.length + ids.length : ids.length;
     return h('li', {}, h('a', { class: 'list-btn', href: `#/category/${c.id}` },
       h('div', { class: 'grow' }, h('div', { class: 'title', text: c.pt }), h('div', { class: 'small muted', text: `${count} ${c.id === 'qa' ? 'perguntas' : c.id === 'text' ? 'textos' : 'itens'}` })),
-      ids.length ? h('span', { class: 'small muted', text: `${Math.round(m.ratio * 100)}%` }) : null, icon('next')));
+      ids.length ? h('span', { class: 'small muted', text: `${Math.round(m.ratio * 100)}% dominado` }) : null, icon('next')));
   }));
 }
 
@@ -70,9 +72,10 @@ export function renderRoutine(App, { arg }) {
   const { content, state } = App;
   const r = content.routines.find((x) => x.id === arg);
   if (!r) return App.go('#/explore');
-  const view = App.layout(`${r.id} · ${r.pt}`, { back: '#/explore' });
+  const view = App.layout(`${r.id} · ${r.pt}`, { back: `#/module/${r.id}` });
   let showPt = false;
-  const m = mastery(state.cards, r.items.map((i) => cardKey('item', i, 'rec')));
+  // situação do módulo: a MESMA da lista de módulos e da Home (engine/modules.js), nunca outra porcentagem
+  const ms = moduleStatus(content, r.id, state);
   const revNotes = content.review.rev.filter((x) => x.note && (x.where.startsWith(r.id + '-') || x.where.startsWith(r.id + '.')));
 
   // cabeçalho: itens condicionais podem ser null (Element.append(null) escreveria “null” na tela)
@@ -85,9 +88,10 @@ export function renderRoutine(App, { arg }) {
     h('p', { class: 'small', text: r.session ? `Objetivo: ${r.goal}` : r.goal }),
     r.grammar ? h('p', { class: 'small', 'data-role': 'grammar' }, h('b', { text: r.session ? 'Língua em contexto: ' : 'Foco da língua: ' }), r.grammar) : null,
     r.session ? sessionVocab(content, r) : null,
-    bar(m.ratio),
+    ms ? h('div', { class: 'row nowrap small', 'data-role': 'module-state' }, h('span', { class: 'grow', text: ms.complete ? 'Sessão concluída' : `${ms.doneCount} de ${ms.stages.length} etapas concluídas` }), h('a', { href: `#/module/${r.id}`, text: 'Ver etapas' })) : null,
+    ms ? bar(ms.ratio) : null,
     h('div', { class: 'row', style: { marginTop: '14px' } },
-      h('a', { class: 'btn primary', href: sessionHref({ routine: r.id }) }, icon('play'), 'Praticar'),
+      ms && ms.next ? h('a', { class: 'btn primary', 'data-role': 'next-stage', href: stageHref(r.id, ms.next.id) }, icon('play'), `${ms.next.n}. ${ms.next.title}`) : h('a', { class: 'btn primary', href: sessionHref({ routine: r.id }) }, icon('play'), 'Praticar'),
       h('button', { class: 'btn', onclick: () => listenAll() }, icon('speaker'), 'Ouvir tudo'),
       h('a', { class: 'btn', href: `#/lab?routine=${r.id}` }, icon('mic'), 'Falar')),
     ...(r.kind === 'unit' || r.kind === 'session' ? [] : [h('a', { class: 'btn block', href: sessionHref({ routine: r.id, mode: 'present' }), style: { marginTop: '10px' } }, icon('target'), 'Treino para a aula: contar blocos + perguntas')]),
@@ -163,7 +167,7 @@ export function renderRoutine(App, { arg }) {
     const q = content.questions[qid];
     const done = state.cards[cardKey('q', qid, 'conv')];
     return h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${qid}` },
-      h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), h('div', { class: 'small muted', text: `${QKIND[q.kind] ? QKIND[q.kind] + ' · ' : ''}${done ? 'praticada' : 'ainda não praticada'}` })), icon('mic')));
+      h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), q.qpt ? h('div', { class: 'small pt-line', lang: 'pt-BR', text: q.qpt }) : null, h('div', { class: 'small muted', text: `${QKIND[q.kind] ? QKIND[q.kind] + ' · ' : ''}${done ? 'praticada' : 'ainda não praticada'}` })), icon('mic')));
   })));
 }
 
@@ -201,7 +205,7 @@ export function renderCategory(App, { arg }) {
     const groups = [['Das rotinas (Word)', (q) => q.source === 'word' && q.routine], ['Gerais (Word)', (q) => q.source === 'word' && !q.routine], ['Perguntas inesperadas (novas)', (q) => q.source === 'new']];
     for (const [title, pred] of groups) {
       view.append(h('h2', { text: title }), h('ul', { class: 'list card' }, Object.values(content.questions).filter(pred).map((q) =>
-        h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), h('div', { class: 'small muted', text: q.routine || (q.source === 'new' ? 'conteúdo novo' : 'geral') })), icon('mic'))))));
+        h('li', {}, h('a', { class: 'list-btn', href: `#/lab?q=${q.id}` }, h('div', { class: 'grow' }, h('div', { class: 'title en', text: q.q }), q.qpt ? h('div', { class: 'small pt-line', lang: 'pt-BR', text: q.qpt }) : null, h('div', { class: 'small muted', text: q.routine || (q.source === 'new' ? 'conteúdo novo' : 'geral') })), icon('mic'))))));
     }
     return;
   }

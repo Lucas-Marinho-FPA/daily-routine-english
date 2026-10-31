@@ -14,6 +14,18 @@ const APP = join(ROOT, 'app');
 execFileSync(process.execPath, [join(ROOT, 'tools/build-content.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(ROOT, 'tools/build-characters.mjs')], { stdio: 'inherit' }); // personagens: data/characters.js
 execFileSync(process.execPath, [join(ROOT, 'tools/build-journeys.mjs')], { stdio: 'inherit' }); // jornadas (Conversation Practice): data/journeys.js
+// traduções de apoio (perguntas e respostas-modelo; o inglês aprovado não muda): data/translations.js
+{
+  const t = JSON.parse(readFileSync(join(ROOT, 'content/translations/questions-pt.json'), 'utf8'));
+  delete t._nota;
+  writeFileSync(join(APP, 'data/translations.js'), '// GERADO por tools/build-app.mjs a partir de content/translations/questions-pt.json — traduções de APOIO escritas pelo app.\nwindow.DRG_PT = ' + JSON.stringify({ questions: t }) + ';\n');
+}
+// ilustrações (personagens, capas e cenários): só as aprovadas entram em content/illustrations.json; vazio = fallback
+{
+  let ill = { characters: {}, sessions: {} };
+  try { ill = JSON.parse(readFileSync(join(ROOT, 'content/illustrations.json'), 'utf8')); } catch (e) { /* sem ilustrações aprovadas ainda */ }
+  writeFileSync(join(APP, 'data/illustrations.js'), '// GERADO por tools/build-app.mjs a partir de content/illustrations.json — só imagens aprovadas.\nwindow.DRG_ILLUSTRATIONS = ' + JSON.stringify(ill) + ';\n');
+}
 
 mkdirSync(join(APP, 'dist'), { recursive: true });
 const esbuild = await import('esbuild');
@@ -101,7 +113,7 @@ const walk = (dir) => {
     const rel = relative(APP, p).split('\\').join('/');
     // screenshots/: só para o pedido de instalação do navegador (online); não ocupam espaço no aparelho
     if (statSync(p).isDirectory()) { if (rel !== 'js' && rel !== 'asr' && rel !== 'screenshots') walk(p); continue; }
-    if (rel === 'sw.js' || name.startsWith('.') || !/\.(html|js|css|webmanifest|png|svg|ogg|json|gz|txt)$/.test(name)) continue;
+    if (rel === 'sw.js' || name.startsWith('.') || !/\.(html|js|css|webmanifest|png|svg|webp|jpg|jpeg|ogg|json|gz|txt)$/.test(name)) continue;
     files.push(rel);
   }
 };

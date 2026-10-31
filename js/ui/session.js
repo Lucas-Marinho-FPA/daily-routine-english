@@ -1,14 +1,13 @@
 // Sessão de estudo: executa a fila, renderiza cada tipo de exercício, corrige, dá feedback e registra o progresso.
 import { h, icon, clear, toast, confirmSheet } from './dom.js';
 import { buildSession, cardKey, cardInContent } from '../engine/scheduler.js';
-import { stageById, stageOpen, stageFilter } from '../engine/modules.js';
+import { stageById, stageOpen, stageFilter, moduleStatus } from '../engine/modules.js';
 import { makeExercise, maybePairs, makePairs, hint, categoryLabel } from '../engine/exercises.js';
-import { recordAnswer, recordLearn, recordSession, levelForXp } from '../engine/progress.js';
+import { recordAnswer, recordLearn, recordSession } from '../engine/progress.js';
 import * as player from '../audio/player.js';
 import { speakerButton, sourceChip, focusTitle, sessionHref } from './common.js';
 import { recWidget } from './recwidget.js';
 import { freeAnswerPanel } from './freeanswer.js';
-import { characterImage } from './character.js';
 
 const OUTCOME = { correct: 'good', accepted_variant: 'good', variant_ame: 'good', spelling: 'ok', grammar: 'bad', meaning: 'bad', inconclusive: 'bad', empty: 'bad' };
 const HEAD = {
@@ -30,7 +29,6 @@ export function renderSession(App, { params }) {
   const size = Math.max(8, Math.min(20, state.settings.dailyGoal || 12));
   let queue;
   const today = App.today();
-  const startLevel = levelForXp(state.xp).level; // para o estado “levelup” do personagem no fim da sessão
   if (focus.mode === 'review') {
     queue = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(content, c.k)).sort((a, b) => a.box - b.box).slice(0, 20)
       .map((c) => { const [unit, id, skill] = c.k.split(':'); return { k: c.k, unit, id, skill, review: true }; });
@@ -73,9 +71,10 @@ export function renderSession(App, { params }) {
 
   if (!queue.length) {
     area.append(h('div', { class: 'card center', style: { marginTop: '24px' } },
-      h('div', { style: { fontSize: '2rem' }, text: '🎉' }),
-      h('h3', { text: 'Nada pendente por aqui agora' }),
-      h('p', { class: 'muted small', text: 'Você está em dia neste foco. Escolha outra rotina ou momento do dia, ou pratique a fala.' })));
+      h('h3', { text: focus.stage ? 'Nada novo nesta etapa agora' : 'Nada pendente por aqui agora' }),
+      h('p', { class: 'muted small', text: focus.stage
+        ? 'Os exercícios desta etapa dependem das anteriores ou já foram feitos; o que você errou volta na revisão. Volte ao módulo para ver o próximo passo.'
+        : 'Você está em dia neste foco. Volte ao Início para ver a próxima atividade.' })));
     if (focus.stage) actions(h('a', { class: 'btn primary', href: `#/module/${focus.routine}` }, 'Voltar ao módulo'));
     else actions(h('a', { class: 'btn', href: '#/explore' }, 'Explorar'), h('a', { class: 'btn primary', href: '#/lab' }, 'Speaking Lab'));
     return () => actionbar.remove();
@@ -87,7 +86,7 @@ export function renderSession(App, { params }) {
       if (!ok) return;
     }
     App.flush();
-    App.go('#/');
+    App.back(focus.stage && focus.routine ? `#/module/${focus.routine}` : '#/'); // volta à origem real
   }
 
   function updateTop() {
@@ -150,9 +149,9 @@ export function renderSession(App, { params }) {
   function feedback(res, { model, au, pt, example, tip, k, onClaim, extra } = {}) {
     const [tone, title] = HEAD[res.cls] || ['mid', res.cls];
     // personagem: só aparece quando a imagem do estado foi aprovada (sem imagem, o painel fica como antes)
-    const face = characterImage(App.character, { good: 'correct', bad: 'wrong', mid: 'thinking' }[tone] || 'thinking', { size: 40 });
+    const face = null; // sem mascote reagindo a acertos/erros: o retorno é o próprio feedback
     const panel = h('div', { class: `feedback ${tone}`, role: 'status', 'aria-live': 'polite' },
-      h('div', { class: 'head' }, face, title, h('span', { class: 'spacer' }), res.xp ? h('span', { class: 'chip ok', text: `+${res.xp} XP` }) : null));
+      h('div', { class: 'head' }, face, title, h('span', { class: 'spacer' })));
     if (res.cls !== 'correct') {
       panel.append(h('div', { class: 'small muted', style: { marginTop: '6px' }, text: 'Resposta-modelo' }));
       panel.append(h('div', { class: 'row nowrap' }, h('div', { class: 'model', style: { flex: 1 } }, diffModel(res, model)), au || model ? speakerButton({ key: au, text: model }, { cls: 'icon-btn ghost' }) : null));
@@ -532,6 +531,7 @@ export function renderSession(App, { params }) {
     area.append(kind(title), h('p', { class: 'small muted', text: intro }));
     if (isQ) {
       area.append(h('div', { class: 'row nowrap' }, h('div', { class: 'big-en', style: { flex: 1 }, text: ex.q.q }), speakerButton({ key: ex.q.au, text: ex.q.q })));
+      if (ex.q.qpt) area.append(h('details', { class: 'small', 'data-role': 'q-pt' }, h('summary', { text: 'Ver a pergunta em português' }), h('p', { lang: 'pt-BR', style: { margin: '4px 0' }, text: `${ex.q.qpt} (tradução de apoio)` })));
       if (ex.q.hint) area.append(h('div', { class: 'notice small', text: ex.q.hint }));
       autoplay({ key: ex.q.au, text: ex.q.q });
     } else if (unit === 'block') {
@@ -587,7 +587,6 @@ export function renderSession(App, { params }) {
           h('button', { class: `btn${o === suggestion ? ' primary' : ''}`, style: { flex: 1 }, onclick: () => {
             const r = finish(ex.entry, o, { cls: 'self-' + o, answer: text });
             if (isQ && text && !state.myAnswers[ex.q.id]) { state.myAnswers[ex.q.id] = { text, at: Date.now() }; App.save(); }
-            if (r.xp) toast(`+${r.xp} XP`);
             idx++; next();
           } }, label))));
       panel.append(gradeRow);
@@ -628,27 +627,25 @@ export function renderSession(App, { params }) {
   function summary() {
     const good = results.filter((r) => r.outcome !== 'bad').length;
     const bad = results.filter((r) => r.outcome === 'bad');
-    const sr = recordSession(state, { count: results.length, bad: bad.length }, App.today());
-    xpGained += sr.xp;
-    events.push(...sr.events);
+    recordSession(state, { count: results.length, bad: bad.length }, App.today()); // registro do dia (sem recompensa na tela)
     App.flush();
     progress.firstChild.style.width = '100%';
     const wrongUnits = [...new Map(bad.map((r) => [r.entry.k, r.entry])).values()];
-    const leveled = levelForXp(state.xp).level > startLevel;
-    const face = characterImage(App.character, leveled ? 'levelup' : 'celebrate', { size: 96 });
-    area.append(h('div', { class: 'card center', style: { marginTop: '16px' } },
-      face || h('div', { style: { fontSize: '2.2rem' }, text: bad.length ? '💪' : '🌟' }),
+    // o que a sessão representa para a etapa: a mesma situação mostrada no módulo (fonte única de verdade)
+    const st = focus.stage ? moduleStatus(content, focus.routine, state) : null;
+    const stage = st ? st.stages.find((x) => x.id === focus.stage) : null;
+    const nextStage = st ? st.next : null;
+    area.append(h('div', { class: 'card', style: { marginTop: '16px' }, 'data-role': 'session-summary' },
       h('h3', { text: 'Sessão concluída' }),
-      h('div', { class: 'stat-grid', style: { marginTop: '12px' } },
-        h('div', { class: 'stat' }, h('b', { text: `+${xpGained}` }), h('span', { text: 'XP' })),
-        h('div', { class: 'stat' }, h('b', { text: `${results.length ? Math.round((good / results.length) * 100) : 0}%` }), h('span', { text: 'acertos' })),
-        h('div', { class: 'stat' }, h('b', { text: String(results.length) }), h('span', { text: 'exercícios' })))),
-      events.length ? h('div', { class: 'card' }, h('h3', { text: 'Conquistas' }), ...events.map((a) => h('div', { class: 'row' }, h('span', { style: { fontSize: '1.4rem' }, text: a.icon }), h('div', {}, h('b', { text: a.title }), h('div', { class: 'small muted', text: a.desc }))))) : null,
+      h('p', { class: 'small', text: `${good} de ${results.length} respostas certas na primeira tentativa.` }),
+      stage ? h('p', { class: 'small', 'data-role': 'stage-result', 'data-state': stage.state },
+        h('b', { text: `${stage.title}: ` }), stage.complete ? 'concluída.' : `${Math.min(stage.done, stage.need)} de ${stage.need} para concluir.`) : null,
+      stage && stage.complete && nextStage ? h('p', { class: 'small', text: `Próxima etapa: ${nextStage.n}. ${nextStage.title}.` }) : null,
+      st && st.complete ? h('p', { class: 'small', text: 'Todas as etapas deste módulo estão concluídas.' }) : null),
       wrongUnits.length ? h('div', { class: 'card' }, h('h3', { text: 'Vai voltar para revisão' }),
         ...wrongUnits.map((e) => h('div', { class: 'small en', text: '• ' + unitLabel(content, e) }))) : null);
-    if (events.length) toast(`Conquista: ${events[0].title}`);
     actions(focus.stage ? h('a', { class: 'btn', 'data-role': 'back-module', href: `#/module/${focus.routine}` }, 'Voltar ao módulo') : h('a', { class: 'btn', href: '#/' }, 'Início'),
-      h('button', { class: 'btn primary', onclick: () => App.go(sessionHref(focus.mode ? {} : focus)) }, focus.stage ? 'Praticar de novo' : 'Nova sessão'));
+      h('button', { class: 'btn primary', onclick: () => App.go(sessionHref(focus.mode ? {} : focus), { replace: true }) }, focus.stage && stage && !stage.complete ? 'Continuar praticando' : focus.stage ? 'Praticar de novo' : 'Nova sessão'));
   }
 
   next();

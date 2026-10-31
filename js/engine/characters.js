@@ -72,3 +72,13 @@ export function contentFor(base, id, reg) {
   cache.set(ch.id, view);
   return view;
 }
+
+// Elenco fixo da Daily Routine (definido pelo responsável pelo produto, 2026-10-31). Os personagens são protagonistas
+// das histórias, não perfis de usuário: o aluno escolhe qual história estudar, e cada história guarda o seu progresso.
+export const CAST = {
+  lucas: { role: 'Pai', about: 'Analista financeiro e motorista de aplicativo.' },
+  karla: { role: 'Mãe', about: 'Cuida da família e pratica Pilates.' },
+  'lucas-kid': { role: '11 anos', about: 'Estudante; gosta de esportes e de jiu-jitsu.' },
+  heitor: { role: '7 anos', about: 'Estudante, criativo e brincalhão.' },
+};
+
