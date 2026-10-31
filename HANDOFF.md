@@ -3,145 +3,102 @@
 ## Protocolo para uma conversa nova
 
 1. Ler `CLAUDE.md` (projeto, metodologia, arquitetura, regras) e este arquivo.
-2. Clonar/atualizar e entrar na branch de desenvolvimento: `git fetch origin && git checkout mvp-jornadas`.
+2. Clonar/atualizar e entrar na branch de desenvolvimento: `git fetch origin && git checkout remodelagem` (trabalho atual; `mvp-jornadas` = versão publicada).
 3. Conferir: `git log --oneline -6`, `git status`, `git ls-remote origin`.
 4. Para rodar testes ou build: `bash dev/setup-workdir.sh ../drg-work && cd ../drg-work && npm ci && npm test`
    (detalhes em `dev/README.md`).
-5. Identificar o próximo passo (seção 9) e trabalhar **só no escopo pedido**.
+5. Identificar o próximo passo (seção 7) e trabalhar **só no escopo pedido**.
 6. Não pedir de novo os dez textos do Lukinhas (`dev/tests/fixtures/lukinhas-texts.json` e
    `dev/content/characters/lucas-kid.json`), não pedir explicação da arquitetura, não repetir auditorias completas sem
    motivo, não confundir o que está concluído com o que está pendente.
 7. Ao fim de cada sessão relevante: atualizar este arquivo, commitar e **enviar a branch de desenvolvimento**
    (regra permanente: nada importante só no ambiente temporário).
 
-## 1. Estado do Git
+## 1. Estado do Git (2026-10-31)
 
 | Item | Estado |
 |---|---|
 | Repositório | `https://github.com/Lucas-Marinho-FPA/daily-routine-english` |
-| Branch de desenvolvimento | `mvp-jornadas` — **no GitHub** desde 2026-10-31 |
-| Histórico de `mvp-jornadas` | `0d096ad` ← `be86c74` ← `1181ea5` ← `523db11` ← `6a0c5b6` ← `0719ac7` ← `aa9c8f8` ← `b582c29` … |
-| Lukinhas | `523db11` (módulo) e `1181ea5` (correção do “null”) — originais, preservados |
-| Preservação | `be86c74` (`dev/`, `CLAUDE.md`, `HANDOFF.md`) e `0d096ad` (correção do `setup-workdir.sh`) |
-| Publicado (GitHub Pages) | `gh-pages` = `6a0c5b6` (MVP + PWA, **sem** o Lukinhas) |
-| `main` remota | `13de9d2` (não alterar sem autorização) |
-| `cp-publicacao` remota | `b582c29` (preserva também a versão publicada anterior ao MVP) |
-| `main` local (só no ambiente antigo) | continha `c0cb6c8` (material do livro) — **nunca enviar** |
+| **Publicado** (`gh-pages`) | `b25ebbc` — Lukinhas + correções de atualização do PWA (service worker `f7bf4c19ac6f`). **Intacto.** |
+| `mvp-jornadas` | `b25ebbc` (igual ao publicado) |
+| **Branch de trabalho** | **`remodelagem`** (a partir de `b25ebbc`) — remodelagem integral, **não publicada**, aguardando validação no Galaxy S25+ |
+| `main` remota | `13de9d2` (não alterar) · `cp-publicacao` `b582c29` (não alterar) |
 
-Publicar = avançar `gh-pages` por fast-forward a partir de `mvp-jornadas`
-(`git push origin mvp-jornadas:gh-pages`), **somente com autorização explícita**, e acompanhar o workflow
-“pages build and deployment”. Ao publicar, `dev/` vai junto para o Pages (não entra no pré-cache do app; não contém
-dados privados nem texto de terceiros). O canal git destes ambientes recusou envio de tags; o domínio
-`lucas-marinho-fpa.github.io` costuma estar bloqueado na rede do ambiente (sem verificação do site no ar).
+Publicar a remodelagem = fast-forward de `gh-pages` para o commit validado de `remodelagem`
+(`git push origin <commit>:refs/heads/gh-pages`), **somente com autorização explícita**, conferindo antes que
+`gh-pages` ainda é ancestral; acompanhar “pages build and deployment”. O domínio `lucas-marinho-fpa.github.io` é
+bloqueado na rede do ambiente (sem verificação do site no ar daqui).
 
-## 2. Módulo Lukinhas — IMPLEMENTADO (`523db11`, `1181ea5`)
+## 2. Publicações de 2026-10-31 (concluídas)
 
-Não reconstruir. Personagem existente `lucas-kid`, nome de exibição **Lukinhas** (11 anos). Dez sessões L01–L10 com
-os textos aprovados (66 frases, iguais caractere por caractere aos aprovados; nenhuma correção foi necessária),
-tradução por frase, 73 expressões prioritárias, 30 perguntas, 245 clipes de áudio britânico (voz Kokoro `bm_lewis`).
+- `ec33411`: Lukinhas publicado. Diagnóstico do PWA que não atualizava → dois defeitos reais, corrigidos e publicados
+  em `b25ebbc` (`docs/pwa-instalacao.md`): (1) a limpeza (CLEANUP) das versões ≤ `6db56e10bb5d` apagava o cache da
+  versão nova em espera → cache novo com prefixo `drgapp-`, limpeza que não toca versão pendente, autocompletar o
+  cache; (2) “Atualização indisponível neste modo de abertura” = `register()` preso na fila do navegador durante o
+  download → registro por `getRegistration()`, estados verificando/baixando/pronta/falhou/atualizado.
+- Suíte `dev/tests/e2e/update-transition.mjs`: troca **real** entre versões, conferindo a tela.
 
-1. My Morning Routine · 2. Getting Ready for the Day · 3. Looking After My Dog · 4. Helping Around the House ·
-5. It's Jiu-Jitsu Time! · 6. Back Home and Ready to Relax · 7. My Morning, Step by Step · 8. A Typical Day at Home ·
-9. Keeping My Morning Organised · 10. My Daily Routine: The Full Story
+## 3. Remodelagem (branch `remodelagem`, NÃO publicada)
 
-Cada sessão = um módulo com as cinco etapas existentes:
-- **Texto e destaques** (topo do módulo, sempre aberto): título, foco, nível, objetivo, língua em contexto, vocabulário
-  prioritário; texto integral com expressões **tocáveis** (significado, explicação, exemplo adicional com tradução,
-  áudio); tradução; áudio por frase/bloco/texto.
-- **Compreensão:** 01 Palavras-chave (vocabulário prioritário exceto phrasal verbs) e 02 Expressões práticas (phrasal
-  verbs da sessão), com lista explicada e revisão espaçada.
-- **Speaking Lab:** 03 Ouvir e entender (ouvir uma frase da sessão sem o texto e reconhecê-la) e 04 Falar na prática
-  (só frases, blocos e perguntas da sessão; gravação, transcrição local, comparação verde/âmbar/cinza).
-- **Atividades:** identificar o significado, lembrar a expressão, completar a frase, montar a frase, ordenar o bloco,
-  ouvir e identificar, responder por escrito ou falando e o exercício novo **“mais natural”** (`nat`; só itens com
-  `plain`, ou seja, só do Lukinhas).
-- **Produção independente:** 05 Aplicar e conversar — perguntas com resposta-modelo do texto e a pergunta aberta final
-  “Now, tell me … without reading the text.”
-- Expressões de sessões anteriores voltam ligadas nas posteriores (a L10 retoma mais de oito).
+Diretriz do responsável: ferramenta de aprendizagem, não jogo; ciclo pedagógico único; Início orientador; navegação
+previsível; progresso por domínio demonstrado; elenco fixo; acessibilidade.
 
-## 3. Onde está cada coisa
+- **Ciclo único de 6 etapas** nas duas jornadas (`js/engine/modules.js`): Vocabulary · Collocations, phrasal verbs &
+  expressions · **Sentence building** (nova etapa: montar/escrever frases, ordenar blocos) · Listening · Speaking ·
+  Application. Critérios de domínio em `CLAUDE.md` §2. Estados: Concluída / Em andamento / Não iniciada / Bloqueada;
+  etapa concluída nunca volta a aparecer bloqueada (progresso anterior preservado).
+- **Gamificação fora da tela:** XP, níveis, sequência, conquistas, mascote, 🎉 e escolha de avatar removidos (o estado
+  guardado não foi apagado). Personagens = protagonistas: escolha de **história** em `#/stories`; elenco fixo (`CAST`);
+  Heitor com 7 anos (informado pelo responsável).
+- **Início:** duas jornadas separadas, cada uma com sessão atual, contexto, etapa atual, próxima atividade e
+  Continuar; revisão; backup; instalação.
+- **Navegação:** abas Início · Daily Routine · Conversation · Falar · Progresso; Voltar do app = Voltar do Android
+  (pilha da abertura); redirecionamentos substituem o histórico (sem ciclos); toda tela interna tem Voltar; posição
+  de leitura restaurada.
+- **Progresso — fonte única:** causa do “100% mas não concluída” = duas medidas diferentes (porcentagem de itens na
+  página do texto/Explorar × etapas na lista). Agora módulo, lista, Início, resumo da sessão e Progresso usam
+  `moduleStatus`; o Explorar mostra “% dominado” só para categorias de itens.
+- **Conteúdo:** CP01 tinha 1 palavra no vocabulário (itens catalogados como connector/sentence) → 9 palavras do
+  **próprio diálogo** (team, welcome, software developer, friendly, everyone, join, move, club, later), significado da
+  tradução aprovada, áudio Kokoro `bf_emma` (6 clipes novos; os demais já existiam). Separação palavra × combinação
+  por forma. Observação de auditoria (sem inventar): K02 tem 0 palavras de uma só palavra, K03/L05/L06 têm 2 — etapas
+  pequenas, não vazias de propósito; ampliar só com material aprovado.
+- **Traduções:** as 187 perguntas e respostas-modelo não tinham português → traduções de **apoio** marcadas
+  (`dev/content/translations/questions-pt.json` → `data/translations.js`); Speaking Lab com “Mostrar tradução” nas
+  abas Frases, Blocos e Perguntas; “Ver PT” não abre mais vazio.
+- **Speaking:** recuperação após 3 tentativas (palavra persistente destacada → ouvir → gravar só a palavra, podendo
+  repetir 2–3 vezes → calibração **temporária** na tentativa seguinte → resultado com confiabilidade: completa,
+  com ressalva, parcial ou inconclusiva). Rótulos: Reconhecida / Possível erro de reconhecimento / Não avaliada.
+  Captura: aviso “Preparando o microfone… espere” até a gravação começar (falar antes cortava a 1ª palavra).
+- **Acessibilidade/visual:** 5 abas sem quebra, toque ≥ 44 px, texto ≥ 12,8 px, estados em texto (não só cor),
+  bloqueadas legíveis, hierarquia de títulos, `prefers-reduced-motion` mantido.
+- **Ilustrações:** `js/ui/illustration.js` (slots com proporção fixa, carregamento preguiçoso, faixa neutra sem
+  imagem); só imagens aprovadas em `dev/content/illustrations.json` (vazio) → `data/illustrations.js`; arquivos em
+  `img/illustrations/` entram no cache offline (build aceita webp/jpg).
 
-- **App (raiz):** `js/ui/expression.js` (novo), `docs/lukinhas.md`, 245 clipes em `audio/`; dados em
-  `data/characters.js`, `data/audio-index.js`, `data/lexicon.txt.gz`; código em `js/engine/{scheduler,exercises,modules,
-  characters}.js`, `js/ui/{explore,modules,session}.js`, `css/app.css`, `dist/app.js`, `sw.js`.
-- **Fontes e ferramentas (`dev/`):** `dev/content/characters/lucas-kid.json` (fonte do Lukinhas),
-  `dev/tools/lukinhas-source.mjs` (gerador), `dev/tools/build-*.mjs`, `dev/tools/gen_audio.py`, demais conteúdos
-  (Lucas, Karla, Conversation Practice), `dev/vendor/` (léxico e fontes do reconhecimento de fala).
-- **Testes (`dev/tests/`):** unitários (`lukinhas.test.js` e os demais), E2E (`lukinhas.mjs`, `pwa.mjs`, `mvp.mjs`,
-  `run.mjs`, `run-pages.mjs`, `asr-local.mjs`, `storage.mjs`, `wordpractice.mjs`, `characters.mjs`, `journey.mjs`),
-  fixtures (`lukinhas-texts.json` = os dez textos aprovados).
-- **Evidências:** `dev/evidence/2026-10-31/*.log` (última regressão completa).
-- **Fora do repositório, de propósito:** `privacy_sanitize.py` (contém nomes privados), texto do Conversation Book,
-  Word original do usuário, modelo Kokoro, `node_modules/`. Ajustes feitos só na cópia versionada: padrões de proteção
-  de nomes privados codificados (mesmo comportamento) e caminho do site simulado em `run-pages.mjs` (`../site` ou
-  `DRG_PAGES_SITE`).
+## 4. Testes da remodelagem (Chromium headless, 412 px, sequência)
 
-## 4. Testes da última regressão completa (2026-10-30/31; logs em `dev/evidence/2026-10-31/`)
+Ver tabela no relatório da sessão; evidências na cópia de trabalho. Unitários com `remodel.test.js` (ciclo, estados,
+CP01, traduções, palavra isolada, persistência, calibração). Suítes E2E adaptadas ao comportamento aprovado (histórias
+no lugar do seletor de avatar, Início orientador, abas, seis etapas) mantendo os mesmos objetivos de cobertura.
+Não testado: aparelho físico (Galaxy S25+), Samsung Internet, app instalado real (só display-mode simulado).
 
-Unitários: **200/200** (14 do Lukinhas). E2E (Chromium, viewport 412 px, simulação do GitHub Pages):
+## 5. Limitações conhecidas
 
-| Suíte | Resultado |
-|---|---|
-| Lukinhas | 12/12 |
-| MVP | 14/14 |
-| E2E local | 37/37 |
-| Simulação do Pages | 37/37 |
-| Reconhecimento de voz | 22/22 |
-| Armazenamento | 10/10 |
-| Prática de palavras | 15/15 |
-| Personagens | 14/14 |
-| Conversation Practice | 10/10 |
-| PWA | 13/13 em duas execuções seguidas |
+- Voz do áudio britânica adulta (gerador offline sem voz infantil). Kokoro v1.0 foi baixado do GitHub nesta sessão
+  (não versionado); regenerar exige `pip install kokoro-onnx` e os arquivos do modelo.
+- Reconhecimento local Moonshine tiny (~38 MB): modelo pequeno; transcrição não comprova pronúncia; sem avaliação
+  acústica. A calibração é só da tela atual.
+- Pacote offline ~14,5 MB.
 
-- Offline do Lukinhas aprovado (servidor desligado e rede cortada): texto, painel de expressão, áudio e exercícios.
-- Lucas adulto e Karla comparados objeto por objeto com a versão publicada: idênticos.
-- Verificação de portabilidade (clone limpo do GitHub → `setup-workdir.sh` → `npm ci` → `npm test`): ver seção 6.
+## 6. Backlog
 
-## 5. Correções feitas durante o Lukinhas
+1. Integrar as ilustrações aprovadas (personagens e cenários) em `dev/content/illustrations.json`.
+2. Voz infantil local para o Lukinhas.
+3. Ampliar vocabulário de sessões pequenas (K02, K03, L05, L06) só com material aprovado.
+4. Teste físico no Galaxy S25+ da branch `remodelagem` antes de publicar.
 
-- Exemplos adicionais que inventavam fatos → frases genéricas.
-- L01 com etapa “Palavras-chave” vazia → nas sessões, etapa 1 = vocabulário prioritário sem phrasal verbs; etapa 2 =
-  phrasal verbs.
-- Dois códigos de áudio da Karla alterados sem querer → restaurados.
-- “null” impresso na página de texto → corrigido e conferido nas quatro trilhas.
-- Teste PWA com espera fixa de 4 s → espera pela ativação real do service worker.
+## 7. Próximo passo
 
-## 6. Preservação (2026-10-31)
-
-A sessão em que o Lukinhas foi feito deixou commits e fontes só no ambiente temporário; uma sessão seguinte não os
-encontrou. Corrigido: `mvp-jornadas` foi enviada ao GitHub com os commits originais e um commit de preservação com
-`dev/`, `CLAUDE.md` e este arquivo. Resultado registrado pela própria sessão de preservação:
-
-- Antes do envio, `git ls-remote` não mostrava `mvp-jornadas` no remoto (sem divergência possível).
-- `git push -u origin mvp-jornadas` sem force: `[new branch]`; o remoto aponta para `0d096ad`.
-- Pela API do GitHub: os commits `0d096ad`, `be86c74`, `1181ea5`, `523db11` e `6a0c5b6` estão na branch, com os
-  mesmos hashes; `dev/content/characters/lucas-kid.json` está acessível.
-- Clone limpo do GitHub em outro diretório: autoria preservada, os dez textos estão na fixture, 1.787 arquivos em
-  `audio/`; `setup-workdir.sh`, `npm ci` e `npm test` deram **200/200**.
-- Num clone limpo, o rebuild (`node tools/build-app.mjs`) saiu **idêntico byte a byte** ao app do repositório. Nesse
-  ambiente: E2E Lukinhas **12/12**, PWA **13/13**, simulação do Pages **37/37**.
-- `gh-pages` (`6a0c5b6`), `main` (`13de9d2`) e `cp-publicacao` (`b582c29`) ficaram inalteradas. Nada foi
-  publicado.
-
-## 7. Limitações conhecidas
-
-- Voz do áudio britânica adulta (o gerador offline não tem voz infantil).
-- Reconhecimento de fala opcional (~38 MB); transcrição não comprova pronúncia; sem avaliação fonética.
-- Pacote offline ~14,5 MB com o Lukinhas (era ~11,8 MB).
-- XP, níveis e troca de personagem continuam no app (vindos do MVP); o Lukinhas não acrescentou gamificação.
-- Teste físico no Galaxy S25+ da versão publicada `6a0c5b6` ficou com o usuário; sem retorno registrado.
-- Regerar áudio exige o modelo Kokoro e Python com `kokoro-onnx` (não versionados; ver `dev/README.md`).
-
-## 8. Backlog (não bloqueia)
-
-1. Voz infantil local e gratuita para o Lukinhas.
-2. Revisão só das expressões marcadas com estrela.
-3. Imagens do Lukinhas (seis estados).
-4. Sessões específicas de jiu-jitsu só se os dias de treino forem confirmados.
-5. Decisão de produto sobre XP/seleção de personagens (seção 3 do `CLAUDE.md`).
-
-## 9. Próximo passo recomendado
-
-Revisão final do módulo Lukinhas pelo usuário e, se aprovado, **autorização explícita** para publicar
-`mvp-jornadas` em `gh-pages` por fast-forward. Não reconstruir o módulo, não refazer testes aprovados sem motivo
-técnico, não alterar conteúdo ou critérios pedagógicos.
+Validação da branch `remodelagem` no Galaxy S25+ (servida localmente ou numa publicação autorizada). Com aprovação
+explícita: fast-forward de `gh-pages`. Não reconstruir; não alterar conteúdo aprovado; não reintroduzir gamificação.
