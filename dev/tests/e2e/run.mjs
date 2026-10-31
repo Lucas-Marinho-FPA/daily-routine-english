@@ -353,7 +353,7 @@ await check('T21', 'Inline — gravar com reconhecimento local (simulado): cores
   assert(L.lines <= 3 && L.inline && L.brs === 0, 'fluxo quebrado após colorir');
   await page.locator('.target-wrap .w', { hasText: 'teeth' }).click();
   const detail = await page.locator('.word-detail').textContent();
-  assert(/ouviu “tits”/.test(detail) && /Precisa de prática/.test(detail), detail);
+  assert(/ouviu “tits”/.test(detail) && /Possível erro de reconhecimento/.test(detail), detail); // rótulo dos três estados: Reconhecida / Possível erro de reconhecimento / Não avaliada
   const score = await page.locator('.fb .score-line').textContent();
   const details = await page.locator('.fb-details').textContent();
   assert(/^\d+\/100Avaliação parcial/.test(score), score);
@@ -972,7 +972,7 @@ await check('T18', 'Desempenho e memória (cache quente, offline)', async () => 
   await go('');
   for (let i = 0; i < 3; i++) {
     await page.reload();
-    await page.waitForSelector('.hero');
+    await page.waitForSelector('section.journey'); // Início orientador (cartões das jornadas)
     times.push(await page.evaluate(() => Math.round(performance.now()))); // ms desde o início desta navegação
   }
   // troca de exercício: tempo entre clicar e o próximo exercício aparecer
