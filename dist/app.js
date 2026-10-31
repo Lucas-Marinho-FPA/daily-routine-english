@@ -3564,7 +3564,7 @@
     let showPt = false;
     const m = mastery(state.cards, r.items.map((i) => cardKey("item", i, "rec")));
     const revNotes = content.review.rev.filter((x) => x.note && (x.where.startsWith(r.id + "-") || x.where.startsWith(r.id + ".")));
-    view.append(
+    view.append(...[
       h(
         "div",
         { class: "chips" },
@@ -3586,8 +3586,8 @@
         h("button", { class: "btn", onclick: () => listenAll() }, icon("speaker"), "Ouvir tudo"),
         h("a", { class: "btn", href: `#/lab?routine=${r.id}` }, icon("mic"), "Falar")
       ),
-      r.kind === "unit" || r.kind === "session" ? null : h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")
-    );
+      ...r.kind === "unit" || r.kind === "session" ? [] : [h("a", { class: "btn block", href: sessionHref({ routine: r.id, mode: "present" }), style: { marginTop: "10px" } }, icon("target"), "Treino para a aula: contar blocos + perguntas")]
+    ].filter(Boolean));
     const blocksBox = h("div", {});
     const ptToggle = h("button", { class: "btn small", "aria-pressed": "false", onclick: () => {
       showPt = !showPt;
