@@ -119,7 +119,7 @@ encontrou. Corrigido: `mvp-jornadas` foi enviada ao GitHub com os commits origin
 - Clone limpo do GitHub em outro diretório: autoria preservada, os dez textos estão na fixture, 1.787 arquivos em
   `audio/`; `setup-workdir.sh`, `npm ci` e `npm test` deram **200/200**.
 - Num clone limpo, o rebuild (`node tools/build-app.mjs`) saiu **idêntico byte a byte** ao app do repositório. Nesse
-  ambiente: E2E Lukinhas **12/12**, PWA **13/13**, simulação do Pages (resultado na seção 4 / relatório da entrega).
+  ambiente: E2E Lukinhas **12/12**, PWA **13/13**, simulação do Pages **37/37**.
 - `gh-pages` (`6a0c5b6`), `main` (`13de9d2`) e `cp-publicacao` (`b582c29`) ficaram inalteradas. Nada foi
   publicado.
 
