@@ -15,6 +15,7 @@ rm -f "$DEST/setup-workdir.sh"
 (cd "$REPO" && for f in *; do
   case "$f" in dev|docs|CLAUDE.md|HANDOFF.md|README.md) ;; *) cp -a "$f" "$DEST/app/" ;; esac
 done)
+mkdir -p "$DEST/vendor/asr/onnxruntime-web/dist" "$DEST/vendor/asr/moonshine-js/model/quantized"   # pastas vazias não vão para o git
 cp "$REPO/asr/ort-wasm-simd-threaded.wasm" "$REPO/asr/ort-wasm-simd-threaded.mjs" "$DEST/vendor/asr/onnxruntime-web/dist/"
 cp "$REPO/asr/tiny/quantized/encoder_model.onnx" "$REPO/asr/tiny/quantized/decoder_model_merged.onnx" "$DEST/vendor/asr/moonshine-js/model/quantized/"
 echo "Cópia de trabalho pronta em $DEST"
