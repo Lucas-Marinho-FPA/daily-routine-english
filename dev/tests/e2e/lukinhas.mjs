@@ -92,22 +92,22 @@ async function completeStage(mod, stage, n = 8) {
   return false;
 }
 
-await check('K01', 'Lukinhas é o personagem fixo existente: aparece no seletor atual com esse nome; a Daily Routine dele tem as dez sessões', async () => {
+await check('K01', 'Lukinhas é o protagonista fixo existente: aparece na escolha de histórias com esse nome; a Daily Routine dele tem as dez sessões', async () => {
   await go('#/');
   await page.waitForTimeout(2500);
-  await page.locator('[data-role=character-pick] [data-role=confirm-character]').click();
-  await page.waitForTimeout(300);
-  await page.click('[data-role=switch-character]');
-  const names = await app(() => [...document.querySelectorAll('[data-role=active-character] [role=radio]')].map((b) => [b.dataset.character, b.querySelector('.char-name').textContent]));
-  await page.click('[data-character=lucas-kid]'); await page.click('[data-role=confirm-character]'); await page.waitForTimeout(600);
-  const home = await app(() => ({ name: document.querySelector('[data-role=persona] .persona-name').textContent, dr: document.querySelector('[data-role=track-dr]').textContent, profile: window.DRG_APP.state.activeProfile }));
-  await page.click('[data-role=open-track]'); await page.waitForTimeout(600);
+  // personagens são protagonistas das histórias (não perfis nem avatares): a troca é feita em “Histórias”
+  await go('#/stories');
+  const names = await app(() => [...document.querySelectorAll('[data-role=story]')].map((b) => [b.dataset.character, b.querySelector('b').textContent]));
+  await page.click('[data-role=story][data-character=lucas-kid]'); await page.waitForTimeout(600);
+  await go('#/');
+  const home = await app(() => ({ ctx: (document.querySelector('[data-role=journey-context]') || {}).textContent || '', dr: document.querySelector('[data-role=track-dr]').textContent, profile: window.DRG_APP.state.activeProfile }));
+  await go('#/dr');
   const mods = await app(() => [...document.querySelectorAll('[data-role=module-card]')].map((a) => a.dataset.unit));
   await shot('K01-sessoes');
   assert(JSON.stringify(names) === '[["lucas","Lucas"],["karla","Karla"],["lucas-kid","Lukinhas"],["heitor","Heitor"]]', JSON.stringify(names));
-  assert(home.name === 'Lukinhas' && /Daily Routine · Lukinhas/.test(home.dr) && home.profile === 'lucas-kid', JSON.stringify(home));
+  assert(/História de Lukinhas/.test(home.ctx) && /L01/.test(home.dr) && home.profile === 'lucas-kid', JSON.stringify(home));
   assert(mods.join() === 'L01,L02,L03,L04,L05,L06,L07,L08,L09,L10' && await noHScroll(), mods.join());
-  return { seletor: names.map((n) => n[1]), sessoes: mods.length };
+  return { historias: names.map((n) => n[1]), sessoes: mods.length };
 });
 
 await check('K02', 'Texto de cada sessão: integral (igual ao aprovado), título, foco, nível, objetivo, língua em contexto, vocabulário prioritário e tradução', async () => {
@@ -155,7 +155,7 @@ await check('K05', 'Sessão 01, etapas 1 e 2: Palavras-chave e Expressões prati
   const e = await completeStage('L01', 'expr');
   const st1 = await stages();
   await shot('K05-modulo-L01');
-  assert(head === 1 && st0.join() === 'vocab:open,expr:locked,listen:locked,speak:locked,apply:locked' && v && e && st1[2] === 'listen:open', JSON.stringify({ head, st0, st1 }));
+  assert(head === 1 && st0.join() === 'vocab:open,expr:locked,build:locked,listen:locked,speak:locked,apply:locked' && v && e && st1[2] === 'build:open', JSON.stringify({ head, st0, st1 }));
   return { antes: st0[0], depois: st1.slice(0, 3), tipos: [...types] };
 });
 
@@ -189,12 +189,14 @@ await check('K06', '“Mais natural” no app: a frase mostra a forma simples; e
   return found;
 });
 
-await check('K07', 'Ouvir e entender (L01): a frase toca sem texto; depois, o texto; etapa concluída', async () => {
+await check('K07', 'Construção de frases e Ouvir e entender (L01): montar/escrever as frases da sessão; depois a frase toca sem texto; etapas concluídas', async () => {
+  const built = await completeStage('L01', 'build', 10);
+  if (!built) throw new Error('construção de frases não concluiu: ' + (await stages()).join());
   await go('#/session?routine=L01&stage=listen');
   const before = await app(() => ({ type: window.DRG_APP.debugExercise.type, revealed: !!document.querySelector('.ex-area .para.dialogue') }));
   const ok = await completeStage('L01', 'listen');
   assert(before.type === 'listen' && !before.revealed && ok, JSON.stringify(before));
-  return { tipo: before.type, concluida: ok };
+  return { construcao: built, tipo: before.type, concluida: ok };
 });
 
 await check('K08', 'Speaking Lab da sessão: só frases e perguntas do Lukinhas; gravar e reabrir a gravação; 3 gravações concluem a etapa', async () => {
@@ -209,11 +211,11 @@ await check('K08', 'Speaking Lab da sessão: só frases e perguntas do Lukinhas;
   await shot('K08-lab');
   await go('#/module/L01');
   const st = await stages();
-  assert(head === 1 && /wake up very early/.test(list) && !/5:00 a\.m\.|on-site/i.test(list) && /clean up after him/.test(ref) && st[3] === 'speak:done', JSON.stringify({ head, st }));
-  return { etapa: st[3] };
+  assert(head === 1 && /wake up very early/.test(list) && !/5:00 a\.m\.|on-site/i.test(list) && /clean up after him/.test(ref) && st[4] === 'speak:done', JSON.stringify({ head, st }));
+  return { etapa: st[4] };
 });
 
-await check('K09', 'Aplicar e conversar (L01): montar frases, ordenar, responder e falar de si sem ler; sessão concluída', async () => {
+await check('K09', 'Aplicar (L01): responder, recontar e falar de si sem ler; as seis etapas concluídas', async () => {
   const ok = await completeStage('L01', 'apply', 10);
   const st = await stages();
   const done = await app(() => window.DRG_APP.state.cards['q:L.Q3:conv']);
