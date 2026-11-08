@@ -1,0 +1,20 @@
+versão antiga f7bf4c19ac6f (já tem o Lukinhas) → nova bebe5f7e85e9 → seguinte teste-seguinte; 1805 arquivos
+✔ T01 Instalação inicial da versão antiga: pronta para offline — {"emUso":"f7bf4c19ac6f","caches":{"drgapp-f7bf4c19ac6f":1805}}
+✔ T02 Abertura com a versão antiga (sem versão nova): sem aviso; progresso de Lucas e Karla gravado — {"aviso":0,"progresso":"Lucas e Karla com cartões e XP"}
+✔ T03 Publicação da versão nova + abertura com internet: a versão nova é baixada e fica em espera — {"requisicoes":1806,"emUso":"f7bf4c19ac6f","emEspera":"bebe5f7e85e9","caches":{"drgapp-f7bf4c19ac6f":1805,"drgapp-bebe5f7e85e9":1805}}
+✔ T04 Indicador de download: “Baixando uma nova versão do aplicativo…” enquanto baixa; some quando termina — {"versaoAntigaMostrou":["Baixando uma nova versão do aplicativo…"],"observacao":"conferido na troca nova → seguinte (T21)"}
+✔ T05 Aviso “Nova versão disponível”; “Depois” esconde e a versão antiga continua — {"aviso":0,"emUso":"f7bf4c19ac6f"}
+✔ T06 Reabertura com a versão nova em espera: o cache dela continua completo e o aviso volta — {"cacheDaVersaoNova":["drgapp-bebe5f7e85e9",1805],"emEspera":"bebe5f7e85e9"}
+✔ T07 “Atualizar agora” depois da reabertura: a tela já mostra os dados novos, sem segundo recarregamento — {"emUso":"bebe5f7e85e9","caches":{"drgapp-bebe5f7e85e9":1805},"lukinhasNosDados":true,"codigoNovo":true,"telaInicial":"Daily Routine English | L"}
+✔ T08 Progresso de Lucas e Karla idêntico depois da atualização — {"identico":true}
+✔ T09 Compatibilidade: módulos do Lucas, da Karla e do Lukinhas abrem com as cinco etapas — {"R02":5,"K01":5,"L01":5}
+✔ T10 Offline depois da atualização (servidor desligado e rede cortada): app, Lukinhas, áudio dele e progresso — {"lukinhas":true,"audio":{"ok":true,"bytes":10321},"etapasL01":5,"progressoIgual":true}
+✔ T21 Versão seguinte: indicador de download aparece na tela inicial e é substituído pelo aviso de versão pronta — {"aviso":"Baixando uma nova versão do aplicativo…","depois":"Nova versão disponível"}
+✔ T22 Versão seguinte: reabrir com ela em espera + “Atualizar agora” → dados novos na hora; offline e progresso — {"emUso":"teste-seguinte","marcaNaTela":"versao-seguinte","offline":"versao-seguinte","progressoIgual":true}
+✔ T14 Download lento, aba normal do navegador: reabrir durante o download → aviso “Baixando…”, “Procurar atualização” informa o download; pronta → “Atualizar agora” → dados novos — {"modo":"manual","durante":{"installing":true,"registerNaFila":"pendente","appTemReg":true,"estado":"downloading","aviso":"Baixando uma nova versão do aplicativo…"},"ajustes":"Baixando a nova versão… o aviso aparece quando ela estiver pronta.","depois":{"emUso":"teste-seguinte","marca":"versao-seguinte"}}
+✔ T15 Download lento, modo app instalado (simulado): reabrir durante o download → aviso “Baixando…”, “Procurar atualização” informa o download; pronta → “Atualizar agora” → dados novos — {"modo":"standalone","durante":{"installing":true,"registerNaFila":"pendente","appTemReg":true,"estado":"downloading","aviso":"Baixando uma nova versão do aplicativo…"},"ajustes":"Baixando a nova versão… o aviso aparece quando ela estiver pronta.","depois":{"emUso":"teste-seguinte","marca":"versao-seguinte"}}
+✔ T11 Atualização imediata: versão nova baixada com o app aberto → “Atualizar agora” → dados novos — {"emUso":"bebe5f7e85e9","lukinhas":true}
+✔ T12 Fechar todas as janelas com a versão nova em espera (após uma reabertura) → abre direto nos dados novos — {"emUso":"bebe5f7e85e9","lukinhas":true,"caches":{"drgapp-bebe5f7e85e9":1805}}
+✔ T13 Download interrompido (navegador encerrado no meio): ao reabrir com internet, conclui; atualização traz os dados novos — {"duranteODownload":{"drgapp-f7bf4c19ac6f":1805,"drgapp-bebe5f7e85e9":440},"depois":{"drgapp-bebe5f7e85e9":1805},"lukinhas":true}
+
+17 aprovados, 0 reprovados

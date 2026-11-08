@@ -1,4 +1,4 @@
-# HANDOFF — estado atual (atualizado em 2026-10-31)
+# HANDOFF — estado atual (atualizado em 2026-11-08)
 
 ## Protocolo para uma conversa nova
 
@@ -14,16 +14,33 @@
 7. Ao fim de cada sessão relevante: atualizar este arquivo, commitar e **enviar a branch de desenvolvimento**
    (regra permanente: nada importante só no ambiente temporário).
 
+## 0. Entrega de 2026-11-08 — Curso — Atividades (publicada)
+
+- **O quê:** área independente “Curso — Atividades” (`#/course`): atividades de tradução inglês → português do curso do
+  usuário, uma questão por vez, salvamento automático, retomada, edição, checagem básica local (orientação), correção do
+  professor por questão e exportação TXT só com tudo concluído. Detalhes: `docs/curso-atividades.md`.
+- **Decisões do responsável:** nome neutro no app público; texto das atividades **importado no aparelho** (Início →
+  Curso — Atividades → Importar atividade). **Nunca versionar o texto de uma atividade** (testes: conteúdo sintético
+  ou `DRG_COURSE_FILE` apontando para um arquivo fora do repositório).
+- **Base:** a versão publicada `b25ebbc` (não a `remodelagem`). Commits `cf65d9c`, `7eefdac` e o desta atualização;
+  publicado por fast-forward de `gh-pages` = `mvp-jornadas`.
+- **Regressão completa no build publicado** (logs em `dev/evidence/2026-11-08/`): unitários 207/207; Curso 13/13 com o
+  arquivo real (21 questões, 210 blocos) e 13/13 sintético; MVP 14/14; Personagens 14/14; Conversation Practice
+  10/10; Armazenamento 10/10; Prática de palavras 15/15; Lukinhas 12/12; PWA 14/14; troca real `b25ebbc` → nova
+  17/17; simulação do Pages 37/37; E2E local 37/37; reconhecimento de voz: ver o log da pasta.
+- **Atenção para a `remodelagem`:** ela foi criada antes desta entrega e **não tem** a área do curso. Antes de publicá-la,
+  integrar `mvp-jornadas` (merge) para não remover a área nem os dados do usuário (os dados ficam em `kv` → `course`).
+
 ## 1. Estado do Git
 
 | Item | Estado |
 |---|---|
 | Repositório | `https://github.com/Lucas-Marinho-FPA/daily-routine-english` |
-| Branch de desenvolvimento | `mvp-jornadas` — **no GitHub** desde 2026-10-31 |
+| Branch de desenvolvimento | `mvp-jornadas` (= publicado) · `remodelagem` (remodelagem integral, não publicada; ver seção 0) |
 | Histórico de `mvp-jornadas` | `0d096ad` ← `be86c74` ← `1181ea5` ← `523db11` ← `6a0c5b6` ← `0719ac7` ← `aa9c8f8` ← `b582c29` … |
 | Lukinhas | `523db11` (módulo) e `1181ea5` (correção do “null”) — originais, preservados |
 | Preservação | `be86c74` (`dev/`, `CLAUDE.md`, `HANDOFF.md`) e `0d096ad` (correção do `setup-workdir.sh`) |
-| Publicado (GitHub Pages) | `gh-pages` = `6a0c5b6` (MVP + PWA, **sem** o Lukinhas) |
+| Publicado (GitHub Pages) | `gh-pages` = `mvp-jornadas` (Lukinhas + correções do PWA `b25ebbc` + Curso — Atividades) |
 | `main` remota | `13de9d2` (não alterar sem autorização) |
 | `cp-publicacao` remota | `b582c29` (preserva também a versão publicada anterior ao MVP) |
 | `main` local (só no ambiente antigo) | continha `c0cb6c8` (material do livro) — **nunca enviar** |
