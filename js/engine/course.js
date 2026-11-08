@@ -99,10 +99,104 @@ export function exportProblems(act) {
 export function exportText(act) {
   if (exportProblems(act).length) return null;
   const parts = act.questions.map((q) => {
-    const a = answersOf(act, q.n);
+    const a = officialAnswers(act, q.n);
     return [`QUESTÃO ${q.n}`, ...q.blocks.flatMap((en, i) => [en, a[i].trim()])].join('\n');
   });
   return `${parts.join('\n\n')}\n`;
+}
+
+// ---------- importar respostas (TXT exportado) e correções do professor ----------
+// Formato = o da exportação: “QUESTÃO n”, depois cada bloco em inglês seguido da resposta em português. A questão é
+// identificada pelo NÚMERO e conferida pelo TEXTO EM INGLÊS de cada bloco (o da atividade já importada no aparelho);
+// a resposta é tudo o que fica entre um bloco em inglês e o seguinte — não depende da posição das linhas (aceita
+// linhas em branco a mais, resposta em várias linhas, CRLF, título antes da 1ª questão).
+
+/** Atividade validada pelo professor nesta questão? (a versão dele é a resposta oficial) */
+export const isValidated = (act, n) => !!(act.teacher[n] && act.teacher[n].validatedAt);
+/** Resposta de referência: a validada pelo professor, se houver; senão a do aluno. */
+export const officialAnswers = (act, n) => (isValidated(act, n) ? act.teacher[n].blocks.slice() : answersOf(act, n));
+
+const same = (s) => String(s || '').normalize('NFC').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/**
+ * Lê um TXT de respostas para a atividade `act`. Não altera nada.
+ * → { questions: [{ n, answers: [pt…] }], errors: [texto], warnings: [texto], matched }
+ *   errors: questão inexistente, repetida, bloco em inglês que não confere, estrutura inesperada (impedem a importação)
+ *   warnings: blocos sem resposta (a resposta atual desses blocos é mantida)
+ */
+export function readAnswers(text, act) {
+  const lines = String(text || '').replace(/^﻿/, '').split(/\r\n|\r|\n/).map((l) => l.replace(/\s+$/, ''));
+  const sections = [];
+  let cur = null;
+  for (const line of lines) {
+    const m = line.trim().match(Q_HEAD);
+    if (m) { cur = { n: Number(m[1]), lines: [] }; sections.push(cur); continue; }
+    if (cur) cur.lines.push(line);
+  }
+  const errors = [], warnings = [], questions = [];
+  if (!sections.length) errors.push('Nenhuma questão encontrada no arquivo (as questões começam com “QUESTÃO 1”, “QUESTÃO 2”…).');
+  const seen = new Set();
+  for (const sec of sections) {
+    const q = act.questions.find((x) => x.n === sec.n);
+    if (!q) { errors.push(`Questão ${sec.n}: não existe na atividade “${act.title}”.`); continue; }
+    if (seen.has(sec.n)) { errors.push(`Questão ${sec.n}: aparece mais de uma vez no arquivo.`); continue; }
+    seen.add(sec.n);
+    const L = sec.lines;
+    const pos = [];
+    let from = 0;
+    let bad = null;
+    for (let k = 0; k < q.blocks.length; k++) {
+      let j = from;
+      while (j < L.length && same(L[j]) !== same(q.blocks[k])) j++;
+      if (j >= L.length) { bad = `Questão ${sec.n}: o bloco ${k + 1} em inglês não foi encontrado (${q.blocks[k].slice(0, 60)}${q.blocks[k].length > 60 ? '…' : ''}) — o arquivo não confere com a atividade.`; break; }
+      if (k === 0 && L.slice(0, j).some((x) => x.trim())) { bad = `Questão ${sec.n}: há texto antes do primeiro bloco em inglês.`; break; }
+      pos.push(j);
+      from = j + 2; // a resposta ocupa ao menos uma linha
+    }
+    if (bad) { errors.push(bad); continue; }
+    const answers = pos.map((p, k) => L.slice(p + 1, k + 1 < pos.length ? pos[k + 1] : L.length).join('\n').trim());
+    const empty = answers.map((a, i) => (a ? null : i + 1)).filter(Boolean);
+    if (empty.length) warnings.push(`Questão ${sec.n}: ${empty.length === 1 ? 'bloco' : 'blocos'} ${empty.join(', ')} sem resposta no arquivo.`);
+    questions.push({ n: sec.n, answers });
+  }
+  return { questions, errors, warnings, matched: questions.length };
+}
+
+/** Entre as atividades do aparelho, a que confere com o arquivo (sem erros e com mais questões identificadas). */
+export function matchAnswers(text, activities) {
+  let best = null;
+  for (const act of activities) {
+    const r = readAnswers(text, act);
+    const score = (r.errors.length ? 0 : 1e6) + r.matched;
+    if (!best || score > best.score) best = { act, ...r, score };
+  }
+  return best;
+}
+
+/** Aplica as respostas do aluno. Questões validadas pelo professor não mudam; bloco vazio no arquivo mantém o atual. */
+export function applyOwnAnswers(act, read, now = Date.now()) {
+  const updated = [], keptValidated = [];
+  for (const { n, answers } of read.questions) {
+    if (isValidated(act, n)) { keptValidated.push(n); continue; }
+    const cur = answersOf(act, n);
+    act.answers[n] = cur.map((old, i) => (answers[i] ? answers[i] : old));
+    finishQuestion(act, n, now); // completa → conta como concluída (sem completar, fica em andamento)
+    updated.push(n);
+  }
+  return { updated, keptValidated };
+}
+
+/** Aplica as correções do professor: a versão corrigida passa a ser A resposta da questão, validada. */
+export function applyTeacherAnswers(act, read, now = Date.now()) {
+  const validated = [], incomplete = [];
+  for (const { n, answers } of read.questions) {
+    if (answers.some((a) => !a)) { incomplete.push(n); continue; }
+    act.answers[n] = answers.slice();
+    act.teacher[n] = { blocks: answers.slice(), validatedAt: now, imported: true };
+    act.done[n] = act.done[n] || now;
+    validated.push(n);
+  }
+  return { validated, incomplete };
 }
 
 // ---------- checagem básica (orientação de estudo; NÃO avalia o sentido nem substitui a correção) ----------

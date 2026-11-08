@@ -513,7 +513,7 @@
       const merX = (x.match(/(am|pm)$/) || [])[1], merY = (y.match(/(am|pm)$/) || [])[1];
       return cx === cy && (!merX || !merY || merX === merY);
     };
-    const same = (a, b) => a.length === b.length && a.every((t, i) => t === b[i] || timeEq(t, b[i]));
+    const same2 = (a, b) => a.length === b.length && a.every((t, i) => t === b[i] || timeEq(t, b[i]));
     const spellEq = (x, y) => {
       if (x === y || timeEq(x, y)) return true;
       if (x[0] === "@" || y[0] === "@" || /^\d+$/.test(x) || /^\d+$/.test(y)) return false;
@@ -587,12 +587,12 @@
       const prepared = allTargets.map((t) => ({ text: t, ...prepare(t) }));
       const P0 = prepared[0];
       const natural = naturalnessNotes(A);
-      if (same(A.base, P0.base)) return natural.length ? result("accepted_variant", { notes: natural }) : result("correct");
-      if (A.ame && same(A.bre, P0.bre)) return result("variant_ame", { notes: ["Grafia americana aceita. No ingl\xEAs brit\xE2nico: " + P0.text, ...natural] });
+      if (same2(A.base, P0.base)) return natural.length ? result("accepted_variant", { notes: natural }) : result("correct");
+      if (A.ame && same2(A.bre, P0.bre)) return result("variant_ame", { notes: ["Grafia americana aceita. No ingl\xEAs brit\xE2nico: " + P0.text, ...natural] });
       const soft = ruleHits(raw, model).filter((h2) => h2.soft).map((h2) => h2.msg);
       for (let i = 0; i < prepared.length; i++) {
         const P2 = prepared[i];
-        if (same(A.full, P2.full) || same(A.bre, P2.bre)) {
+        if (same2(A.full, P2.full) || same2(A.bre, P2.bre)) {
           const fromUser = i >= targets.length;
           const note = i === 0 ? "Variante equivalente aceita." : fromUser ? "Aceita por voc\xEA anteriormente (variante pessoal)." : `Variante aceita: \u201C${P2.text}\u201D.`;
           return result("accepted_variant", { notes: [note, ...A.ame ? ["Grafia americana: no BrE use a forma brit\xE2nica."] : [], ...natural, ...soft] });
@@ -3570,11 +3570,107 @@
   function exportText(act) {
     if (exportProblems(act).length) return null;
     const parts = act.questions.map((q) => {
-      const a = answersOf(act, q.n);
+      const a = officialAnswers(act, q.n);
       return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en, i) => [en, a[i].trim()])].join("\n");
     });
     return `${parts.join("\n\n")}
 `;
+  }
+  var isValidated = (act, n) => !!(act.teacher[n] && act.teacher[n].validatedAt);
+  var officialAnswers = (act, n) => isValidated(act, n) ? act.teacher[n].blocks.slice() : answersOf(act, n);
+  var same = (s) => String(s || "").normalize("NFC").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").replace(/\s+/g, " ").trim().toLowerCase();
+  function readAnswers(text, act) {
+    const lines = String(text || "").replace(/^﻿/, "").split(/\r\n|\r|\n/).map((l) => l.replace(/\s+$/, ""));
+    const sections = [];
+    let cur = null;
+    for (const line of lines) {
+      const m = line.trim().match(Q_HEAD);
+      if (m) {
+        cur = { n: Number(m[1]), lines: [] };
+        sections.push(cur);
+        continue;
+      }
+      if (cur) cur.lines.push(line);
+    }
+    const errors = [], warnings = [], questions = [];
+    if (!sections.length) errors.push("Nenhuma quest\xE3o encontrada no arquivo (as quest\xF5es come\xE7am com \u201CQUEST\xC3O 1\u201D, \u201CQUEST\xC3O 2\u201D\u2026).");
+    const seen = /* @__PURE__ */ new Set();
+    for (const sec of sections) {
+      const q = act.questions.find((x) => x.n === sec.n);
+      if (!q) {
+        errors.push(`Quest\xE3o ${sec.n}: n\xE3o existe na atividade \u201C${act.title}\u201D.`);
+        continue;
+      }
+      if (seen.has(sec.n)) {
+        errors.push(`Quest\xE3o ${sec.n}: aparece mais de uma vez no arquivo.`);
+        continue;
+      }
+      seen.add(sec.n);
+      const L = sec.lines;
+      const pos = [];
+      let from = 0;
+      let bad = null;
+      for (let k = 0; k < q.blocks.length; k++) {
+        let j = from;
+        while (j < L.length && same(L[j]) !== same(q.blocks[k])) j++;
+        if (j >= L.length) {
+          bad = `Quest\xE3o ${sec.n}: o bloco ${k + 1} em ingl\xEAs n\xE3o foi encontrado (${q.blocks[k].slice(0, 60)}${q.blocks[k].length > 60 ? "\u2026" : ""}) \u2014 o arquivo n\xE3o confere com a atividade.`;
+          break;
+        }
+        if (k === 0 && L.slice(0, j).some((x) => x.trim())) {
+          bad = `Quest\xE3o ${sec.n}: h\xE1 texto antes do primeiro bloco em ingl\xEAs.`;
+          break;
+        }
+        pos.push(j);
+        from = j + 2;
+      }
+      if (bad) {
+        errors.push(bad);
+        continue;
+      }
+      const answers = pos.map((p, k) => L.slice(p + 1, k + 1 < pos.length ? pos[k + 1] : L.length).join("\n").trim());
+      const empty = answers.map((a, i) => a ? null : i + 1).filter(Boolean);
+      if (empty.length) warnings.push(`Quest\xE3o ${sec.n}: ${empty.length === 1 ? "bloco" : "blocos"} ${empty.join(", ")} sem resposta no arquivo.`);
+      questions.push({ n: sec.n, answers });
+    }
+    return { questions, errors, warnings, matched: questions.length };
+  }
+  function matchAnswers(text, activities) {
+    let best = null;
+    for (const act of activities) {
+      const r = readAnswers(text, act);
+      const score = (r.errors.length ? 0 : 1e6) + r.matched;
+      if (!best || score > best.score) best = { act, ...r, score };
+    }
+    return best;
+  }
+  function applyOwnAnswers(act, read, now = Date.now()) {
+    const updated = [], keptValidated = [];
+    for (const { n, answers } of read.questions) {
+      if (isValidated(act, n)) {
+        keptValidated.push(n);
+        continue;
+      }
+      const cur = answersOf(act, n);
+      act.answers[n] = cur.map((old, i) => answers[i] ? answers[i] : old);
+      finishQuestion(act, n, now);
+      updated.push(n);
+    }
+    return { updated, keptValidated };
+  }
+  function applyTeacherAnswers(act, read, now = Date.now()) {
+    const validated = [], incomplete = [];
+    for (const { n, answers } of read.questions) {
+      if (answers.some((a) => !a)) {
+        incomplete.push(n);
+        continue;
+      }
+      act.answers[n] = answers.slice();
+      act.teacher[n] = { blocks: answers.slice(), validatedAt: now, imported: true };
+      act.done[n] = act.done[n] || now;
+      validated.push(n);
+    }
+    return { validated, incomplete };
   }
   var fold = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u2018\u2019]/g, "'").toLowerCase();
   var words = (s) => fold(s).match(/[a-z0-9']+/g) || [];
@@ -3689,6 +3785,7 @@
     view.append(
       h("p", { class: "small muted", text: "Atividades de tradu\xE7\xE3o do curso (ingl\xEAs \u2192 portugu\xEAs). O texto de cada atividade \xE9 importado por voc\xEA e fica s\xF3 neste aparelho, junto com as suas respostas." }),
       list,
+      transferCard(() => drawList()),
       importCard(App2, () => drawList())
     );
     async function drawList() {
@@ -3723,6 +3820,71 @@
     return () => {
       flushCourse();
     };
+  }
+  function transferCard(onDone) {
+    const out = h("div", { "data-role": "transfer-status" });
+    const pick = (kind) => h("input", {
+      type: "file",
+      accept: ".txt,text/plain",
+      class: "hidden",
+      "data-role": `import-${kind}`,
+      onchange: async (e) => {
+        const f = e.target.files[0];
+        e.target.value = "";
+        if (f) await preview(kind, await f.text());
+      }
+    });
+    async function preview(kind, text) {
+      const d = await loadCourse();
+      out.replaceChildren();
+      const acts = Object.values(d.activities);
+      if (!acts.length) {
+        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, "Importe primeiro o texto da atividade (abaixo); depois, as respostas."));
+        return;
+      }
+      const r = matchAnswers(text, acts);
+      const teacher = kind === "teacher";
+      const errs = r.errors.slice();
+      if (teacher) for (const q of r.questions) {
+        const miss = q.answers.map((a, i) => a ? null : i + 1).filter(Boolean);
+        if (miss.length) errs.push(`Quest\xE3o ${q.n}: corre\xE7\xE3o sem resposta no${miss.length === 1 ? " bloco" : "s blocos"} ${miss.join(", ")}.`);
+      }
+      const list = (items) => h("ul", { style: { margin: "6px 0 0", paddingLeft: "18px" } }, items.map((x) => h("li", { text: x })));
+      if (errs.length || !r.questions.length) {
+        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, h("b", { text: "Nada foi alterado. O arquivo n\xE3o confere com a atividade:" }), list(errs.length ? errs : ["nenhuma quest\xE3o identificada"])));
+        return;
+      }
+      const act = r.act;
+      const nums = r.questions.map((q) => q.n);
+      const blocks = r.questions.reduce((n, q) => n + q.answers.length, 0);
+      const kept = teacher ? [] : nums.filter((n) => isValidated(act, n));
+      const what = teacher ? `${nums.length} ${nums.length === 1 ? "quest\xE3o ser\xE1 marcada" : "quest\xF5es ser\xE3o marcadas"} como validada${nums.length === 1 ? "" : "s"} pelo professor; a vers\xE3o corrigida passa a ser a resposta oficial.` : `${nums.length - kept.length} ${nums.length - kept.length === 1 ? "quest\xE3o ser\xE1 atualizada" : "quest\xF5es ser\xE3o atualizadas"} com as suas respostas${kept.length ? `; ${kept.length} j\xE1 validada${kept.length === 1 ? "" : "s"} pelo professor (${kept.join(", ")}) n\xE3o muda${kept.length === 1 ? "" : "m"}` : ""}.`;
+      const apply = h("button", { class: "btn primary", "data-role": "transfer-apply", onclick: async () => {
+        const res = teacher ? applyTeacherAnswers(act, r) : applyOwnAnswers(act, r);
+        d.last = act.id;
+        await saveNow();
+        out.replaceChildren(h("div", { class: "notice ok", "data-role": "transfer-ok" }, teacher ? `Corre\xE7\xF5es importadas: ${res.validated.length} ${res.validated.length === 1 ? "quest\xE3o validada" : "quest\xF5es validadas"} pelo professor (${res.validated.join(", ")}).` : `Respostas importadas: ${res.updated.length} ${res.updated.length === 1 ? "quest\xE3o atualizada" : "quest\xF5es atualizadas"}${res.keptValidated.length ? `; ${res.keptValidated.length} validadas mantidas` : ""}.`));
+        onDone();
+      } }, icon("check"), "Aplicar");
+      out.append(h(
+        "div",
+        { class: "notice", "data-role": "transfer-preview" },
+        h("b", { text: `${act.title}: ${nums.length} de ${act.questions.length} quest\xF5es identificadas no arquivo (${blocks} blocos).` }),
+        h("p", { style: { margin: "6px 0" }, text: what }),
+        r.warnings.length ? h("div", { class: "small" }, "Avisos (a resposta atual desses blocos \xE9 mantida):", list(r.warnings)) : null,
+        h("div", { class: "row", style: { marginTop: "8px" } }, apply, h("button", { class: "btn", "data-role": "transfer-cancel", onclick: () => out.replaceChildren() }, "Cancelar"))
+      ));
+    }
+    return h(
+      "details",
+      { class: "more card", "data-role": "transfer" },
+      h("summary", { text: "Transferir respostas e corre\xE7\xF5es" }),
+      h("p", { class: "small muted", text: "Use o arquivo .txt exportado por este app (em outro aparelho, por exemplo o computador). As quest\xF5es s\xE3o identificadas pelo n\xFAmero e conferidas pelo texto em ingl\xEAs; nada \xE9 alterado se o arquivo n\xE3o conferir. Tudo fica s\xF3 neste aparelho." }),
+      h("label", { class: "btn block" }, icon("upload"), "Importar minhas respostas", pick("own")),
+      h("label", { class: "btn block", style: { marginTop: "8px" } }, icon("check"), "Importar corre\xE7\xF5es do professor", pick("teacher")),
+      h("p", { class: "tiny muted", style: { margin: "6px 0 0" }, text: "Corre\xE7\xF5es do professor: o mesmo formato, com as tradu\xE7\xF5es corrigidas. Cada quest\xE3o do arquivo passa a ter a vers\xE3o corrigida como resposta oficial (validada). Pode importar de novo quando houver novas corre\xE7\xF5es." }),
+      h("div", { style: { marginTop: "10px" } }, out)
+    );
   }
   function importCard(App2, onDone) {
     const status3 = h("div", { "data-role": "import-status" });
@@ -3853,6 +4015,7 @@
           }
         });
         ta.value = answersOf(act, n)[i];
+        if (isValidated(act, n)) ta.disabled = true;
         return { ta, el: h(
           "div",
           { class: "card flat", style: { marginTop: "10px" }, "data-role": "block", "data-pos": i },
@@ -3863,7 +4026,7 @@
         ) };
       });
       function drawChecks() {
-        const show = !!act.done[n];
+        const show = !!act.done[n] && !isValidated(act, n);
         const a = answersOf(act, n);
         checks.forEach((chip, i) => {
           chip.replaceChildren();
@@ -3896,12 +4059,12 @@
       view.append(...[
         head,
         nav,
-        h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
+        isValidated(act, n) ? h("div", { class: "notice ok", "data-role": "official-answer" }, `Resposta oficial: validada pelo professor em ${fmtDay(act.teacher[n].validatedAt)}. \xC9 ela que vale para revis\xF5es e exporta\xE7\xE3o.`) : h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
         ...areas.map((x) => x.el),
         msg,
         h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save),
-        act.done[n] ? h("p", { class: "small muted", "data-role": "check-note", text: "A checagem b\xE1sica \xE9 s\xF3 uma orienta\xE7\xE3o de estudo (sinais como texto ainda em ingl\xEAs, partes faltando, n\xFAmeros, nomes, perguntas e nega\xE7\xF5es). Ela n\xE3o avalia o sentido, n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
-        act.done[n] ? teacherBox(act, n, statusChips) : null,
+        act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A checagem b\xE1sica \xE9 s\xF3 uma orienta\xE7\xE3o de estudo (sinais como texto ainda em ingl\xEAs, partes faltando, n\xFAmeros, nomes, perguntas e nega\xE7\xF5es). Ela n\xE3o avalia o sentido, n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
+        act.done[n] ? teacherBox(act, n, () => App2.go(qHref(act.id, n))) : null,
         last && isDone(act, n) ? exportBox(act) : null
       ].filter(Boolean));
       areas.forEach((x) => autosize(x.ta));
@@ -3917,7 +4080,7 @@
     ta.style.height = "auto";
     ta.style.height = `${Math.max(56, ta.scrollHeight + 2)}px`;
   }
-  function teacherBox(act, n, onChange) {
+  function teacherBox(act, n, redraw) {
     const q = act.questions.find((x) => x.n === n);
     const sub = act.submitted[n];
     const body = h("div");
@@ -3939,12 +4102,11 @@
         } }, "Registrar a corre\xE7\xE3o do professor"));
         return;
       }
-      q.blocks.forEach((en, i) => {
+      if (!validated) q.blocks.forEach((en, i) => {
         const ta = h("textarea", {
           class: "field",
           rows: 2,
           lang: "pt-BR",
-          disabled: validated,
           "aria-label": `Vers\xE3o corrigida do bloco ${i + 1}`,
           "data-role": "teacher-pt",
           oninput: () => {
@@ -3972,9 +4134,8 @@
           h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "teacher-edit", onclick: async () => {
             if (!await confirmSheet("Editar a corre\xE7\xE3o?", "A quest\xE3o deixa de estar validada at\xE9 voc\xEA validar de novo.", { ok: "Editar" })) return;
             t.validatedAt = null;
-            saveSoon2();
-            draw();
-            onChange();
+            await saveNow();
+            redraw();
           } }, "Editar a corre\xE7\xE3o")
         );
       } else {
@@ -3986,10 +4147,10 @@
             return;
           }
           t.validatedAt = Date.now();
+          act.answers[n] = t.blocks.slice();
           await saveNow();
-          draw();
-          onChange();
           toast("Quest\xE3o validada pelo professor.");
+          redraw();
         } }, icon("check"), "Marcar como validada pelo professor"));
       }
     }

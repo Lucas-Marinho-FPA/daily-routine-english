@@ -40,6 +40,25 @@ Reimportar o mesmo arquivo mantém as respostas (identificador = hash do conteú
 outra atividade. A divisão em blocos é linha a linha (instrução do arquivo da Part 4); quando houver os exemplos de
 segmentação da Part 3, basta ajustar as quebras de linha do arquivo antes de importar.
 
+## Transferir respostas e correções do professor (2026-11-08)
+
+Área **Curso — Atividades → Transferir respostas e correções** (a atividade precisa estar importada no aparelho):
+
+- **Importar minhas respostas:** o `.txt` exportado por este app em outro aparelho. Cada questão do arquivo atualiza
+  as respostas daquela questão (bloco vazio no arquivo mantém o atual); questões validadas pelo professor não mudam.
+  As respostas ficam visíveis e editáveis normalmente.
+- **Importar correções do professor:** o mesmo formato, com as traduções corrigidas (pode conter só algumas
+  questões). Cada questão do arquivo passa a ter a versão corrigida como **a** resposta, marcada como validada pelo
+  professor (resposta oficial, campos travados; “Editar a correção” desfaz a validação). Importar de novo atualiza.
+- **Leitura segura:** questão identificada pelo **número** e conferida pelo **texto em inglês** de cada bloco; a
+  resposta é o que fica entre um bloco em inglês e o seguinte (não depende da posição das linhas; aceita CRLF, título,
+  linhas em branco e respostas em várias linhas). Questão inexistente, repetida ou com inglês que não confere →
+  aviso e **nada é alterado**. Antes de aplicar, uma prévia mostra o que será feito.
+- **Resposta oficial:** com validação, a versão do professor é a resposta usada (`officialAnswers`), inclusive na
+  exportação; sem validação, vale a resposta pessoal. Hoje nenhum exercício do app usa as respostas do curso; quando
+  usar, deve ler `officialAnswers`.
+- Tudo é lido e gravado só no aparelho (IndexedDB), offline; nada é enviado.
+
 ## Formato exportado
 
 ```

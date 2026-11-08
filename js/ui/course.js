@@ -5,6 +5,7 @@ import { h, icon, toast, bar, confirmSheet } from './dom.js';
 import { getKv, putKv } from '../store/db.js';
 import {
   parseActivity, newActivity, answersOf, isDone, summary, canOpen, finishQuestion,
+  isValidated, matchAnswers, applyOwnAnswers, applyTeacherAnswers,
   exportProblems, exportText, checkTranslation, CHECK_LABEL, CHECK_CLASS,
 } from '../engine/course.js';
 
@@ -63,6 +64,7 @@ export function renderCourse(App) {
   view.append(
     h('p', { class: 'small muted', text: 'Atividades de tradução do curso (inglês → português). O texto de cada atividade é importado por você e fica só neste aparelho, junto com as suas respostas.' }),
     list,
+    transferCard(() => drawList()),
     importCard(App, () => drawList()));
   async function drawList() {
     const d = await loadCourse();
@@ -83,6 +85,57 @@ export function renderCourse(App) {
   }
   drawList();
   return () => { flushCourse(); };
+}
+
+// ---------- transferir respostas entre aparelhos (TXT exportado) e importar correções do professor ----------
+// Tudo é lido e gravado só neste aparelho. Antes de alterar qualquer coisa, mostra o que será feito e os problemas.
+function transferCard(onDone) {
+  const out = h('div', { 'data-role': 'transfer-status' });
+  const pick = (kind) => h('input', { type: 'file', accept: '.txt,text/plain', class: 'hidden', 'data-role': `import-${kind}`,
+    onchange: async (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) await preview(kind, await f.text()); } });
+  async function preview(kind, text) {
+    const d = await loadCourse();
+    out.replaceChildren();
+    const acts = Object.values(d.activities);
+    if (!acts.length) { out.append(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, 'Importe primeiro o texto da atividade (abaixo); depois, as respostas.')); return; }
+    const r = matchAnswers(text, acts);
+    const teacher = kind === 'teacher';
+    const errs = r.errors.slice();
+    if (teacher) for (const q of r.questions) { const miss = q.answers.map((a, i) => (a ? null : i + 1)).filter(Boolean); if (miss.length) errs.push(`Questão ${q.n}: correção sem resposta no${miss.length === 1 ? ' bloco' : 's blocos'} ${miss.join(', ')}.`); }
+    const list = (items) => h('ul', { style: { margin: '6px 0 0', paddingLeft: '18px' } }, items.map((x) => h('li', { text: x })));
+    if (errs.length || !r.questions.length) {
+      out.append(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, h('b', { text: 'Nada foi alterado. O arquivo não confere com a atividade:' }), list(errs.length ? errs : ['nenhuma questão identificada'])));
+      return;
+    }
+    const act = r.act;
+    const nums = r.questions.map((q) => q.n);
+    const blocks = r.questions.reduce((n, q) => n + q.answers.length, 0);
+    const kept = teacher ? [] : nums.filter((n) => isValidated(act, n));
+    const what = teacher
+      ? `${nums.length} ${nums.length === 1 ? 'questão será marcada' : 'questões serão marcadas'} como validada${nums.length === 1 ? '' : 's'} pelo professor; a versão corrigida passa a ser a resposta oficial.`
+      : `${nums.length - kept.length} ${nums.length - kept.length === 1 ? 'questão será atualizada' : 'questões serão atualizadas'} com as suas respostas${kept.length ? `; ${kept.length} já validada${kept.length === 1 ? '' : 's'} pelo professor (${kept.join(', ')}) não muda${kept.length === 1 ? '' : 'm'}` : ''}.`;
+    const apply = h('button', { class: 'btn primary', 'data-role': 'transfer-apply', onclick: async () => {
+      const res = teacher ? applyTeacherAnswers(act, r) : applyOwnAnswers(act, r);
+      d.last = act.id;
+      await saveNow();
+      out.replaceChildren(h('div', { class: 'notice ok', 'data-role': 'transfer-ok' }, teacher
+        ? `Correções importadas: ${res.validated.length} ${res.validated.length === 1 ? 'questão validada' : 'questões validadas'} pelo professor (${res.validated.join(', ')}).`
+        : `Respostas importadas: ${res.updated.length} ${res.updated.length === 1 ? 'questão atualizada' : 'questões atualizadas'}${res.keptValidated.length ? `; ${res.keptValidated.length} validadas mantidas` : ''}.`));
+      onDone();
+    } }, icon('check'), 'Aplicar');
+    out.append(h('div', { class: 'notice', 'data-role': 'transfer-preview' },
+      h('b', { text: `${act.title}: ${nums.length} de ${act.questions.length} questões identificadas no arquivo (${blocks} blocos).` }),
+      h('p', { style: { margin: '6px 0' }, text: what }),
+      r.warnings.length ? h('div', { class: 'small' }, 'Avisos (a resposta atual desses blocos é mantida):', list(r.warnings)) : null,
+      h('div', { class: 'row', style: { marginTop: '8px' } }, apply, h('button', { class: 'btn', 'data-role': 'transfer-cancel', onclick: () => out.replaceChildren() }, 'Cancelar'))));
+  }
+  return h('details', { class: 'more card', 'data-role': 'transfer' },
+    h('summary', { text: 'Transferir respostas e correções' }),
+    h('p', { class: 'small muted', text: 'Use o arquivo .txt exportado por este app (em outro aparelho, por exemplo o computador). As questões são identificadas pelo número e conferidas pelo texto em inglês; nada é alterado se o arquivo não conferir. Tudo fica só neste aparelho.' }),
+    h('label', { class: 'btn block' }, icon('upload'), 'Importar minhas respostas', pick('own')),
+    h('label', { class: 'btn block', style: { marginTop: '8px' } }, icon('check'), 'Importar correções do professor', pick('teacher')),
+    h('p', { class: 'tiny muted', style: { margin: '6px 0 0' }, text: 'Correções do professor: o mesmo formato, com as traduções corrigidas. Cada questão do arquivo passa a ter a versão corrigida como resposta oficial (validada). Pode importar de novo quando houver novas correções.' }),
+    h('div', { style: { marginTop: '10px' } }, out));
 }
 
 function importCard(App, onDone) {
@@ -172,13 +225,14 @@ export function renderCourseQuestion(App, r) {
         },
         onfocus: () => { act.pos = { q: n, b: i }; saveSoon(); } });
       ta.value = answersOf(act, n)[i];
+      if (isValidated(act, n)) ta.disabled = true; // resposta oficial: muda só por “Editar a correção”
       return { ta, el: h('div', { class: 'card flat', style: { marginTop: '10px' }, 'data-role': 'block', 'data-pos': i },
         h('div', { class: 'small muted', text: i === 0 ? 'Título da questão' : `Bloco ${i + 1}` }),
         h('p', { lang: 'en', style: { margin: '4px 0 8px', fontWeight: 600 }, 'data-role': 'block-en', text: en }),
         ta, chip) };
     });
     function drawChecks() {
-      const show = !!act.done[n];
+      const show = !!act.done[n] && !isValidated(act, n); // resposta oficial do professor: sem checagem automática
       const a = answersOf(act, n);
       checks.forEach((chip, i) => {
         chip.replaceChildren();
@@ -205,11 +259,13 @@ export function renderCourseQuestion(App, r) {
     } }, icon('check'), last ? 'Salvar e concluir a atividade' : 'Salvar e avançar');
 
     view.append(...[head, nav,
-      h('p', { class: 'small muted', text: 'Traduza cada bloco para o português. As respostas são salvas automaticamente enquanto você digita.' }),
+      isValidated(act, n)
+        ? h('div', { class: 'notice ok', 'data-role': 'official-answer' }, `Resposta oficial: validada pelo professor em ${fmtDay(act.teacher[n].validatedAt)}. É ela que vale para revisões e exportação.`)
+        : h('p', { class: 'small muted', text: 'Traduza cada bloco para o português. As respostas são salvas automaticamente enquanto você digita.' }),
       ...areas.map((x) => x.el), msg,
       h('div', { class: 'row nowrap', style: { marginTop: '14px' } }, prev, save),
-      act.done[n] ? h('p', { class: 'small muted', 'data-role': 'check-note', text: 'A checagem básica é só uma orientação de estudo (sinais como texto ainda em inglês, partes faltando, números, nomes, perguntas e negações). Ela não avalia o sentido, não muda sua resposta e não é a correção oficial.' }) : null,
-      act.done[n] ? teacherBox(act, n, statusChips) : null,
+      act.done[n] && !isValidated(act, n) ? h('p', { class: 'small muted', 'data-role': 'check-note', text: 'A checagem básica é só uma orientação de estudo (sinais como texto ainda em inglês, partes faltando, números, nomes, perguntas e negações). Ela não avalia o sentido, não muda sua resposta e não é a correção oficial.' }) : null,
+      act.done[n] ? teacherBox(act, n, () => App.go(qHref(act.id, n))) : null,
       last && isDone(act, n) ? exportBox(act) : null].filter(Boolean)); // append nativo escreveria “null”
     areas.forEach((x) => autosize(x.ta));
     const at = view.querySelector(`[data-pos="${act.pos.b}"]`);
@@ -221,7 +277,7 @@ export function renderCourseQuestion(App, r) {
 function autosize(ta) { ta.style.height = 'auto'; ta.style.height = `${Math.max(56, ta.scrollHeight + 2)}px`; }
 
 // ---------- correção do professor (por questão, independente; não bloqueia o avanço) ----------
-function teacherBox(act, n, onChange) {
+function teacherBox(act, n, redraw) {
   const q = act.questions.find((x) => x.n === n);
   const sub = act.submitted[n];
   const body = h('div');
@@ -239,8 +295,8 @@ function teacherBox(act, n, onChange) {
       } }, 'Registrar a correção do professor'));
       return;
     }
-    q.blocks.forEach((en, i) => {
-      const ta = h('textarea', { class: 'field', rows: 2, lang: 'pt-BR', disabled: validated, 'aria-label': `Versão corrigida do bloco ${i + 1}`, 'data-role': 'teacher-pt',
+    if (!validated) q.blocks.forEach((en, i) => {
+      const ta = h('textarea', { class: 'field', rows: 2, lang: 'pt-BR', 'aria-label': `Versão corrigida do bloco ${i + 1}`, 'data-role': 'teacher-pt',
         oninput: () => { t.blocks[i] = ta.value; autosize(ta); saveSoon(); } });
       ta.value = t.blocks[i] || '';
       const c = sub && sub.check && sub.check[i];
@@ -255,7 +311,7 @@ function teacherBox(act, n, onChange) {
       body.append(h('div', { class: 'notice ok', style: { marginTop: '10px' }, 'data-role': 'teacher-validated' }, `Validada pelo professor em ${fmtDay(t.validatedAt)}. Esta é a referência oficial desta questão.`),
         h('button', { class: 'btn block', style: { marginTop: '8px' }, 'data-role': 'teacher-edit', onclick: async () => {
           if (!(await confirmSheet('Editar a correção?', 'A questão deixa de estar validada até você validar de novo.', { ok: 'Editar' }))) return;
-          t.validatedAt = null; saveSoon(); draw(); onChange();
+          t.validatedAt = null; await saveNow(); redraw(); // campos de resposta voltam a ser editáveis
         } }, 'Editar a correção'));
     } else {
       const err = h('div');
@@ -263,10 +319,10 @@ function teacherBox(act, n, onChange) {
         const miss = t.blocks.map((x, i) => ((x || '').trim() ? null : i + 1)).filter(Boolean);
         if (miss.length) { err.replaceChildren(h('div', { class: 'notice warn' }, `Preencha a versão corrigida dos blocos ${miss.join(', ')}.`)); return; }
         t.validatedAt = Date.now();
+        act.answers[n] = t.blocks.slice(); // a versão do professor passa a ser a resposta da questão
         await saveNow();
-        draw();
-        onChange();
         toast('Questão validada pelo professor.');
+        redraw(); // a versão do professor aparece como a resposta oficial
       } }, icon('check'), 'Marcar como validada pelo professor'));
     }
   }

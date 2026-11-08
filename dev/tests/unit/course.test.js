@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
   parseActivity, activityId, newActivity, answersOf, missingBlocks, isDone, summary, canOpen, finishQuestion,
   exportProblems, exportText, checkTranslation, questionCheck,
+  readAnswers, matchAnswers, applyOwnAnswers, applyTeacherAnswers, isValidated, officialAnswers,
 } from '../../app/js/engine/course.js';
 
 const SRC = `MY ACTIVITY — PART 1
@@ -116,4 +117,63 @@ test('checagem básica: níveis e motivos (orientação, não correção)', () =
   const act = newActivity(parseActivity(SRC), 1);
   fill(act, 3, ['A última', 'I don’t know.']);
   assert.equal(questionCheck(act, 3), 'attention');
+});
+
+const complete = () => {
+  const act = newActivity(parseActivity(SRC), 1);
+  fill(act, 1, ['Encontrando uma amiga', '“Oi, Anna. Como vai?”', '“Tudo bem, obrigada — e você?”']);
+  fill(act, 2, ['Números', 'Há 3 ônibus antes das 8 horas.']);
+  fill(act, 3, ['A última', 'Eu não sei.']);
+  [1, 2, 3].forEach((n) => finishQuestion(act, n, 5));
+  return act;
+};
+
+test('importar respostas: o TXT exportado volta para as questões e blocos certos (CRLF, título, linhas em branco, resposta em 2 linhas)', () => {
+  const src = complete();
+  src.answers[3][1] = 'Eu não sei.\nAinda não.';
+  const txt = ('respostas.txt\n\n' + exportText(src).replace('\nQUESTÃO 2\n', '\n\n\nQUESTÃO 2\n')).replace(/\n/g, '\r\n');
+  const dst = newActivity(parseActivity(SRC), 1);
+  const r = readAnswers(txt, dst);
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.questions.map((q) => q.n), [1, 2, 3]);
+  assert.deepEqual(r.questions[2].answers, ['A última', 'Eu não sei.\nAinda não.']);
+  const res = applyOwnAnswers(dst, r, 9);
+  assert.deepEqual(res.updated, [1, 2, 3]);
+  assert.deepEqual(answersOf(dst, 1), answersOf(src, 1));
+  assert.equal(summary(dst).complete, true);
+});
+
+test('importar respostas: divergência, questão inexistente ou repetida → erro, nada é lido para aplicar', () => {
+  const dst = newActivity(parseActivity(SRC), 1);
+  const txt = exportText(complete());
+  assert.match(readAnswers(txt.replace('Numbers', 'Letters'), dst).errors.join(' '), /Questão 2: o bloco 1 em inglês não foi encontrado/);
+  assert.match(readAnswers(txt + '\nQUESTÃO 9\nA\nB\n', dst).errors.join(' '), /Questão 9: não existe/);
+  assert.match(readAnswers(txt + '\nQUESTÃO 3\nLast One\nX\nI don’t know.\nY\n', dst).errors.join(' '), /Questão 3: aparece mais de uma vez/);
+  assert.match(readAnswers('sem questões', dst).errors.join(' '), /Nenhuma questão/);
+  // a atividade certa é escolhida entre as do aparelho
+  const other = newActivity(parseActivity(SRC.replace('Anna', 'Bob')), 1);
+  assert.equal(matchAnswers(txt, [other, dst]).act, dst);
+});
+
+test('correções do professor: substituem a resposta, validam a questão, valem na exportação; reimportação atualiza; respostas pessoais não as sobrescrevem', () => {
+  const act = complete();
+  const corr = 'QUESTÃO 2\nNumbers\nNúmeros!\nThere are 3 buses before 8 o’clock.\nExistem 3 ônibus antes das 8h.\n';
+  const r = readAnswers(corr, act);
+  assert.deepEqual(applyTeacherAnswers(act, r, 20), { validated: [2], incomplete: [] });
+  assert.ok(isValidated(act, 2) && !isValidated(act, 1));
+  assert.deepEqual(officialAnswers(act, 2), ['Números!', 'Existem 3 ônibus antes das 8h.']);
+  assert.deepEqual(answersOf(act, 2), ['Números!', 'Existem 3 ônibus antes das 8h.']);
+  assert.match(exportText(act), /Numbers\nNúmeros!\n/);
+  // as respostas pessoais (TXT antigo) não mudam a questão validada
+  const own = applyOwnAnswers(act, readAnswers(exportText(complete()), act), 30);
+  assert.deepEqual(own.keptValidated, [2]);
+  assert.equal(answersOf(act, 2)[0], 'Números!');
+  // nova correção depois
+  applyTeacherAnswers(act, readAnswers(corr.replace('Números!', 'Os números'), act), 40);
+  assert.equal(answersOf(act, 2)[0], 'Os números');
+  assert.equal(act.teacher[2].validatedAt, 40);
+  // correção incompleta não valida
+  const half = readAnswers('QUESTÃO 3\nLast One\nA última\nI don’t know.\n\n', act);
+  assert.deepEqual(applyTeacherAnswers(act, half, 50), { validated: [], incomplete: [3] });
+  assert.equal(isValidated(act, 3), false);
 });

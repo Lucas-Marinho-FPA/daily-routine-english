@@ -57,6 +57,7 @@ async function fillQuestion(n) {
 }
 
 await open();
+let exported = null; // TXT exportado em C07 (usado na transferência para o “celular”, C14–C17)
 let journeysBefore = null;
 
 await check('C01', 'Início mostra a área (nome neutro); a área abre vazia, com importação', async () => {
@@ -173,6 +174,7 @@ await check('C07', `Na Questão ${TOTAL} concluída: “Exportar todas as respos
   await page.waitForSelector('[data-role=export-txt]');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-role=export-txt]')]);
   const txt = readFileSync(await dl.path(), 'utf8');
+  exported = txt;
   writeFileSync(join(OUT, 'export-shape.json'), JSON.stringify({ file: dl.suggestedFilename(), bytes: Buffer.byteLength(txt), lines: txt.split('\n').length }, null, 1));
   const expected = P.questions.map((q) => [`QUESTÃO ${q.n}`, ...q.blocks.flatMap((en, i) => [en, pt(q.n, i)])].join('\n')).join('\n\n') + '\n';
   assert(txt === expected, 'conteúdo exportado diferente do esperado');
@@ -203,10 +205,13 @@ await check('C09', 'Validação do professor só na Questão 2: versão corrigid
   if (await page.locator('[data-role=teacher-start]').count()) await page.click('[data-role=teacher-start]');
   await page.locator('[data-role=teacher-pt]').first().fill('Correção do professor — título');
   await page.click('[data-role=teacher-validate]');
-  await page.waitForSelector('[data-role=teacher-validated]');
+  await page.waitForSelector('[data-role=official-answer]');
+  await page.waitForTimeout(300);
   const chip = await page.locator('[data-role=q-validated]').textContent();
   assert(/Validada pelo professor em/.test(chip), chip);
-  assert(await page.locator('[data-role=teacher-pt]').first().isDisabled(), 'campo deveria travar após validar');
+  // uma só versão visível: a do professor, como resposta oficial (campo travado; sem a lista paralela de correção)
+  const first = page.locator('[data-role=block-pt]').first();
+  assert(await first.isDisabled() && (await first.inputValue()) === 'Correção do professor — título' && (await page.locator('[data-role=teacher-pt]').count()) === 0, 'resposta oficial');
   await shot('c09-teacher');
   await page.locator('[data-role=q-nav] button', { hasText: /^4/ }).first().click();
   await page.waitForTimeout(500);
@@ -215,7 +220,7 @@ await check('C09', 'Validação do professor só na Questão 2: versão corrigid
   const a = await act();
   const t = a.teacher[2];
   assert(t.validatedAt && t.blocks[0] === 'Correção do professor — título', 'correção');
-  assert(a.answers[2][0] === pt(2, 0) && a.submitted[2].blocks[0] === pt(2, 0) && a.submitted[2].check.length === P.questions[1].blocks.length, 'versão enviada/checagem');
+  assert(a.answers[2][0] === 'Correção do professor — título' && a.submitted[2].blocks[0] === pt(2, 0) && a.submitted[2].check.length === P.questions[1].blocks.length, 'versão enviada/checagem');
   const validated = Object.values(a.teacher).filter((x) => x.validatedAt).length;
   assert(validated === 1, `validadas: ${validated}`);
   return { validadas: validated, questao4: other };
@@ -260,6 +265,100 @@ await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do p
   assert(prog.startsWith(`${TOTAL} de ${TOTAL}`) && /1 de/.test(val), `${prog} / ${val}`);
   return { inicio: home.replace(/^[^:]*:/, '…:'), area: prog, validadas: val };
 });
+
+// ---------- transferência para outro aparelho (“celular”) e correções do professor ----------
+{
+  const PHONE = join(OUT, '.profile-celular');
+  rmSync(PHONE, { recursive: true, force: true });
+  let c2, p2;
+  const openPhone = async () => { c2 = await chromium.launchPersistentContext(PHONE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true }); p2 = c2.pages()[0] || await c2.newPage(); p2.on('pageerror', (e) => errors.push(e.message)); };
+  const kv2 = () => p2.evaluate(() => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('course'); g.onsuccess = () => res(g.result); }; }));
+  const act2 = async () => { const d = await kv2(); return d && d.activities[d.last]; };
+  const importFile = async (role, name, text) => {
+    await p2.goto(BASE + '#/course'); await p2.waitForTimeout(700);
+    await p2.$eval('[data-role=transfer]', (d) => { d.open = true; }); // abre a seção (sem fechá-la se já estiver aberta)
+    await p2.setInputFiles(`[data-role=${role}]`, { name, mimeType: 'text/plain', buffer: Buffer.from(text, 'utf8') });
+    await p2.waitForSelector('[data-role=transfer-preview], [data-role=transfer-error]');
+    return (await p2.locator('[data-role=transfer-status]').innerText()).replace(/\s+/g, ' ');
+  };
+  // arquivo de correções do professor (exemplo): só as questões 2 e 7, com as traduções corrigidas
+  const teacherFile = (nums, tag, alter = null) => nums.map((n) => {
+    const q = P.questions[n - 1];
+    return [`QUESTÃO ${n}`, ...q.blocks.flatMap((en, i) => [alter && alter.n === n && i === 1 ? alter.en : en, `${tag} ${n}.${i + 1} — correção`])].join('\n');
+  }).join('\n\n') + '\n';
+
+  await check('C14', `Celular: “Importar minhas respostas” com o TXT exportado → ${TOTAL} questões associadas às questões certas (inglês conferido); respostas visíveis e editáveis`, async () => {
+    await openPhone();
+    await p2.goto(BASE); await p2.waitForTimeout(800);
+    await p2.evaluate(async () => { await window.DRG_APP.chooseCharacter('lucas'); window.DRG_APP.go('#/'); });
+    await p2.goto(BASE + '#/course'); await p2.waitForTimeout(700);
+    await p2.click('[data-role=import] summary');
+    await p2.setInputFiles('[data-role=import-file]', { name: 'atividade.txt', mimeType: 'text/plain', buffer: Buffer.from(SRC, 'utf8') });
+    await p2.waitForSelector('[data-role=import-ok]');
+    const prev = await importFile('import-own', 'respostas.txt', exported.replace(/\n/g, '\r\n'));
+    assert(prev.includes(`${TOTAL} de ${TOTAL} questões identificadas`), prev);
+    await p2.click('[data-role=transfer-apply]');
+    await p2.waitForSelector('[data-role=transfer-ok]');
+    const a = await act2();
+    // o que o computador exportou (C07): todas as respostas pt(n, i); cada uma na sua questão e bloco
+    const wrong = [];
+    for (const q of P.questions) q.blocks.forEach((_, i) => { if ((a.answers[q.n] || [])[i] !== pt(q.n, i)) wrong.push(`${q.n}.${i + 1}`); });
+    assert(!wrong.length, `respostas fora do lugar: ${wrong.slice(0, 5)}`);
+    await p2.goto(`${BASE}#/cq/${a.id}?q=5`); await p2.waitForTimeout(700);
+    const ta = p2.locator('[data-role=block-pt]').nth(1);
+    assert((await ta.inputValue()) === pt(5, 1) && !(await ta.isDisabled()), 'Q5 no celular');
+    await ta.fill('Editada no celular'); await p2.waitForTimeout(500);
+    assert((await act2()).answers[5][1] === 'Editada no celular', 'edição no celular não salvou');
+    await p2.screenshot({ path: join(OUT, 'c14-celular.png'), fullPage: true });
+    return { previa: prev.slice(0, 160), questoes: TOTAL, blocosConferidos: P.questions.reduce((n, q) => n + q.blocks.length, 0) };
+  });
+
+  await check('C15', 'Correções do professor (exemplo com as questões 2 e 7): viram a resposta oficial, validadas; únicas exibidas; reimportar minhas respostas não as altera', async () => {
+    const prev = await importFile('import-teacher', 'correcoes.txt', teacherFile([2, 7], 'Corrigido'));
+    assert(/2 de \d+ questões identificadas/.test(prev) && /validadas pelo professor/.test(prev), prev);
+    await p2.click('[data-role=transfer-apply]');
+    await p2.waitForSelector('[data-role=transfer-ok]');
+    let a = await act2();
+    assert(a.teacher[2].validatedAt && a.teacher[7].validatedAt && a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[7][3] === 'Corrigido 7.4 — correção', 'validação/substituição');
+    assert(a.answers[5][1] === 'Editada no celular' && a.answers[3][0] === pt(3, 0), 'outras questões mudaram');
+    await p2.goto(`${BASE}#/cq/${a.id}?q=2`); await p2.waitForTimeout(700);
+    const official = await p2.locator('[data-role=official-answer]').count();
+    const first = p2.locator('[data-role=block-pt]').first();
+    assert(official === 1 && await first.isDisabled() && (await first.inputValue()) === 'Corrigido 2.1 — correção' && (await p2.locator('[data-role=teacher-pt]').count()) === 0, 'Q2 oficial');
+    await p2.screenshot({ path: join(OUT, 'c15-oficial.png'), fullPage: true });
+    // reimportar as respostas pessoais: as validadas não mudam
+    const prev2 = await importFile('import-own', 'respostas.txt', exported);
+    assert(/não mudam/.test(prev2), prev2);
+    await p2.click('[data-role=transfer-apply]'); await p2.waitForSelector('[data-role=transfer-ok]');
+    a = await act2();
+    assert(a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[7][3] === 'Corrigido 7.4 — correção', 'validadas foram sobrescritas');
+    return { previa: prev.slice(0, 160), reimportacao: prev2.match(/\d+ questões serão atualizadas[^.]*/)[0] };
+  });
+
+  await check('C16', 'Arquivo que não confere (inglês alterado na questão 3): mostra o problema e não altera nada', async () => {
+    const before = JSON.stringify(await kv2());
+    const prev = await importFile('import-teacher', 'errado.txt', teacherFile([3], 'X', { n: 3, en: 'This line is not in the activity.' }));
+    const apply = await p2.locator('[data-role=transfer-apply]').count();
+    const after = JSON.stringify(await kv2());
+    assert(/Nada foi alterado/.test(prev) && /Questão 3: o bloco 2 em inglês não foi encontrado/.test(prev) && apply === 0 && before === after, prev);
+    return prev.slice(0, 170);
+  });
+
+  await check('C17', 'Fechar e reabrir no celular: respostas importadas, edição e validações preservadas; nova correção posterior atualiza a questão', async () => {
+    await c2.close();
+    await openPhone();
+    let a = await (async () => { await p2.goto(BASE + '#/course'); await p2.waitForTimeout(800); return act2(); })();
+    // (a reimportação das respostas pessoais em C15 devolveu à Q5 a resposta do arquivo; as validadas ficaram)
+    assert(a.answers[5][1] === pt(5, 1) && a.teacher[2].validatedAt && a.teacher[7].validatedAt && a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[10][0] === pt(10, 0), 'persistência: ' + JSON.stringify({ q5: a.answers[5][1], q2: a.answers[2][0] }));
+    const prev = await importFile('import-teacher', 'correcoes-2.txt', teacherFile([2], 'Corrigido de novo'));
+    await p2.click('[data-role=transfer-apply]'); await p2.waitForSelector('[data-role=transfer-ok]');
+    a = await act2();
+    const nQ = Object.keys(a.answers).length;
+    assert(a.answers[2][0] === 'Corrigido de novo 2.1 — correção' && a.teacher[2].blocks[0] === 'Corrigido de novo 2.1 — correção' && a.teacher[7].validatedAt && nQ === TOTAL, JSON.stringify({ q2: a.answers[2][0], nQ }));
+    await c2.close();
+    return { aposReabrir: 'preservado', novaCorrecaoQ2: a.answers[2][0], questoes: nQ, validadas: Object.values(a.teacher).filter((t) => t.validatedAt).length };
+  });
+}
 
 await check('C12', 'Funciona offline (servidor desligado): área, questão e exportação', async () => {
   await stopServer();
