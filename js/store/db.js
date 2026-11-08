@@ -231,6 +231,19 @@ export async function kvUsage() {
   } catch (e) { return []; }
 }
 
+// ---------- registros avulsos (ex.: atividades do curso, ui/course.js) — fora do estado de estudo ----------
+/** Lê um registro do store 'kv' (ou do localStorage quando o IndexedDB não está disponível). */
+export async function getKv(key) {
+  try { return await tx('kv', 'readonly', (s) => reqP(s.get(key))); } catch (e) {
+    try { return JSON.parse(localStorage.getItem(`drg.${key}`) || 'null'); } catch (e2) { return null; }
+  }
+}
+/** Grava um registro do store 'kv' (gravação atômica do registro inteiro). */
+export async function putKv(key, value) {
+  const copy = JSON.parse(JSON.stringify(value));
+  try { await tx('kv', 'readwrite', (s) => s.put(copy, key)); } catch (e) { localStorage.setItem(`drg.${key}`, JSON.stringify(copy)); }
+}
+
 // ---------- backup ----------
 export function exportBackup(state) {
   const data = { app: 'daily-routine-english-game', schema: state.schema, exportedAt: new Date().toISOString(), state: toStored(state) };

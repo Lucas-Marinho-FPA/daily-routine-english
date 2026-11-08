@@ -1,0 +1,89 @@
+# Curso — Atividades (traduções do curso)
+
+Área independente das jornadas para fazer as atividades de tradução (inglês → português) do curso do usuário,
+registrar a correção do professor e exportar as respostas para a plataforma do curso.
+
+## Decisões do responsável (2026-11-08)
+
+- **Nome neutro no app publicado:** a área se chama “Curso — Atividades”. O nome do curso/unidade é dado privado
+  (regra permanente do `CLAUDE.md`) e não aparece no app, no repositório nem nos testes.
+- **Texto das atividades importado no aparelho:** o material do curso é de terceiros, sem licença de publicação.
+  O app publicado traz só a ferramenta; o usuário importa o arquivo `.txt` da atividade em
+  **Início → Curso — Atividades → Importar atividade** (ou cola o texto). O texto e as respostas ficam só no
+  aparelho (IndexedDB). **Nunca versionar o texto de uma atividade do curso** (testes usam conteúdo sintético).
+
+## Fluxo
+
+1. Início → cartão **Curso — Atividades** → **Abrir**.
+2. Lista de atividades importadas (ex.: a Part 4 com 21 questões) → **Começar** / **Continuar (questão n)**.
+3. Uma questão por vez: “Questão n de 21”, progresso, estado (Não iniciada / Em andamento / Concluída) e estado da
+   validação do professor. Cada linha em inglês do arquivo é um bloco (o título da questão também), com o campo de
+   tradução logo abaixo. Nada em português é mostrado antes da resposta.
+4. **Salvar e avançar** exige todos os blocos preenchidos (mostra os que faltam). A navegação é sequencial: uma
+   questão abre quando a anterior foi concluída; as concluídas podem ser abertas e editadas a qualquer momento.
+5. Na última questão: **Salvar e concluir a atividade** → **Exportar todas as respostas** (TXT) e **Copiar o texto**.
+   Se faltar algo em qualquer questão, a exportação é recusada com a lista do que falta.
+
+## Formato do arquivo importado
+
+```
+<título da atividade>
+(linhas ignoradas até a primeira questão)
+QUESTION 1            (ou QUESTÃO 1)
+<título da questão>   → bloco 1
+<linha>               → um bloco por linha não vazia, sem alteração de texto, pontuação ou ordem
+QUESTION 2
+…
+```
+
+Reimportar o mesmo arquivo mantém as respostas (identificador = hash do conteúdo). Um arquivo com outro texto vira
+outra atividade. A divisão em blocos é linha a linha (instrução do arquivo da Part 4); quando houver os exemplos de
+segmentação da Part 3, basta ajustar as quebras de linha do arquivo antes de importar.
+
+## Formato exportado
+
+```
+QUESTÃO 1
+<bloco em inglês>
+<tradução do aluno>
+<próximo bloco em inglês>
+<tradução do aluno>
+
+QUESTÃO 2
+…
+```
+
+UTF-8, acentos e pontuação preservados; arquivo `<título>-respostas.txt`.
+
+## Salvamento
+
+- Automático enquanto digita (~0,15 s depois da última tecla), no IndexedDB (`kv` → `course`), separado do estado
+  de estudo: não mexe em jornadas, progresso, revisão nem Speaking Lab.
+- Ao sair do app (página escondida/encerrada) também grava uma cópia síncrona no `localStorage`
+  (`drg.course.mirror`); na abertura vale a mais nova.
+- A posição (questão e bloco) é guardada: **Continuar** volta ao ponto em que parou.
+- O backup JSON de Ajustes **não** inclui as atividades (limitação; o TXT exportado é a cópia das respostas).
+
+## Checagem básica (orientação, não correção)
+
+Depois que a questão é salva, cada bloco mostra **Adequada**, **Revisar** ou **Atenção**, com o motivo. É uma
+heurística local (sem IA, sem serviço externo): texto ainda em inglês, tradução muito curta ou longa, número que não
+aparece, nome próprio ausente, pergunta sem “?”, negação ausente. **Não avalia o sentido**, não bloqueia o avanço e
+não muda a resposta. “Adequada” = nenhum alerta. O resultado do momento do envio fica guardado.
+
+## Correção do professor
+
+Em cada questão concluída: **Correção do professor** → **Registrar a correção do professor** (começa com a sua
+tradução) → editar bloco a bloco → **Marcar como validada pelo professor** (data registrada; campos travados;
+**Editar a correção** desfaz a validação). Independente por questão e não exigida para avançar. Ficam guardadas:
+a primeira tradução enviada, a checagem básica do envio, a versão corrigida, o estado e a data da validação. A
+checagem automática nunca vira a versão oficial.
+
+## Código e testes
+
+- `js/engine/course.js` (regras puras: importação, sequência, envio, exportação, checagem básica),
+  `js/ui/course.js` (telas e salvamento), rotas `#/course` e `#/cq/<id>?q=<n>` em `js/main.js`, cartão no Início
+  (`js/ui/home.js`), `getKv`/`putKv` em `js/store/db.js`.
+- Unitários: `dev/tests/unit/course.test.js` (conteúdo sintético).
+- E2E: `dev/tests/e2e/course.mjs` (13 verificações). Com o arquivo real fora do repositório:
+  `DRG_COURSE_FILE=<arquivo> node tests/e2e/course.mjs <site> /daily-routine-english/ <evidências>`.

@@ -21,7 +21,7 @@ no pré-cache do app (o service worker só lista os arquivos do app).
 | `tools/gen_audio.py` · `qa_audio.py` | áudio britânico offline (Kokoro) e conferência de pronúncia |
 | `tools/qr.mjs` · `screenshots.mjs` · `sw.template.js` · `extract_word.py` | QR da página de instalação, capturas do manifesto, modelo do service worker, extração do Word |
 | `tests/unit/` | testes unitários (`node --test`), inclui `lukinhas.test.js` |
-| `tests/e2e/` | testes E2E Chromium: `run`, `run-pages`, `asr-local`, `storage`, `wordpractice`, `characters`, `journey`, `mvp`, `pwa`, `lukinhas` |
+| `tests/e2e/` | testes E2E Chromium: `run`, `run-pages`, `asr-local`, `storage`, `wordpractice`, `characters`, `journey`, `mvp`, `pwa`, `lukinhas`, `update-transition`, `course` (Curso — Atividades; `DRG_COURSE_FILE=<arquivo fora do repositório>` usa a atividade real, senão conteúdo sintético) |
 | `tests/fixtures/` | áudios sintéticos, transcrições reais do Moonshine, referências publicadas de Lucas/Karla, **`lukinhas-texts.json`** (os dez textos aprovados) |
 | `vendor/` | dicionário CMU (léxico) e fontes do reconhecimento de fala (Moonshine, onnxruntime-web, tokenizer; MIT) |
 | `docs/` | notas internas antigas (backlog de publicação, relatório de integridade) |

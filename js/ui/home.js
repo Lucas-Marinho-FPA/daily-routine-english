@@ -12,6 +12,7 @@ import { trackStatus, moduleOf } from '../engine/modules.js';
 import { characterSwitcher, characterBadge } from './character.js';
 import { stageHref } from './modules.js';
 import { installCard } from './pwa.js';
+import { courseHomeCard } from './course.js';
 
 const EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
 
@@ -78,6 +79,9 @@ export function renderHome(App) {
       onOpen: async () => { await App.setJourney(j.id); App.go('#/modules'); },
     }));
   }
+
+  // atividades do curso (traduções; dados próprios, fora do progresso das jornadas)
+  view.append(courseHomeCard(App));
 
   // revisão do que está vencido na trilha aberta + lembrete de backup
   const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App.content, c.k)).length;

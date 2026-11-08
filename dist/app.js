@@ -1107,15 +1107,15 @@
     state.xp += SKILL_XP.learn;
     return SKILL_XP.learn;
   }
-  function recordSession(state, summary, today = dayNumber()) {
+  function recordSession(state, summary2, today = dayNumber()) {
     const d = day(state, today);
     d.sessions++;
     let xp = 0;
-    if (d.sessions <= SESSION_BONUS_PER_DAY && summary.count >= 5) xp = SESSION_XP;
+    if (d.sessions <= SESSION_BONUS_PER_DAY && summary2.count >= 5) xp = SESSION_XP;
     d.xp += xp;
     state.xp += xp;
     state.updatedAt = Date.now();
-    return { xp, events: checkAchievements(state, today, summary) };
+    return { xp, events: checkAchievements(state, today, summary2) };
   }
   function recordRecording(state, targetId, meta, today = dayNumber()) {
     const d = day(state, today);
@@ -1189,7 +1189,7 @@
     { id: "xp-1000", icon: "\u{1F48E}", title: "1.000 XP", desc: "Muito treino acumulado." },
     { id: "perfect", icon: "\u{1F3AF}", title: "Sess\xE3o impec\xE1vel", desc: "Sess\xE3o com 10+ exerc\xEDcios sem erro." }
   ];
-  function checkAchievements(state, today, summary) {
+  function checkAchievements(state, today, summary2) {
     const got = [];
     const unlock = (id) => {
       if (!state.achievements[id]) {
@@ -1217,7 +1217,7 @@
     if (cards.some((c) => c.k.endsWith(":retell") && c.box >= 1)) unlock("first-retell");
     if (cards.filter((c) => c.k.endsWith(":conv") && c.reps > 0).length >= 10) unlock("teacher-10");
     if (state.xp >= 1e3) unlock("xp-1000");
-    if (summary && summary.count >= 10 && summary.bad === 0) unlock("perfect");
+    if (summary2 && summary2.count >= 10 && summary2.bad === 0) unlock("perfect");
     return got.filter(Boolean);
   }
   function migrate(raw, contentVersion, { ownerOf } = {}) {
@@ -1525,20 +1525,39 @@
       return [];
     }
   }
+  async function getKv(key) {
+    try {
+      return await tx("kv", "readonly", (s) => reqP(s.get(key)));
+    } catch (e) {
+      try {
+        return JSON.parse(localStorage.getItem(`drg.${key}`) || "null");
+      } catch (e2) {
+        return null;
+      }
+    }
+  }
+  async function putKv(key, value) {
+    const copy = JSON.parse(JSON.stringify(value));
+    try {
+      await tx("kv", "readwrite", (s) => s.put(copy, key));
+    } catch (e) {
+      localStorage.setItem(`drg.${key}`, JSON.stringify(copy));
+    }
+  }
   function exportBackup(state) {
-    const data = { app: "daily-routine-english-game", schema: state.schema, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), state: toStored(state) };
-    return new Blob([JSON.stringify(data)], { type: "application/json" });
+    const data2 = { app: "daily-routine-english-game", schema: state.schema, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), state: toStored(state) };
+    return new Blob([JSON.stringify(data2)], { type: "application/json" });
   }
   async function parseBackup(file, contentVersion, opts = {}) {
     const text = await file.text();
-    let data;
+    let data2;
     try {
-      data = JSON.parse(text);
+      data2 = JSON.parse(text);
     } catch (e) {
       throw new Error("O arquivo n\xE3o \xE9 um JSON v\xE1lido.");
     }
-    if (data.app !== "daily-routine-english-game" || !data.state) throw new Error("Este arquivo n\xE3o \xE9 um backup deste app.");
-    return migrate(data.state, contentVersion, opts);
+    if (data2.app !== "daily-routine-english-game" || !data2.state) throw new Error("Este arquivo n\xE3o \xE9 um backup deste app.");
+    return migrate(data2.state, contentVersion, opts);
   }
   async function keepPrevious(state) {
     await saveCopy("state.beforeImport", JSON.parse(JSON.stringify(toStored(state))));
@@ -2023,12 +2042,12 @@
     const w = getWorker();
     const id = ++seq;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
+      const timer2 = setTimeout(() => {
         pending2.delete(id);
         reject(asrError("tempo esgotado", "timeout"));
         release2();
       }, timeoutMs);
-      pending2.set(id, { resolve, reject, timer });
+      pending2.set(id, { resolve, reject, timer: timer2 });
       w.postMessage({ ...msg, id }, transfer || []);
     });
   }
@@ -2044,9 +2063,9 @@
   }
   async function toPcm16k(blob) {
     const Ctx = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
-    const data = await blob.arrayBuffer();
+    const data2 = await blob.arrayBuffer();
     const probe = new Ctx(1, 1, 16e3);
-    const decoded = await probe.decodeAudioData(data);
+    const decoded = await probe.decodeAudioData(data2);
     const n = decoded.length;
     if (decoded.numberOfChannels === 1) return decoded.getChannelData(0).slice();
     const out = new Float32Array(n);
@@ -2457,13 +2476,13 @@
     return picked;
   }
   function orderPieces(text) {
-    const words2 = text.split(/\s+/).filter(Boolean);
-    if (words2.length <= 9) return words2;
+    const words3 = text.split(/\s+/).filter(Boolean);
+    if (words3.length <= 9) return words3;
     const pieces = [];
     let cur = [];
-    for (const w of words2) {
+    for (const w of words3) {
       cur.push(w);
-      const size = words2.length > 18 ? 3 : 2;
+      const size = words3.length > 18 ? 3 : 2;
       if (/[,;]$/.test(w) || cur.length >= size) {
         pieces.push(cur.join(" "));
         cur = [];
@@ -3328,6 +3347,576 @@
     });
   }
 
+  // app/js/engine/course.js
+  var Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s+(\d+)\s*$/i;
+  function parseActivity(text) {
+    const lines = String(text || "").replace(/^﻿/, "").split(/\r\n|\r|\n/).map((l) => l.trim());
+    let title = "";
+    const questions = [];
+    const errors = [];
+    let cur = null;
+    for (const line of lines) {
+      if (!line) continue;
+      const m = line.match(Q_HEAD);
+      if (m) {
+        cur = { n: Number(m[1]), blocks: [] };
+        questions.push(cur);
+        continue;
+      }
+      if (cur) cur.blocks.push(line);
+      else if (!title) title = line;
+    }
+    if (!questions.length) errors.push("Nenhuma quest\xE3o encontrada (as quest\xF5es come\xE7am com \u201CQUESTION 1\u201D, \u201CQUESTION 2\u201D\u2026).");
+    questions.forEach((q, i) => {
+      if (q.n !== i + 1) errors.push(`A quest\xE3o ${q.n} est\xE1 fora de ordem (esperada a ${i + 1}).`);
+      if (!q.blocks.length) errors.push(`A quest\xE3o ${q.n} est\xE1 vazia.`);
+    });
+    return { title: title || "Atividade", questions, errors };
+  }
+  function activityId(parsed) {
+    const src = JSON.stringify([parsed.title, parsed.questions.map((q) => q.blocks)]);
+    let x = 2166136261;
+    for (let i = 0; i < src.length; i++) {
+      x ^= src.charCodeAt(i);
+      x = Math.imul(x, 16777619) >>> 0;
+    }
+    return `a${x.toString(16).padStart(8, "0")}`;
+  }
+  function newActivity(parsed, now = Date.now()) {
+    return {
+      id: activityId(parsed),
+      title: parsed.title,
+      importedAt: now,
+      questions: parsed.questions.map((q) => ({ n: q.n, blocks: q.blocks.slice() })),
+      answers: {},
+      // n → [pt…] (versão atual do aluno; salva enquanto digita)
+      done: {},
+      // n → data em que a questão foi salva/finalizada
+      submitted: {},
+      // n → { at, blocks, check } — primeira versão finalizada (preservada)
+      teacher: {},
+      // n → { blocks, validatedAt|null } — versão corrigida conforme o professor
+      pos: { q: 1, b: 0 }
+    };
+  }
+  var answersOf = (act, n) => {
+    const q = act.questions.find((x) => x.n === n);
+    const a = act.answers[n] || [];
+    return q ? q.blocks.map((_, i) => a[i] || "") : [];
+  };
+  var missingBlocks = (act, n) => answersOf(act, n).map((t, i) => t.trim() ? null : i + 1).filter(Boolean);
+  var isDone = (act, n) => !!act.done[n] && !missingBlocks(act, n).length;
+  function summary(act) {
+    const total = act.questions.length;
+    const done = act.questions.filter((q) => isDone(act, q.n)).length;
+    const validated = act.questions.filter((q) => act.teacher[q.n] && act.teacher[q.n].validatedAt).length;
+    return { total, done, validated, complete: total > 0 && done === total };
+  }
+  var canOpen = (act, n) => n === 1 || isDone(act, n - 1) || !!act.done[n];
+  function finishQuestion(act, n, now = Date.now()) {
+    const miss = missingBlocks(act, n);
+    if (miss.length) return { ok: false, missing: miss };
+    act.done[n] = now;
+    if (!act.submitted[n]) {
+      const q = act.questions.find((x) => x.n === n);
+      const blocks = answersOf(act, n);
+      act.submitted[n] = { at: now, blocks, check: blocks.map((pt, i) => checkTranslation(q.blocks[i], pt)) };
+    }
+    return { ok: true };
+  }
+  function exportProblems(act) {
+    const out = [];
+    for (const q of act.questions) {
+      const miss = missingBlocks(act, q.n);
+      if (miss.length) out.push(`Quest\xE3o ${q.n}: ${miss.length === 1 ? "bloco" : "blocos"} ${miss.join(", ")} sem tradu\xE7\xE3o`);
+      else if (!act.done[q.n]) out.push(`Quest\xE3o ${q.n}: n\xE3o foi finalizada`);
+    }
+    return out;
+  }
+  function exportText(act) {
+    if (exportProblems(act).length) return null;
+    const parts = act.questions.map((q) => {
+      const a = answersOf(act, q.n);
+      return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en, i) => [en, a[i].trim()])].join("\n");
+    });
+    return `${parts.join("\n\n")}
+`;
+  }
+  var fold = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u2018\u2019]/g, "'").toLowerCase();
+  var words = (s) => fold(s).match(/[a-z0-9']+/g) || [];
+  var EN_ONLY = /* @__PURE__ */ new Set(["the", "you", "your", "is", "are", "was", "were", "to", "of", "and", "i", "i'm", "my", "can", "could", "would", "have", "has", "what", "where", "how", "this", "that", "there", "there's", "it", "it's", "we", "they", "with", "for", "at", "in", "on", "be", "will", "please", "thank", "thanks", "yes", "not", "don't", "does", "he", "she", "his", "her", "him", "like", "go", "get"]);
+  var NEG_EN = /\b(not|no|never|nothing|nobody|none)\b|n't\b/i;
+  var NEG_PT = /\b(nao|nunca|nenhum|nenhuma|nem|sem|nada|ninguem|jamais)\b/;
+  var NOT_NAMES = /* @__PURE__ */ new Set(["i", "ok", "mr", "mrs", "miss", "ms", "sir", "madam", "street", "road", "hotel", "restaurant", "bar", "show", "clothes", "airlines", "air", "lines", "rail", "travel", "station", "phrasal", "verbs", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "ladies", "gentlemen", "yes", "no", "hello", "well"]);
+  function checkTranslation(en, pt) {
+    const t = String(pt || "").trim();
+    if (!t) return { level: "empty", notes: ["Sem tradu\xE7\xE3o."] };
+    const notes = [];
+    let level = "ok";
+    const raise = (l, msg) => {
+      notes.push(msg);
+      if (l === "attention" || level === "ok") level = l;
+    };
+    const ew = words(en), pw = words(t);
+    const enShare = pw.length ? pw.filter((w) => EN_ONLY.has(w)).length / pw.length : 0;
+    if (fold(t).replace(/\W+/g, "") === fold(en).replace(/\W+/g, "") || enShare >= 0.34) raise("attention", "Parece ainda estar em ingl\xEAs.");
+    const len = (s) => fold(s).replace(/[^a-z0-9]/g, "").length;
+    const ratio = len(t) / Math.max(1, len(en));
+    if (len(en) >= 12 && ratio < 0.4) raise("attention", "Bem mais curta que o original: pode faltar uma parte.");
+    else if (len(en) >= 12 && ratio < 0.6) raise("review", "Mais curta que o original: confira se nada ficou de fora.");
+    else if (len(en) >= 12 && ratio > 2.6) raise("review", "Bem mais longa que o original: confira se n\xE3o h\xE1 acr\xE9scimos.");
+    for (const num of String(en).match(/\d+/g) || []) if (!String(t).includes(num)) raise("review", `O n\xFAmero ${num} do original n\xE3o aparece.`);
+    const names = [];
+    const caps = String(en).match(/[A-Za-z][A-Za-z']*/g) || [];
+    const titleCase = caps.filter((w) => /^[A-Z]/.test(w)).length >= caps.length / 2;
+    if (!titleCase) String(en).split(/(?<=[.!?:;—"“”])\s+/).forEach((sentence) => {
+      (sentence.match(/[A-Za-z][A-Za-z']*/g) || []).slice(1).forEach((w) => {
+        if (/^[A-Z]/.test(w) && !NOT_NAMES.has(fold(w).replace(/'s$/, ""))) names.push(w.replace(/'s$/, ""));
+      });
+    });
+    const pf = fold(t);
+    for (const n of [...new Set(names)]) if (!pf.includes(fold(n).slice(0, 3))) raise("review", `O nome \u201C${n}\u201D n\xE3o aparece (confira).`);
+    if (/\?/.test(en) && !/\?/.test(t)) raise("review", "O original tem pergunta e a tradu\xE7\xE3o n\xE3o tem \u201C?\u201D.");
+    if (NEG_EN.test(fold(en)) && !NEG_PT.test(fold(t))) raise("review", "O original tem nega\xE7\xE3o (not, no, never\u2026); confira se a tradu\xE7\xE3o tamb\xE9m tem.");
+    if (!notes.length) notes.push("Nenhum alerta na checagem b\xE1sica (ela n\xE3o avalia o sentido).");
+    return { level, notes };
+  }
+  var CHECK_LABEL = { ok: "Adequada", review: "Revisar", attention: "Aten\xE7\xE3o", empty: "Sem tradu\xE7\xE3o" };
+  var CHECK_CLASS = { ok: "ok", review: "warn", attention: "bad", empty: "" };
+
+  // app/js/ui/course.js
+  var AREA_NAME = "Curso \u2014 Atividades";
+  var KEY = "course";
+  var MIRROR = "drg.course.mirror";
+  var data = null;
+  var timer = null;
+  var saving2 = Promise.resolve();
+  async function loadCourse() {
+    if (!data) {
+      const raw = await getKv(KEY).catch(() => null);
+      let mirror = null;
+      try {
+        mirror = JSON.parse(localStorage.getItem(MIRROR) || "null");
+      } catch (e) {
+      }
+      const ok = (x) => x && x.v === 1 && x.activities;
+      data = ok(mirror) && (!ok(raw) || (mirror.savedAt || 0) > (raw.savedAt || 0)) ? mirror : ok(raw) ? raw : { v: 1, activities: {}, last: null };
+    }
+    return data;
+  }
+  function saveNow() {
+    clearTimeout(timer);
+    timer = null;
+    if (!data) return saving2;
+    data.savedAt = Date.now();
+    const snap = JSON.parse(JSON.stringify(data));
+    saving2 = saving2.then(() => putKv(KEY, snap)).catch((e) => {
+      console.error("Falha ao salvar a atividade", e);
+      toast("N\xE3o foi poss\xEDvel salvar. Tente de novo.");
+    });
+    return saving2;
+  }
+  function saveSoon2() {
+    clearTimeout(timer);
+    timer = setTimeout(saveNow, 150);
+  }
+  function flushCourse() {
+    return timer ? saveNow() : saving2;
+  }
+  function onLeave() {
+    if (!data || !timer) return;
+    flushCourse();
+    try {
+      localStorage.setItem(MIRROR, JSON.stringify(data));
+    } catch (e) {
+    }
+  }
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") onLeave();
+    });
+    window.addEventListener("pagehide", onLeave);
+  }
+  var fmtDay = (ts) => {
+    try {
+      return new Date(ts).toLocaleDateString("pt-BR");
+    } catch (e) {
+      return "";
+    }
+  };
+  var qHref = (id, n) => `#/cq/${encodeURIComponent(id)}?q=${n}`;
+  var resumeOf = (act) => {
+    const n = act.pos && canOpen(act, act.pos.q) ? act.pos.q : 1;
+    return Math.min(Math.max(1, n), act.questions.length);
+  };
+  function renderCourse(App2) {
+    const view = App2.layout(AREA_NAME, { back: "#/" });
+    const list = h("div", { "data-role": "activities" }, h("p", { class: "muted small", text: "Carregando\u2026" }));
+    view.append(
+      h("p", { class: "small muted", text: "Atividades de tradu\xE7\xE3o do curso (ingl\xEAs \u2192 portugu\xEAs). O texto de cada atividade \xE9 importado por voc\xEA e fica s\xF3 neste aparelho, junto com as suas respostas." }),
+      list,
+      importCard(App2, () => drawList())
+    );
+    async function drawList() {
+      const d = await loadCourse();
+      list.replaceChildren();
+      const acts = Object.values(d.activities).sort((a, b) => (b.id === d.last) - (a.id === d.last) || a.importedAt - b.importedAt);
+      if (!acts.length) list.append(h("div", { class: "notice", "data-role": "no-activity" }, "Nenhuma atividade ainda. Importe o arquivo da atividade abaixo."));
+      for (const act of acts) {
+        const s = summary(act);
+        list.append(h(
+          "section",
+          { class: "card track", "data-role": "activity", "data-id": act.id },
+          h("h3", { text: act.title }),
+          h("div", { class: "row nowrap small" }, h("span", { class: "grow", "data-role": "activity-progress", text: `${s.done} de ${s.total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / s.total * 100)}%` })),
+          bar(s.done / s.total),
+          h("div", { class: "small muted", style: { marginTop: "4px" }, "data-role": "activity-validated", text: `Validadas pelo professor: ${s.validated} de ${s.total}` }),
+          h(
+            "button",
+            { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "open-activity", onclick: () => {
+              d.last = act.id;
+              saveSoon2();
+              App2.go(qHref(act.id, resumeOf(act)));
+            } },
+            icon("play"),
+            s.done ? s.complete ? "Abrir" : `Continuar (quest\xE3o ${resumeOf(act)})` : "Come\xE7ar"
+          ),
+          s.complete ? exportBox(act) : null
+        ));
+      }
+    }
+    drawList();
+    return () => {
+      flushCourse();
+    };
+  }
+  function importCard(App2, onDone) {
+    const status3 = h("div", { "data-role": "import-status" });
+    const paste = h("textarea", { class: "field", rows: 4, placeholder: "Ou cole aqui o texto da atividade", "aria-label": "Texto da atividade", "data-role": "import-text" });
+    async function importText(text) {
+      const p = parseActivity(text);
+      status3.replaceChildren();
+      if (p.errors.length) {
+        status3.append(h("div", { class: "notice bad", "data-role": "import-error" }, h("b", { text: "N\xE3o foi poss\xEDvel importar. " }), p.errors.join(" ")));
+        return;
+      }
+      const d = await loadCourse();
+      const act = newActivity(p);
+      const exists = !!d.activities[act.id];
+      if (!exists) d.activities[act.id] = act;
+      d.last = act.id;
+      await saveNow();
+      paste.value = "";
+      status3.append(h(
+        "div",
+        { class: "notice ok", "data-role": "import-ok" },
+        exists ? `\u201C${act.title}\u201D j\xE1 est\xE1 neste aparelho: as respostas foram mantidas.` : `\u201C${act.title}\u201D importada: ${act.questions.length} quest\xF5es, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`
+      ));
+      onDone();
+    }
+    const file = h("input", {
+      type: "file",
+      accept: ".txt,text/plain",
+      class: "hidden",
+      "data-role": "import-file",
+      onchange: async (e) => {
+        const f = e.target.files[0];
+        if (f) await importText(await f.text());
+        e.target.value = "";
+      }
+    });
+    return h(
+      "details",
+      { class: "more card", "data-role": "import" },
+      h("summary", { text: "Importar atividade" }),
+      h("p", { class: "small muted", text: "Arquivo de texto (.txt) com o t\xEDtulo da atividade e as quest\xF5es (\u201CQUESTION 1\u201D, \u201CQUESTION 2\u201D\u2026). Cada linha em ingl\xEAs vira um bloco para traduzir, sem alterar o texto. Importar de novo o mesmo arquivo mant\xE9m as respostas." }),
+      h("label", { class: "btn block" }, icon("upload"), "Escolher arquivo", file),
+      h("div", { style: { marginTop: "10px" } }, paste),
+      h("button", { class: "btn block", style: { margin: "8px 0 12px" }, "data-role": "import-paste", onclick: () => importText(paste.value) }, "Importar texto colado"),
+      status3
+    );
+  }
+  function renderCourseQuestion(App2, r) {
+    const view = App2.layout("Quest\xE3o", { back: "#/course" });
+    let alive = true;
+    loadCourse().then((d) => {
+      if (alive) draw(d);
+    });
+    function draw(d) {
+      const act = d.activities[r.arg];
+      if (!act) {
+        view.append(h("div", { class: "notice bad" }, "Atividade n\xE3o encontrada neste aparelho. ", h("a", { href: "#/course", text: "Voltar" })));
+        return;
+      }
+      const total = act.questions.length;
+      let n = Number(r.params.q) || resumeOf(act);
+      n = Math.min(Math.max(1, n), total);
+      if (!canOpen(act, n)) {
+        App2.go(qHref(act.id, resumeOf(act)));
+        return;
+      }
+      const q = act.questions.find((x) => x.n === n);
+      d.last = act.id;
+      act.pos = { q: n, b: act.pos && act.pos.q === n ? act.pos.b || 0 : 0 };
+      saveSoon2();
+      document.querySelector(".topbar h1").textContent = `Quest\xE3o ${n} de ${total}`;
+      const s = summary(act);
+      const head = h(
+        "section",
+        { class: "card", "data-role": "course-head" },
+        h("div", { class: "small muted", text: act.title }),
+        h("div", { class: "row nowrap small", style: { marginTop: "4px" } }, h("span", { class: "grow", "data-role": "course-progress", text: `${s.done} de ${total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / total * 100)}%` })),
+        bar(s.done / total),
+        h("div", { class: "chips", style: { marginTop: "8px" }, "data-role": "q-status" })
+      );
+      const nav = h(
+        "nav",
+        { class: "chips scroll", style: { margin: "10px 0" }, "aria-label": "Quest\xF5es", "data-role": "q-nav" },
+        act.questions.map((x) => {
+          const ok = canOpen(act, x.n);
+          const val = act.teacher[x.n] && act.teacher[x.n].validatedAt;
+          return h("button", {
+            class: `chip${isDone(act, x.n) ? " ok" : ""}`,
+            "aria-pressed": x.n === n ? "true" : "false",
+            disabled: !ok,
+            "aria-label": `Quest\xE3o ${x.n}${isDone(act, x.n) ? ", conclu\xEDda" : ""}${val ? ", validada pelo professor" : ""}`,
+            onclick: () => App2.go(qHref(act.id, x.n))
+          }, `${x.n}${val ? " \u2713" : ""}`);
+        })
+      );
+      const statusChips = () => {
+        const box2 = head.querySelector('[data-role="q-status"]');
+        const t = act.teacher[n];
+        box2.replaceChildren(
+          h("span", { class: `chip ${isDone(act, n) ? "ok" : answersOf(act, n).some((x) => x.trim()) ? "warn" : ""}`, "data-role": "q-done", text: isDone(act, n) ? "Conclu\xEDda" : answersOf(act, n).some((x) => x.trim()) ? "Em andamento" : "N\xE3o iniciada" }),
+          h("span", { class: `chip ${t && t.validatedAt ? "accent" : ""}`, "data-role": "q-validated", text: t && t.validatedAt ? `Validada pelo professor em ${fmtDay(t.validatedAt)}` : "Aguardando valida\xE7\xE3o do professor" })
+        );
+      };
+      statusChips();
+      const msg = h("div", { "data-role": "q-msg" });
+      const checks = [];
+      const areas = q.blocks.map((en, i) => {
+        const chip = h("div", { class: "small", style: { marginTop: "4px" }, "data-role": "block-check" });
+        checks.push(chip);
+        const ta = h("textarea", {
+          class: "field",
+          rows: 2,
+          lang: "pt-BR",
+          placeholder: "Tradu\xE7\xE3o em portugu\xEAs",
+          "aria-label": `Tradu\xE7\xE3o do bloco ${i + 1}`,
+          "data-role": "block-pt",
+          "data-i": i,
+          oninput: () => {
+            (act.answers[n] = answersOf(act, n))[i] = ta.value;
+            autosize(ta);
+            saveSoon2();
+            statusChips();
+            drawChecks();
+          },
+          onfocus: () => {
+            act.pos = { q: n, b: i };
+            saveSoon2();
+          }
+        });
+        ta.value = answersOf(act, n)[i];
+        return { ta, el: h(
+          "div",
+          { class: "card flat", style: { marginTop: "10px" }, "data-role": "block", "data-pos": i },
+          h("div", { class: "small muted", text: i === 0 ? "T\xEDtulo da quest\xE3o" : `Bloco ${i + 1}` }),
+          h("p", { lang: "en", style: { margin: "4px 0 8px", fontWeight: 600 }, "data-role": "block-en", text: en }),
+          ta,
+          chip
+        ) };
+      });
+      function drawChecks() {
+        const show = !!act.done[n];
+        const a = answersOf(act, n);
+        checks.forEach((chip, i) => {
+          chip.replaceChildren();
+          if (!show) return;
+          const c = checkTranslation(q.blocks[i], a[i]);
+          chip.append(h("span", { class: `chip ${CHECK_CLASS[c.level]}`, "data-level": c.level, text: `Checagem b\xE1sica: ${CHECK_LABEL[c.level]}` }), " ", h("span", { class: "muted", text: c.notes.join(" ") }));
+        });
+      }
+      drawChecks();
+      const prev = n > 1 ? h("button", { class: "btn", "data-role": "q-prev", onclick: () => App2.go(qHref(act.id, n - 1)) }, icon("back"), "Anterior") : null;
+      const last = n === total;
+      const save = h("button", { class: "btn primary grow", "data-role": "q-save", onclick: async () => {
+        const res = finishQuestion(act, n);
+        msg.replaceChildren();
+        if (!res.ok) {
+          msg.append(h("div", { class: "notice warn", "data-role": "q-missing" }, `Falta traduzir: ${res.missing.length === 1 ? "bloco" : "blocos"} ${res.missing.join(", ")}.`));
+          const first = areas[res.missing[0] - 1];
+          first.ta.focus();
+          return;
+        }
+        await saveNow();
+        if (last) {
+          toast("Quest\xE3o salva.");
+          App2.go(qHref(act.id, n));
+        } else {
+          toast(`Quest\xE3o ${n} salva.`);
+          App2.go(qHref(act.id, n + 1));
+        }
+      } }, icon("check"), last ? "Salvar e concluir a atividade" : "Salvar e avan\xE7ar");
+      view.append(...[
+        head,
+        nav,
+        h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
+        ...areas.map((x) => x.el),
+        msg,
+        h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save),
+        act.done[n] ? h("p", { class: "small muted", "data-role": "check-note", text: "A checagem b\xE1sica \xE9 s\xF3 uma orienta\xE7\xE3o de estudo (sinais como texto ainda em ingl\xEAs, partes faltando, n\xFAmeros, nomes, perguntas e nega\xE7\xF5es). Ela n\xE3o avalia o sentido, n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
+        act.done[n] ? teacherBox(act, n, statusChips) : null,
+        last && isDone(act, n) ? exportBox(act) : null
+      ].filter(Boolean));
+      areas.forEach((x) => autosize(x.ta));
+      const at = view.querySelector(`[data-pos="${act.pos.b}"]`);
+      if (at && act.pos.b) at.scrollIntoView({ block: "center" });
+    }
+    return () => {
+      alive = false;
+      flushCourse();
+    };
+  }
+  function autosize(ta) {
+    ta.style.height = "auto";
+    ta.style.height = `${Math.max(56, ta.scrollHeight + 2)}px`;
+  }
+  function teacherBox(act, n, onChange) {
+    const q = act.questions.find((x) => x.n === n);
+    const sub = act.submitted[n];
+    const body = h("div");
+    const box2 = h(
+      "details",
+      { class: "more card", "data-role": "teacher", open: !!act.teacher[n] },
+      h("summary", { text: "Corre\xE7\xE3o do professor" }),
+      body
+    );
+    function draw() {
+      const t = act.teacher[n];
+      const validated = !!(t && t.validatedAt);
+      body.replaceChildren(h("p", { class: "small muted", text: "Depois da aula, registre aqui a vers\xE3o corrigida conforme o professor e marque a quest\xE3o como validada. Sua tradu\xE7\xE3o enviada e a checagem b\xE1sica ficam guardadas como estavam." }));
+      if (!t) {
+        body.append(h("button", { class: "btn block", "data-role": "teacher-start", onclick: () => {
+          act.teacher[n] = { blocks: answersOf(act, n), validatedAt: null, startedAt: Date.now() };
+          saveSoon2();
+          draw();
+        } }, "Registrar a corre\xE7\xE3o do professor"));
+        return;
+      }
+      q.blocks.forEach((en, i) => {
+        const ta = h("textarea", {
+          class: "field",
+          rows: 2,
+          lang: "pt-BR",
+          disabled: validated,
+          "aria-label": `Vers\xE3o corrigida do bloco ${i + 1}`,
+          "data-role": "teacher-pt",
+          oninput: () => {
+            t.blocks[i] = ta.value;
+            autosize(ta);
+            saveSoon2();
+          }
+        });
+        ta.value = t.blocks[i] || "";
+        const c = sub && sub.check && sub.check[i];
+        body.append(h(
+          "div",
+          { class: "card flat", style: { marginTop: "8px" } },
+          h("p", { lang: "en", style: { margin: "0 0 4px", fontWeight: 600 }, text: en }),
+          sub ? h("div", { class: "small", "data-role": "teacher-submitted" }, h("span", { class: "muted", text: "Enviada: " }), sub.blocks[i]) : null,
+          c ? h("div", { class: "small muted", text: `Checagem b\xE1sica ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
+          h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Vers\xE3o corrigida (professor):" }),
+          ta
+        ));
+        requestAnimationFrame(() => autosize(ta));
+      });
+      if (validated) {
+        body.append(
+          h("div", { class: "notice ok", style: { marginTop: "10px" }, "data-role": "teacher-validated" }, `Validada pelo professor em ${fmtDay(t.validatedAt)}. Esta \xE9 a refer\xEAncia oficial desta quest\xE3o.`),
+          h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "teacher-edit", onclick: async () => {
+            if (!await confirmSheet("Editar a corre\xE7\xE3o?", "A quest\xE3o deixa de estar validada at\xE9 voc\xEA validar de novo.", { ok: "Editar" })) return;
+            t.validatedAt = null;
+            saveSoon2();
+            draw();
+            onChange();
+          } }, "Editar a corre\xE7\xE3o")
+        );
+      } else {
+        const err = h("div");
+        body.append(err, h("button", { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "teacher-validate", onclick: async () => {
+          const miss = t.blocks.map((x, i) => (x || "").trim() ? null : i + 1).filter(Boolean);
+          if (miss.length) {
+            err.replaceChildren(h("div", { class: "notice warn" }, `Preencha a vers\xE3o corrigida dos blocos ${miss.join(", ")}.`));
+            return;
+          }
+          t.validatedAt = Date.now();
+          await saveNow();
+          draw();
+          onChange();
+          toast("Quest\xE3o validada pelo professor.");
+        } }, icon("check"), "Marcar como validada pelo professor"));
+      }
+    }
+    draw();
+    return box2;
+  }
+  function exportBox(act) {
+    const probs = exportProblems(act);
+    if (probs.length) {
+      return h(
+        "div",
+        { class: "notice bad", style: { marginTop: "14px" }, "data-role": "export-blocked" },
+        h("b", { text: "Ainda n\xE3o d\xE1 para exportar. Falta:" }),
+        h("ul", { style: { margin: "6px 0 0", paddingLeft: "18px" } }, probs.map((p) => h("li", { text: p })))
+      );
+    }
+    const name = `${act.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "atividade"}-respostas.txt`;
+    return h(
+      "section",
+      { class: "card", style: { marginTop: "14px" }, "data-role": "export" },
+      h("h3", { text: "Atividade conclu\xEDda" }),
+      h("p", { class: "small muted", text: "O arquivo traz cada quest\xE3o com os blocos em ingl\xEAs e as suas tradu\xE7\xF5es, pronto para copiar e colar na plataforma do curso." }),
+      h("button", { class: "btn primary block", "data-role": "export-txt", onclick: () => {
+        const text = exportText(act);
+        const a = h("a", { href: URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" })), download: name });
+        document.body.append(a);
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 1e3);
+        toast("Arquivo gerado.");
+      } }, icon("download"), "Exportar todas as respostas"),
+      h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "export-copy", onclick: async () => {
+        try {
+          await navigator.clipboard.writeText(exportText(act));
+          toast("Texto copiado.");
+        } catch (e) {
+          toast("N\xE3o foi poss\xEDvel copiar; use o arquivo.");
+        }
+      } }, "Copiar o texto")
+    );
+  }
+  function courseHomeCard(App2) {
+    const info = h("div", { class: "small", style: { marginTop: "6px" }, "data-role": "course-next" });
+    loadCourse().then((d) => {
+      const act = d.last && d.activities[d.last];
+      if (!act) return;
+      const s = summary(act);
+      info.append(h("span", { class: "muted", text: `${act.title}: ` }), `${s.done} de ${s.total} quest\xF5es \xB7 ${s.validated} validadas`);
+    });
+    return h(
+      "section",
+      { class: "card track", "data-role": "course-entry" },
+      h("h3", { text: AREA_NAME }),
+      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: "Tradu\xE7\xF5es das atividades do curso, revis\xE3o do professor e exporta\xE7\xE3o das respostas." }),
+      info,
+      h("a", { class: "btn block primary", href: "#/course", style: { marginTop: "10px" }, "data-role": "open-course" }, icon("book"), "Abrir")
+    );
+  }
+
   // app/js/ui/home.js
   var EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
   function renderHome(App2) {
@@ -3413,6 +4002,7 @@
         }
       }));
     }
+    view.append(courseHomeCard(App2));
     const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App2.content, c.k)).length;
     if (due) view.append(h(
       "a",
@@ -3725,8 +4315,8 @@
       const sids = r.blocks.flatMap((b) => content.blocks[b].sentences);
       playSequence(sids.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en })), { onIndex: (i) => mark(i >= 0 ? sids[i] : null) });
     }
-    const words2 = Object.values(content.items).filter((it) => it.routines.includes(r.id) && !it.tags.includes("grammar-model"));
-    view.append(h("h2", { text: `Express\xF5es desta rotina (${words2.length})` }), itemList(App2, words2));
+    const words3 = Object.values(content.items).filter((it) => it.routines.includes(r.id) && !it.tags.includes("grammar-model"));
+    view.append(h("h2", { text: `Express\xF5es desta rotina (${words3.length})` }), itemList(App2, words3));
     if (r.usage.length || revNotes.length) {
       view.append(h("h2", { text: "Pontos de uso" }), h(
         "div",
@@ -3879,16 +4469,16 @@
       });
       stream.getTracks().forEach((t) => t.stop());
     };
-    let timer = null;
+    let timer2 = null;
     const stopped = new Promise((resolve) => {
       rec.onstop = () => {
         cleanup2();
-        clearTimeout(timer);
+        clearTimeout(timer2);
         resolve({ blob: new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" }), ms: Math.round(performance.now() - t0) });
       };
     });
     rec.start(250);
-    timer = setTimeout(() => {
+    timer2 = setTimeout(() => {
       if (rec.state !== "inactive") rec.stop();
     }, maxMs);
     return {
@@ -3918,12 +4508,12 @@
       });
     }
   }
-  function analyseSamples(data, sampleRate, { expectedWords = 0, referenceSec = 0 } = {}) {
+  function analyseSamples(data2, sampleRate, { expectedWords = 0, referenceSec = 0 } = {}) {
     const win = Math.round(sampleRate * 0.02);
     const rms = [];
-    for (let i = 0; i + win <= data.length; i += win) {
+    for (let i = 0; i + win <= data2.length; i += win) {
       let s = 0;
-      for (let j = i; j < i + win; j++) s += data[j] * data[j];
+      for (let j = i; j < i + win; j++) s += data2[j] * data2[j];
       rms.push(Math.sqrt(s / win));
     }
     if (!rms.length) return null;
@@ -3998,7 +4588,7 @@
   var clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   function recWidget(App2, opts) {
     const { targetId, reference = [], expectedWords = 0, referenceSec = 0, maxMs = 18e4 } = opts;
-    let session = null, blob = null, meta = null, url = null, startedAt = 0, timer = null, destroyed = false;
+    let session = null, blob = null, meta = null, url = null, startedAt = 0, timer2 = null, destroyed = false;
     const recBtn = h("button", { class: "rec-btn", type: "button", "aria-label": "Gravar minha voz" }, icon("mic"));
     const title = h("div", { class: "rec-title", text: "Gravar minha voz" });
     const time = h("div", { class: "small muted", text: "Toque no microfone para come\xE7ar" });
@@ -4057,7 +4647,7 @@
         } catch (e) {
         }
       }
-      timer = setInterval(() => {
+      timer2 = setInterval(() => {
         title.textContent = `Gravando\u2026 ${clock(Math.round((Date.now() - startedAt) / 1e3))}`;
       }, 250);
       session.stopped.then(onStopped);
@@ -4066,7 +4656,7 @@
       if (session) session.stop();
     }
     async function onStopped(res) {
-      clearInterval(timer);
+      clearInterval(timer2);
       session = null;
       if (destroyed) {
         if (targetId && backend === "indexeddb") {
@@ -4207,7 +4797,7 @@
       if (destroyed) return;
       destroyed = true;
       if (session) session.cancel();
-      clearInterval(timer);
+      clearInterval(timer2);
       releaseElement(audioEl);
       MEDIA_EVENTS.forEach((ev) => audioEl.removeEventListener(ev, drawMine));
       if (url) {
@@ -4231,10 +4821,10 @@
   }
 
   // app/js/engine/lexicon.js
-  var words = null;
+  var words2 = null;
   var loading = null;
   function loadLexicon(url = "data/lexicon.txt.gz") {
-    if (words) return Promise.resolve(true);
+    if (words2) return Promise.resolve(true);
     if (!loading) {
       loading = (async () => {
         try {
@@ -4244,7 +4834,7 @@
           if (buf[0] === 31 && buf[1] === 139 && typeof DecompressionStream !== "undefined") {
             buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
           }
-          words = new Set(new TextDecoder().decode(buf).split("\n").filter(Boolean));
+          words2 = new Set(new TextDecoder().decode(buf).split("\n").filter(Boolean));
           return true;
         } catch (e) {
           return false;
@@ -4271,12 +4861,12 @@
     return /([b-df-hj-np-tv-z])\1$/.test(t) && !/(ll|ss|ff|zz)$/.test(t) ? t.slice(0, -1) : t;
   }
   function isKnownWord(w, extra = null) {
-    if (!words) return null;
+    if (!words2) return null;
     const t = String(w).toLowerCase().replace(/[’]/g, "'");
-    if (words.has(t) || extra && extra.has(t)) return true;
+    if (words2.has(t) || extra && extra.has(t)) return true;
     const base = lemma(t);
-    if (words.has(base) || extra && extra.has(base)) return true;
-    return words.has(base + "e") || words.has(t.replace(/'s$/, ""));
+    if (words2.has(base) || extra && extra.has(base)) return true;
+    return words2.has(base + "e") || words2.has(t.replace(/'s$/, ""));
   }
 
   // app/js/engine/wordfeedback.js
@@ -4383,14 +4973,14 @@
     return out;
   }
   function evaluateWords(text, asr, opts = {}) {
-    const words2 = wordsOf(text);
-    const all = (state, reason, note) => ({ words: words2.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
+    const words3 = wordsOf(text);
+    const all = (state, reason, note) => ({ words: words3.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
     if (opts.insufficient) return all("uncertain", "Grava\xE7\xE3o insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.", "Quase n\xE3o captei voz: nada foi avaliado.");
     if (!asr) return all("uncertain", "N\xE3o foi poss\xEDvel avaliar esta palavra: o reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel. Compare com a refer\xEAncia (A/B).", "Avalia\xE7\xE3o por palavra indispon\xEDvel neste aparelho.");
-    const target = words2.map((x) => x.norm);
+    const target = words3.map((x) => x.norm);
     const heard = matchCompounds(target, heardTokens(asr.text));
     if (!heard.length) return all("uncertain", "Nenhuma fala foi reconhecida. Tente gravar novamente.", "O reconhecimento n\xE3o captou fala: resultado inconclusivo.");
-    if (degenerate(heard, words2.length)) return all("uncertain", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido); n\xE3o d\xE1 para avaliar a palavra. Tente gravar de novo.", "Transcri\xE7\xE3o n\xE3o confi\xE1vel (repeti\xE7\xF5es): resultado inconclusivo.");
+    if (degenerate(heard, words3.length)) return all("uncertain", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido); n\xE3o d\xE1 para avaliar a palavra. Tente gravar de novo.", "Transcri\xE7\xE3o n\xE3o confi\xE1vel (repeti\xE7\xF5es): resultado inconclusivo.");
     if (typeof asr.confidence === "number" && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
       return all("uncertain", "O reconhecimento teve confian\xE7a baixa nesta grava\xE7\xE3o; n\xE3o d\xE1 para avaliar a palavra com seguran\xE7a. Tente de novo.", "Confian\xE7a baixa do reconhecimento: resultado inconclusivo.");
     }
@@ -4406,7 +4996,7 @@
       tGap.forEach((i, idx) => gapHeard.set(i, tGap.length === hGap.length ? [hGap[idx]] : hGap));
     }
     const lastMatched = pairs.length ? pairs[pairs.length - 1][0] : -1;
-    const out = words2.map((x, i) => {
+    const out = words3.map((x, i) => {
       if (matchT.has(i)) return { w: x.w, text: x.text, state: "good", reason: "Reconhecida como esperado. Isso indica que a palavra foi entendida (intelig\xEDvel); n\xE3o \xE9 uma an\xE1lise fon\xE9tica dos sons." };
       const near = (gapHeard.get(i) || []).filter(Boolean);
       if (x.weak) return { w: x.w, text: x.text, state: "uncertain", reason: "Palavra curta e \xE1tona: o reconhecedor costuma omiti-la mesmo quando \xE9 dita. N\xE3o foi avaliada." };
@@ -4435,8 +5025,8 @@
       else get("intelligibility").note = "Poucas palavras avali\xE1veis.";
     } else get("intelligibility").note = evaluation && evaluation.note ? evaluation.note : "Sem reconhecimento de fala no aparelho.";
     if (analysis && !insufficient && analysis.speechSec >= 1) {
-      const words2 = Math.max(1, expectedWords);
-      let s = 100 - Math.max(0, analysis.longPauses - (words2 > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words2 / 5)) * 5;
+      const words3 = Math.max(1, expectedWords);
+      let s = 100 - Math.max(0, analysis.longPauses - (words3 > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words3 / 5)) * 5;
       get("fluency").score = Math.max(30, Math.min(100, Math.round(s)));
     } else get("fluency").note = "Grava\xE7\xE3o curta ou sem voz suficiente.";
     get("prosody").note = "N\xE3o avaliado: o app n\xE3o tem um analisador de acento e entona\xE7\xE3o.";
@@ -4510,11 +5100,11 @@
     return { status: "mismatch", heard };
   }
   function wordPracticeSession() {
-    const words2 = /* @__PURE__ */ new Map();
-    const get = (key) => words2.get(key) || { status: "todo", tries: 0, last: null };
+    const words3 = /* @__PURE__ */ new Map();
+    const get = (key) => words3.get(key) || { status: "todo", tries: 0, last: null };
     const set2 = (key, patch) => {
       const v = { ...get(key), ...patch };
-      words2.set(key, v);
+      words3.set(key, v);
       return v;
     };
     return {
@@ -4813,9 +5403,9 @@
   var TOKENS_PER_SECOND = 6;
   function estimateTokens(text) {
     const s = String(text || "");
-    const words2 = wordTokens(s);
+    const words3 = wordTokens(s);
     let n = 0;
-    for (const w of words2) n += /\d/.test(w) ? Math.max(2, w.replace(/\D/g, "").length + 1) : w.length > 7 ? 2 : 1;
+    for (const w of words3) n += /\d/.test(w) ? Math.max(2, w.replace(/\D/g, "").length + 1) : w.length > 7 ? 2 : 1;
     return n + (s.match(/[.,!?;:]/g) || []).length;
   }
   function transcriptIntegrity({ text = "", segments = null, secs = null } = {}) {
@@ -4825,11 +5415,11 @@
     parts.forEach((p, i) => {
       const label = parts.length > 1 ? ` (trecho ${i + 1} de ${parts.length})` : "";
       const budget = Math.trunc((p.secs || 0) * TOKENS_PER_SECOND);
-      const words3 = wordTokens(p.text || "").length;
-      if (budget > 0 && words3 > 0 && estimateTokens(p.text) >= budget - 1) {
+      const words4 = wordTokens(p.text || "").length;
+      if (budget > 0 && words4 > 0 && estimateTokens(p.text) >= budget - 1) {
         issues.push({ code: "possibly-truncated", part: i, msg: `A transcri\xE7\xE3o pode ter sido cortada no fim${label}: o reconhecedor chegou perto do limite de texto para esse tempo de \xE1udio.` });
       }
-      if (p.voicedSec != null && p.voicedSec >= 1 && words3 === 0) {
+      if (p.voicedSec != null && p.voicedSec >= 1 && words4 === 0) {
         issues.push({ code: "lost-part", part: i, msg: `Um trecho com voz n\xE3o gerou texto${label}: parte da fala pode ter sido perdida pelo reconhecimento.` });
       }
       if (p.cutInSpeech && i < parts.length - 1) {
@@ -4837,8 +5427,8 @@
       }
     });
     const voiced = parts.reduce((n, p) => n + (p.voicedSec || 0), 0);
-    const words2 = segments && segments.length ? parts.reduce((n, p) => n + wordTokens(p.text || "").length, 0) : wordTokens(text).length;
-    if (voiced >= 4 && words2 / voiced < 0.6) {
+    const words3 = segments && segments.length ? parts.reduce((n, p) => n + wordTokens(p.text || "").length, 0) : wordTokens(text).length;
+    if (voiced >= 4 && words3 / voiced < 0.6) {
       issues.push({ code: "low-density", msg: "H\xE1 bem menos palavras do que o tempo de fala sugere: parte do que voc\xEA disse pode n\xE3o ter sido reconhecida." });
     }
     return { checked: true, complete: issues.length === 0, issues };
@@ -4979,7 +5569,7 @@
     const exampleWord = /* @__PURE__ */ new Map();
     for (const w of [...wordTokens(model), ...wordTokens(question), ...alts.flatMap(wordTokens)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
     const candidates = missingExpected.map((l) => exampleWord.get(l) || l);
-    const words2 = [];
+    const words3 = [];
     const practice = [];
     const seen = /* @__PURE__ */ new Set();
     const flags = /* @__PURE__ */ new Map();
@@ -5022,7 +5612,7 @@
           seen.add(key);
           practice.push({ w: f.src[0], ws: f.src, text: f.heard, heard: f.heard, ref: f.expected || null, refAu: f.ref ? f.ref.au || null : null, refText: f.ref ? f.ref.text : null, context: f.context || null, flag: f.kind, category: f.expected ? "recognition" : "inconclusive", strength: f.strength || "possible", reason: r2.reason });
         }
-        words2.push(r2);
+        words3.push(r2);
         continue;
       }
       const jn = joined.get(seg.w);
@@ -5033,22 +5623,22 @@
           hypotheses.push({ heard: jn.heard, ref: jn.ref });
           practice.push({ w: jn.ws[0], ws: jn.ws, text: jn.heard, heard: jn.heard, ref: jn.ref, flag: "nonword", category: "recognition", reason });
         }
-        words2.push({ w: seg.w, text: seg.text, state: "needs_practice", flag: "nonword", ref: jn.ref, reason });
+        words3.push({ w: seg.w, text: seg.text, state: "needs_practice", flag: "nonword", ref: jn.ref, reason });
         continue;
       }
       if (!t || /\d/.test(t) || NUMBER_WORDS.includes(t)) {
-        words2.push({ w: seg.w, text: seg.text, state: "good", reason: "N\xFAmero ou hor\xE1rio reconhecido." });
+        words3.push({ w: seg.w, text: seg.text, state: "good", reason: "N\xFAmero ou hor\xE1rio reconhecido." });
         continue;
       }
       if (seg.weak || STOP.has(t) || t.length < 3) {
-        deferred.push(words2.length);
-        words2.push({ w: seg.w, text: seg.text, state: "uncertain", reason: "" });
+        deferred.push(words3.length);
+        words3.push({ w: seg.w, text: seg.text, state: "uncertain", reason: "" });
         continue;
       }
       const l = lemma(t);
       const inActivity = [...forms(t)].some((f2) => vocab.known.has(f2) || vocab.domain.has(lemma(f2)) || expected.includes(lemma(f2))) || appCompound(t, vocab.known) || !!categoryOf(t);
       if (seg.proper && !inActivity) {
-        words2.push({ w: seg.w, text: seg.text, state: "uncertain", reason: "Nome pr\xF3prio ou termo fora do vocabul\xE1rio da atividade: n\xE3o avaliado. O app n\xE3o tenta adivinhar nomes." });
+        words3.push({ w: seg.w, text: seg.text, state: "uncertain", reason: "Nome pr\xF3prio ou termo fora do vocabul\xE1rio da atividade: n\xE3o avaliado. O app n\xE3o tenta adivinhar nomes." });
         continue;
       }
       const r = {
@@ -5085,13 +5675,13 @@
           practice.push({ w: r.w, text: seg.text.replace(/[.,!?;:]+$/, ""), heard: seg.text.replace(/[.,!?;:]+$/, ""), ref: r.ref || null, flag: r.flag, category: r.category, reason: r.reason });
         }
       }
-      words2.push(r);
+      words3.push(r);
     }
     for (const k of deferred) {
-      const near = [1, -1, 2, -2, 3, -3].map((d) => k + d).filter((j) => words2[j] && !deferred.includes(j)).map((j) => words2[j]);
-      const touchesFlag = [words2[k - 1], words2[k + 1]].some((x) => x && x.state === "needs_practice");
+      const near = [1, -1, 2, -2, 3, -3].map((d) => k + d).filter((j) => words3[j] && !deferred.includes(j)).map((j) => words3[j]);
+      const touchesFlag = [words3[k - 1], words3[k + 1]].some((x) => x && x.state === "needs_practice");
       const good = !touchesFlag && (!near.length || near.some((x) => x.state === "good"));
-      Object.assign(words2[k], { state: good ? "good" : "uncertain", reason: good ? "Palavra curta que acompanha um trecho compat\xEDvel." : "Palavra curta perto de um trecho n\xE3o confirmado: n\xE3o avaliada sozinha." });
+      Object.assign(words3[k], { state: good ? "good" : "uncertain", reason: good ? "Palavra curta que acompanha um trecho compat\xEDvel." : "Palavra curta perto de um trecho n\xE3o confirmado: n\xE3o avaliada sozinha." });
     }
     const intent = questionIntent(question, unit);
     const narrative = unit === "block" || unit === "routine" || /tell me about|routine/i.test(question);
@@ -5169,7 +5759,7 @@
       tips: tips.slice(0, 4),
       grammarTips,
       language,
-      words: words2,
+      words: words3,
       practice,
       coherence,
       holes,
@@ -5211,12 +5801,12 @@
   function wordsAll(text, state) {
     return segment(text).filter((s) => s.w !== void 0).map((s) => ({ w: s.w, text: s.text, state, reason: "N\xE3o avaliada nesta tentativa." }));
   }
-  function measure(analysis, words2) {
+  function measure(analysis, words3) {
     if (!analysis) return { totalSec: null, speechSec: null, wpm: null, pauses: null, longPauses: null };
     const ok = !analysis.silent;
     let wpm = null;
-    if (ok && analysis.speechSec >= 3 && words2 >= 5) {
-      const v = Math.round(words2 / analysis.speechSec * 60);
+    if (ok && analysis.speechSec >= 3 && words3 >= 5) {
+      const v = Math.round(words3 / analysis.speechSec * 60);
       if (v >= 40 && v <= 260) wpm = v;
     }
     return {
@@ -5490,9 +6080,9 @@
       item("uncertain", "N\xE3o avaliada")
     );
   }
-  function scoreLine(score, summary) {
+  function scoreLine(score, summary2) {
     const head = score.overall === null ? h("div", { class: "score-head" }, h("span", { class: "chip", text: "Sem nota geral" })) : h("div", { class: "score-head" }, h("b", { class: "score-num", text: `${score.overall}/100` }), h("span", { class: "score-tag", text: score.partial ? "Avalia\xE7\xE3o parcial" : "Avalia\xE7\xE3o" }));
-    return h("div", { class: "score-line" }, head, summary ? h("p", { class: "score-summary", text: summary }) : null);
+    return h("div", { class: "score-line" }, head, summary2 ? h("p", { class: "score-summary", text: summary2 }) : null);
   }
   function scoreDetails(score, { heard = null, engine = null, note = "" } = {}) {
     return h(
@@ -6058,7 +6648,7 @@
       window.scrollTo(0, 0);
       if (idx >= queue.length) {
         App2.debugExercise = { type: "summary" };
-        return summary();
+        return summary2();
       }
       const entry = queue[idx];
       try {
@@ -6718,7 +7308,7 @@
       }
       actions();
     }
-    function summary() {
+    function summary2() {
       const good = results.filter((r) => r.outcome !== "bad").length;
       const bad = results.filter((r) => r.outcome === "bad");
       const sr = recordSession(state, { count: results.length, bad: bad.length }, App2.today());
@@ -7468,9 +8058,9 @@
     function drawManual() {
       clear(manualBox);
       if (!en.length || !asrEligible || engine) return;
-      const words2 = [...new Set(en.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
+      const words3 = [...new Set(en.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
       state.difficultWords = state.difficultWords || {};
-      const picks = h("div", {}, ...words2.map((wd) => {
+      const picks = h("div", {}, ...words3.map((wd) => {
         const key = wd.toLowerCase();
         const b = h("button", { class: "word-pick", type: "button", "aria-pressed": String(!!state.difficultWords[key]) }, wd);
         b.onclick = () => {
@@ -7609,10 +8199,10 @@
         h("div", { class: "tiny muted", text: fmtDate(a.at) })
       )));
     })));
-    const words2 = Object.keys(state.difficultWords || {});
+    const words3 = Object.keys(state.difficultWords || {});
     view.append(h("h2", { text: "Palavras marcadas no Speaking Lab" }));
-    if (!words2.length) view.append(h("p", { class: "small muted", text: "Nenhuma palavra marcada." }));
-    else view.append(h("div", { class: "chips" }, words2.map((w) => h("a", { class: "chip warn", href: labHref(state.difficultWords[w].from), text: w }))));
+    if (!words3.length) view.append(h("p", { class: "small muted", text: "Nenhuma palavra marcada." }));
+    else view.append(h("div", { class: "chips" }, words3.map((w) => h("a", { class: "chip warn", href: labHref(state.difficultWords[w].from), text: w }))));
   }
   function labHref(target = "") {
     const [kind, id] = target.split(":");
@@ -8149,7 +8739,10 @@
         checklist: renderChecklist,
         modules: renderModules,
         module: renderModule,
-        words: renderWords
+        words: renderWords,
+        course: renderCourse,
+        cq: renderCourseQuestion
+        // Curso — Atividades (independente das jornadas)
       };
       const needsContent = ["explore", "routine", "context", "category", "session", "lab", "review", "checklist", "module", "words"];
       if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {

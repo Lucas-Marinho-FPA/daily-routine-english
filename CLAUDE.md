@@ -58,6 +58,11 @@ autorização. Registro: `data/characters.js` (gerado de `dev/content/characters
 
 - **Conversation Practice** (`cp`) é uma **jornada** independente (não personagem): CP01 “First Steps: Meeting People”,
   CP02 “What I Think: Likes and Opinions” — `docs/conversation-practice.md`.
+- **Curso — Atividades** (`#/course`) é uma **área** independente (não jornada, não personagem): traduções inglês →
+  português das atividades do curso do usuário, uma questão por vez, salvamento automático, correção do professor por
+  questão e exportação TXT — `docs/curso-atividades.md`. Decisão do responsável (2026-11-08): **nome neutro** no app
+  publicado (o nome do curso/unidade é privado) e **texto das atividades importado no aparelho** (material de terceiros;
+  nunca versionar o texto de uma atividade — testes usam conteúdo sintético ou `DRG_COURSE_FILE` fora do repositório).
 - **Lukinhas:** id interno `lucas-kid`, nome de exibição Lukinhas; fonte `dev/content/characters/lucas-kid.json`, gerada
   por `dev/tools/lukinhas-source.mjs` (que confere os dez textos aprovados caractere por caractere); publicado em
   `data/characters.js`. Dias da semana dos treinos de jiu-jitsu **não informados** — não atribuir.
