@@ -140,7 +140,8 @@ export function initPwa(App) {
     if (checking) return checking;
     const now = Date.now();
     if (!manual && document.visibilityState !== 'visible') return Promise.resolve('skipped');
-    if (!manual && !opening && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve('skipped');
+    // a retomada de uma atualização interrompida não espera os 15 min entre verificações (ela já sabe que há versão nova)
+    if (!manual && !opening && !resume && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve('skipped');
     if (!manual && !resume && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve('skipped');
     pwa.lastAttempt = now;
     if (pwa.update === 'failed' || pwa.update === 'interrupted') pwa.update = resume ? 'downloading' : null;
