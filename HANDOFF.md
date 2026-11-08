@@ -14,6 +14,30 @@
 7. Ao fim de cada sessão relevante: atualizar este arquivo, commitar e **enviar a branch de desenvolvimento**
    (regra permanente: nada importante só no ambiente temporário).
 
+## 0a. Correção definitiva da atualização do PWA (2026-11-08, publicada)
+
+- **Problema:** no Galaxy S25+ (Samsung Internet) a versão `79916fe` ficava em “Baixando uma nova versão do aplicativo…”
+  sem fim. Causa medida: cada versão baixava de novo 1.805 arquivos (15,18 MB) num único passo de instalação, embora
+  só `dist/app.js` (0,45 MB) tivesse mudado; falha, app fechado ou rede lenta além dos 5 min do navegador descartavam
+  tudo.
+- **Solução** (`docs/pwa-instalacao.md` → “Atualização incremental e retomável”): arquivos guardados pelo hash do
+  conteúdo em caches compartilhados entre versões (`drgshell-v1`, `drgaudio-v1`); só o que mudou é baixado (arquivos das
+  versões antigas são conferidos e copiados); cada arquivo conferido e guardado ao chegar; tentativas com limite de
+  4 min que guardam o progresso e continuam sozinhas; progresso real na faixa de aviso; **Ajustes → Aplicativo →
+  Diagnóstico da atualização**. Dados do aluno (IndexedDB/localStorage) nunca são tocados.
+- **Defeitos achados pelos testes novos e corrigidos antes de publicar:** consulta ao cache antigo quadrática (216 s →
+  ~10 s); estado da tentativa sobrescrito pela conferência da versão ativa (contagem de tentativas); retomada automática
+  bloqueada pelo intervalo de 15 min entre verificações.
+- **Testes** (`dev/tests/e2e/update-transition.mjs`, 25 cenários; logs em `dev/evidence/2026-11-08-pwa/`): versão
+  publicada `b25ebbc` → nova baixa **1 arquivo (0,46 MB), 0 áudios**; U01 1 arquivo alterado → 1 baixado (74 KB);
+  U02 7 alterados → exatamente 7 (117 KB), 1.782 áudios reaproveitados; U03 app fechado no meio → retoma sem recomeçar;
+  U04 503 temporário → refeito na mesma tentativa; U05 300 kbit/s, download de 6 min → 2 tentativas, 13,49 MB baixados =
+  13,49 MB alterados; U06 hash errado → versão não instalada, erro no aviso e no Diagnóstico; U07 dados idênticos
+  depois de 6 atualizações; U08 áudios reaproveitados.
+- **Não testado:** aparelho físico (Galaxy S25+) e o Samsung Internet real (só Chromium com rede simulada).
+- No celular ainda em `b25ebbc`, a troca usa o código novo de instalação: baixa só `dist/app.js` e copia o resto do
+  cache atual. A retomada automática vale a partir da versão nova em uso.
+
 ## 0. Entrega de 2026-11-08 — Curso — Atividades (publicada)
 
 - **O quê:** área independente “Curso — Atividades” (`#/course`): atividades de tradução inglês → português do curso do

@@ -1,0 +1,15 @@
+✔ C01 Início mostra a área (nome neutro); a área abre vazia, com importação — {"titulo":"Curso — Atividades","jornadas":{"dr":true,"cp":true,"profiles":["lucas"],"cards":0}}
+✔ C02 Importa o arquivo no aparelho: 21 questões; “Começar” abre a Questão 1 sem nenhuma tradução pronta — {"blocosQ1":4,"totalBlocos":84,"requisicoesDuranteImportacao":0,"envios":0}
+✔ C03 Avançar exige todas as traduções da questão (mostra o que falta e não avança) — Falta traduzir: blocos 2, 3, 4.
+✔ C04 Salvamento automático: digitar, recarregar e fechar o app inteiro preservam o texto (sem clicar em salvar) — recarregar, fechar/reabrir e sair logo após digitar: texto preservado
+✔ C05 Percorre as 21 questões uma a uma (Questão n de 21, progresso, sem exportação antes do fim) — {"questoes":21,"exportacaoAntesDoFim":0}
+✔ C06 Checagem básica aparece só depois de salvar, como orientação (não bloqueia, não muda a resposta) — {"niveis":["ok","review"]}
+✔ C07 Na Questão 21 concluída: “Exportar todas as respostas” gera o TXT completo (21 questões, inglês + tradução, acentos) — {"arquivo":"sample-activity-part-9-respostas.txt","questoes":21,"bytes":7328}
+✔ C08 Editar resposta anterior (Questão 3): muda a versão atual; a primeira versão enviada fica preservada — {"atual":"Versão revisada pelo aluno","enviada":"Tradução 3.2: ação, coração, você — “ótimo”?"}
+✔ C09 Validação do professor só na Questão 2: versão corrigida registrada, data, enviada e checagem preservadas — {"validadas":1,"questao4":"Aguardando validação do professor"}
+✔ C10 Exportação incompleta é recusada e diz o que falta (bloco apagado na Questão 5) — {"areaBloqueada":"sem caixa na área (atividade incompleta não mostra exportação)","mensagem":"Ainda não dá para exportar. Falta:Questão 5: bloco 2 sem tradução"}
+✔ C11 Fechar e reabrir o app: tudo preservado; a área retoma do ponto em que parou — {"inicio":"…: 21 de 21 questões · 1 validadas","area":"21 de 21 questões concluídas","validadas":"Validadas pelo professor: 1 de 21"}
+✔ C12 Funciona offline (servidor desligado): área, questão e exportação — {"blocos":4,"exportacao":1}
+✔ C13 Funcionalidades existentes intactas: jornadas no Início, progresso das jornadas sem mudança, sem erros, sem rede externa, sem rolagem lateral — {"jornadas":{"dr":true,"cp":true,"profiles":["lucas"],"cards":0},"erros":0,"externas":0}
+
+13 aprovados, 0 reprovados
