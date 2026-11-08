@@ -79,8 +79,15 @@ await check('C01', 'Início mostra a área (nome neutro); a área abre vazia, co
 
 await check('C02', `Importa o arquivo no aparelho: ${TOTAL} questões; “Começar” abre a Questão 1 sem nenhuma tradução pronta`, async () => {
   await page.click('[data-role=import] summary');
+  const sent = [];
+  const spy = (r) => sent.push({ method: r.method(), url: r.url(), body: r.postData() || '' });
+  page.on('request', spy);
   await page.setInputFiles('[data-role=import-file]', { name: 'atividade.txt', mimeType: 'text/plain', buffer: Buffer.from(SRC, 'utf8') });
   await page.waitForSelector('[data-role=import-ok]');
+  await page.waitForTimeout(500);
+  page.off('request', spy);
+  const sample = P.questions[0].blocks[1];
+  assert(!sent.some((r) => r.method !== 'GET' || r.body.includes(sample) || decodeURIComponent(r.url).includes(sample)), `o arquivo importado gerou envio: ${JSON.stringify(sent.map((r) => r.method + ' ' + r.url))}`);
   const msg = await page.locator('[data-role=import-ok]').textContent();
   assert(msg.includes(`${TOTAL} questões`), msg);
   await page.click('[data-role=open-activity]');
@@ -93,7 +100,7 @@ await check('C02', `Importa o arquivo no aparelho: ${TOTAL} questões; “Começ
   const navDisabled = await page.locator('[data-role=q-nav] button').evaluateAll((b) => b.slice(1).every((x) => x.disabled));
   assert(navDisabled, 'questões seguintes deveriam estar bloqueadas');
   await shot('c02-q1');
-  return { blocosQ1: ens.length, totalBlocos: P.questions.reduce((n, q) => n + q.blocks.length, 0) };
+  return { blocosQ1: ens.length, totalBlocos: P.questions.reduce((n, q) => n + q.blocks.length, 0), requisicoesDuranteImportacao: sent.length, envios: 0 };
 });
 
 await check('C03', 'Avançar exige todas as traduções da questão (mostra o que falta e não avança)', async () => {

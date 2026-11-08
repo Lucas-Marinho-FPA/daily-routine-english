@@ -71,8 +71,8 @@ export function renderCourse(App) {
     if (!acts.length) list.append(h('div', { class: 'notice', 'data-role': 'no-activity' }, 'Nenhuma atividade ainda. Importe o arquivo da atividade abaixo.'));
     for (const act of acts) {
       const s = summary(act);
-      list.append(h('section', { class: 'card track', 'data-role': 'activity', 'data-id': act.id },
-        h('h3', { text: act.title }),
+      list.append(h('section', { class: 'card', style: { marginTop: '12px' }, 'data-role': 'activity', 'data-id': act.id },
+        h('h3', { style: { margin: 0 }, text: act.title }),
         h('div', { class: 'row nowrap small' }, h('span', { class: 'grow', 'data-role': 'activity-progress', text: `${s.done} de ${s.total} questões concluídas` }), h('b', { text: `${Math.round((s.done / s.total) * 100)}%` })),
         bar(s.done / s.total),
         h('div', { class: 'small muted', style: { marginTop: '4px' }, 'data-role': 'activity-validated', text: `Validadas pelo professor: ${s.validated} de ${s.total}` }),
@@ -307,8 +307,8 @@ export function courseHomeCard(App) {
     const s = summary(act);
     info.append(h('span', { class: 'muted', text: `${act.title}: ` }), `${s.done} de ${s.total} questões · ${s.validated} validadas`);
   });
-  return h('section', { class: 'card track', 'data-role': 'course-entry' },
-    h('h3', { text: AREA_NAME }),
+  return h('section', { class: 'card', style: { marginTop: '12px' }, 'data-role': 'course-entry' },
+    h('h3', { style: { margin: 0 }, text: AREA_NAME }),
     h('p', { class: 'small muted', style: { margin: '2px 0 8px' }, text: 'Traduções das atividades do curso, revisão do professor e exportação das respostas.' }),
     info,
     h('a', { class: 'btn block primary', href: '#/course', style: { marginTop: '10px' }, 'data-role': 'open-course' }, icon('book'), 'Abrir'));

@@ -3566,8 +3566,8 @@
         const s = summary(act);
         list.append(h(
           "section",
-          { class: "card track", "data-role": "activity", "data-id": act.id },
-          h("h3", { text: act.title }),
+          { class: "card", style: { marginTop: "12px" }, "data-role": "activity", "data-id": act.id },
+          h("h3", { style: { margin: 0 }, text: act.title }),
           h("div", { class: "row nowrap small" }, h("span", { class: "grow", "data-role": "activity-progress", text: `${s.done} de ${s.total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / s.total * 100)}%` })),
           bar(s.done / s.total),
           h("div", { class: "small muted", style: { marginTop: "4px" }, "data-role": "activity-validated", text: `Validadas pelo professor: ${s.validated} de ${s.total}` }),
@@ -3909,8 +3909,8 @@
     });
     return h(
       "section",
-      { class: "card track", "data-role": "course-entry" },
-      h("h3", { text: AREA_NAME }),
+      { class: "card", style: { marginTop: "12px" }, "data-role": "course-entry" },
+      h("h3", { style: { margin: 0 }, text: AREA_NAME }),
       h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: "Tradu\xE7\xF5es das atividades do curso, revis\xE3o do professor e exporta\xE7\xE3o das respostas." }),
       info,
       h("a", { class: "btn block primary", href: "#/course", style: { marginTop: "10px" }, "data-role": "open-course" }, icon("book"), "Abrir")
