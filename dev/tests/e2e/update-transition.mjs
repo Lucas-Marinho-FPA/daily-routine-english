@@ -356,8 +356,9 @@ await check('T12', 'Fechar todas as janelas com a versão nova em espera (após 
   await o.page.close();
   const p = await o.ctx.newPage(); await p.goto(BASE); await p.waitForTimeout(2500);
   const s = await sw(p); const t = await shown(p);
+  const miss = await missingOf(p, NEW);
   await o.ctx.close();
-  assert(s.controller === V_NEW && t.lukinhas && t.codigoNovo && (await missingOf(p, NEW)) === 0, JSON.stringify({ s, t }));
+  assert(s.controller === V_NEW && t.lukinhas && t.codigoNovo && miss === 0, JSON.stringify({ s, t, miss }));
   return { emUso: s.controller, lukinhas: t.lukinhas, caches: s.caches };
 });
 
@@ -530,7 +531,7 @@ await check('T13', 'Download interrompido (navegador encerrado no meio): ao reab
     assert(failed && !s.waiting && s.controller === V4.v && /conteúdo diferente/.test(msg) && !bad, JSON.stringify({ failed, s, msg, bad }));
     assert(diag['diag-active'] === V4.v && /conteúdo diferente/.test(diag['diag-error'] || '') && /falhou/.test(diag['diag-update'] || ''), JSON.stringify(diag));
     delete faults['install.js'];
-    await o.page.goto(BASE); await o.page.waitForTimeout(800);
+    await app(o.page, () => { location.hash = '#/'; }); await o.page.waitForTimeout(800); // volta ao Início sem recarregar (o aviso de falha continua)
     await o.page.locator('[data-role=update-retry]').click();
     const ok = await waitSw(o.page, (x) => x.waiting === V5.v, 60000);
     const ap = ok && await applyVersion(o, V5);

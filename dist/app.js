@@ -3068,6 +3068,12 @@
       }
       if (watched.has(worker2)) return;
       watched.add(worker2);
+      askWorker(worker2, "STATUS").then((d) => {
+        if (d && d.status && !pwa.progress) {
+          pwa.progress = d.status;
+          notify();
+        }
+      });
       worker2.addEventListener("statechange", () => {
         if (worker2.state === "installed" && sw.controller) {
           pwa.update = "ready";
@@ -3274,8 +3280,10 @@
     );
   }
   function progressText(p) {
-    if (!p || p.phase === "preparing") return "Preparando a atualiza\xE7\xE3o: conferindo os arquivos que j\xE1 est\xE3o no aparelho\u2026";
+    if (!p || p.phase === "preparing" || p.phase === "idle") return "Preparando a atualiza\xE7\xE3o: conferindo os arquivos que j\xE1 est\xE3o no aparelho\u2026";
     if (p.phase === "verifying") return "Conferindo os arquivos da nova vers\xE3o\u2026";
+    if (p.phase === "ready") return "Nova vers\xE3o baixada e conferida.";
+    if (p.phase === "interrupted") return `Atualiza\xE7\xE3o interrompida (${p.present} de ${p.total} arquivos prontos); o que j\xE1 foi baixado est\xE1 guardado.`;
     if (p.phase === "downloading") {
       const todo = p.downloaded + p.pending;
       return `Baixando a atualiza\xE7\xE3o: ${p.downloaded} de ${todo} ${todo === 1 ? "arquivo novo" : "arquivos novos"}${p.reused ? ` \xB7 ${p.reused} reaproveitados` : ""}${p.attempt > 1 ? ` \xB7 retomada (tentativa ${p.attempt})` : ""}`;

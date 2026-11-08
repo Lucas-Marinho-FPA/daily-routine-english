@@ -97,6 +97,8 @@ export function initPwa(App) {
     if (sw.controller && pwa.update !== 'ready' && pwa.update !== 'applying') { pwa.update = 'downloading'; notify(); }
     if (watched.has(worker)) return;
     watched.add(worker);
+    // app aberto no meio de um download: pede o progresso atual (sem esperar a próxima mensagem do service worker)
+    askWorker(worker, 'STATUS').then((d) => { if (d && d.status && !pwa.progress) { pwa.progress = d.status; notify(); } });
     worker.addEventListener('statechange', () => {
       if (worker.state === 'installed' && sw.controller) { pwa.update = 'ready'; notify(); }
       if (worker.state === 'redundant' && pwa.update === 'downloading') interrupted();
@@ -250,8 +252,10 @@ export function updateBanner(App) {
 
 /** Texto do progresso real (nada estimado): fase, arquivos baixados e reaproveitados. */
 export function progressText(p) {
-  if (!p || p.phase === 'preparing') return 'Preparando a atualização: conferindo os arquivos que já estão no aparelho…';
+  if (!p || p.phase === 'preparing' || p.phase === 'idle') return 'Preparando a atualização: conferindo os arquivos que já estão no aparelho…';
   if (p.phase === 'verifying') return 'Conferindo os arquivos da nova versão…';
+  if (p.phase === 'ready') return 'Nova versão baixada e conferida.';
+  if (p.phase === 'interrupted') return `Atualização interrompida (${p.present} de ${p.total} arquivos prontos); o que já foi baixado está guardado.`;
   if (p.phase === 'downloading') {
     const todo = p.downloaded + p.pending;
     return `Baixando a atualização: ${p.downloaded} de ${todo} ${todo === 1 ? 'arquivo novo' : 'arquivos novos'}${p.reused ? ` · ${p.reused} reaproveitados` : ''}${p.attempt > 1 ? ` · retomada (tentativa ${p.attempt})` : ''}`;

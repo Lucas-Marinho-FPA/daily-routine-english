@@ -62,13 +62,14 @@ const storedKeys = async () => {
 // ---------- estado da atualização (para as telas e para o diagnóstico) ----------
 const status = { version: VERSION, phase: 'idle', total: PATHS.length, present: 0, reused: 0, downloaded: 0, pending: 0, failed: 0, attempt: 0, startedAt: 0, updatedAt: 0, lastError: null };
 let lastSent = 0;
+let persist = false; // só a versão que está instalando grava o estado (a conferência da versão ativa não o sobrescreve)
 async function report(force = false) {
   status.updatedAt = Date.now();
   if (!force && status.updatedAt - lastSent < 400) return;
   lastSent = status.updatedAt;
   const msg = { type: 'UPDATE_STATUS', status: { ...status } };
   try { for (const c of await self.clients.matchAll({ includeUncontrolled: true, type: 'window' })) c.postMessage(msg); } catch (e) { /* sem telas */ }
-  if (force) { try { await (await caches.open(SHELL)).put(STATUS_KEY, new Response(JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } })); } catch (e) { /* ok */ } }
+  if (force && persist) { try { await (await caches.open(SHELL)).put(STATUS_KEY, new Response(JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } })); } catch (e) { /* ok */ } }
 }
 
 // arquivo de uma versão antiga (cache “drgapp-…”/“drg-…”, sem hash na chave): reaproveita se o conteúdo confere
@@ -161,7 +162,7 @@ async function run({ budget = BUDGET_MS } = {}) {
   await report(true);
 }
 
-self.addEventListener('install', (event) => { event.waitUntil(prepare()); });
+self.addEventListener('install', (event) => { persist = true; event.waitUntil(prepare()); });
 
 self.addEventListener('activate', (event) => {
   // assume as telas (o app recarrega); nada é apagado aqui — a limpeza espera o app abrir nesta versão (CLEANUP)
