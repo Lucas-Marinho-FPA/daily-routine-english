@@ -167,7 +167,7 @@ await check('P05', 'Versão nova publicada: baixada em segundo plano e ESPERA; a
   await shot('P05-atualizacao-disponivel');
   const waiting = await waitingVersion();
   assert(ready && banner === 1 && ver === V1 && waiting === 'teste-v2' && keys.includes('drgshell-v1') && keys.includes('drgaudio-v1') && keys.includes('asr-local-teste'), JSON.stringify({ ready, banner, ver, waiting, keys }));
-  assert(downloading.textos.length >= 1 && downloading.textos.every((t) => /Preparando a atualização|Baixando a atualização|Conferindo os arquivos/.test(t)) && !downloading.aindaVisivel, 'aviso de download: ' + JSON.stringify(downloading));
+  assert(downloading.textos.length >= 1 && downloading.textos.every((t) => /Preparando a atualização|Baixando a atualização|Conferindo os arquivos|Nova versão baixada e conferida/.test(t)) && !downloading.aindaVisivel, 'aviso de download: ' + JSON.stringify(downloading));
   return { emUso: ver, caches: keys, avisoDownload: downloading.textos[0] };
 });
 

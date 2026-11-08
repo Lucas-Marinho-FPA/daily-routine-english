@@ -267,7 +267,7 @@ console.log(`versão antiga ${V_OLD}${oldHasLukinhas ? ' (já tem o Lukinhas)' :
     const s = await waitSw(o.page, (x) => x.waiting === V_NEXT);
     await o.page.locator('[data-role=update-banner]').waitFor({ timeout: 10000 });
     const d = await app(o.page, () => ({ textos: window.__dl, aindaVisivel: !!document.querySelector('[data-role=update-downloading]') }));
-    assert(s && d.textos.length >= 1 && d.textos.every((x) => /Preparando a atualização|Baixando a atualização|Conferindo os arquivos/.test(x)) && !d.aindaVisivel, JSON.stringify({ s, d }));
+    assert(s && d.textos.length >= 1 && d.textos.every((x) => /Preparando a atualização|Baixando a atualização|Conferindo os arquivos|Nova versão baixada e conferida/.test(x)) && !d.aindaVisivel, JSON.stringify({ s, d }));
     return { avisos: d.textos, depois: 'Nova versão disponível' };
   });
   await check('T22', 'Versão seguinte: reabrir com ela em espera + “Atualizar agora” → dados novos na hora; offline e progresso', async () => {

@@ -62,7 +62,7 @@ const storedKeys = async () => {
 // ---------- estado da atualização (para as telas e para o diagnóstico) ----------
 const status = { version: VERSION, phase: 'idle', total: PATHS.length, present: 0, reused: 0, downloaded: 0, pending: 0, failed: 0, attempt: 0, startedAt: 0, updatedAt: 0, lastError: null };
 let lastSent = 0;
-let persist = false; // só a versão que está instalando grava o estado (a conferência da versão ativa não o sobrescreve)
+let persist = false; // definido a cada execução: só a INSTALAÇÃO grava o estado; a conferência da versão ativa (CLEANUP) não
 async function report(force = false) {
   status.updatedAt = Date.now();
   if (!force && status.updatedAt - lastSent < 400) return;
@@ -116,7 +116,8 @@ async function prepare(opts) {
     throw e;
   }
 }
-async function run({ budget = BUDGET_MS } = {}) {
+async function run({ budget = BUDGET_MS, record = false } = {}) {
+  persist = record; // o mesmo service worker instala e, depois, já ativo, confere os próprios arquivos
   const t0 = Date.now();
   const legacy = await Promise.all((await caches.keys()).filter(isLegacy).map((k) => caches.open(k)));
   // tentativa anterior desta mesma versão (interrompida): continua a contagem
@@ -162,7 +163,7 @@ async function run({ budget = BUDGET_MS } = {}) {
   await report(true);
 }
 
-self.addEventListener('install', (event) => { persist = true; event.waitUntil(prepare()); });
+self.addEventListener('install', (event) => { event.waitUntil(prepare({ record: true })); });
 
 self.addEventListener('activate', (event) => {
   // assume as telas (o app recarrega); nada é apagado aqui — a limpeza espera o app abrir nesta versão (CLEANUP)
