@@ -14,6 +14,7 @@ const APP = join(ROOT, 'app');
 execFileSync(process.execPath, [join(ROOT, 'tools/build-content.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(ROOT, 'tools/build-characters.mjs')], { stdio: 'inherit' }); // personagens: data/characters.js
 execFileSync(process.execPath, [join(ROOT, 'tools/build-journeys.mjs')], { stdio: 'inherit' }); // jornadas (Conversation Practice): data/journeys.js
+execFileSync(process.execPath, [join(ROOT, 'tools/build-glossary.mjs')], { stdio: 'inherit' }); // glossário en→pt (Curso — Atividades): data/glossary-en-pt.json.gz
 
 mkdirSync(join(APP, 'dist'), { recursive: true });
 const esbuild = await import('esbuild');

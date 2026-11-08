@@ -1602,8 +1602,8 @@
   }
   var englishVoices = () => voices.filter((v) => /^en[-_]/i.test(v.lang)).sort((a, b) => /GB/i.test(b.lang) - /GB/i.test(a.lang) || b.localService - a.localService || a.name.localeCompare(b.name));
   function pickVoice() {
-    const en = englishVoices();
-    return en.find((v) => v.voiceURI === settings.voiceURI) || en.find((v) => /GB/i.test(v.lang) && v.localService) || en.find((v) => /GB/i.test(v.lang)) || en[0] || null;
+    const en2 = englishVoices();
+    return en2.find((v) => v.voiceURI === settings.voiceURI) || en2.find((v) => /GB/i.test(v.lang) && v.localService) || en2.find((v) => /GB/i.test(v.lang)) || en2[0] || null;
   }
   function stop() {
     gen++;
@@ -1772,12 +1772,12 @@
   }
   async function diagnose() {
     await loadVoices();
-    const en = englishVoices();
+    const en2 = englishVoices();
     return {
       embedded: embeddedCount(),
       embeddedVoice: globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.voice || null,
       systemTts: "speechSynthesis" in globalThis,
-      englishVoices: en.map((v) => ({ uri: v.voiceURI, name: v.name, lang: v.lang, local: v.localService }))
+      englishVoices: en2.map((v) => ({ uri: v.voiceURI, name: v.name, lang: v.lang, local: v.localService }))
     };
   }
 
@@ -3540,6 +3540,564 @@
     }).join("\n").replace(/\n+$/, "\n");
   }
 
+  // app/js/engine/glossary.js
+  var en = null;
+  var inverse = null;
+  var loading = null;
+  var PT_STOP = new Set(`a o as os um uma uns umas de do da dos das em no na nos nas num numa por pelo pela pelos pelas para pra pro
+  com sem sob sobre entre ate e ou mas que se nao sim ja so tambem mais menos muito muita muitos muitas pouco pouca bem mal
+  eu tu ele ela nos vos eles elas voce voces me te se lhe lhes nos vos meu minha meus minhas teu tua seu sua seus suas nosso nossa
+  isso isto aquilo esse essa este esta aquele aquela esses essas estes estas aqueles aquelas aqui ali la ai ca entao como quando onde
+  qual quais quem cujo ser sou e era foi fui sao estar estou esta estava estao ter tenho tem tinha temos ha haver vai vou ir
+  poder posso pode podemos podia poderia fazer faco faz favor ok mim ti si comigo contigo conosco cade quer quero queria querer ta tah ah oh hum hmm hein ne pois o`.split(/\s+/));
+  var fold = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[‘’]/g, "'").toLowerCase();
+  var SUFFIX = [
+    "amentos",
+    "imentos",
+    "amento",
+    "imento",
+    "acoes",
+    "acao",
+    "mente",
+    "ando",
+    "endo",
+    "indo",
+    "aram",
+    "eram",
+    "iram",
+    "avam",
+    "ados",
+    "idos",
+    "adas",
+    "idas",
+    "ado",
+    "ido",
+    "ada",
+    "ida",
+    "aria",
+    "eria",
+    "iria",
+    "ar",
+    "er",
+    "ir",
+    "ou",
+    "eu",
+    "iu",
+    "am",
+    "em",
+    "es",
+    "os",
+    "as",
+    "s",
+    "a",
+    "o",
+    "e"
+  ];
+  function ptStem(w) {
+    for (const suf of SUFFIX) if (w.endsWith(suf) && w.length - suf.length >= 4) return w.slice(0, -suf.length);
+    return w;
+  }
+  var stemEq = (a, b) => a === b || a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)) || a.length >= 5 && b.length >= 5 && a.slice(0, 3) === b.slice(0, 3) && levenshtein(a, b) <= 1;
+  var ptContent = (text) => (fold(text).match(/[a-z0-9]+(?:-[a-z0-9]+)*/g) || []).filter((w) => !PT_STOP.has(w) && !/^\d+$/.test(w)).map((w) => ({ w, s: ptStem(w) }));
+  function setGlossary(data2) {
+    en = new Map(Object.entries(data2.en || data2));
+    inverse = /* @__PURE__ */ new Map();
+    for (const [k, list] of en) {
+      for (const p of list) {
+        const c = ptContent(p);
+        if (c.length !== 1) continue;
+        const set2 = inverse.get(c[0].s) || /* @__PURE__ */ new Set();
+        set2.add(k);
+        inverse.set(c[0].s, set2);
+      }
+    }
+  }
+  var glossaryReady = () => !!en;
+  var translationsOf = (k) => en && en.get(k) || null;
+  function meaningsOf(stem) {
+    if (!inverse) return null;
+    if (inverse.has(stem)) return inverse.get(stem);
+    for (const [s, set2] of inverse) if (stemEq(s, stem) && Math.abs(s.length - stem.length) <= 2) return set2;
+    return null;
+  }
+  function loadGlossary(url = "data/glossary-en-pt.json.gz") {
+    if (en) return Promise.resolve(true);
+    if (!loading) {
+      loading = (async () => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return false;
+          let buf = new Uint8Array(await res.arrayBuffer());
+          if (buf[0] === 31 && buf[1] === 139 && typeof DecompressionStream !== "undefined") {
+            buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+          }
+          setGlossary(JSON.parse(new TextDecoder().decode(buf)));
+          return true;
+        } catch (e) {
+          return false;
+        } finally {
+          loading = null;
+        }
+      })();
+    }
+    return loading;
+  }
+
+  // app/js/engine/lexicon.js
+  var words = null;
+  var loading2 = null;
+  function loadLexicon(url = "data/lexicon.txt.gz") {
+    if (words) return Promise.resolve(true);
+    if (!loading2) {
+      loading2 = (async () => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return false;
+          let buf = new Uint8Array(await res.arrayBuffer());
+          if (buf[0] === 31 && buf[1] === 139 && typeof DecompressionStream !== "undefined") {
+            buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+          }
+          words = new Set(new TextDecoder().decode(buf).split("\n").filter(Boolean));
+          return true;
+        } catch (e) {
+          return false;
+        } finally {
+          loading2 = null;
+        }
+      })();
+    }
+    return loading2;
+  }
+  var IRREGULAR2 = { woke: "wake", woken: "wake", got: "get", gotten: "get", went: "go", gone: "go", had: "have", has: "have", ate: "eat", eaten: "eat", drove: "drive", driven: "drive", took: "take", taken: "take", made: "make", came: "come", left: "leave", bought: "buy", brought: "bring", slept: "sleep", did: "do", does: "do", was: "be", were: "be", is: "be", are: "be", am: "be", been: "be", saw: "see", seen: "see", said: "say", spent: "spend", met: "meet", ran: "run", drank: "drink", felt: "feel", kept: "keep", thought: "think", told: "tell", taught: "teach", read: "read", wrote: "write", written: "write", sat: "sit", stood: "stand", began: "begin", found: "find", heard: "hear", paid: "pay", put: "put", set: "set", shut: "shut", children: "child", men: "man", women: "woman", feet: "foot", teeth: "tooth" };
+  function lemma(w) {
+    let t = String(w).toLowerCase().replace(/[’]/g, "'").replace(/'s$/, "");
+    if (IRREGULAR2[t]) return IRREGULAR2[t];
+    if (t.length > 4 && t.endsWith("ies")) return t.slice(0, -3) + "y";
+    if (t.length > 4 && /(ches|shes|sses|xes|zes)$/.test(t)) return t.slice(0, -2);
+    if (t.length > 3 && t.endsWith("s") && !/(ss|us|is)$/.test(t)) t = t.slice(0, -1);
+    else if (t.length > 5 && t.endsWith("ing")) t = undouble(t.slice(0, -3));
+    else if (t.length > 4 && t.endsWith("ied")) t = t.slice(0, -3) + "y";
+    else if (t.length > 4 && t.endsWith("ed")) t = undouble(t.slice(0, -2));
+    return t;
+  }
+  function undouble(t) {
+    return /([b-df-hj-np-tv-z])\1$/.test(t) && !/(ll|ss|ff|zz)$/.test(t) ? t.slice(0, -1) : t;
+  }
+  function isKnownWord(w, extra = null) {
+    if (!words) return null;
+    const t = String(w).toLowerCase().replace(/[’]/g, "'");
+    if (words.has(t) || extra && extra.has(t)) return true;
+    const base = lemma(t);
+    if (words.has(base) || extra && extra.has(base)) return true;
+    return words.has(base + "e") || words.has(t.replace(/'s$/, ""));
+  }
+
+  // app/js/engine/wordfeedback.js
+  var SCORE_WEIGHTS = [
+    { id: "intelligibility", label: "Pron\xFAncia e inteligibilidade", weight: 0.6 },
+    { id: "fluency", label: "Ritmo e fluidez", weight: 0.2 },
+    { id: "prosody", label: "Acentua\xE7\xE3o e entona\xE7\xE3o", weight: 0.15 },
+    { id: "duration", label: "Dura\xE7\xE3o e naturalidade", weight: 0.05 }
+  ];
+  var MIN_CONFIDENCE = 0.5;
+  var WEAK = /* @__PURE__ */ new Set(["a", "an", "the", "and", "to", "of", "at", "in", "on", "for", "or", "as", "by", "is", "am", "are", "it", "my", "i", "so", "but", "with", "from", "up", "do"]);
+  var NUM = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50 };
+  var AME = { analyze: "analyse", analyzes: "analyses", analyzing: "analysing", practice: "practise", practices: "practises", finalize: "finalise", organize: "organise", neighborhood: "neighbourhood" };
+  function segment(text) {
+    const segs = [];
+    let pos = 0, w = 0;
+    for (const s of tokenSpans(text)) {
+      if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
+      const norm = wordTokens(s.text).join(" ");
+      const before = text.slice(0, s.start).trimEnd();
+      const proper = /^[A-Z][a-z]/.test(s.text) && before !== "" && !/[.!?:]$/.test(before);
+      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm), proper });
+      pos = s.end;
+    }
+    if (pos < text.length) segs.push({ text: text.slice(pos) });
+    return segs;
+  }
+  var wordsOf = (text) => segment(text).filter((s) => s.w !== void 0);
+  function wordAudioText(seg) {
+    const t = seg.text.replace(/[’]/g, "'").replace(/[.,!?;:]+$/, "");
+    return seg.proper || t === "I" || /^[A-Z]{2,}/.test(t) ? t : t.toLowerCase();
+  }
+  function forms(t) {
+    const out = /* @__PURE__ */ new Set([t]);
+    if (AME[t]) out.add(AME[t]);
+    if (/iz(e|ed|es|ing|ation)$/.test(t)) out.add(t.replace(/iz(e|ed|es|ing|ation)$/, "is$1"));
+    const hm = /^(\d{1,2})(\d\d)$/.exec(t);
+    if (hm && +hm[2] < 60) out.add(`${hm[1]}:${hm[2]}`).add(hm[1]);
+    if (t in NUM) out.add(String(NUM[t]));
+    const m = /^(\d{1,2}):(\d\d)$/.exec(t);
+    if (m) {
+      out.add(String(+m[1]));
+      if (m[2] !== "00") out.add(m[2].replace(/^0/, ""));
+    }
+    if (/^\d+$/.test(t)) {
+      for (const [k, v] of Object.entries(NUM)) if (String(v) === t) out.add(k);
+    }
+    if (t === "am" || t === "pm") {
+      out.add(t[0]);
+      out.add(t + ".");
+    }
+    if (t.endsWith("'s")) out.add(t.slice(0, -2));
+    return out;
+  }
+  function sameWordForm(target, heard) {
+    if (target === heard) return true;
+    if (target.endsWith("'s") !== heard.endsWith("'s")) return false;
+    const b = forms(heard);
+    for (const x of forms(target)) if (b.has(x)) return true;
+    return false;
+  }
+  function inflected(target, heard) {
+    if (target.length < 3 || !heard.startsWith(target)) return false;
+    const rest = heard.slice(target.length);
+    return ["s", "es", "d", "ed", target.slice(-1) + "ed"].includes(rest);
+  }
+  function tokenEq(target, heard) {
+    if (target === heard) return true;
+    const a = forms(target), b = forms(heard);
+    for (const x of a) for (const y of b) if (x === y || inflected(x, y)) return true;
+    return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1 && isKnownWord(heard) !== true;
+  }
+  function heardTokens(transcript) {
+    const out = [];
+    for (const t of wordTokens(String(transcript || ""))) {
+      const m = /^(\d{1,4}(?::\d\d)?)(am|pm|a|p)$/.exec(t);
+      if (m) out.push(m[1], m[2].length === 1 ? m[2] + "m" : m[2]);
+      else if (t === "m" && (out[out.length - 1] === "am" || out[out.length - 1] === "pm")) continue;
+      else out.push(t);
+    }
+    return out;
+  }
+  function degenerate(heard, expected) {
+    let run2 = 1;
+    for (let j = 1; j < heard.length; j++) {
+      run2 = heard[j] === heard[j - 1] ? run2 + 1 : 1;
+      if (run2 >= 4) return true;
+    }
+    return heard.length > Math.max(8, expected * 1.8);
+  }
+  function matchCompounds(target, heard) {
+    const joined = /* @__PURE__ */ new Map();
+    for (let i = 0; i < target.length - 1; i++) joined.set(target[i] + target[i + 1], [target[i], target[i + 1]]);
+    const tset = new Set(target);
+    const out = [];
+    for (let j = 0; j < heard.length; j++) {
+      const h2 = heard[j], pair = j + 1 < heard.length ? h2 + heard[j + 1] : null;
+      if (!tset.has(h2) && joined.has(h2)) out.push(...joined.get(h2));
+      else if (pair && tset.has(pair) && !(tset.has(h2) && tset.has(heard[j + 1]))) {
+        out.push(pair);
+        j++;
+      } else out.push(h2);
+    }
+    return out;
+  }
+  function evaluateWords(text, asr, opts = {}) {
+    const words3 = wordsOf(text);
+    const all = (state, reason, note) => ({ words: words3.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
+    if (opts.insufficient) return all("uncertain", "Grava\xE7\xE3o insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.", "Quase n\xE3o captei voz: nada foi avaliado.");
+    if (!asr) return all("uncertain", "N\xE3o foi poss\xEDvel avaliar esta palavra: o reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel. Compare com a refer\xEAncia (A/B).", "Avalia\xE7\xE3o por palavra indispon\xEDvel neste aparelho.");
+    const target = words3.map((x) => x.norm);
+    const heard = matchCompounds(target, heardTokens(asr.text));
+    if (!heard.length) return all("uncertain", "Nenhuma fala foi reconhecida. Tente gravar novamente.", "O reconhecimento n\xE3o captou fala: resultado inconclusivo.");
+    if (degenerate(heard, words3.length)) return all("uncertain", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido); n\xE3o d\xE1 para avaliar a palavra. Tente gravar de novo.", "Transcri\xE7\xE3o n\xE3o confi\xE1vel (repeti\xE7\xF5es): resultado inconclusivo.");
+    if (typeof asr.confidence === "number" && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
+      return all("uncertain", "O reconhecimento teve confian\xE7a baixa nesta grava\xE7\xE3o; n\xE3o d\xE1 para avaliar a palavra com seguran\xE7a. Tente de novo.", "Confian\xE7a baixa do reconhecimento: resultado inconclusivo.");
+    }
+    const pairs = lcsAlign(target, heard, tokenEq);
+    const matchT = new Map(pairs.map(([i, j]) => [i, j]));
+    const anchors = [[-1, -1], ...pairs, [target.length, heard.length]];
+    const gapHeard = /* @__PURE__ */ new Map();
+    for (let k = 0; k < anchors.length - 1; k++) {
+      const [ti, hj] = anchors[k], [tn, hn] = anchors[k + 1];
+      const tGap = [];
+      for (let i = ti + 1; i < tn; i++) tGap.push(i);
+      const hGap = heard.slice(hj + 1, hn);
+      tGap.forEach((i, idx) => gapHeard.set(i, tGap.length === hGap.length ? [hGap[idx]] : hGap));
+    }
+    const lastMatched = pairs.length ? pairs[pairs.length - 1][0] : -1;
+    const out = words3.map((x, i) => {
+      if (matchT.has(i)) return { w: x.w, text: x.text, state: "good", reason: "Reconhecida como esperado. Isso indica que a palavra foi entendida (intelig\xEDvel); n\xE3o \xE9 uma an\xE1lise fon\xE9tica dos sons." };
+      const near = (gapHeard.get(i) || []).filter(Boolean);
+      if (x.weak) return { w: x.w, text: x.text, state: "uncertain", reason: "Palavra curta e \xE1tona: o reconhecedor costuma omiti-la mesmo quando \xE9 dita. N\xE3o foi avaliada." };
+      if (x.proper) return { w: x.w, text: x.text, state: "uncertain", heard: near.length ? near.join(" ") : void 0, reason: `Nome pr\xF3prio: o reconhecedor pode n\xE3o conhec\xEA-lo e escrev\xEA-lo de outro jeito${near.length ? ` (aqui ouviu \u201C${near.join(" ")}\u201D)` : ""}. N\xE3o foi avaliado.` };
+      if (opts.tailUnreliable && i > lastMatched) return { w: x.w, text: x.text, state: "uncertain", reason: "A transcri\xE7\xE3o pode ter sido cortada no fim: esta palavra n\xE3o foi avaliada. Grave de novo se quiser conferir." };
+      if (near.length) {
+        return {
+          w: x.w,
+          text: x.text,
+          state: "needs_practice",
+          heard: near.join(" "),
+          reason: `N\xE3o foi reconhecida como esperado: o reconhecedor ouviu \u201C${near.join(" ")}\u201D. Pode ser erro do reconhecimento ou da fala: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia, e repita se soar diferente. (O sistema n\xE3o identifica qual som diferiu.)`
+        };
+      }
+      return { w: x.w, text: x.text, state: "needs_practice", reason: "N\xE3o foi reconhecida: a palavra pode ter sido omitida, dita de forma pouco clara ou perdida pelo reconhecimento. Ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia. (O sistema n\xE3o identifica qual som diferiu.)" };
+    });
+    return { words: out, evaluated: true, note: "" };
+  }
+  function scoreAttempt({ evaluation, analysis, expectedWords = 0, recorded = true }) {
+    const dims = SCORE_WEIGHTS.map((d) => ({ ...d, score: null, note: "" }));
+    const get = (id) => dims.find((d) => d.id === id);
+    const insufficient = recorded && (!analysis || analysis.silent || analysis.speechSec < 0.4);
+    if (evaluation && evaluation.evaluated) {
+      const judged = evaluation.words.filter((x) => x.state === "good" || x.state === "needs_practice");
+      if (judged.length >= 2) get("intelligibility").score = Math.round(judged.filter((x) => x.state === "good").length / judged.length * 100);
+      else get("intelligibility").note = "Poucas palavras avali\xE1veis.";
+    } else get("intelligibility").note = evaluation && evaluation.note ? evaluation.note : "Sem reconhecimento de fala no aparelho.";
+    if (analysis && !insufficient && analysis.speechSec >= 1) {
+      const words3 = Math.max(1, expectedWords);
+      let s = 100 - Math.max(0, analysis.longPauses - (words3 > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words3 / 5)) * 5;
+      get("fluency").score = Math.max(30, Math.min(100, Math.round(s)));
+    } else get("fluency").note = "Grava\xE7\xE3o curta ou sem voz suficiente.";
+    get("prosody").note = "N\xE3o avaliado: o app n\xE3o tem um analisador de acento e entona\xE7\xE3o.";
+    const p = analysis && analysis.paceVsReference;
+    const plausible = analysis && !(analysis.wpm && (analysis.wpm > 260 || analysis.wpm < 40));
+    if (!insufficient && p && plausible) get("duration").score = p > 2.4 ? 60 : p > 1.8 ? 80 : p < 0.6 ? 60 : p < 0.75 ? 80 : 100;
+    else get("duration").note = analysis ? "Sem dura\xE7\xE3o de refer\xEAncia confi\xE1vel." : "Sem grava\xE7\xE3o: dura\xE7\xE3o n\xE3o medida.";
+    const available = dims.filter((d) => d.score !== null);
+    const hasCore = get("intelligibility").score !== null;
+    if (insufficient || !hasCore) {
+      return {
+        overall: null,
+        dims,
+        partial: true,
+        message: insufficient ? "Grava\xE7\xE3o insuficiente: sem nota. Tente novamente." : "Nota geral indispon\xEDvel: falta a medida de inteligibilidade (reconhecimento de fala no aparelho)."
+      };
+    }
+    const wsum = available.reduce((n, d) => n + d.weight, 0);
+    const overall = Math.round(available.reduce((n, d) => n + d.score * d.weight, 0) / wsum);
+    return {
+      overall,
+      dims,
+      partial: available.length < dims.length,
+      message: `Nota estimada com ${available.map((d) => d.label.toLowerCase()).join(", ")}. ${dims.filter((d) => d.score === null).map((d) => d.label).join(", ")}: n\xE3o avaliado.`
+    };
+  }
+
+  // app/js/engine/coherence.js
+  var set = (s) => new Set(s.split(/\s+/).filter(Boolean));
+  var CATEGORIES = {
+    food: set(`breakfast lunch dinner supper meal snack food coffee tea juice milk water toast bread egg eggs cereal fruit fruits banana apple
+    orange rice beans salad sandwich burger pasta pizza soup chicken meat fish beef pork ham turkey tuna salmon bacon sausage cheese butter
+    vegetable vegetables lettuce tomato tomatoes onion onions carrot carrots potato potatoes chips fries crisps oats porridge yogurt yoghurt
+    cake biscuit biscuits cookie cookies chocolate sugar honey jam pumpkin corn avocado mushroom mushrooms pepper spinach cucumber grape
+    grapes lemon strawberry nuts wrap tortilla noodles steak lamb prawns shrimp mayo mayonnaise ketchup sauce`),
+    animal: set("kitten kitty cat cats puppy dog dogs horse mouse mice rat donkey monkey snake frog spider insect bug bird parrot lion tiger rabbit"),
+    transport: set("car bus train bike bicycle taxi cab uber subway metro tram motorbike motorcycle scooter van truck lift ride rides"),
+    place: set("office home school gym bank street park kitchen cafeteria canteen work room house flat apartment church shop supermarket station garage"),
+    device: set("app phone mobile laptop computer tablet email screen"),
+    person: set("wife husband son daughter kids children child family mother mum mom father dad friend friends colleague colleagues boss teacher"),
+    time: set("morning afternoon evening night noon midnight day days week weekend weekday weekdays today tonight")
+  };
+  var categoryOf = (t) => {
+    const l = lemma(t);
+    for (const [k, s] of Object.entries(CATEGORIES)) if (s.has(t) || s.has(l)) return k;
+    return null;
+  };
+  var FUNCTION = set(`a an the my your his her our their this that these those some any to of in on at for from by with into onto and or but
+  so then also i you he she it we they me him us them is am are was were be been do does did have has had not up out off over under about
+  around after before as if than very just myself yourself himself herself itself ourselves yourselves themselves mine yours hers ours theirs`);
+  var QUANT = set("little bit lot lots few couple much many");
+  var DET = set("a an the my your his her our their this that some");
+  var PREP_ADV = set("over under about after before up out off around through across");
+  var isFunctionWord = (t) => FUNCTION.has(t) || QUANT.has(t);
+  function phoneKey(word) {
+    let w = String(word).toLowerCase().replace(/[^a-z]/g, "");
+    if (!w) return { key: "", norm: "", syl: 0 };
+    w = w.replace(/^kn/, "n").replace(/^wr/, "r").replace(/^wh/, "w").replace(/mb$/, "m").replace(/gh/g, "");
+    w = w.replace(/([^aeiouy])le$/, "$1el");
+    w = w.replace(/tch/g, "C").replace(/ch/g, "C").replace(/sh/g, "S").replace(/th/g, "T").replace(/ph/g, "f").replace(/ck/g, "k").replace(/qu/g, "kw").replace(/x/g, "ks").replace(/c(?=[eiy])/g, "s").replace(/c/g, "k").replace(/g(?=[eiy])/g, "j");
+    if (w.length > 3 && /[^aeiouy]e$/.test(w) && /[aeiouy]/.test(w.slice(0, -2))) w = w.slice(0, -1);
+    w = w.replace(/(.)\1+/g, "$1");
+    let key = "";
+    for (let i = 0; i < w.length; i++) {
+      const ch = w[i];
+      const c = "aeiou".includes(ch) ? "V" : ch === "y" ? i === 0 ? "W" : "V" : "pbtdkgC".includes(ch) ? "P" : "fvszSTjh".includes(ch) ? "F" : "mn".includes(ch) ? "N" : "lr".includes(ch) ? "L" : ch === "w" ? "W" : "";
+      if (c && !(c === "V" && key.endsWith("V"))) key += c;
+    }
+    return { key, norm: w, syl: (key.match(/V/g) || []).length };
+  }
+  function soundsAlike(a, b) {
+    const strip = (s) => wordTokens(s).filter((t) => !DET.has(t)).join("");
+    const x = strip(a), y = strip(b);
+    if (!x || !y || x === y) return false;
+    let suf = 0;
+    while (suf < Math.min(x.length, y.length) && x[x.length - 1 - suf] === y[y.length - 1 - suf]) suf++;
+    if (suf >= 4 && Math.min(x.length, y.length) >= 5) return true;
+    const px = phoneKey(x), py = phoneKey(y);
+    if (px.key.length < 4 || py.key.length < 4 || px.key.length !== py.key.length || px.syl !== py.syl) return false;
+    if (levenshtein(px.key, py.key) > 1) return false;
+    return px.norm[0] === py.norm[0] || px.norm.slice(-2) === py.norm.slice(-2);
+  }
+  var prepCache = /* @__PURE__ */ new WeakMap();
+  function frameRefs(content) {
+    if (prepCache.has(content)) return prepCache.get(content);
+    const refs = [];
+    const add = (text, au) => {
+      const r = prepRef(text, au);
+      if (r && r.toks.length >= 3) refs.push(r);
+    };
+    for (const s of Object.values(content.sentences || {})) add(s.en, s.au);
+    for (const q of Object.values(content.questions || {})) {
+      add(q.a, q.aau);
+      (q.altAnswers || []).forEach((a) => add(a));
+    }
+    for (const it of Object.values(content.items || {})) {
+      add(it.en);
+      (it.ex || []).forEach((x) => add(x.en, x.au));
+    }
+    prepCache.set(content, refs);
+    return refs;
+  }
+  function prepRef(text, au = null) {
+    if (!text) return null;
+    const segs = segment(text).filter((s) => s.w !== void 0 && s.norm);
+    const toks = segs.map((s) => s.norm);
+    return { text, au, toks, lems: toks.map(lemma), surf: segs.map((s) => s.text.replace(/[.,!?;:]+$/, "")) };
+  }
+  var tokEq = (a, al, b, bl) => a === b || a.length > 2 && b.length > 2 && al === bl || DET.has(a) && DET.has(b);
+  function categoryClash(heardToks, expected, { foodFrame = false, headAnchored = false, nounSlot = false, sound = false } = {}) {
+    const content = heardToks.filter((t) => !isFunctionWord(t));
+    const ce = categoryOf(expected);
+    if (!content.length && nounSlot && headAnchored && heardToks.some((t) => QUANT.has(t) || PREP_ADV.has(t)) && (sound || heardToks.some((t) => QUANT.has(t)))) return "function";
+    if (ce === "food" && foodFrame && content.some((t) => ["animal", "transport", "device", "place", "person"].includes(categoryOf(t)))) return "not-food";
+    return null;
+  }
+  function findSlotSuspicions(transcript, refs = []) {
+    const segs = segment(String(transcript || "")).filter((s) => s.w !== void 0 && s.norm);
+    if (segs.length < 3) return [];
+    const T = segs.map((s) => s.norm), TL = T.map(lemma);
+    const tLemmas = new Set(TL);
+    const found = /* @__PURE__ */ new Map();
+    for (const ref of refs) {
+      const R = ref.toks, RL = ref.lems;
+      for (let j = 0; j < R.length; j++) {
+        const e = R[j];
+        if (isFunctionWord(e) || e.length < 3 || /\d/.test(e)) continue;
+        if (tLemmas.has(RL[j])) continue;
+        const slots = [[j, j]];
+        if (j > 0 && DET.has(R[j - 1])) slots.push([j - 1, j]);
+        for (const [a, b] of slots) {
+          for (let i = 0; i < T.length; i++) {
+            for (const k of [1, 2]) {
+              if (i + k > T.length) continue;
+              let left = 0, right = 0, contentAnchor = false, foodFrame = false;
+              const anchor = (r) => {
+                if (!isFunctionWord(r)) contentAnchor = true;
+                if (categoryOf(r) === "food") foodFrame = true;
+              };
+              while (left < 2 && i - 1 - left >= 0 && a - 1 - left >= 0 && tokEq(T[i - 1 - left], TL[i - 1 - left], R[a - 1 - left], RL[a - 1 - left])) {
+                anchor(R[a - 1 - left]);
+                left++;
+              }
+              while (right < 2 && i + k + right < T.length && b + 1 + right < R.length && tokEq(T[i + k + right], TL[i + k + right], R[b + 1 + right], RL[b + 1 + right])) {
+                anchor(R[b + 1 + right]);
+                right++;
+              }
+              if (left + right < 2 || !contentAnchor) continue;
+              const H = T.slice(i, i + k), HS = segs.slice(i, i + k);
+              if (H.join("") === R.slice(a, b + 1).join("")) continue;
+              if (HS.some((s) => s.proper)) continue;
+              const Hc = H.filter((t) => !isFunctionWord(t));
+              if (Hc.some((t) => lemma(t) === RL[j] || sameWordForm(e, t) || sameWordForm(t, e))) continue;
+              const ce = categoryOf(e);
+              if (ce && Hc.some((t) => categoryOf(t) === ce)) continue;
+              const alike = soundsAlike(H.join(" "), R.slice(a, b + 1).join(" ")) || Hc.length > 0 && soundsAlike(Hc.join(" "), e);
+              const nounSlot = !!ce || /^[A-Z]/.test(ref.surf[j] || "") && j > 0;
+              const clash = categoryClash(H, e, { foodFrame, headAnchored: right > 0, nounSlot, sound: alike });
+              const sound = alike && (left > 0 && right > 0 || !!clash);
+              if (!clash && !sound) continue;
+              const signals = [sound && "sound", clash && "category"].filter(Boolean);
+              const cand = {
+                src: HS.map((s) => s.w),
+                heard: HS.map((s) => s.text.replace(/[.,!?;:]+$/, "")).join(" "),
+                expected: ref.surf.slice(a, b + 1).join(" "),
+                context: [ref.surf.slice(Math.max(0, a - left), a).join(" "), "___", ref.surf.slice(b + 1, b + 1 + Math.max(right, 1)).join(" ")].filter(Boolean).join(" "),
+                ref: { text: ref.text, au: ref.au },
+                signals,
+                clash,
+                strength: signals.length >= 2 ? "likely" : "possible",
+                anchors: left + right
+              };
+              const prev = found.get(i);
+              const better = !prev || cand.signals.length > prev.signals.length || cand.signals.length === prev.signals.length && (cand.anchors > prev.anchors || cand.anchors === prev.anchors && cand.src.length < prev.src.length);
+              if (better) found.set(i, cand);
+            }
+          }
+        }
+      }
+    }
+    const list = [...found.values()].sort((x, y) => y.signals.length - x.signals.length || y.anchors - x.anchors || x.src.length - y.src.length);
+    const used = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const c of list) {
+      if (c.src.some((w) => used.has(w))) continue;
+      c.src.forEach((w) => used.add(w));
+      const { anchors, ...rest } = c;
+      out.push(rest);
+    }
+    return out.sort((x, y) => x.src[0] - y.src[0]);
+  }
+  function findOddCombinations(transcript) {
+    const segs = segment(String(transcript || "")).filter((s) => s.w !== void 0 && s.norm);
+    const out = [];
+    for (let i = 0; i + 1 < segs.length; i++) {
+      const m = segs[i].norm, hd = segs[i + 1].norm;
+      if (categoryOf(hd) === "food" && ["animal", "device", "transport"].includes(categoryOf(m)) && !segs[i].proper) {
+        out.push({ src: [segs[i].w], heard: `${segs[i].text} ${segs[i + 1].text}`.replace(/[.,!?;:]+$/, ""), kind: "modifier", clash: "not-food" });
+      }
+      if (i + 3 < segs.length + 1 && m === "a" && QUANT.has(hd) && segs[i + 2] && segs[i + 2].norm === "and" && segs[i + 3] && categoryOf(segs[i + 3].norm) === "food") {
+        out.push({ src: [segs[i].w, segs[i + 1].w], heard: `${segs[i].text} ${segs[i + 1].text}`, kind: "coordination", clash: "function" });
+      }
+    }
+    return out;
+  }
+  var NEEDS_COMPLEMENT = set("a an the my your at to for with of from about");
+  var ARTICLE_LIKE = set("a an the my your");
+  var CONJ_PREP = set("and or but at in on to for with of from");
+  function findHoles(transcript) {
+    const all = segment(String(transcript || ""));
+    const segs = all.filter((s) => s.w !== void 0 && s.norm);
+    const out = [];
+    segs.forEach((s, i) => {
+      if (!NEEDS_COMPLEMENT.has(s.norm)) return;
+      const next = segs[i + 1];
+      const sep = next ? all.slice(all.indexOf(s) + 1, all.indexOf(next)).map((x) => x.text).join("") : "";
+      if (next && /-/.test(sep)) return;
+      const afterNext = segs[i + 2] && all.slice(all.indexOf(next) + 1, all.indexOf(segs[i + 2])).map((x) => x.text).join("");
+      if (next && afterNext && /^-$/.test(afterNext.trim())) return;
+      const endsSentence = /[.!?]$/.test(s.text) || !next;
+      const coordinated = next && ["and", "or"].includes(next.norm) && segs[i + 2] && CONJ_PREP.has(segs[i + 2].norm) && !["and", "or", "but"].includes(segs[i + 2].norm);
+      const bad = next && !coordinated && (ARTICLE_LIKE.has(s.norm) ? ARTICLE_LIKE.has(next.norm) || CONJ_PREP.has(next.norm) : CONJ_PREP.has(next.norm));
+      if (endsSentence || bad) {
+        out.push({ src: [s.w], after: s.text.replace(/[.,!?;:]+$/, ""), before: next ? next.text : "" });
+      }
+    });
+    return out;
+  }
+  var ACTIVITY_TIME = /\b(wake up|get up|leave home|leave the house|start work|finish work|have breakfast|have lunch|have dinner|go to bed|go to the gym|arrive)\b[^.!?]{0,30}?\bat (\d{1,2}(?::\d\d)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g;
+  var CONTRAST = /\b(weekend|weekends|weekday|weekdays|saturday|sunday|saturdays|sundays|sometimes|some days|other days|on \w+days|when|if|but|except|holiday|holidays|today|yesterday|tomorrow)\b/;
+  function findContradictions(transcript) {
+    const text = String(transcript || "").toLowerCase().replace(/(\d)\s?([ap])\.?\s?m\.?/g, "$1$2m");
+    const out = [];
+    const seen = /* @__PURE__ */ new Map();
+    for (const m of text.matchAll(ACTIVITY_TIME)) {
+      const act = m[1], t = m[2];
+      if (seen.has(act) && seen.get(act).t !== t) {
+        const between = text.slice(seen.get(act).end, m.index + m[0].length);
+        if (!CONTRAST.test(between)) out.push({ kind: "two-times", activity: act, times: [seen.get(act).t, t] });
+      }
+      seen.set(act, { t, end: m.index });
+    }
+    for (const m of text.matchAll(/\b(\d{1,2}(?::\d\d)?)(pm)\b[^.!?]{0,20}\bin the morning\b|\b(\d{1,2}(?::\d\d)?)(am)\b[^.!?]{0,20}\b(in the evening|at night|in the afternoon)\b/g)) {
+      out.push({ kind: "period", times: [m[1] ? m[1] + " p.m." : m[3] + " a.m."], period: m[1] ? "in the morning" : m[5] });
+    }
+    return out;
+  }
+
   // app/js/engine/course.js
   var Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s*(\d+)\s*[:.\-–—]?\s*$/i;
   function parseActivity(text) {
@@ -3632,7 +4190,7 @@
     if (exportProblems(act).length) return null;
     const parts = act.questions.map((q) => {
       const a = officialAnswers(act, q.n);
-      return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en, i) => [en, a[i].trim()])].join("\n");
+      return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en2, i) => [en2, a[i].trim()])].join("\n");
     });
     return `${parts.join("\n\n")}
 `;
@@ -3835,47 +4393,146 @@
     }
     return merged;
   }
-  var fold = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u2018\u2019]/g, "'").toLowerCase();
-  var words = (s) => fold(s).match(/[a-z0-9']+/g) || [];
+  var words2 = (s) => fold(s).match(/[a-z0-9']+(?:-[a-z0-9']+)*/g) || [];
   var EN_ONLY = /* @__PURE__ */ new Set(["the", "you", "your", "is", "are", "was", "were", "to", "of", "and", "i", "i'm", "my", "can", "could", "would", "have", "has", "what", "where", "how", "this", "that", "there", "there's", "it", "it's", "we", "they", "with", "for", "at", "in", "on", "be", "will", "please", "thank", "thanks", "yes", "not", "don't", "does", "he", "she", "his", "her", "him", "like", "go", "get"]);
+  var WEAK2 = new Set(`can could would will shall should may might must what where when how who which why yes no well oh ah ahmmm hmmm
+  please here there now then really let let's i'm i'll i'd i've you're you'll you'd we're we'll they're it's that's there's what's
+  don't can't couldn't won't isn't aren't doesn't didn't wouldn't shouldn't be have do get got go going make made`.split(/\s+/));
   var NEG_EN = /\b(not|no|never|nothing|nobody|none)\b|n't\b/i;
+  var EN_NUM = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+  var PT_NUM = ["zero", "um uma", "dois duas", "tres", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze", "treze", "catorze quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove", "vinte"].map((x) => x.split(" "));
+  var numIn = (num, t) => t.includes(num) || (PT_NUM[+num] || []).some((w) => new RegExp(`\\b${w}\\b`).test(fold(t)));
   var NEG_PT = /\b(nao|nunca|nenhum|nenhuma|nem|sem|nada|ninguem|jamais)\b/;
   var NOT_NAMES = /* @__PURE__ */ new Set(["i", "ok", "mr", "mrs", "miss", "ms", "sir", "madam", "street", "road", "hotel", "restaurant", "bar", "show", "clothes", "airlines", "air", "lines", "rail", "travel", "station", "phrasal", "verbs", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "ladies", "gentlemen", "yes", "no", "hello", "well"]);
-  function checkTranslation(en, pt) {
-    const t = String(pt || "").trim();
-    if (!t) return { level: "empty", notes: ["Sem tradu\xE7\xE3o."] };
-    const notes = [];
-    let level = "ok";
-    const raise = (l, msg) => {
-      notes.push(msg);
-      if (l === "attention" || level === "ok") level = l;
-    };
-    const ew = words(en), pw = words(t);
-    const enShare = pw.length ? pw.filter((w) => EN_ONLY.has(w)).length / pw.length : 0;
-    if (fold(t).replace(/\W+/g, "") === fold(en).replace(/\W+/g, "") || enShare >= 0.34) raise("attention", "Parece ainda estar em ingl\xEAs.");
-    const len = (s) => fold(s).replace(/[^a-z0-9]/g, "").length;
-    const ratio = len(t) / Math.max(1, len(en));
-    if (len(en) >= 12 && ratio < 0.4) raise("attention", "Bem mais curta que o original: pode faltar uma parte.");
-    else if (len(en) >= 12 && ratio < 0.6) raise("review", "Mais curta que o original: confira se nada ficou de fora.");
-    else if (len(en) >= 12 && ratio > 2.6) raise("review", "Bem mais longa que o original: confira se n\xE3o h\xE1 acr\xE9scimos.");
-    for (const num of String(en).match(/\d+/g) || []) if (!String(t).includes(num)) raise("review", `O n\xFAmero ${num} do original n\xE3o aparece.`);
+  var memory = /* @__PURE__ */ new Map();
+  function setMemoryFrom(activities) {
+    memory = /* @__PURE__ */ new Map();
+    for (const a of activities) for (const q of a.questions) if (isValidated(a, q.n)) q.blocks.forEach((en2, i) => {
+      const k = same(en2), v = (a.teacher[q.n].blocks[i] || "").trim();
+      if (v) memory.set(k, [...memory.get(k) || [], v]);
+    });
+  }
+  function namesIn(en2) {
     const names = [];
-    const caps = String(en).match(/[A-Za-z][A-Za-z']*/g) || [];
+    const caps = String(en2).match(/[A-Za-z][A-Za-z']*/g) || [];
     const titleCase = caps.filter((w) => /^[A-Z]/.test(w)).length >= caps.length / 2;
-    if (!titleCase) String(en).split(/(?<=[.!?:;—"“”])\s+/).forEach((sentence) => {
+    if (!titleCase) String(en2).split(/(?<=[.!?:;—"“”])\s+/).forEach((sentence) => {
       (sentence.match(/[A-Za-z][A-Za-z']*/g) || []).slice(1).forEach((w) => {
         if (/^[A-Z]/.test(w) && !NOT_NAMES.has(fold(w).replace(/'s$/, ""))) names.push(w.replace(/'s$/, ""));
       });
     });
-    const pf = fold(t);
-    for (const n of [...new Set(names)]) if (!pf.includes(fold(n).slice(0, 3))) raise("review", `O nome \u201C${n}\u201D n\xE3o aparece (confira).`);
-    if (/\?/.test(en) && !/\?/.test(t)) raise("review", "O original tem pergunta e a tradu\xE7\xE3o n\xE3o tem \u201C?\u201D.");
-    if (NEG_EN.test(fold(en)) && !NEG_PT.test(fold(t))) raise("review", "O original tem nega\xE7\xE3o (not, no, never\u2026); confira se a tradu\xE7\xE3o tamb\xE9m tem.");
-    if (!notes.length) notes.push("Nenhum alerta na checagem b\xE1sica (ela n\xE3o avalia o sentido).");
-    return { level, notes };
+    return [...new Set(names)];
   }
-  var CHECK_LABEL = { ok: "Adequada", review: "Revisar", attention: "Aten\xE7\xE3o", empty: "Sem tradu\xE7\xE3o" };
-  var CHECK_CLASS = { ok: "ok", review: "warn", attention: "bad", empty: "" };
+  function unitsOf(en2, names) {
+    const toks = words2(en2);
+    const skip = new Set(names.map((n) => fold(n)));
+    const out = [];
+    for (let i = 0; i < toks.length; ) {
+      let found = null;
+      for (let n = Math.min(6, toks.length - i); n >= 2 && !found; n--) {
+        const seq2 = toks.slice(i, i + n);
+        for (const k of [seq2.join(" "), seq2.map(lemma).join(" ")]) {
+          const tr = translationsOf(k);
+          if (tr) {
+            found = { en: k, pts: tr, n };
+            break;
+          }
+        }
+      }
+      if (found) {
+        out.push(found);
+        i += found.n;
+        continue;
+      }
+      const w = toks[i++];
+      const base = w.replace(/'s$/, "");
+      if (isFunctionWord(base) || WEAK2.has(w) || WEAK2.has(base) || /^\d+$/.test(base) || skip.has(base) || base.length < 2) continue;
+      out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, "")) || null, n: 1 });
+    }
+    return { toks, units: out };
+  }
+  function variantIn(v, ans, plain, used) {
+    const vc = ptContent(v);
+    if (!vc.length) return plain.includes(` ${fold(v).replace(/[^a-z0-9]+/g, " ").trim()} `);
+    const hits = vc.map((c) => ans.findIndex((a) => stemEq(a.s, c.s))).filter((k) => k >= 0);
+    const need = vc.length <= 2 ? vc.length : Math.ceil(vc.length * 2 / 3);
+    if (hits.length < need) return false;
+    hits.forEach((k) => used.add(k));
+    return true;
+  }
+  function checkTranslation(en2, pt) {
+    const t = String(pt || "").trim();
+    if (!t) return { level: "empty", notes: ["Sem tradu\xE7\xE3o."], missing: [], added: [] };
+    const notes = [];
+    const pw = words2(t);
+    const enShare = pw.length ? pw.filter((w) => EN_ONLY.has(w)).length / pw.length : 0;
+    if (fold(t).replace(/\W+/g, "") === fold(en2).replace(/\W+/g, "") || enShare >= 0.34) {
+      return { level: "incompatible", notes: ["Parece n\xE3o estar traduzida (ainda em ingl\xEAs)."], missing: [], added: [] };
+    }
+    const blocking = [];
+    const len = (s) => fold(s).replace(/[^a-z0-9]/g, "").length;
+    if (len(en2) >= 12 && len(t) / Math.max(1, len(en2)) < 0.4) blocking.push("Bem mais curta que o original: pode faltar uma parte.");
+    for (const num of String(en2).match(/\d+/g) || []) if (!numIn(num, t)) blocking.push(`O n\xFAmero ${num} do original n\xE3o aparece.`);
+    const names = namesIn(en2);
+    const pf = fold(t);
+    for (const n of names) if (!pf.includes(fold(n).slice(0, 3))) blocking.push(`O nome \u201C${n}\u201D n\xE3o aparece (confira).`);
+    if (NEG_EN.test(fold(en2)) && !NEG_PT.test(pf)) blocking.push("O original tem nega\xE7\xE3o (not, no, never\u2026) e a tradu\xE7\xE3o n\xE3o.");
+    const minor = /\?/.test(en2) && !/\?/.test(t) ? ["O original \xE9 uma pergunta e a tradu\xE7\xE3o n\xE3o tem \u201C?\u201D."] : [];
+    const refs = memory.get(same(en2)) || [];
+    const flat = (s) => fold(s).replace(/[^a-z0-9]+/g, " ").trim();
+    if (refs.some((r) => flat(r) === flat(t))) return { level: "ok", notes: ["Igual \xE0 vers\xE3o validada pelo professor."], missing: [], added: [] };
+    const ans = ptContent(t);
+    let bestRef = 0;
+    for (const r of refs) {
+      const rc = ptContent(r);
+      if (rc.length) bestRef = Math.max(bestRef, rc.filter((c) => ans.some((a) => stemEq(a.s, c.s))).length / rc.length);
+    }
+    if (bestRef >= 0.6 && !blocking.length) return { level: "ok", notes: ["Pr\xF3xima da vers\xE3o validada pelo professor.", ...minor], missing: [], added: [] };
+    if (!glossaryReady()) return { level: "inconclusive", notes: ["Avalia\xE7\xE3o de sentido indispon\xEDvel (gloss\xE1rio n\xE3o carregado).", ...blocking, ...minor], missing: [], added: [] };
+    const { toks, units } = unitsOf(en2, names);
+    const srcLemmas = new Set(toks.flatMap((w) => [w, lemma(w), w.replace(/'s$/, ""), w.replace(/es$/, ""), .../^\d+$/.test(w) && EN_NUM[+w] ? [EN_NUM[+w]] : []]));
+    const plain = ` ${flat(t)} `;
+    const used = /* @__PURE__ */ new Set();
+    const known = units.filter((u) => u.pts);
+    const matched = /* @__PURE__ */ new Set();
+    for (const u of known) if (u.pts.some((v) => variantIn(v, ans, plain, used))) matched.add(u);
+    const variantStems = [...matched].flatMap((u) => u.pts.flatMap((v) => ptContent(v).map((c) => c.s)));
+    ans.forEach((a, k) => {
+      if (variantStems.some((s) => stemEq(s, a.s))) used.add(k);
+    });
+    const relates = (e, w) => e === w || lemma(e) === lemma(w) || e.split(" ").some((x) => x === w || lemma(x) === lemma(w));
+    const added = [];
+    ans.forEach((a, k) => {
+      if (used.has(k) || srcLemmas.has(a.w)) return;
+      const m = meaningsOf(a.s);
+      if (!m) return;
+      const hit = known.find((u) => !matched.has(u) && [...m].some((e) => relates(e, u.en)));
+      if (hit) {
+        matched.add(hit);
+        return;
+      }
+      if ([...m].some((e) => [...srcLemmas].some((w) => relates(e, w)))) return;
+      added.push(`${a.w} (${[...m].slice(0, 2).join(", ")})`);
+    });
+    const missing = known.filter((u) => !matched.has(u)).map((u) => `${u.en} \u2192 ${u.pts.slice(0, 3).join(" / ")}`);
+    const cov = known.length ? matched.size / known.length : 0;
+    const why = [
+      ...missing.length ? [`N\xE3o identificado na resposta: ${missing.join("; ")}.`] : [],
+      ...added.length ? [`Acrescentado (n\xE3o est\xE1 no original): ${added.join("; ")}.`] : []
+    ];
+    let level;
+    if (known.length && !matched.size && added.length || !units.length && added.length) level = "incompatible";
+    else if (added.length >= 2 && cov < 0.5) level = "incompatible";
+    else if (added.length >= 3 && added.length > matched.size / 2) level = "incompatible";
+    else if (known.length && cov >= 0.6 && (added.length === 0 || cov >= 0.75 && added.length <= 1) && !blocking.length) level = "ok";
+    else level = "inconclusive";
+    if (level === "inconclusive" && !known.length) why.unshift("O gloss\xE1rio n\xE3o cobre as palavras desta frase: n\xE3o d\xE1 para avaliar o sentido com seguran\xE7a.");
+    if (level === "ok") why.unshift(`Sentido do original identificado (${matched.size} de ${known.length} ${known.length === 1 ? "elemento" : "elementos"}).`);
+    if (level === "incompatible") why.unshift("A resposta n\xE3o preserva o sentido do original.");
+    return { level, notes: [...why, ...blocking, ...minor], missing, added };
+  }
+  var CHECK_LABEL = { ok: "Adequada", incompatible: "Incompat\xEDvel", inconclusive: "Inconclusiva", review: "Revisar", attention: "Aten\xE7\xE3o", empty: "Sem tradu\xE7\xE3o" };
+  var CHECK_CLASS = { ok: "ok", incompatible: "bad", inconclusive: "warn", review: "warn", attention: "bad", empty: "" };
 
   // app/js/ui/course.js
   var AREA_NAME = "Curso \u2014 Atividades";
@@ -4196,8 +4853,10 @@
   function renderCourseQuestion(App2, r) {
     const view = App2.layout("Quest\xE3o", { back: "#/course" });
     let alive = true;
-    loadCourse().then((d) => {
-      if (alive) draw(d);
+    Promise.all([loadCourse(), loadGlossary()]).then(([d]) => {
+      if (!alive) return;
+      setMemoryFrom(Object.values(d.activities));
+      draw(d);
     });
     function draw(d) {
       const act = d.activities[r.arg];
@@ -4252,7 +4911,7 @@
       statusChips();
       const msg = h("div", { "data-role": "q-msg" });
       const checks = [];
-      const areas = q.blocks.map((en, i) => {
+      const areas = q.blocks.map((en2, i) => {
         const chip = h("div", { class: "small", style: { marginTop: "4px" }, "data-role": "block-check" });
         checks.push(chip);
         const ta = h("textarea", {
@@ -4282,7 +4941,7 @@
           "div",
           { class: "card flat", style: { marginTop: "10px" }, "data-role": "block", "data-pos": i },
           h("div", { class: "small muted", text: i === 0 ? "T\xEDtulo da quest\xE3o" : `Bloco ${i + 1}` }),
-          h("p", { lang: "en", style: { margin: "4px 0 8px", fontWeight: 600 }, "data-role": "block-en", text: en }),
+          h("p", { lang: "en", style: { margin: "4px 0 8px", fontWeight: 600 }, "data-role": "block-en", text: en2 }),
           ta,
           chip
         ) };
@@ -4294,7 +4953,7 @@
           chip.replaceChildren();
           if (!show) return;
           const c = checkTranslation(q.blocks[i], a[i]);
-          chip.append(h("span", { class: `chip ${CHECK_CLASS[c.level]}`, "data-level": c.level, text: `Checagem b\xE1sica: ${CHECK_LABEL[c.level]}` }), " ", h("span", { class: "muted", text: c.notes.join(" ") }));
+          chip.append(h("span", { class: `chip ${CHECK_CLASS[c.level]}`, "data-level": c.level, text: `Avalia\xE7\xE3o autom\xE1tica: ${CHECK_LABEL[c.level]}` }), " ", h("span", { class: "muted", text: c.notes.join(" ") }));
         });
       }
       drawChecks();
@@ -4325,7 +4984,7 @@
         ...areas.map((x) => x.el),
         msg,
         h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save),
-        act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A checagem b\xE1sica \xE9 s\xF3 uma orienta\xE7\xE3o de estudo (sinais como texto ainda em ingl\xEAs, partes faltando, n\xFAmeros, nomes, perguntas e nega\xE7\xF5es). Ela n\xE3o avalia o sentido, n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
+        act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A avalia\xE7\xE3o autom\xE1tica compara o SENTIDO de cada bloco com o original (gloss\xE1rio ingl\xEAs\u2013portugu\xEAs e vers\xF5es j\xE1 validadas pelo professor): Adequada = sentido identificado; Incompat\xEDvel = a resposta muda o sentido; Inconclusiva = n\xE3o h\xE1 evid\xEAncia suficiente (n\xE3o \xE9 erro). \xC9 s\xF3 uma orienta\xE7\xE3o de estudo: n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
         act.done[n] ? teacherBox(act, n, () => App2.go(qHref(act.id, n))) : null,
         last && isDone(act, n) ? exportBox(act) : null
       ].filter(Boolean));
@@ -4364,7 +5023,7 @@
         } }, "Registrar a corre\xE7\xE3o do professor"));
         return;
       }
-      if (!validated) q.blocks.forEach((en, i) => {
+      if (!validated) q.blocks.forEach((en2, i) => {
         const ta = h("textarea", {
           class: "field",
           rows: 2,
@@ -4382,9 +5041,9 @@
         body.append(h(
           "div",
           { class: "card flat", style: { marginTop: "8px" } },
-          h("p", { lang: "en", style: { margin: "0 0 4px", fontWeight: 600 }, text: en }),
+          h("p", { lang: "en", style: { margin: "0 0 4px", fontWeight: 600 }, text: en2 }),
           sub ? h("div", { class: "small", "data-role": "teacher-submitted" }, h("span", { class: "muted", text: "Enviada: " }), sub.blocks[i]) : null,
-          c ? h("div", { class: "small muted", text: `Checagem b\xE1sica ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
+          c ? h("div", { class: "small muted", text: `Avalia\xE7\xE3o autom\xE1tica ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
           h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Vers\xE3o corrigida (professor):" }),
           ta
         ));
@@ -5378,240 +6037,6 @@
     });
   }
 
-  // app/js/engine/lexicon.js
-  var words2 = null;
-  var loading = null;
-  function loadLexicon(url = "data/lexicon.txt.gz") {
-    if (words2) return Promise.resolve(true);
-    if (!loading) {
-      loading = (async () => {
-        try {
-          const res = await fetch(url);
-          if (!res.ok) return false;
-          let buf = new Uint8Array(await res.arrayBuffer());
-          if (buf[0] === 31 && buf[1] === 139 && typeof DecompressionStream !== "undefined") {
-            buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
-          }
-          words2 = new Set(new TextDecoder().decode(buf).split("\n").filter(Boolean));
-          return true;
-        } catch (e) {
-          return false;
-        } finally {
-          loading = null;
-        }
-      })();
-    }
-    return loading;
-  }
-  var IRREGULAR2 = { woke: "wake", woken: "wake", got: "get", gotten: "get", went: "go", gone: "go", had: "have", has: "have", ate: "eat", eaten: "eat", drove: "drive", driven: "drive", took: "take", taken: "take", made: "make", came: "come", left: "leave", bought: "buy", brought: "bring", slept: "sleep", did: "do", does: "do", was: "be", were: "be", is: "be", are: "be", am: "be", been: "be", saw: "see", seen: "see", said: "say", spent: "spend", met: "meet", ran: "run", drank: "drink", felt: "feel", kept: "keep", thought: "think", told: "tell", taught: "teach", read: "read", wrote: "write", written: "write", sat: "sit", stood: "stand", began: "begin", found: "find", heard: "hear", paid: "pay", put: "put", set: "set", shut: "shut", children: "child", men: "man", women: "woman", feet: "foot", teeth: "tooth" };
-  function lemma(w) {
-    let t = String(w).toLowerCase().replace(/[’]/g, "'").replace(/'s$/, "");
-    if (IRREGULAR2[t]) return IRREGULAR2[t];
-    if (t.length > 4 && t.endsWith("ies")) return t.slice(0, -3) + "y";
-    if (t.length > 4 && /(ches|shes|sses|xes|zes)$/.test(t)) return t.slice(0, -2);
-    if (t.length > 3 && t.endsWith("s") && !/(ss|us|is)$/.test(t)) t = t.slice(0, -1);
-    else if (t.length > 5 && t.endsWith("ing")) t = undouble(t.slice(0, -3));
-    else if (t.length > 4 && t.endsWith("ied")) t = t.slice(0, -3) + "y";
-    else if (t.length > 4 && t.endsWith("ed")) t = undouble(t.slice(0, -2));
-    return t;
-  }
-  function undouble(t) {
-    return /([b-df-hj-np-tv-z])\1$/.test(t) && !/(ll|ss|ff|zz)$/.test(t) ? t.slice(0, -1) : t;
-  }
-  function isKnownWord(w, extra = null) {
-    if (!words2) return null;
-    const t = String(w).toLowerCase().replace(/[’]/g, "'");
-    if (words2.has(t) || extra && extra.has(t)) return true;
-    const base = lemma(t);
-    if (words2.has(base) || extra && extra.has(base)) return true;
-    return words2.has(base + "e") || words2.has(t.replace(/'s$/, ""));
-  }
-
-  // app/js/engine/wordfeedback.js
-  var SCORE_WEIGHTS = [
-    { id: "intelligibility", label: "Pron\xFAncia e inteligibilidade", weight: 0.6 },
-    { id: "fluency", label: "Ritmo e fluidez", weight: 0.2 },
-    { id: "prosody", label: "Acentua\xE7\xE3o e entona\xE7\xE3o", weight: 0.15 },
-    { id: "duration", label: "Dura\xE7\xE3o e naturalidade", weight: 0.05 }
-  ];
-  var MIN_CONFIDENCE = 0.5;
-  var WEAK = /* @__PURE__ */ new Set(["a", "an", "the", "and", "to", "of", "at", "in", "on", "for", "or", "as", "by", "is", "am", "are", "it", "my", "i", "so", "but", "with", "from", "up", "do"]);
-  var NUM = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50 };
-  var AME = { analyze: "analyse", analyzes: "analyses", analyzing: "analysing", practice: "practise", practices: "practises", finalize: "finalise", organize: "organise", neighborhood: "neighbourhood" };
-  function segment(text) {
-    const segs = [];
-    let pos = 0, w = 0;
-    for (const s of tokenSpans(text)) {
-      if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
-      const norm = wordTokens(s.text).join(" ");
-      const before = text.slice(0, s.start).trimEnd();
-      const proper = /^[A-Z][a-z]/.test(s.text) && before !== "" && !/[.!?:]$/.test(before);
-      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm), proper });
-      pos = s.end;
-    }
-    if (pos < text.length) segs.push({ text: text.slice(pos) });
-    return segs;
-  }
-  var wordsOf = (text) => segment(text).filter((s) => s.w !== void 0);
-  function wordAudioText(seg) {
-    const t = seg.text.replace(/[’]/g, "'").replace(/[.,!?;:]+$/, "");
-    return seg.proper || t === "I" || /^[A-Z]{2,}/.test(t) ? t : t.toLowerCase();
-  }
-  function forms(t) {
-    const out = /* @__PURE__ */ new Set([t]);
-    if (AME[t]) out.add(AME[t]);
-    if (/iz(e|ed|es|ing|ation)$/.test(t)) out.add(t.replace(/iz(e|ed|es|ing|ation)$/, "is$1"));
-    const hm = /^(\d{1,2})(\d\d)$/.exec(t);
-    if (hm && +hm[2] < 60) out.add(`${hm[1]}:${hm[2]}`).add(hm[1]);
-    if (t in NUM) out.add(String(NUM[t]));
-    const m = /^(\d{1,2}):(\d\d)$/.exec(t);
-    if (m) {
-      out.add(String(+m[1]));
-      if (m[2] !== "00") out.add(m[2].replace(/^0/, ""));
-    }
-    if (/^\d+$/.test(t)) {
-      for (const [k, v] of Object.entries(NUM)) if (String(v) === t) out.add(k);
-    }
-    if (t === "am" || t === "pm") {
-      out.add(t[0]);
-      out.add(t + ".");
-    }
-    if (t.endsWith("'s")) out.add(t.slice(0, -2));
-    return out;
-  }
-  function sameWordForm(target, heard) {
-    if (target === heard) return true;
-    if (target.endsWith("'s") !== heard.endsWith("'s")) return false;
-    const b = forms(heard);
-    for (const x of forms(target)) if (b.has(x)) return true;
-    return false;
-  }
-  function inflected(target, heard) {
-    if (target.length < 3 || !heard.startsWith(target)) return false;
-    const rest = heard.slice(target.length);
-    return ["s", "es", "d", "ed", target.slice(-1) + "ed"].includes(rest);
-  }
-  function tokenEq(target, heard) {
-    if (target === heard) return true;
-    const a = forms(target), b = forms(heard);
-    for (const x of a) for (const y of b) if (x === y || inflected(x, y)) return true;
-    return target.length >= 6 && heard.length >= 6 && levenshtein(target, heard) <= 1 && isKnownWord(heard) !== true;
-  }
-  function heardTokens(transcript) {
-    const out = [];
-    for (const t of wordTokens(String(transcript || ""))) {
-      const m = /^(\d{1,4}(?::\d\d)?)(am|pm|a|p)$/.exec(t);
-      if (m) out.push(m[1], m[2].length === 1 ? m[2] + "m" : m[2]);
-      else if (t === "m" && (out[out.length - 1] === "am" || out[out.length - 1] === "pm")) continue;
-      else out.push(t);
-    }
-    return out;
-  }
-  function degenerate(heard, expected) {
-    let run2 = 1;
-    for (let j = 1; j < heard.length; j++) {
-      run2 = heard[j] === heard[j - 1] ? run2 + 1 : 1;
-      if (run2 >= 4) return true;
-    }
-    return heard.length > Math.max(8, expected * 1.8);
-  }
-  function matchCompounds(target, heard) {
-    const joined = /* @__PURE__ */ new Map();
-    for (let i = 0; i < target.length - 1; i++) joined.set(target[i] + target[i + 1], [target[i], target[i + 1]]);
-    const tset = new Set(target);
-    const out = [];
-    for (let j = 0; j < heard.length; j++) {
-      const h2 = heard[j], pair = j + 1 < heard.length ? h2 + heard[j + 1] : null;
-      if (!tset.has(h2) && joined.has(h2)) out.push(...joined.get(h2));
-      else if (pair && tset.has(pair) && !(tset.has(h2) && tset.has(heard[j + 1]))) {
-        out.push(pair);
-        j++;
-      } else out.push(h2);
-    }
-    return out;
-  }
-  function evaluateWords(text, asr, opts = {}) {
-    const words3 = wordsOf(text);
-    const all = (state, reason, note) => ({ words: words3.map((x) => ({ w: x.w, text: x.text, state, reason })), evaluated: false, note });
-    if (opts.insufficient) return all("uncertain", "Grava\xE7\xE3o insuficiente para avaliar esta palavra. Tente gravar novamente, mais perto do microfone.", "Quase n\xE3o captei voz: nada foi avaliado.");
-    if (!asr) return all("uncertain", "N\xE3o foi poss\xEDvel avaliar esta palavra: o reconhecimento de fala no aparelho n\xE3o est\xE1 dispon\xEDvel. Compare com a refer\xEAncia (A/B).", "Avalia\xE7\xE3o por palavra indispon\xEDvel neste aparelho.");
-    const target = words3.map((x) => x.norm);
-    const heard = matchCompounds(target, heardTokens(asr.text));
-    if (!heard.length) return all("uncertain", "Nenhuma fala foi reconhecida. Tente gravar novamente.", "O reconhecimento n\xE3o captou fala: resultado inconclusivo.");
-    if (degenerate(heard, words3.length)) return all("uncertain", "A transcri\xE7\xE3o saiu corrompida (repeti\xE7\xF5es sem sentido); n\xE3o d\xE1 para avaliar a palavra. Tente gravar de novo.", "Transcri\xE7\xE3o n\xE3o confi\xE1vel (repeti\xE7\xF5es): resultado inconclusivo.");
-    if (typeof asr.confidence === "number" && asr.confidence > 0 && asr.confidence < MIN_CONFIDENCE) {
-      return all("uncertain", "O reconhecimento teve confian\xE7a baixa nesta grava\xE7\xE3o; n\xE3o d\xE1 para avaliar a palavra com seguran\xE7a. Tente de novo.", "Confian\xE7a baixa do reconhecimento: resultado inconclusivo.");
-    }
-    const pairs = lcsAlign(target, heard, tokenEq);
-    const matchT = new Map(pairs.map(([i, j]) => [i, j]));
-    const anchors = [[-1, -1], ...pairs, [target.length, heard.length]];
-    const gapHeard = /* @__PURE__ */ new Map();
-    for (let k = 0; k < anchors.length - 1; k++) {
-      const [ti, hj] = anchors[k], [tn, hn] = anchors[k + 1];
-      const tGap = [];
-      for (let i = ti + 1; i < tn; i++) tGap.push(i);
-      const hGap = heard.slice(hj + 1, hn);
-      tGap.forEach((i, idx) => gapHeard.set(i, tGap.length === hGap.length ? [hGap[idx]] : hGap));
-    }
-    const lastMatched = pairs.length ? pairs[pairs.length - 1][0] : -1;
-    const out = words3.map((x, i) => {
-      if (matchT.has(i)) return { w: x.w, text: x.text, state: "good", reason: "Reconhecida como esperado. Isso indica que a palavra foi entendida (intelig\xEDvel); n\xE3o \xE9 uma an\xE1lise fon\xE9tica dos sons." };
-      const near = (gapHeard.get(i) || []).filter(Boolean);
-      if (x.weak) return { w: x.w, text: x.text, state: "uncertain", reason: "Palavra curta e \xE1tona: o reconhecedor costuma omiti-la mesmo quando \xE9 dita. N\xE3o foi avaliada." };
-      if (x.proper) return { w: x.w, text: x.text, state: "uncertain", heard: near.length ? near.join(" ") : void 0, reason: `Nome pr\xF3prio: o reconhecedor pode n\xE3o conhec\xEA-lo e escrev\xEA-lo de outro jeito${near.length ? ` (aqui ouviu \u201C${near.join(" ")}\u201D)` : ""}. N\xE3o foi avaliado.` };
-      if (opts.tailUnreliable && i > lastMatched) return { w: x.w, text: x.text, state: "uncertain", reason: "A transcri\xE7\xE3o pode ter sido cortada no fim: esta palavra n\xE3o foi avaliada. Grave de novo se quiser conferir." };
-      if (near.length) {
-        return {
-          w: x.w,
-          text: x.text,
-          state: "needs_practice",
-          heard: near.join(" "),
-          reason: `N\xE3o foi reconhecida como esperado: o reconhecedor ouviu \u201C${near.join(" ")}\u201D. Pode ser erro do reconhecimento ou da fala: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia, e repita se soar diferente. (O sistema n\xE3o identifica qual som diferiu.)`
-        };
-      }
-      return { w: x.w, text: x.text, state: "needs_practice", reason: "N\xE3o foi reconhecida: a palavra pode ter sido omitida, dita de forma pouco clara ou perdida pelo reconhecimento. Ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia. (O sistema n\xE3o identifica qual som diferiu.)" };
-    });
-    return { words: out, evaluated: true, note: "" };
-  }
-  function scoreAttempt({ evaluation, analysis, expectedWords = 0, recorded = true }) {
-    const dims = SCORE_WEIGHTS.map((d) => ({ ...d, score: null, note: "" }));
-    const get = (id) => dims.find((d) => d.id === id);
-    const insufficient = recorded && (!analysis || analysis.silent || analysis.speechSec < 0.4);
-    if (evaluation && evaluation.evaluated) {
-      const judged = evaluation.words.filter((x) => x.state === "good" || x.state === "needs_practice");
-      if (judged.length >= 2) get("intelligibility").score = Math.round(judged.filter((x) => x.state === "good").length / judged.length * 100);
-      else get("intelligibility").note = "Poucas palavras avali\xE1veis.";
-    } else get("intelligibility").note = evaluation && evaluation.note ? evaluation.note : "Sem reconhecimento de fala no aparelho.";
-    if (analysis && !insufficient && analysis.speechSec >= 1) {
-      const words3 = Math.max(1, expectedWords);
-      let s = 100 - Math.max(0, analysis.longPauses - (words3 > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words3 / 5)) * 5;
-      get("fluency").score = Math.max(30, Math.min(100, Math.round(s)));
-    } else get("fluency").note = "Grava\xE7\xE3o curta ou sem voz suficiente.";
-    get("prosody").note = "N\xE3o avaliado: o app n\xE3o tem um analisador de acento e entona\xE7\xE3o.";
-    const p = analysis && analysis.paceVsReference;
-    const plausible = analysis && !(analysis.wpm && (analysis.wpm > 260 || analysis.wpm < 40));
-    if (!insufficient && p && plausible) get("duration").score = p > 2.4 ? 60 : p > 1.8 ? 80 : p < 0.6 ? 60 : p < 0.75 ? 80 : 100;
-    else get("duration").note = analysis ? "Sem dura\xE7\xE3o de refer\xEAncia confi\xE1vel." : "Sem grava\xE7\xE3o: dura\xE7\xE3o n\xE3o medida.";
-    const available = dims.filter((d) => d.score !== null);
-    const hasCore = get("intelligibility").score !== null;
-    if (insufficient || !hasCore) {
-      return {
-        overall: null,
-        dims,
-        partial: true,
-        message: insufficient ? "Grava\xE7\xE3o insuficiente: sem nota. Tente novamente." : "Nota geral indispon\xEDvel: falta a medida de inteligibilidade (reconhecimento de fala no aparelho)."
-      };
-    }
-    const wsum = available.reduce((n, d) => n + d.weight, 0);
-    const overall = Math.round(available.reduce((n, d) => n + d.score * d.weight, 0) / wsum);
-    return {
-      overall,
-      dims,
-      partial: available.length < dims.length,
-      message: `Nota estimada com ${available.map((d) => d.label.toLowerCase()).join(", ")}. ${dims.filter((d) => d.score === null).map((d) => d.label).join(", ")}: n\xE3o avaliado.`
-    };
-  }
-
   // app/js/engine/practice.js
   function analyseAttempt(evaluation, text) {
     if (!evaluation || !evaluation.evaluated) return { list: [], goodKeys: [], conclusive: false };
@@ -5691,227 +6116,6 @@
       allDone: (list) => list.length > 0 && list.every((x) => get(x.key).status === "done"),
       doneCount: (list) => list.filter((x) => get(x.key).status === "done").length
     };
-  }
-
-  // app/js/engine/coherence.js
-  var set = (s) => new Set(s.split(/\s+/).filter(Boolean));
-  var CATEGORIES = {
-    food: set(`breakfast lunch dinner supper meal snack food coffee tea juice milk water toast bread egg eggs cereal fruit fruits banana apple
-    orange rice beans salad sandwich burger pasta pizza soup chicken meat fish beef pork ham turkey tuna salmon bacon sausage cheese butter
-    vegetable vegetables lettuce tomato tomatoes onion onions carrot carrots potato potatoes chips fries crisps oats porridge yogurt yoghurt
-    cake biscuit biscuits cookie cookies chocolate sugar honey jam pumpkin corn avocado mushroom mushrooms pepper spinach cucumber grape
-    grapes lemon strawberry nuts wrap tortilla noodles steak lamb prawns shrimp mayo mayonnaise ketchup sauce`),
-    animal: set("kitten kitty cat cats puppy dog dogs horse mouse mice rat donkey monkey snake frog spider insect bug bird parrot lion tiger rabbit"),
-    transport: set("car bus train bike bicycle taxi cab uber subway metro tram motorbike motorcycle scooter van truck lift ride rides"),
-    place: set("office home school gym bank street park kitchen cafeteria canteen work room house flat apartment church shop supermarket station garage"),
-    device: set("app phone mobile laptop computer tablet email screen"),
-    person: set("wife husband son daughter kids children child family mother mum mom father dad friend friends colleague colleagues boss teacher"),
-    time: set("morning afternoon evening night noon midnight day days week weekend weekday weekdays today tonight")
-  };
-  var categoryOf = (t) => {
-    const l = lemma(t);
-    for (const [k, s] of Object.entries(CATEGORIES)) if (s.has(t) || s.has(l)) return k;
-    return null;
-  };
-  var FUNCTION = set(`a an the my your his her our their this that these those some any to of in on at for from by with into onto and or but
-  so then also i you he she it we they me him us them is am are was were be been do does did have has had not up out off over under about
-  around after before as if than very just myself yourself himself herself itself ourselves yourselves themselves mine yours hers ours theirs`);
-  var QUANT = set("little bit lot lots few couple much many");
-  var DET = set("a an the my your his her our their this that some");
-  var PREP_ADV = set("over under about after before up out off around through across");
-  var isFunctionWord = (t) => FUNCTION.has(t) || QUANT.has(t);
-  function phoneKey(word) {
-    let w = String(word).toLowerCase().replace(/[^a-z]/g, "");
-    if (!w) return { key: "", norm: "", syl: 0 };
-    w = w.replace(/^kn/, "n").replace(/^wr/, "r").replace(/^wh/, "w").replace(/mb$/, "m").replace(/gh/g, "");
-    w = w.replace(/([^aeiouy])le$/, "$1el");
-    w = w.replace(/tch/g, "C").replace(/ch/g, "C").replace(/sh/g, "S").replace(/th/g, "T").replace(/ph/g, "f").replace(/ck/g, "k").replace(/qu/g, "kw").replace(/x/g, "ks").replace(/c(?=[eiy])/g, "s").replace(/c/g, "k").replace(/g(?=[eiy])/g, "j");
-    if (w.length > 3 && /[^aeiouy]e$/.test(w) && /[aeiouy]/.test(w.slice(0, -2))) w = w.slice(0, -1);
-    w = w.replace(/(.)\1+/g, "$1");
-    let key = "";
-    for (let i = 0; i < w.length; i++) {
-      const ch = w[i];
-      const c = "aeiou".includes(ch) ? "V" : ch === "y" ? i === 0 ? "W" : "V" : "pbtdkgC".includes(ch) ? "P" : "fvszSTjh".includes(ch) ? "F" : "mn".includes(ch) ? "N" : "lr".includes(ch) ? "L" : ch === "w" ? "W" : "";
-      if (c && !(c === "V" && key.endsWith("V"))) key += c;
-    }
-    return { key, norm: w, syl: (key.match(/V/g) || []).length };
-  }
-  function soundsAlike(a, b) {
-    const strip = (s) => wordTokens(s).filter((t) => !DET.has(t)).join("");
-    const x = strip(a), y = strip(b);
-    if (!x || !y || x === y) return false;
-    let suf = 0;
-    while (suf < Math.min(x.length, y.length) && x[x.length - 1 - suf] === y[y.length - 1 - suf]) suf++;
-    if (suf >= 4 && Math.min(x.length, y.length) >= 5) return true;
-    const px = phoneKey(x), py = phoneKey(y);
-    if (px.key.length < 4 || py.key.length < 4 || px.key.length !== py.key.length || px.syl !== py.syl) return false;
-    if (levenshtein(px.key, py.key) > 1) return false;
-    return px.norm[0] === py.norm[0] || px.norm.slice(-2) === py.norm.slice(-2);
-  }
-  var prepCache = /* @__PURE__ */ new WeakMap();
-  function frameRefs(content) {
-    if (prepCache.has(content)) return prepCache.get(content);
-    const refs = [];
-    const add = (text, au) => {
-      const r = prepRef(text, au);
-      if (r && r.toks.length >= 3) refs.push(r);
-    };
-    for (const s of Object.values(content.sentences || {})) add(s.en, s.au);
-    for (const q of Object.values(content.questions || {})) {
-      add(q.a, q.aau);
-      (q.altAnswers || []).forEach((a) => add(a));
-    }
-    for (const it of Object.values(content.items || {})) {
-      add(it.en);
-      (it.ex || []).forEach((x) => add(x.en, x.au));
-    }
-    prepCache.set(content, refs);
-    return refs;
-  }
-  function prepRef(text, au = null) {
-    if (!text) return null;
-    const segs = segment(text).filter((s) => s.w !== void 0 && s.norm);
-    const toks = segs.map((s) => s.norm);
-    return { text, au, toks, lems: toks.map(lemma), surf: segs.map((s) => s.text.replace(/[.,!?;:]+$/, "")) };
-  }
-  var tokEq = (a, al, b, bl) => a === b || a.length > 2 && b.length > 2 && al === bl || DET.has(a) && DET.has(b);
-  function categoryClash(heardToks, expected, { foodFrame = false, headAnchored = false, nounSlot = false, sound = false } = {}) {
-    const content = heardToks.filter((t) => !isFunctionWord(t));
-    const ce = categoryOf(expected);
-    if (!content.length && nounSlot && headAnchored && heardToks.some((t) => QUANT.has(t) || PREP_ADV.has(t)) && (sound || heardToks.some((t) => QUANT.has(t)))) return "function";
-    if (ce === "food" && foodFrame && content.some((t) => ["animal", "transport", "device", "place", "person"].includes(categoryOf(t)))) return "not-food";
-    return null;
-  }
-  function findSlotSuspicions(transcript, refs = []) {
-    const segs = segment(String(transcript || "")).filter((s) => s.w !== void 0 && s.norm);
-    if (segs.length < 3) return [];
-    const T = segs.map((s) => s.norm), TL = T.map(lemma);
-    const tLemmas = new Set(TL);
-    const found = /* @__PURE__ */ new Map();
-    for (const ref of refs) {
-      const R = ref.toks, RL = ref.lems;
-      for (let j = 0; j < R.length; j++) {
-        const e = R[j];
-        if (isFunctionWord(e) || e.length < 3 || /\d/.test(e)) continue;
-        if (tLemmas.has(RL[j])) continue;
-        const slots = [[j, j]];
-        if (j > 0 && DET.has(R[j - 1])) slots.push([j - 1, j]);
-        for (const [a, b] of slots) {
-          for (let i = 0; i < T.length; i++) {
-            for (const k of [1, 2]) {
-              if (i + k > T.length) continue;
-              let left = 0, right = 0, contentAnchor = false, foodFrame = false;
-              const anchor = (r) => {
-                if (!isFunctionWord(r)) contentAnchor = true;
-                if (categoryOf(r) === "food") foodFrame = true;
-              };
-              while (left < 2 && i - 1 - left >= 0 && a - 1 - left >= 0 && tokEq(T[i - 1 - left], TL[i - 1 - left], R[a - 1 - left], RL[a - 1 - left])) {
-                anchor(R[a - 1 - left]);
-                left++;
-              }
-              while (right < 2 && i + k + right < T.length && b + 1 + right < R.length && tokEq(T[i + k + right], TL[i + k + right], R[b + 1 + right], RL[b + 1 + right])) {
-                anchor(R[b + 1 + right]);
-                right++;
-              }
-              if (left + right < 2 || !contentAnchor) continue;
-              const H = T.slice(i, i + k), HS = segs.slice(i, i + k);
-              if (H.join("") === R.slice(a, b + 1).join("")) continue;
-              if (HS.some((s) => s.proper)) continue;
-              const Hc = H.filter((t) => !isFunctionWord(t));
-              if (Hc.some((t) => lemma(t) === RL[j] || sameWordForm(e, t) || sameWordForm(t, e))) continue;
-              const ce = categoryOf(e);
-              if (ce && Hc.some((t) => categoryOf(t) === ce)) continue;
-              const alike = soundsAlike(H.join(" "), R.slice(a, b + 1).join(" ")) || Hc.length > 0 && soundsAlike(Hc.join(" "), e);
-              const nounSlot = !!ce || /^[A-Z]/.test(ref.surf[j] || "") && j > 0;
-              const clash = categoryClash(H, e, { foodFrame, headAnchored: right > 0, nounSlot, sound: alike });
-              const sound = alike && (left > 0 && right > 0 || !!clash);
-              if (!clash && !sound) continue;
-              const signals = [sound && "sound", clash && "category"].filter(Boolean);
-              const cand = {
-                src: HS.map((s) => s.w),
-                heard: HS.map((s) => s.text.replace(/[.,!?;:]+$/, "")).join(" "),
-                expected: ref.surf.slice(a, b + 1).join(" "),
-                context: [ref.surf.slice(Math.max(0, a - left), a).join(" "), "___", ref.surf.slice(b + 1, b + 1 + Math.max(right, 1)).join(" ")].filter(Boolean).join(" "),
-                ref: { text: ref.text, au: ref.au },
-                signals,
-                clash,
-                strength: signals.length >= 2 ? "likely" : "possible",
-                anchors: left + right
-              };
-              const prev = found.get(i);
-              const better = !prev || cand.signals.length > prev.signals.length || cand.signals.length === prev.signals.length && (cand.anchors > prev.anchors || cand.anchors === prev.anchors && cand.src.length < prev.src.length);
-              if (better) found.set(i, cand);
-            }
-          }
-        }
-      }
-    }
-    const list = [...found.values()].sort((x, y) => y.signals.length - x.signals.length || y.anchors - x.anchors || x.src.length - y.src.length);
-    const used = /* @__PURE__ */ new Set();
-    const out = [];
-    for (const c of list) {
-      if (c.src.some((w) => used.has(w))) continue;
-      c.src.forEach((w) => used.add(w));
-      const { anchors, ...rest } = c;
-      out.push(rest);
-    }
-    return out.sort((x, y) => x.src[0] - y.src[0]);
-  }
-  function findOddCombinations(transcript) {
-    const segs = segment(String(transcript || "")).filter((s) => s.w !== void 0 && s.norm);
-    const out = [];
-    for (let i = 0; i + 1 < segs.length; i++) {
-      const m = segs[i].norm, hd = segs[i + 1].norm;
-      if (categoryOf(hd) === "food" && ["animal", "device", "transport"].includes(categoryOf(m)) && !segs[i].proper) {
-        out.push({ src: [segs[i].w], heard: `${segs[i].text} ${segs[i + 1].text}`.replace(/[.,!?;:]+$/, ""), kind: "modifier", clash: "not-food" });
-      }
-      if (i + 3 < segs.length + 1 && m === "a" && QUANT.has(hd) && segs[i + 2] && segs[i + 2].norm === "and" && segs[i + 3] && categoryOf(segs[i + 3].norm) === "food") {
-        out.push({ src: [segs[i].w, segs[i + 1].w], heard: `${segs[i].text} ${segs[i + 1].text}`, kind: "coordination", clash: "function" });
-      }
-    }
-    return out;
-  }
-  var NEEDS_COMPLEMENT = set("a an the my your at to for with of from about");
-  var ARTICLE_LIKE = set("a an the my your");
-  var CONJ_PREP = set("and or but at in on to for with of from");
-  function findHoles(transcript) {
-    const all = segment(String(transcript || ""));
-    const segs = all.filter((s) => s.w !== void 0 && s.norm);
-    const out = [];
-    segs.forEach((s, i) => {
-      if (!NEEDS_COMPLEMENT.has(s.norm)) return;
-      const next = segs[i + 1];
-      const sep = next ? all.slice(all.indexOf(s) + 1, all.indexOf(next)).map((x) => x.text).join("") : "";
-      if (next && /-/.test(sep)) return;
-      const afterNext = segs[i + 2] && all.slice(all.indexOf(next) + 1, all.indexOf(segs[i + 2])).map((x) => x.text).join("");
-      if (next && afterNext && /^-$/.test(afterNext.trim())) return;
-      const endsSentence = /[.!?]$/.test(s.text) || !next;
-      const coordinated = next && ["and", "or"].includes(next.norm) && segs[i + 2] && CONJ_PREP.has(segs[i + 2].norm) && !["and", "or", "but"].includes(segs[i + 2].norm);
-      const bad = next && !coordinated && (ARTICLE_LIKE.has(s.norm) ? ARTICLE_LIKE.has(next.norm) || CONJ_PREP.has(next.norm) : CONJ_PREP.has(next.norm));
-      if (endsSentence || bad) {
-        out.push({ src: [s.w], after: s.text.replace(/[.,!?;:]+$/, ""), before: next ? next.text : "" });
-      }
-    });
-    return out;
-  }
-  var ACTIVITY_TIME = /\b(wake up|get up|leave home|leave the house|start work|finish work|have breakfast|have lunch|have dinner|go to bed|go to the gym|arrive)\b[^.!?]{0,30}?\bat (\d{1,2}(?::\d\d)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g;
-  var CONTRAST = /\b(weekend|weekends|weekday|weekdays|saturday|sunday|saturdays|sundays|sometimes|some days|other days|on \w+days|when|if|but|except|holiday|holidays|today|yesterday|tomorrow)\b/;
-  function findContradictions(transcript) {
-    const text = String(transcript || "").toLowerCase().replace(/(\d)\s?([ap])\.?\s?m\.?/g, "$1$2m");
-    const out = [];
-    const seen = /* @__PURE__ */ new Map();
-    for (const m of text.matchAll(ACTIVITY_TIME)) {
-      const act = m[1], t = m[2];
-      if (seen.has(act) && seen.get(act).t !== t) {
-        const between = text.slice(seen.get(act).end, m.index + m[0].length);
-        if (!CONTRAST.test(between)) out.push({ kind: "two-times", activity: act, times: [seen.get(act).t, t] });
-      }
-      seen.set(act, { t, end: m.index });
-    }
-    for (const m of text.matchAll(/\b(\d{1,2}(?::\d\d)?)(pm)\b[^.!?]{0,20}\bin the morning\b|\b(\d{1,2}(?::\d\d)?)(am)\b[^.!?]{0,20}\b(in the evening|at night|in the afternoon)\b/g)) {
-      out.push({ kind: "period", times: [m[1] ? m[1] + " p.m." : m[3] + " a.m."], period: m[1] ? "in the morning" : m[5] });
-    }
-    return out;
   }
 
   // app/js/engine/agreement.js
@@ -8311,25 +8515,25 @@
     const { content, state } = App2;
     const exists = params.sentence ? content.sentences[params.sentence] : params.block ? content.blocks[params.block] : params.routine ? content.routines.some((r) => r.id === params.routine) : params.q ? content.questions[params.q] : params.drill !== void 0 ? content.drills[Number(params.drill)] : null;
     if (!exists) return App2.go("#/lab");
-    let title, en = [], pt = "", clips = [], targetId, extra = null, back = "#/lab";
+    let title, en2 = [], pt = "", clips = [], targetId, extra = null, back = "#/lab";
     if (params.sentence) {
       const s = content.sentences[params.sentence];
       title = `Frase \xB7 ${s.routine}`;
-      en = [s.en];
+      en2 = [s.en];
       pt = s.pt;
       clips = [{ key: s.au, text: s.en }];
       targetId = `sent:${s.id}`;
     } else if (params.block) {
       const b = content.blocks[params.block];
       title = `${b.routine} \xB7 bloco ${b.index}`;
-      en = [b.en];
+      en2 = [b.en];
       pt = b.pt;
       clips = b.sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en }));
       targetId = `block:${b.id}`;
     } else if (params.routine) {
       const r = content.routines.find((x) => x.id === params.routine);
       title = `${r.id} completa`;
-      en = r.blocks.map((b) => content.blocks[b].en);
+      en2 = r.blocks.map((b) => content.blocks[b].en);
       pt = r.blocks.map((b) => content.blocks[b].pt).join("\n\n");
       clips = r.blocks.flatMap((b) => content.blocks[b].sentences.map((sid) => ({ key: content.sentences[sid].au, text: content.sentences[sid].en })));
       targetId = `routine:${r.id}`;
@@ -8338,7 +8542,7 @@
       const q = content.questions[params.q];
       title = "Pergunta da teacher";
       targetId = `q:${q.id}`;
-      en = q.a ? [q.a] : [];
+      en2 = q.a ? [q.a] : [];
       clips = q.a ? [{ key: q.aau, text: q.a }] : [];
       extra = h(
         "div",
@@ -8365,14 +8569,14 @@
     if (extra) view.append(extra);
     const durations = globalThis.DRG_AUDIO && globalThis.DRG_AUDIO.files || {};
     const referenceSec = clips.reduce((n, c) => n + (durations[c.key] || 0), 0);
-    const expectedWords = en.join(" ").split(/\s+/).filter(Boolean).length;
-    const iw = en.length ? inlineWords(en) : null;
+    const expectedWords = en2.join(" ").split(/\s+/).filter(Boolean).length;
+    const iw = en2.length ? inlineWords(en2) : null;
     const reading = !!iw && !params.q;
     const asrEligible = expectedWords <= 60;
     let rate = state.settings.rate || 1;
     const legendEl = legend();
     legendEl.classList.add("hidden");
-    if (en.length) {
+    if (en2.length) {
       let showPt = false;
       const ptBox = h("div", {});
       const ptBtn = h("button", { class: "btn small ghost", type: "button", "aria-pressed": "false" }, "Ver PT");
@@ -8615,8 +8819,8 @@
     view.append(manualBox);
     function drawManual() {
       clear(manualBox);
-      if (!en.length || !asrEligible || engine) return;
-      const words3 = [...new Set(en.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
+      if (!en2.length || !asrEligible || engine) return;
+      const words3 = [...new Set(en2.join(" ").split(/\s+/).map((w2) => w2.replace(/[^A-Za-z'’-]/g, "")).filter((w2) => w2.length > 2))];
       state.difficultWords = state.difficultWords || {};
       const picks = h("div", {}, ...words3.map((wd) => {
         const key = wd.toLowerCase();
@@ -8637,13 +8841,13 @@
         picks
       ));
     }
-    if (!reading && en.length) {
+    if (!reading && en2.length) {
       if (free) status().then((st) => {
         if (st !== "installed" && alive) drawManual();
       });
       else drawManual();
     }
-    const tips = relevantTips(content, en.join(" "));
+    const tips = relevantTips(content, en2.join(" "));
     if (tips.length) {
       view.append(h(
         "details",

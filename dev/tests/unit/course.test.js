@@ -2,10 +2,13 @@
 // preservada, exportação só completa e checagem básica. Conteúdo sintético (o material do curso não é versionado).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+import { setGlossary } from '../../app/js/engine/glossary.js';
 import {
   parseActivity, activityId, newActivity, answersOf, missingBlocks, isDone, summary, canOpen, finishQuestion,
   exportProblems, exportText, checkTranslation, questionCheck,
-  readAnswers, matchAnswers, applyOwnAnswers, applyTeacherAnswers, isValidated, officialAnswers,
+  readAnswers, matchAnswers, applyOwnAnswers, applyTeacherAnswers, isValidated, officialAnswers, setMemoryFrom,
 } from '../../app/js/engine/course.js';
 
 const SRC = `MY ACTIVITY — PART 1
@@ -104,21 +107,6 @@ test('validação do professor é por questão e não muda a resposta enviada', 
   assert.equal(canOpen(act, 2), true, 'validação não é exigida para avançar');
 });
 
-test('checagem básica: níveis e motivos (orientação, não correção)', () => {
-  assert.equal(checkTranslation('Hello.', '').level, 'empty');
-  assert.equal(checkTranslation('Can I take a message?', 'Can I take a message?').level, 'attention');
-  assert.equal(checkTranslation('“Hello, Anna. How are you?”', '“Oi, Anna. Como vai?”').level, 'ok');
-  assert.equal(checkTranslation('There are 3 buses before 8 o’clock.', 'Há três ônibus antes das oito.').level, 'review');
-  assert.match(checkTranslation('I don’t know the answer to that question.', 'Eu sei a resposta para essa pergunta.').notes.join(' '), /negação/);
-  assert.match(checkTranslation('Where is it?', 'Onde fica.').notes.join(' '), /pergunta/);
-  assert.match(checkTranslation('I am meeting Anna at the station later today.', 'Vou encontrar a moça na estação mais tarde hoje.').notes.join(' '), /Anna/);
-  assert.equal(checkTranslation('There is another train at four o’clock in the afternoon.', 'Há outro.').level, 'attention');
-  assert.equal(checkTranslation('Asking for and Giving Directions to the Cinema', 'Pedindo e dando informações para ir ao cinema').level, 'ok', 'título em Title Case não gera alerta de nome');
-  const act = newActivity(parseActivity(SRC), 1);
-  fill(act, 3, ['A última', 'I don’t know.']);
-  assert.equal(questionCheck(act, 3), 'attention');
-});
-
 const complete = () => {
   const act = newActivity(parseActivity(SRC), 1);
   fill(act, 1, ['Encontrando uma amiga', '“Oi, Anna. Como vai?”', '“Tudo bem, obrigada — e você?”']);
@@ -127,6 +115,50 @@ const complete = () => {
   [1, 2, 3].forEach((n) => finishQuestion(act, n, 5));
   return act;
 };
+
+test('avaliação automática (glossário real): Q4 incompatível; traduções legítimas, paráfrases, parciais e sem cobertura', () => {
+  setGlossary(JSON.parse(gunzipSync(readFileSync(new URL('../../app/data/glossary-en-pt.json.gz', import.meta.url)))));
+  const lv = (en, pt) => checkTranslation(en, pt).level;
+  // caso de referência (o da Q4, com frase sintética equivalente: o texto do curso não é versionado)
+  const q4 = checkTranslation('Can I take a message for him?', 'Posso comer frango com catupiry?');
+  assert.equal(q4.level, 'incompatible');
+  assert.match(q4.notes.join(' '), /Não identificado na resposta: take a message/);
+  assert.match(q4.notes.join(' '), /Acrescentado.*comer/);
+  // traduções legítimas e paráfrases (expressões e variações)
+  assert.equal(lv('Can I take a message for him?', 'Posso anotar um recado para ele?'), 'ok');
+  assert.equal(lv('Can I take a message for him?', 'Quer deixar uma mensagem para ele?'), 'ok');
+  assert.equal(lv('Her line is engaged.', 'A linha dela está ocupada.'), 'ok');
+  assert.equal(lv('She hung up.', 'Ela desligou.'), 'ok');
+  assert.equal(lv('Get off the train here.', 'Desça do trem aqui.'), 'ok');
+  assert.equal(lv('A Phone Conversation', 'Uma conversa telefônica'), 'ok');
+  assert.equal(lv('“Hello, Anna. How are you?”', '“Oi, Anna. Como vai?”'), 'ok');
+  // parcial: falta parte do sentido → inconclusiva, mostrando o que falta
+  const part = checkTranslation('“Mr. Brown is on the phone for you, Miss Grey.”', '“O Sr. Brown para a senhora.”');
+  assert.equal(part.level, 'inconclusive');
+  assert.match(part.notes.join(' '), /on the phone/);
+  // sem cobertura do glossário: não reprova
+  assert.equal(lv('“Ahmmm…, hmmm!”', 'Hum, hmm!'), 'inconclusive');
+  // conteúdo novo sem nada do original; ainda em inglês
+  assert.equal(lv('“Who is it?”', '“Cadê o meu gato?”'), 'incompatible');
+  assert.equal(lv('Can I take a message for him?', 'Can I take a message for him?'), 'incompatible');
+  // sinais estruturais impedem “Adequada” (número, negação)
+  assert.equal(lv('There are 3 buses before 8 o’clock.', 'Há três ônibus antes das oito.'), 'ok'); // números por extenso valem
+  assert.equal(lv('There are 3 buses before 8 o’clock.', 'Há 4 ônibus antes das 8 horas.'), 'inconclusive'); // número diferente
+  assert.match(checkTranslation('I don’t know the answer.', 'Eu sei a resposta.').notes.join(' '), /negação/);
+  assert.equal(lv('Hello.', ''), 'empty');
+  const act = newActivity(parseActivity(SRC), 1);
+  fill(act, 3, ['A última', 'I don’t know.']);
+  assert.equal(questionCheck(act, 3), 'incompatible');
+});
+
+test('memória de tradução: a versão validada pelo professor tem prioridade', () => {
+  const act = complete();
+  applyTeacherAnswers(act, readAnswers('QUESTÃO 2\nNumbers\nNúmeros\nThere are 3 buses before 8 o’clock.\nExistem 3 ônibus antes das 8h.\n', act), 7);
+  setMemoryFrom([act]);
+  assert.equal(checkTranslation('There are 3 buses before 8 o’clock.', 'Existem 3 ônibus antes das 8h.').notes[0], 'Igual à versão validada pelo professor.');
+  assert.equal(checkTranslation('There are 3 buses before 8 o’clock.', 'Existem 3 ônibus antes das 8 horas.').level, 'ok');
+  setMemoryFrom([]);
+});
 
 test('importar respostas: o TXT exportado volta para as questões e blocos certos (CRLF, título, linhas em branco, resposta em 2 linhas)', () => {
   const src = complete();
@@ -257,4 +289,15 @@ test('cartão “Atividade” criado ao importar o TXT de respostas como ativida
   assert.deepEqual(Object.keys(data.activities), [real.id]);
   assert.equal(answersOf(real, 1)[0], 'Já respondida'); // a resposta que já existia não muda
   assert.deepEqual(answersOf(real, 2), ['Números', 'Há 3 ônibus antes das 8 horas.']);
+});
+
+// caso real da Q4: só com o arquivo da atividade fora do repositório (DRG_COURSE_FILE)
+test('caso real da Q4 (arquivo do curso fora do repositório)', { skip: !process.env.DRG_COURSE_FILE }, () => {
+  setGlossary(JSON.parse(gunzipSync(readFileSync(new URL('../../app/data/glossary-en-pt.json.gz', import.meta.url)))));
+  const real = parseActivity(readFileSync(process.env.DRG_COURSE_FILE, 'utf8'));
+  const q4 = real.questions.find((q) => q.n === 4);
+  const block = q4.blocks.find((b) => /take a message/i.test(b));
+  assert.ok(block, 'bloco da Q4 não encontrado');
+  assert.equal(checkTranslation(block, 'Posso comer frango com catupiry?').level, 'incompatible');
+  assert.equal(checkTranslation(block, 'Posso anotar um recado?').level, 'ok');
 });

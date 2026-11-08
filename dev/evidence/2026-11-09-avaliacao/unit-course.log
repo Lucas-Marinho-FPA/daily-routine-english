@@ -1,0 +1,18 @@
+ok 1 - importa: título, questões em ordem, um bloco por linha (título incluído), sem alterar o texto
+ok 2 - importação inválida informa o problema
+ok 3 - mesmo arquivo → mesma atividade (reimportar mantém respostas); conteúdo diferente → outra
+ok 4 - navegação sequencial: a próxima abre só com a anterior concluída; questões concluídas continuam editáveis
+ok 5 - exportação só com todas concluídas; lista o que falta; formato QUESTÃO n + inglês + tradução, acentos preservados
+ok 6 - validação do professor é por questão e não muda a resposta enviada
+ok 7 - avaliação automática (glossário real): Q4 incompatível; traduções legítimas, paráfrases, parciais e sem cobertura
+ok 8 - memória de tradução: a versão validada pelo professor tem prioridade
+ok 9 - importar respostas: o TXT exportado volta para as questões e blocos certos (CRLF, título, linhas em branco, resposta em 2 linhas)
+ok 10 - importar respostas: divergência, questão inexistente ou repetida → erro, nada é lido para aplicar
+ok 11 - correções do professor: substituem a resposta, validam a questão, valem na exportação; reimportação atualiza; respostas pessoais não as sobrescrevem
+ok 12 - .docx e .md viram a mesma atividade do .txt (mesmo conteúdo → um só cartão)
+ok 13 - transferência: exporta tudo e, no outro aparelho, cria a atividade ou atualiza sem duplicar (vence a versão mais nova; validação prevalece)
+ok 14 - atividade repetida (título genérico ou mesmo conteúdo) vira um só cartão, com o progresso juntado
+ok 15 - cartão “Atividade” criado ao importar o TXT de respostas como atividade: some e as traduções vão para a atividade real
+ok 16 - caso real da Q4 (arquivo do curso fora do repositório)
+# pass 16
+# fail 0

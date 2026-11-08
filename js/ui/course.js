@@ -4,9 +4,10 @@
 import { h, icon, toast, bar, confirmSheet } from './dom.js';
 import { getKv, putKv } from '../store/db.js';
 import { readImportFile } from '../engine/docread.js';
+import { loadGlossary } from '../engine/glossary.js';
 import {
   parseActivity, newActivity, answersOf, isDone, summary, canOpen, finishQuestion,
-  isValidated, matchAnswers, applyOwnAnswers, applyTeacherAnswers,
+  isValidated, matchAnswers, applyOwnAnswers, applyTeacherAnswers, setMemoryFrom,
   findSame, mergeActivity, transferData, readTransfer, dedupe, isGenericTitle,
   exportProblems, exportText, checkTranslation, CHECK_LABEL, CHECK_CLASS,
 } from '../engine/course.js';
@@ -234,7 +235,8 @@ function importCard(App, onDone) {
 export function renderCourseQuestion(App, r) {
   const view = App.layout('Questão', { back: '#/course' });
   let alive = true;
-  loadCourse().then((d) => { if (alive) draw(d); });
+  // avaliação automática: glossário en→pt (só nesta área) + memória das respostas validadas pelo professor
+  Promise.all([loadCourse(), loadGlossary()]).then(([d]) => { if (!alive) return; setMemoryFrom(Object.values(d.activities)); draw(d); });
   function draw(d) {
     const act = d.activities[r.arg];
     if (!act) { view.append(h('div', { class: 'notice bad' }, 'Atividade não encontrada neste aparelho. ', h('a', { href: '#/course', text: 'Voltar' }))); return; }
@@ -299,7 +301,7 @@ export function renderCourseQuestion(App, r) {
         chip.replaceChildren();
         if (!show) return;
         const c = checkTranslation(q.blocks[i], a[i]);
-        chip.append(h('span', { class: `chip ${CHECK_CLASS[c.level]}`, 'data-level': c.level, text: `Checagem básica: ${CHECK_LABEL[c.level]}` }), ' ', h('span', { class: 'muted', text: c.notes.join(' ') }));
+        chip.append(h('span', { class: `chip ${CHECK_CLASS[c.level]}`, 'data-level': c.level, text: `Avaliação automática: ${CHECK_LABEL[c.level]}` }), ' ', h('span', { class: 'muted', text: c.notes.join(' ') }));
       });
     }
     drawChecks();
@@ -325,7 +327,7 @@ export function renderCourseQuestion(App, r) {
         : h('p', { class: 'small muted', text: 'Traduza cada bloco para o português. As respostas são salvas automaticamente enquanto você digita.' }),
       ...areas.map((x) => x.el), msg,
       h('div', { class: 'row nowrap', style: { marginTop: '14px' } }, prev, save),
-      act.done[n] && !isValidated(act, n) ? h('p', { class: 'small muted', 'data-role': 'check-note', text: 'A checagem básica é só uma orientação de estudo (sinais como texto ainda em inglês, partes faltando, números, nomes, perguntas e negações). Ela não avalia o sentido, não muda sua resposta e não é a correção oficial.' }) : null,
+      act.done[n] && !isValidated(act, n) ? h('p', { class: 'small muted', 'data-role': 'check-note', text: 'A avaliação automática compara o SENTIDO de cada bloco com o original (glossário inglês–português e versões já validadas pelo professor): Adequada = sentido identificado; Incompatível = a resposta muda o sentido; Inconclusiva = não há evidência suficiente (não é erro). É só uma orientação de estudo: não muda sua resposta e não é a correção oficial.' }) : null,
       act.done[n] ? teacherBox(act, n, () => App.go(qHref(act.id, n))) : null,
       last && isDone(act, n) ? exportBox(act) : null].filter(Boolean)); // append nativo escreveria “null”
     areas.forEach((x) => autosize(x.ta));
@@ -364,7 +366,7 @@ function teacherBox(act, n, redraw) {
       body.append(h('div', { class: 'card flat', style: { marginTop: '8px' } },
         h('p', { lang: 'en', style: { margin: '0 0 4px', fontWeight: 600 }, text: en }),
         sub ? h('div', { class: 'small', 'data-role': 'teacher-submitted' }, h('span', { class: 'muted', text: 'Enviada: ' }), sub.blocks[i]) : null,
-        c ? h('div', { class: 'small muted', text: `Checagem básica ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
+        c ? h('div', { class: 'small muted', text: `Avaliação automática ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
         h('div', { class: 'small muted', style: { marginTop: '6px' }, text: 'Versão corrigida (professor):' }), ta));
       requestAnimationFrame(() => autosize(ta));
     });

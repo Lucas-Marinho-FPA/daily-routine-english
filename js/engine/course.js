@@ -7,6 +7,10 @@
 //   <linha>                          → um bloco por linha não vazia, na ordem e com a pontuação originais
 //   QUESTION 2 …
 
+import { lemma } from './lexicon.js';
+import { isFunctionWord } from './coherence.js';
+import { fold, ptContent, stemEq, translationsOf, meaningsOf, glossaryReady } from './glossary.js';
+
 const Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s*(\d+)\s*[:.\-–—]?\s*$/i; // “QUESTION 1”, “Questão 1:”…
 
 /** Texto do arquivo → { title, questions: [{ n, blocks: [en…] }], errors: [] }. Não altera nenhuma linha. */
@@ -303,57 +307,168 @@ export function dedupe(data) {
   return merged;
 }
 
-// ---------- checagem básica (orientação de estudo; NÃO avalia o sentido nem substitui a correção) ----------
-const fold = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019]/g, "'").toLowerCase();
-const words = (s) => fold(s).match(/[a-z0-9']+/g) || [];
+// ---------- avaliação automática das traduções (orientação de estudo; não substitui a correção do professor) ----------
+// Correspondência de SIGNIFICADO, com evidências — nunca por tamanho, pontuação ou percentual isolado:
+//   1. o original é dividido em unidades de sentido: expressões primeiro (“take a message”, “hang up”), depois palavras de
+//      conteúdo (sem as gramaticais: isFunctionWord de coherence.js, forma-base com lemma de lexicon.js);
+//   2. cada unidade com tradução conhecida (glossário: pares do app, expressões de apoio, FreeDict) é procurada na resposta
+//      (raízes do português; variações e paráfrases do glossário contam; o índice inverso aceita sinônimos que voltam à
+//      mesma palavra inglesa);
+//   3. palavras da resposta reconhecidas com um sentido que NÃO está no original são conteúdo acrescentado;
+//      palavras desconhecidas do glossário não contam contra;
+//   4. a versão validada pelo professor para o mesmo texto (memória de tradução) tem prioridade.
+// Resultados: 'ok' (Adequada), 'incompatible' (Incompatível: mudou o sentido), 'inconclusive' (Inconclusiva: falta
+// evidência), 'empty'. Sem glossário carregado, a avaliação de sentido fica inconclusiva.
+const words = (s) => fold(s).match(/[a-z0-9']+(?:-[a-z0-9']+)*/g) || [];
 const EN_ONLY = new Set(['the', 'you', 'your', 'is', 'are', 'was', 'were', 'to', 'of', 'and', 'i', "i'm", 'my', 'can', 'could', 'would', 'have', 'has', 'what', 'where', 'how', 'this', 'that', 'there', "there's", 'it', "it's", 'we', 'they', 'with', 'for', 'at', 'in', 'on', 'be', 'will', 'please', 'thank', 'thanks', 'yes', 'not', "don't", 'does', 'he', 'she', 'his', 'her', 'him', 'like', 'go', 'get']);
+// além de isFunctionWord: modais, interrogativos, contrações e verbos “leves” (o sentido vem do resto da frase)
+const WEAK = new Set(`can could would will shall should may might must what where when how who which why yes no well oh ah ahmmm hmmm
+  please here there now then really let let's i'm i'll i'd i've you're you'll you'd we're we'll they're it's that's there's what's
+  don't can't couldn't won't isn't aren't doesn't didn't wouldn't shouldn't be have do get got go going make made`.split(/\s+/));
 const NEG_EN = /\b(not|no|never|nothing|nobody|none)\b|n't\b/i;
+// números: “3” no original pode ser “três” na tradução (e o glossário diz que “três” significa “three”)
+const EN_NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+const PT_NUM = ['zero', 'um uma', 'dois duas', 'tres', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'catorze quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove', 'vinte'].map((x) => x.split(' '));
+const numIn = (num, t) => t.includes(num) || (PT_NUM[+num] || []).some((w) => new RegExp(`\\b${w}\\b`).test(fold(t)));
 const NEG_PT = /\b(nao|nunca|nenhum|nenhuma|nem|sem|nada|ninguem|jamais)\b/;
 // palavras com maiúscula que costumam ser traduzidas (não são nomes próprios a conferir)
 const NOT_NAMES = new Set(['i', 'ok', 'mr', 'mrs', 'miss', 'ms', 'sir', 'madam', 'street', 'road', 'hotel', 'restaurant', 'bar', 'show', 'clothes', 'airlines', 'air', 'lines', 'rail', 'travel', 'station', 'phrasal', 'verbs', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'ladies', 'gentlemen', 'yes', 'no', 'hello', 'well']);
 
-/**
- * Checagem básica de uma tradução. Resultado:
- *   level 'ok' (Adequada: nenhum alerta), 'review' (Revisar), 'attention' (Atenção) ou 'empty'.
- *   notes: motivos em português. Heurística local: confere sinais objetivos (texto em inglês, tamanho,
- *   números, nomes próprios, pergunta, negação); não entende o sentido.
- */
-export function checkTranslation(en, pt) {
-  const t = String(pt || '').trim();
-  if (!t) return { level: 'empty', notes: ['Sem tradução.'] };
-  const notes = [];
-  let level = 'ok';
-  const raise = (l, msg) => { notes.push(msg); if (l === 'attention' || level === 'ok') level = l; };
-  const ew = words(en), pw = words(t);
-  const enShare = pw.length ? pw.filter((w) => EN_ONLY.has(w)).length / pw.length : 0;
-  if (fold(t).replace(/\W+/g, '') === fold(en).replace(/\W+/g, '') || enShare >= 0.34) raise('attention', 'Parece ainda estar em inglês.');
-  const len = (s) => fold(s).replace(/[^a-z0-9]/g, '').length;
-  const ratio = len(t) / Math.max(1, len(en));
-  if (len(en) >= 12 && ratio < 0.4) raise('attention', 'Bem mais curta que o original: pode faltar uma parte.');
-  else if (len(en) >= 12 && ratio < 0.6) raise('review', 'Mais curta que o original: confira se nada ficou de fora.');
-  else if (len(en) >= 12 && ratio > 2.6) raise('review', 'Bem mais longa que o original: confira se não há acréscimos.');
-  for (const num of String(en).match(/\d+/g) || []) if (!String(t).includes(num)) raise('review', `O número ${num} do original não aparece.`);
+// memória de tradução: versões validadas pelo professor (texto em inglês → respostas oficiais)
+let memory = new Map();
+/** Define a memória a partir das atividades do aparelho (respostas validadas pelo professor). */
+export function setMemoryFrom(activities) {
+  memory = new Map();
+  for (const a of activities) for (const q of a.questions) if (isValidated(a, q.n)) q.blocks.forEach((en, i) => {
+    const k = same(en), v = (a.teacher[q.n].blocks[i] || '').trim();
+    if (v) memory.set(k, [...(memory.get(k) || []), v]);
+  });
+}
+
+function namesIn(en) {
   const names = [];
   const caps = (String(en).match(/[A-Za-z][A-Za-z']*/g) || []);
   const titleCase = caps.filter((w) => /^[A-Z]/.test(w)).length >= caps.length / 2; // títulos: maiúsculas não indicam nomes
   if (!titleCase) String(en).split(/(?<=[.!?:;—"“”])\s+/).forEach((sentence) => {
     (sentence.match(/[A-Za-z][A-Za-z']*/g) || []).slice(1).forEach((w) => { if (/^[A-Z]/.test(w) && !NOT_NAMES.has(fold(w).replace(/'s$/, ''))) names.push(w.replace(/'s$/, '')); });
   });
-  const pf = fold(t);
-  for (const n of [...new Set(names)]) if (!pf.includes(fold(n).slice(0, 3))) raise('review', `O nome “${n}” não aparece (confira).`);
-  if (/\?/.test(en) && !/\?/.test(t)) raise('review', 'O original tem pergunta e a tradução não tem “?”.');
-  if (NEG_EN.test(fold(en)) && !NEG_PT.test(fold(t))) raise('review', 'O original tem negação (not, no, never…); confira se a tradução também tem.');
-  if (!notes.length) notes.push('Nenhum alerta na checagem básica (ela não avalia o sentido).');
-  return { level, notes };
+  return [...new Set(names)];
 }
 
-export const CHECK_LABEL = { ok: 'Adequada', review: 'Revisar', attention: 'Atenção', empty: 'Sem tradução' };
-export const CHECK_CLASS = { ok: 'ok', review: 'warn', attention: 'bad', empty: '' };
+/** Unidades de sentido do original: expressões (mais longas primeiro) e palavras de conteúdo. */
+function unitsOf(en, names) {
+  const toks = words(en);
+  const skip = new Set(names.map((n) => fold(n)));
+  const out = [];
+  for (let i = 0; i < toks.length;) {
+    let found = null;
+    for (let n = Math.min(6, toks.length - i); n >= 2 && !found; n--) {
+      const seq = toks.slice(i, i + n);
+      for (const k of [seq.join(' '), seq.map(lemma).join(' ')]) { const tr = translationsOf(k); if (tr) { found = { en: k, pts: tr, n }; break; } }
+    }
+    if (found) { out.push(found); i += found.n; continue; }
+    const w = toks[i++];
+    const base = w.replace(/'s$/, '');
+    if (isFunctionWord(base) || WEAK.has(w) || WEAK.has(base) || /^\d+$/.test(base) || skip.has(base) || base.length < 2) continue;
+    out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, '')) || null, n: 1 });
+  }
+  return { toks, units: out };
+}
+
+/** A tradução `v` (do glossário) aparece na resposta? Marca as palavras da resposta usadas. */
+function variantIn(v, ans, plain, used) {
+  const vc = ptContent(v);
+  if (!vc.length) return plain.includes(` ${fold(v).replace(/[^a-z0-9]+/g, ' ').trim()} `);
+  const hits = vc.map((c) => ans.findIndex((a) => stemEq(a.s, c.s))).filter((k) => k >= 0);
+  const need = vc.length <= 2 ? vc.length : Math.ceil((vc.length * 2) / 3);
+  if (hits.length < need) return false;
+  hits.forEach((k) => used.add(k));
+  return true;
+}
+
+/** Avaliação de uma tradução. → { level, notes, missing: [en], added: [pt] } */
+export function checkTranslation(en, pt) {
+  const t = String(pt || '').trim();
+  if (!t) return { level: 'empty', notes: ['Sem tradução.'], missing: [], added: [] };
+  const notes = [];
+  const pw = words(t);
+  const enShare = pw.length ? pw.filter((w) => EN_ONLY.has(w)).length / pw.length : 0;
+  if (fold(t).replace(/\W+/g, '') === fold(en).replace(/\W+/g, '') || enShare >= 0.34) {
+    return { level: 'incompatible', notes: ['Parece não estar traduzida (ainda em inglês).'], missing: [], added: [] };
+  }
+  // sinais estruturais: não reprovam sozinhos, mas impedem “Adequada”
+  const blocking = [];
+  const len = (s) => fold(s).replace(/[^a-z0-9]/g, '').length;
+  if (len(en) >= 12 && len(t) / Math.max(1, len(en)) < 0.4) blocking.push('Bem mais curta que o original: pode faltar uma parte.');
+  for (const num of String(en).match(/\d+/g) || []) if (!numIn(num, t)) blocking.push(`O número ${num} do original não aparece.`);
+  const names = namesIn(en);
+  const pf = fold(t);
+  for (const n of names) if (!pf.includes(fold(n).slice(0, 3))) blocking.push(`O nome “${n}” não aparece (confira).`);
+  if (NEG_EN.test(fold(en)) && !NEG_PT.test(pf)) blocking.push('O original tem negação (not, no, never…) e a tradução não.');
+  const minor = /\?/.test(en) && !/\?/.test(t) ? ['O original é uma pergunta e a tradução não tem “?”.'] : [];
+
+  // memória: versão validada pelo professor para o mesmo texto em inglês (prioridade)
+  const refs = memory.get(same(en)) || [];
+  const flat = (s) => fold(s).replace(/[^a-z0-9]+/g, ' ').trim();
+  if (refs.some((r) => flat(r) === flat(t))) return { level: 'ok', notes: ['Igual à versão validada pelo professor.'], missing: [], added: [] };
+  const ans = ptContent(t);
+  let bestRef = 0;
+  for (const r of refs) {
+    const rc = ptContent(r);
+    if (rc.length) bestRef = Math.max(bestRef, rc.filter((c) => ans.some((a) => stemEq(a.s, c.s))).length / rc.length);
+  }
+  if (bestRef >= 0.6 && !blocking.length) return { level: 'ok', notes: ['Próxima da versão validada pelo professor.', ...minor], missing: [], added: [] };
+
+  if (!glossaryReady()) return { level: 'inconclusive', notes: ['Avaliação de sentido indisponível (glossário não carregado).', ...blocking, ...minor], missing: [], added: [] };
+  const { toks, units } = unitsOf(en, names);
+  const srcLemmas = new Set(toks.flatMap((w) => [w, lemma(w), w.replace(/'s$/, ''), w.replace(/es$/, ''), ...(/^\d+$/.test(w) && EN_NUM[+w] ? [EN_NUM[+w]] : [])]));
+  const plain = ` ${flat(t)} `;
+  const used = new Set();
+  const known = units.filter((u) => u.pts);
+  const matched = new Set();
+  for (const u of known) if (u.pts.some((v) => variantIn(v, ans, plain, used))) matched.add(u);
+  // palavras de qualquer variante de uma unidade encontrada (“deixar” em “deixar recado”) não são acréscimo
+  const variantStems = [...matched].flatMap((u) => u.pts.flatMap((v) => ptContent(v).map((c) => c.s)));
+  ans.forEach((a, k) => { if (variantStems.some((s) => stemEq(s, a.s))) used.add(k); });
+  const relates = (e, w) => e === w || lemma(e) === lemma(w) || e.split(' ').some((x) => x === w || lemma(x) === lemma(w));
+  // palavras da resposta ainda não explicadas: sinônimo que volta a uma palavra do original (conta como encontrada),
+  // sentido reconhecido que não está no original (acrescentado) ou desconhecida (não conta contra)
+  const added = [];
+  ans.forEach((a, k) => {
+    if (used.has(k) || srcLemmas.has(a.w)) return;
+    const m = meaningsOf(a.s);
+    if (!m) return;
+    const hit = known.find((u) => !matched.has(u) && [...m].some((e) => relates(e, u.en)));
+    if (hit) { matched.add(hit); return; }
+    if ([...m].some((e) => [...srcLemmas].some((w) => relates(e, w)))) return;
+    added.push(`${a.w} (${[...m].slice(0, 2).join(', ')})`);
+  });
+  const missing = known.filter((u) => !matched.has(u)).map((u) => `${u.en} → ${u.pts.slice(0, 3).join(' / ')}`);
+  const cov = known.length ? matched.size / known.length : 0;
+  const why = [
+    ...(missing.length ? [`Não identificado na resposta: ${missing.join('; ')}.`] : []),
+    ...(added.length ? [`Acrescentado (não está no original): ${added.join('; ')}.`] : []),
+  ];
+  let level;
+  if ((known.length && !matched.size && added.length) || (!units.length && added.length)) level = 'incompatible'; // nada do original + conteúdo novo
+  else if (added.length >= 2 && cov < 0.5) level = 'incompatible';
+  else if (added.length >= 3 && added.length > matched.size / 2) level = 'incompatible'; // acrescenta conteúdo que muda o sentido
+  else if (known.length && cov >= 0.6 && (added.length === 0 || (cov >= 0.75 && added.length <= 1)) && !blocking.length) level = 'ok';
+  else level = 'inconclusive';
+  if (level === 'inconclusive' && !known.length) why.unshift('O glossário não cobre as palavras desta frase: não dá para avaliar o sentido com segurança.');
+  if (level === 'ok') why.unshift(`Sentido do original identificado (${matched.size} de ${known.length} ${known.length === 1 ? 'elemento' : 'elementos'}).`);
+  if (level === 'incompatible') why.unshift('A resposta não preserva o sentido do original.');
+  return { level, notes: [...why, ...blocking, ...minor], missing, added };
+}
+
+// rótulos (inclui os níveis antigos guardados em “submitted.check” de versões anteriores)
+export const CHECK_LABEL = { ok: 'Adequada', incompatible: 'Incompatível', inconclusive: 'Inconclusiva', review: 'Revisar', attention: 'Atenção', empty: 'Sem tradução' };
+export const CHECK_CLASS = { ok: 'ok', incompatible: 'bad', inconclusive: 'warn', review: 'warn', attention: 'bad', empty: '' };
 
 /** Pior nível entre os blocos da questão. */
 export function questionCheck(act, n) {
   const q = act.questions.find((x) => x.n === n);
   const a = answersOf(act, n);
-  const rank = { empty: 3, attention: 2, review: 1, ok: 0 };
+  const rank = { empty: 3, incompatible: 2, attention: 2, inconclusive: 1, review: 1, ok: 0 };
   return q.blocks.map((en, i) => checkTranslation(en, a[i])).reduce((w, c) => (rank[c.level] > rank[w] ? c.level : w), 'ok');
 }

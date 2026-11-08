@@ -40,6 +40,33 @@ Reimportar o mesmo arquivo mantém as respostas (identificador = hash do conteú
 outra atividade. A divisão em blocos é linha a linha (instrução do arquivo da Part 4); quando houver os exemplos de
 segmentação da Part 3, basta ajustar as quebras de linha do arquivo antes de importar.
 
+## Avaliação automática das traduções (2026-11-09)
+
+Substitui a antiga “checagem básica” (que só olhava tamanho, números, nomes, “?” e negação e aprovava por padrão).
+Agora compara o **sentido**, em `checkTranslation` (`js/engine/course.js`), reaproveitando `lemma` (`lexicon.js`),
+`isFunctionWord` (`coherence.js`) e `levenshtein` (`text.js`):
+
+- O original vira unidades de sentido: **expressões primeiro** (“take a message”, “hang up”, “hold on”), depois palavras
+  de conteúdo (sem as gramaticais, modais e interjeições; nomes próprios à parte).
+- Cada unidade com tradução conhecida é procurada na resposta (raízes do português; variações e paráfrases do glossário;
+  sinônimos que voltam à mesma palavra inglesa pelo índice inverso).
+- Palavras da resposta **reconhecidas** com sentido que não está no original = conteúdo acrescentado. Palavras
+  desconhecidas do glossário **não contam contra**.
+- **Memória de tradução:** a versão validada pelo professor para o mesmo texto em inglês tem prioridade (igual ou
+  próxima → Adequada).
+- Resultados: **Adequada** (sentido identificado), **Incompatível** (nada do original + conteúdo novo, ou acréscimos que
+  mudam o sentido, ou ainda em inglês), **Inconclusiva** (sem evidência suficiente — não é erro). Número, nome ou negação
+  faltando impedem “Adequada”. Cada resultado mostra o que não foi identificado e o que foi acrescentado.
+- Caso de referência (Q4: pedido para anotar um recado respondido com “Posso comer frango com catupiry?”) =
+  **Incompatível** (não identificado: take a message → anotar/deixar recado; acrescentado: comer, frango). Nos testes
+  versionados a frase é sintética; o caso real roda só com `DRG_COURSE_FILE` (arquivo fora do repositório).
+- **Glossário** `data/glossary-en-pt.json.gz` (~185 KB, carregado só na tela de questão do Curso, funciona offline):
+  pares do app (prioridade), expressões de apoio escritas para o app (`dev/content/glossary/phrases-en-pt.json`) e
+  **FreeDict English-Portuguese** (GPL-2.0+, atribuição em `data/glossary-LICENSE.txt` e
+  `dev/vendor/freedict-eng-por/README.md`). Gerado por `dev/tools/build-glossary.mjs` (chamado pelo `build-app`).
+- Limites: paráfrases com palavras fora do glossário ficam “Inconclusivas”; polissemia pode marcar uma palavra como
+  acréscimo (por isso um único acréscimo não reprova); não avalia naturalidade, registro nem gramática do português.
+
 ## Caderno em vários aparelhos (2026-11-09)
 
 - **Adicionar atividade:** arquivo **.txt, .docx (Word) ou .md**, ou texto colado (`js/engine/docread.js`: o .docx é

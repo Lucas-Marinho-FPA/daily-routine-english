@@ -1,0 +1,9 @@
+Glossário inglês → português usado na avaliação automática das traduções (Curso — Atividades).
+
+Contém dados derivados do FreeDict English-Portuguese Dictionary (eng-por, edição 0.3),
+Copyright (C) 1999-2017 dos autores listados em https://github.com/freedict/fd-dictionaries/tree/master/eng-por
+(gerado a partir do Ergane; colaborador: Raul Fernandes).
+Disponível sob a GNU General Public License, versão 2.0 ou (a seu critério) qualquer versão posterior:
+https://www.gnu.org/licenses/gpl-2.0.html — este arquivo derivado mantém a mesma licença.
+
+Também contém pares inglês/português dos conteúdos do próprio app e um glossário de expressões escrito para o app.
