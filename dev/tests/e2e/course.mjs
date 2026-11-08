@@ -10,6 +10,7 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serve } from './serve.mjs';
 import { parseActivity } from '../../app/js/engine/course.js';
+import { deflateRawSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const SITE = resolve(process.argv[2] || join(ROOT, 'app'));
@@ -359,6 +360,60 @@ await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do p
     return { aposReabrir: 'preservado', novaCorrecaoQ2: a.answers[2][0], questoes: nQ, validadas: Object.values(a.teacher).filter((t) => t.validatedAt).length };
   });
 }
+
+// ---------- outro celular: atividade em .docx, arquivo de transferência, um só cartão, remover ----------
+await check('C18', 'Outro aparelho: atividade em .docx; TXT de respostas recusado como atividade; arquivo de transferência do “computador” → um só cartão com o mesmo progresso; remover cartão', async () => {
+  const was = page.url(); // C12 continua da tela em que estava
+  await go('#/course');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-role=export-transfer]').first().click()]);
+  const transfer = readFileSync(await dl.path(), 'utf8');
+  const pcDone = (await page.locator('[data-role=activity-progress]').first().textContent()).trim();
+  await page.goto(was); await page.waitForTimeout(600);
+  const PH = join(OUT, '.profile-celular2');
+  rmSync(PH, { recursive: true, force: true });
+  const c3 = await chromium.launchPersistentContext(PH, { viewport: { width: 412, height: 915 }, isMobile: true });
+  const p3 = c3.pages()[0] || await c3.newPage();
+  p3.on('pageerror', (e) => errors.push(e.message));
+  try {
+    await p3.goto(BASE); await p3.waitForTimeout(800);
+    await p3.evaluate(async () => { await window.DRG_APP.chooseCharacter('lucas'); });
+    await p3.goto(BASE + '#/course'); await p3.waitForTimeout(700);
+    await p3.$eval('[data-role=import]', (d) => { d.open = true; });
+    // .docx como o Word grava (ZIP + word/document.xml, um parágrafo por linha)
+    const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const xml = `<w:document><w:body>${SRC.split(/\r?\n/).map((l) => `<w:p><w:r><w:t xml:space="preserve">${esc(l)}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;
+    const nm = Buffer.from('word/document.xml'), raw = Buffer.from(xml), dat = deflateRawSync(raw);
+    const L = Buffer.alloc(30); L.writeUInt32LE(0x04034b50, 0); L.writeUInt16LE(8, 8); L.writeUInt32LE(dat.length, 18); L.writeUInt16LE(nm.length, 26);
+    const CD = Buffer.alloc(46); CD.writeUInt32LE(0x02014b50, 0); CD.writeUInt16LE(8, 10); CD.writeUInt32LE(dat.length, 20); CD.writeUInt16LE(nm.length, 28);
+    const E = Buffer.alloc(22); E.writeUInt32LE(0x06054b50, 0); E.writeUInt16LE(1, 10); E.writeUInt32LE(30 + nm.length + dat.length, 16);
+    await p3.setInputFiles('[data-role=import-file]', { name: 'atividade.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: Buffer.concat([L, nm, dat, CD, nm, E]) });
+    await p3.waitForSelector('[data-role=import-ok]');
+    const docxMsg = await p3.locator('[data-role=import-ok]').textContent();
+    assert(docxMsg.includes(`${TOTAL} questões`), docxMsg);
+    // o TXT exportado para a plataforma não vira um cartão “Atividade”
+    await p3.setInputFiles('[data-role=import-file]', { name: 'respostas.txt', mimeType: 'text/plain', buffer: Buffer.from(exported, 'utf8') });
+    await p3.waitForSelector('[data-role=import-error]');
+    const refused = await p3.locator('[data-role=import-error]').textContent();
+    assert(/traz respostas da atividade/.test(refused), refused);
+    // arquivo de transferência do “computador”
+    await p3.$eval('[data-role=transfer]', (d) => { d.open = true; });
+    await p3.setInputFiles('[data-role=import-own]', { name: 'transferencia.json', mimeType: 'application/json', buffer: Buffer.from(transfer, 'utf8') });
+    await p3.waitForSelector('[data-role=transfer-preview]');
+    const prev = (await p3.locator('[data-role=transfer-preview]').innerText()).replace(/\s+/g, ' ');
+    await p3.click('[data-role=transfer-apply]');
+    await p3.waitForSelector('[data-role=transfer-ok]');
+    await p3.waitForTimeout(500);
+    const cards = await p3.locator('[data-role=activity]').count();
+    const done = (await p3.locator('[data-role=activity-progress]').first().textContent()).trim();
+    const val = (await p3.locator('[data-role=activity-validated]').first().textContent()).trim();
+    assert(cards === 1 && done === pcDone && /já está neste aparelho/.test(prev), JSON.stringify({ cards, done, pcDone, prev }));
+    // remover o cartão (com confirmação)
+    await p3.locator('[data-role=remove-activity]').click();
+    await p3.getByRole('button', { name: 'Remover', exact: true }).last().click();
+    await p3.waitForSelector('[data-role=no-activity]');
+    return { docx: docxMsg.slice(0, 80), txtComoAtividade: 'recusado', transferencia: prev.slice(0, 150), cartoes: cards, progresso: done, validadas: val, remover: 'ok' };
+  } finally { await c3.close(); }
+});
 
 await check('C12', 'Funciona offline (servidor desligado): área, questão e exportação', async () => {
   await stopServer();

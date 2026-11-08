@@ -7,7 +7,7 @@
 //   <linha>                          → um bloco por linha não vazia, na ordem e com a pontuação originais
 //   QUESTION 2 …
 
-const Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s+(\d+)\s*$/i;
+const Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s*(\d+)\s*[:.\-–—]?\s*$/i; // “QUESTION 1”, “Questão 1:”…
 
 /** Texto do arquivo → { title, questions: [{ n, blocks: [en…] }], errors: [] }. Não altera nenhuma linha. */
 export function parseActivity(text) {
@@ -45,6 +45,7 @@ export function newActivity(parsed, now = Date.now()) {
     id: activityId(parsed), title: parsed.title, importedAt: now,
     questions: parsed.questions.map((q) => ({ n: q.n, blocks: q.blocks.slice() })),
     answers: {}, // n → [pt…] (versão atual do aluno; salva enquanto digita)
+    edited: {}, // n → data da última alteração da resposta (decide a versão mais nova ao juntar aparelhos)
     done: {}, // n → data em que a questão foi salva/finalizada
     submitted: {}, // n → { at, blocks, check } — primeira versão finalizada (preservada)
     teacher: {}, // n → { blocks, validatedAt|null } — versão corrigida conforme o professor
@@ -180,6 +181,7 @@ export function applyOwnAnswers(act, read, now = Date.now()) {
     if (isValidated(act, n)) { keptValidated.push(n); continue; }
     const cur = answersOf(act, n);
     act.answers[n] = cur.map((old, i) => (answers[i] ? answers[i] : old));
+    (act.edited || (act.edited = {}))[n] = now;
     finishQuestion(act, n, now); // completa → conta como concluída (sem completar, fica em andamento)
     updated.push(n);
   }
@@ -193,10 +195,112 @@ export function applyTeacherAnswers(act, read, now = Date.now()) {
     if (answers.some((a) => !a)) { incomplete.push(n); continue; }
     act.answers[n] = answers.slice();
     act.teacher[n] = { blocks: answers.slice(), validatedAt: now, imported: true };
+    (act.edited || (act.edited = {}))[n] = now;
     act.done[n] = act.done[n] || now;
     validated.push(n);
   }
   return { validated, incomplete };
+}
+
+// ---------- mesma atividade em vários aparelhos / importações ----------
+// A atividade é reconhecida pelo CONTEÚDO em inglês (não pelo título nem pelo arquivo de origem: .txt, .docx e .md do
+// mesmo material dão a mesma atividade). Título genérico (“Atividade”) cede lugar ao título real.
+export const GENERIC_TITLE = 'Atividade';
+export const isGenericTitle = (t) => !t || same(t) === same(GENERIC_TITLE);
+export function contentKey(x) {
+  const src = JSON.stringify(x.questions.map((q) => [q.n, q.blocks.map(same)]));
+  let h = 0x811c9dc5;
+  for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
+export const findSame = (activities, x) => { const k = contentKey(x); return activities.find((a) => contentKey(a) === k) || null; };
+
+/**
+ * Junta em `into` o progresso de `from` (mesma atividade): em cada questão fica a versão mais nova.
+ * Validação do professor sempre prevalece (entre duas, a mais recente). Não apaga nada que só exista em `into`.
+ * → { fromFile: [n], keptHere: [n], validated: [n] }
+ */
+export function mergeActivity(into, from) {
+  const out = { fromFile: [], keptHere: [], validated: [] };
+  into.edited = into.edited || {};
+  const fe = from.edited || {};
+  const has = (a, n) => (a.answers[n] || []).some((x) => (x || '').trim());
+  for (const q of into.questions) {
+    const n = q.n;
+    const lv = isValidated(into, n) ? into.teacher[n].validatedAt : 0;
+    const rv = isValidated(from, n) ? from.teacher[n].validatedAt : 0;
+    if (lv || rv) {
+      if (rv > lv) {
+        into.teacher[n] = { ...from.teacher[n], blocks: from.teacher[n].blocks.slice() };
+        into.answers[n] = from.teacher[n].blocks.slice();
+        into.done[n] = into.done[n] || from.done[n] || rv;
+        into.edited[n] = Math.max(fe[n] || 0, rv);
+        out.validated.push(n);
+      } else out.keptHere.push(n);
+      continue;
+    }
+    if (!has(from, n)) { if (has(into, n)) out.keptHere.push(n); continue; }
+    const take = (fe[n] || 0) > (into.edited[n] || 0) || !has(into, n);
+    if (!take) { out.keptHere.push(n); continue; }
+    into.answers[n] = answersOf(from, n);
+    into.edited[n] = fe[n] || Date.now();
+    if (from.done[n]) into.done[n] = from.done[n]; else delete into.done[n];
+    if (from.submitted[n] && !into.submitted[n]) into.submitted[n] = from.submitted[n];
+    if (from.teacher[n] && !into.teacher[n]) into.teacher[n] = from.teacher[n]; // correção em andamento (não validada)
+    out.fromFile.push(n);
+  }
+  if (isGenericTitle(into.title) && !isGenericTitle(from.title)) into.title = from.title;
+  return out;
+}
+
+// ---------- arquivo de transferência entre aparelhos (diferente do TXT da plataforma do curso) ----------
+const TRANSFER_KIND = 'daily-routine-english/curso-transferencia';
+export function transferData(act, now = Date.now()) {
+  return { kind: TRANSFER_KIND, v: 1, exportedAt: new Date(now).toISOString(), activity: JSON.parse(JSON.stringify(act)) };
+}
+/** Atividade contida num arquivo de transferência (ou null se o texto não for um). Lança erro se estiver danificado. */
+export function readTransfer(text) {
+  let d;
+  try { d = JSON.parse(String(text || '').replace(/^﻿/, '')); } catch (e) { return null; }
+  if (!d || d.kind !== TRANSFER_KIND) return null;
+  const a = d.activity;
+  if (!a || !Array.isArray(a.questions) || !a.questions.length || a.questions.some((q) => !Array.isArray(q.blocks))) throw new Error('arquivo de transferência danificado');
+  return { ...newActivity({ title: a.title || GENERIC_TITLE, questions: a.questions }, a.importedAt || Date.now()), ...a, edited: a.edited || {}, answers: a.answers || {}, done: a.done || {}, submitted: a.submitted || {}, teacher: a.teacher || {} };
+}
+
+/** Junta atividades repetidas (mesmo conteúdo) numa só. Devolve quantas foram juntadas. */
+export function dedupe(data) {
+  const acts = Object.values(data.activities);
+  let merged = 0;
+  for (const a of acts) {
+    if (!data.activities[a.id]) continue;
+    for (const b of acts) {
+      if (a === b || !data.activities[b.id] || contentKey(a) !== contentKey(b)) continue;
+      // fica a de título real (ou a mais antiga); a outra é juntada nela e sai
+      const keep = isGenericTitle(a.title) && !isGenericTitle(b.title) ? b : a;
+      const drop = keep === a ? b : a;
+      mergeActivity(keep, drop);
+      delete data.activities[drop.id];
+      if (data.last === drop.id) data.last = keep.id;
+      merged++;
+    }
+  }
+  // cartão genérico que na verdade é um arquivo de RESPOSTAS importado como atividade (inglês e português intercalados):
+  // as traduções vão para as questões ainda sem resposta da atividade verdadeira e o cartão genérico sai
+  for (const g of Object.values(data.activities)) {
+    if (!isGenericTitle(g.title) || g.questions.some((q) => (g.answers[q.n] || []).some((x) => (x || '').trim()))) continue;
+    const text = g.questions.map((q) => [`QUESTÃO ${q.n}`, ...q.blocks].join('\n')).join('\n\n');
+    const real = Object.values(data.activities).find((a) => a !== g && !readAnswers(text, a).errors.length);
+    if (!real) continue;
+    const r = readAnswers(text, real);
+    if (r.matched !== g.questions.length) continue;
+    const empty = { ...r, questions: r.questions.filter((q) => !answersOf(real, q.n).some((x) => x.trim()) && !isValidated(real, q.n)) };
+    applyOwnAnswers(real, empty, g.importedAt || Date.now());
+    delete data.activities[g.id];
+    if (data.last === g.id) data.last = real.id;
+    merged++;
+  }
+  return merged;
 }
 
 // ---------- checagem básica (orientação de estudo; NÃO avalia o sentido nem substitui a correção) ----------

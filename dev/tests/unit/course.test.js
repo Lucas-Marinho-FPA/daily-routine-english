@@ -177,3 +177,84 @@ test('correções do professor: substituem a resposta, validam a questão, valem
   assert.deepEqual(applyTeacherAnswers(act, half, 50), { validated: [], incomplete: [3] });
   assert.equal(isValidated(act, 3), false);
 });
+
+// ---------- formatos (.docx, .md), transferência entre aparelhos e atividade repetida ----------
+import { deflateRawSync } from 'node:zlib';
+import { docxText, mdText } from '../../app/js/engine/docread.js';
+import { contentKey, findSame, mergeActivity, transferData, readTransfer, dedupe } from '../../app/js/engine/course.js';
+
+// .docx mínimo (ZIP com word/document.xml comprimido), como o Word gera
+function makeDocx(paragraphs) {
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const xml = `<?xml version="1.0"?><w:document xmlns:w="x"><w:body>${paragraphs.map((p) => `<w:p><w:pPr/>${p.split('|').map((r) => `<w:r><w:t xml:space="preserve">${esc(r)}</w:t></w:r>`).join('')}</w:p>`).join('')}<w:p/></w:body></w:document>`;
+  const name = Buffer.from('word/document.xml'), raw = Buffer.from(xml, 'utf8'), data = deflateRawSync(raw);
+  const local = Buffer.alloc(30); local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(8, 8); local.writeUInt32LE(data.length, 18); local.writeUInt32LE(raw.length, 22); local.writeUInt16LE(name.length, 26);
+  const central = Buffer.alloc(46); central.writeUInt32LE(0x02014b50, 0); central.writeUInt16LE(8, 10); central.writeUInt32LE(data.length, 20); central.writeUInt32LE(raw.length, 24); central.writeUInt16LE(name.length, 28); central.writeUInt32LE(0, 42);
+  const cdStart = 30 + name.length + data.length;
+  const end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(1, 8); end.writeUInt16LE(1, 10); end.writeUInt32LE(46 + name.length, 12); end.writeUInt32LE(cdStart, 16);
+  return new Uint8Array(Buffer.concat([local, name, data, central, name, end]));
+}
+
+test('.docx e .md viram a mesma atividade do .txt (mesmo conteúdo → um só cartão)', async () => {
+  const paras = SRC.split('\n').filter((l) => l.trim()).map((l) => (l === '“Hello, Anna. How are you?”' ? '“Hello, |Anna. How are you?”' : l)); // texto partido em 2 trechos, como no Word
+  const fromDocx = parseActivity(await docxText(makeDocx(paras)));
+  assert.deepEqual(fromDocx.errors, []);
+  assert.deepEqual(fromDocx.questions, parseActivity(SRC).questions);
+  const md = `# MY ACTIVITY — PART 1\n\n## QUESTION 1\n**Meeting a Friend**\n\n> “Hello, Anna. How are you?”\n\n- “I’m fine, thanks — and you?”\n\n---\n## Question 2:\nNumbers\nThere are 3 buses before 8 o’clock.\n## QUESTION 3\nLast One\nI don’t know.\n`;
+  const fromMd = parseActivity(mdText(md));
+  assert.equal(fromMd.title, 'MY ACTIVITY — PART 1');
+  assert.deepEqual(fromMd.questions, parseActivity(SRC).questions);
+  assert.equal(contentKey(fromMd), contentKey(newActivity(parseActivity(SRC))));
+  assert.ok(findSame([newActivity(parseActivity(SRC))], fromDocx));
+});
+
+test('transferência: exporta tudo e, no outro aparelho, cria a atividade ou atualiza sem duplicar (vence a versão mais nova; validação prevalece)', () => {
+  const phone = complete();
+  phone.edited = { 1: 100, 2: 100, 3: 100 };
+  const file = JSON.stringify(transferData(phone));
+  // aparelho novo: a atividade vem inteira, com respostas e conclusão
+  const moved = readTransfer(file);
+  assert.equal(moved.id, phone.id);
+  assert.equal(summary(moved).complete, true);
+  assert.equal(readTransfer('QUESTÃO 1\nHello'), null);
+  assert.throws(() => readTransfer(JSON.stringify({ kind: 'daily-routine-english/curso-transferencia', v: 1, activity: {} })), /danificado/);
+  // computador com a mesma atividade: Q1 mais nova lá, Q2 mais nova aqui, Q3 validada aqui
+  const pc = complete();
+  pc.edited = { 1: 50, 2: 200, 3: 10 };
+  pc.answers[2] = ['Números (PC)', 'Há 3 ônibus (PC).'];
+  pc.answers[1][0] = 'Antiga';
+  applyTeacherAnswers(pc, readAnswers('QUESTÃO 3\nLast One\nA última!\nI don’t know.\nNão sei.\n', pc), 5);
+  const r = mergeActivity(pc, readTransfer(file));
+  assert.deepEqual(r, { fromFile: [1], keptHere: [2, 3], validated: [] });
+  assert.equal(pc.answers[1][0], 'Encontrando uma amiga');
+  assert.equal(pc.answers[2][0], 'Números (PC)');
+  assert.equal(officialAnswers(pc, 3)[0], 'A última!');
+  // de volta ao celular: a validação feita no PC chega e prevalece
+  const back = mergeActivity(phone, readTransfer(JSON.stringify(transferData(pc))));
+  assert.ok(back.validated.includes(3) && isValidated(phone, 3) && answersOf(phone, 3)[0] === 'A última!');
+});
+
+test('atividade repetida (título genérico ou mesmo conteúdo) vira um só cartão, com o progresso juntado', () => {
+  const real = complete();
+  const generic = newActivity({ ...parseActivity(SRC), title: 'Atividade' }, 2);
+  generic.id = 'dup';
+  const data = { v: 1, activities: { [real.id]: real, dup: generic }, last: 'dup' };
+  assert.equal(dedupe(data), 1);
+  assert.deepEqual(Object.keys(data.activities), [real.id]);
+  assert.equal(data.last, real.id);
+  assert.equal(data.activities[real.id].title, 'MY ACTIVITY — PART 1');
+  assert.equal(summary(data.activities[real.id]).done, 3);
+});
+
+test('cartão “Atividade” criado ao importar o TXT de respostas como atividade: some e as traduções vão para a atividade real', () => {
+  const real = newActivity(parseActivity(SRC), 1);
+  fill(real, 1, ['Já respondida', 'x', 'y']);
+  const exported = exportText(complete());
+  const bogus = newActivity(parseActivity(exported), 2); // título genérico, inglês e português como “blocos”
+  assert.equal(bogus.title, 'Atividade');
+  const data = { v: 1, activities: { [real.id]: real, [bogus.id]: bogus }, last: bogus.id };
+  assert.equal(dedupe(data), 1);
+  assert.deepEqual(Object.keys(data.activities), [real.id]);
+  assert.equal(answersOf(real, 1)[0], 'Já respondida'); // a resposta que já existia não muda
+  assert.deepEqual(answersOf(real, 2), ['Números', 'Há 3 ônibus antes das 8 horas.']);
+});

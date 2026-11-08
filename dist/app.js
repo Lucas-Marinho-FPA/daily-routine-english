@@ -3481,8 +3481,67 @@
     return box2;
   }
 
+  // app/js/engine/docread.js
+  var dec = new TextDecoder("utf-8");
+  async function readImportFile(file) {
+    const name = (file.name || "").toLowerCase();
+    if (name.endsWith(".docx")) return docxText(new Uint8Array(await file.arrayBuffer()));
+    const text = await file.text();
+    return name.endsWith(".md") || name.endsWith(".markdown") ? mdText(text) : text;
+  }
+  function mdText(md) {
+    return String(md || "").replace(/^﻿/, "").split(/\r\n|\r|\n/).map((l) => {
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)) return "";
+      return l.replace(/^\s{0,3}#{1,6}\s+/, "").replace(/^\s*>\s?/, "").replace(/^\s*[-*+]\s+(?!\s)/, "").replace(/(\*\*|__)(.+?)\1/g, "$2").replace(/(^|[\s(])[*_]([^*_\s][^*_]*?)[*_](?=[\s).,;:!?]|$)/g, "$1$2").replace(/\\([\\`*_{}[\]()#+\-.!>|])/g, "$1").replace(/\s+$/, "");
+    }).join("\n");
+  }
+  var u16 = (b, o) => b[o] | b[o + 1] << 8;
+  var u32 = (b, o) => (b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0;
+  async function inflateRaw(data2) {
+    if (typeof DecompressionStream === "undefined") throw new Error("este navegador n\xE3o consegue abrir arquivos .docx; salve o documento como texto (.txt) ou cole o conte\xFAdo");
+    const stream = new Blob([data2]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  async function unzipEntry(buf, wanted) {
+    let eocd = -1;
+    for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) if (u32(buf, i) === 101010256) {
+      eocd = i;
+      break;
+    }
+    if (eocd < 0) throw new Error("o arquivo .docx est\xE1 danificado ou n\xE3o \xE9 um documento do Word");
+    const count = u16(buf, eocd + 10);
+    let p = u32(buf, eocd + 16);
+    for (let k = 0; k < count && u32(buf, p) === 33639248; k++) {
+      const method = u16(buf, p + 10), size = u32(buf, p + 20), nameLen = u16(buf, p + 28), extra = u16(buf, p + 30), comment = u16(buf, p + 32), local = u32(buf, p + 42);
+      const name = dec.decode(buf.subarray(p + 46, p + 46 + nameLen));
+      if (name === wanted) {
+        const start2 = local + 30 + u16(buf, local + 26) + u16(buf, local + 28);
+        const data2 = buf.subarray(start2, start2 + size);
+        if (method === 0) return data2;
+        if (method === 8) return inflateRaw(data2);
+        throw new Error("compress\xE3o do .docx n\xE3o suportada");
+      }
+      p += 46 + nameLen + extra + comment;
+    }
+    throw new Error("o arquivo .docx n\xE3o tem o texto do documento (word/document.xml)");
+  }
+  var ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+  var unxml = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (_, e) => e[0] === "#" ? String.fromCodePoint(e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : Number(e.slice(1))) : ENT[e.toLowerCase()]);
+  async function docxText(buf) {
+    const xml = dec.decode(await unzipEntry(buf, "word/document.xml"));
+    const body = xml.replace(/<w:del\b[\s\S]*?<\/w:del>/g, "");
+    return body.split(/<\/w:p>/).map((p) => {
+      let out = "";
+      for (const m of p.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>|<w:tab\/>|<w:br\/>|<w:cr\/>/g)) {
+        if (m[1] !== void 0) out += unxml(m[1]);
+        else out += m[0] === "<w:tab/>" ? "	" : "\n";
+      }
+      return out;
+    }).join("\n").replace(/\n+$/, "\n");
+  }
+
   // app/js/engine/course.js
-  var Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s+(\d+)\s*$/i;
+  var Q_HEAD = /^(?:QUESTION|QUESTÃO|QUESTAO)\s*(\d+)\s*[:.\-–—]?\s*$/i;
   function parseActivity(text) {
     const lines = String(text || "").replace(/^﻿/, "").split(/\r\n|\r|\n/).map((l) => l.trim());
     let title = "";
@@ -3524,6 +3583,8 @@
       questions: parsed.questions.map((q) => ({ n: q.n, blocks: q.blocks.slice() })),
       answers: {},
       // n → [pt…] (versão atual do aluno; salva enquanto digita)
+      edited: {},
+      // n → data da última alteração da resposta (decide a versão mais nova ao juntar aparelhos)
       done: {},
       // n → data em que a questão foi salva/finalizada
       submitted: {},
@@ -3653,6 +3714,7 @@
       }
       const cur = answersOf(act, n);
       act.answers[n] = cur.map((old, i) => answers[i] ? answers[i] : old);
+      (act.edited || (act.edited = {}))[n] = now;
       finishQuestion(act, n, now);
       updated.push(n);
     }
@@ -3667,10 +3729,111 @@
       }
       act.answers[n] = answers.slice();
       act.teacher[n] = { blocks: answers.slice(), validatedAt: now, imported: true };
+      (act.edited || (act.edited = {}))[n] = now;
       act.done[n] = act.done[n] || now;
       validated.push(n);
     }
     return { validated, incomplete };
+  }
+  var GENERIC_TITLE = "Atividade";
+  var isGenericTitle = (t) => !t || same(t) === same(GENERIC_TITLE);
+  function contentKey(x) {
+    const src = JSON.stringify(x.questions.map((q) => [q.n, q.blocks.map(same)]));
+    let h2 = 2166136261;
+    for (let i = 0; i < src.length; i++) {
+      h2 ^= src.charCodeAt(i);
+      h2 = Math.imul(h2, 16777619) >>> 0;
+    }
+    return h2.toString(16).padStart(8, "0");
+  }
+  var findSame = (activities, x) => {
+    const k = contentKey(x);
+    return activities.find((a) => contentKey(a) === k) || null;
+  };
+  function mergeActivity(into, from) {
+    const out = { fromFile: [], keptHere: [], validated: [] };
+    into.edited = into.edited || {};
+    const fe = from.edited || {};
+    const has = (a, n) => (a.answers[n] || []).some((x) => (x || "").trim());
+    for (const q of into.questions) {
+      const n = q.n;
+      const lv = isValidated(into, n) ? into.teacher[n].validatedAt : 0;
+      const rv = isValidated(from, n) ? from.teacher[n].validatedAt : 0;
+      if (lv || rv) {
+        if (rv > lv) {
+          into.teacher[n] = { ...from.teacher[n], blocks: from.teacher[n].blocks.slice() };
+          into.answers[n] = from.teacher[n].blocks.slice();
+          into.done[n] = into.done[n] || from.done[n] || rv;
+          into.edited[n] = Math.max(fe[n] || 0, rv);
+          out.validated.push(n);
+        } else out.keptHere.push(n);
+        continue;
+      }
+      if (!has(from, n)) {
+        if (has(into, n)) out.keptHere.push(n);
+        continue;
+      }
+      const take = (fe[n] || 0) > (into.edited[n] || 0) || !has(into, n);
+      if (!take) {
+        out.keptHere.push(n);
+        continue;
+      }
+      into.answers[n] = answersOf(from, n);
+      into.edited[n] = fe[n] || Date.now();
+      if (from.done[n]) into.done[n] = from.done[n];
+      else delete into.done[n];
+      if (from.submitted[n] && !into.submitted[n]) into.submitted[n] = from.submitted[n];
+      if (from.teacher[n] && !into.teacher[n]) into.teacher[n] = from.teacher[n];
+      out.fromFile.push(n);
+    }
+    if (isGenericTitle(into.title) && !isGenericTitle(from.title)) into.title = from.title;
+    return out;
+  }
+  var TRANSFER_KIND = "daily-routine-english/curso-transferencia";
+  function transferData(act, now = Date.now()) {
+    return { kind: TRANSFER_KIND, v: 1, exportedAt: new Date(now).toISOString(), activity: JSON.parse(JSON.stringify(act)) };
+  }
+  function readTransfer(text) {
+    let d;
+    try {
+      d = JSON.parse(String(text || "").replace(/^﻿/, ""));
+    } catch (e) {
+      return null;
+    }
+    if (!d || d.kind !== TRANSFER_KIND) return null;
+    const a = d.activity;
+    if (!a || !Array.isArray(a.questions) || !a.questions.length || a.questions.some((q) => !Array.isArray(q.blocks))) throw new Error("arquivo de transfer\xEAncia danificado");
+    return { ...newActivity({ title: a.title || GENERIC_TITLE, questions: a.questions }, a.importedAt || Date.now()), ...a, edited: a.edited || {}, answers: a.answers || {}, done: a.done || {}, submitted: a.submitted || {}, teacher: a.teacher || {} };
+  }
+  function dedupe(data2) {
+    const acts = Object.values(data2.activities);
+    let merged = 0;
+    for (const a of acts) {
+      if (!data2.activities[a.id]) continue;
+      for (const b of acts) {
+        if (a === b || !data2.activities[b.id] || contentKey(a) !== contentKey(b)) continue;
+        const keep = isGenericTitle(a.title) && !isGenericTitle(b.title) ? b : a;
+        const drop = keep === a ? b : a;
+        mergeActivity(keep, drop);
+        delete data2.activities[drop.id];
+        if (data2.last === drop.id) data2.last = keep.id;
+        merged++;
+      }
+    }
+    for (const g of Object.values(data2.activities)) {
+      if (!isGenericTitle(g.title) || g.questions.some((q) => (g.answers[q.n] || []).some((x) => (x || "").trim()))) continue;
+      const text = g.questions.map((q) => [`QUEST\xC3O ${q.n}`, ...q.blocks].join("\n")).join("\n\n");
+      const real = Object.values(data2.activities).find((a) => a !== g && !readAnswers(text, a).errors.length);
+      if (!real) continue;
+      const r = readAnswers(text, real);
+      if (r.matched !== g.questions.length) continue;
+      const empty = { ...r, questions: r.questions.filter((q) => !answersOf(real, q.n).some((x) => x.trim()) && !isValidated(real, q.n)) };
+      applyOwnAnswers(real, empty, g.importedAt || Date.now());
+      delete data2.activities[g.id];
+      if (data2.last === g.id) data2.last = real.id;
+      merged++;
+    }
+    return merged;
   }
   var fold = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u2018\u2019]/g, "'").toLowerCase();
   var words = (s) => fold(s).match(/[a-z0-9']+/g) || [];
@@ -3717,6 +3880,17 @@
   // app/js/ui/course.js
   var AREA_NAME = "Curso \u2014 Atividades";
   var KEY = "course";
+  var ACCEPT_TEXT = ".txt,.md,.markdown,.docx,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  var slug = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "atividade";
+  function download(name, text, type) {
+    const a = h("a", { href: URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` })), download: name });
+    document.body.append(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1e3);
+  }
   var MIRROR = "drg.course.mirror";
   var data = null;
   var timer = null;
@@ -3731,6 +3905,7 @@
       }
       const ok = (x) => x && x.v === 1 && x.activities;
       data = ok(mirror) && (!ok(raw) || (mirror.savedAt || 0) > (raw.savedAt || 0)) ? mirror : ok(raw) ? raw : { v: 1, activities: {}, last: null };
+      if (dedupe(data)) await saveNow();
     }
     return data;
   }
@@ -3812,6 +3987,21 @@
             icon("play"),
             s.done ? s.complete ? "Abrir" : `Continuar (quest\xE3o ${resumeOf(act)})` : "Come\xE7ar"
           ),
+          h(
+            "div",
+            { class: "row", style: { marginTop: "8px", gap: "8px" } },
+            h("button", { class: "btn small", "data-role": "export-transfer", onclick: () => {
+              download(`${slug(act.title)}-transferencia.json`, JSON.stringify(transferData(act)), "application/json");
+              toast("Arquivo de transfer\xEAncia gerado: importe-o no outro aparelho em \u201CImportar respostas de outro aparelho\u201D.", 6e3);
+            } }, icon("download"), "Exportar para outro aparelho"),
+            h("button", { class: "btn small ghost", "data-role": "remove-activity", onclick: async () => {
+              if (!await confirmSheet(`Remover \u201C${act.title}\u201D?`, "A atividade e as respostas dela saem deste aparelho. Se quiser guardar, exporte antes para outro aparelho.", { ok: "Remover", danger: true })) return;
+              delete d.activities[act.id];
+              if (d.last === act.id) d.last = null;
+              await saveNow();
+              drawList();
+            } }, "Remover")
+          ),
           s.complete ? exportBox(act) : null
         ));
       }
@@ -3825,19 +4015,39 @@
     const out = h("div", { "data-role": "transfer-status" });
     const pick = (kind) => h("input", {
       type: "file",
-      accept: ".txt,text/plain",
+      accept: kind === "own" ? `.json,application/json,${ACCEPT_TEXT}` : ACCEPT_TEXT,
       class: "hidden",
       "data-role": `import-${kind}`,
       onchange: async (e) => {
         const f = e.target.files[0];
         e.target.value = "";
-        if (f) await preview(kind, await f.text());
+        if (!f) return;
+        let text;
+        try {
+          text = await readImportFile(f);
+        } catch (err) {
+          out.replaceChildren(h("div", { class: "notice bad", "data-role": "transfer-error" }, `N\xE3o foi poss\xEDvel ler o arquivo: ${err.message}.`));
+          return;
+        }
+        await preview(kind, text);
       }
     });
     async function preview(kind, text) {
       const d = await loadCourse();
       out.replaceChildren();
       const acts = Object.values(d.activities);
+      let moved = null;
+      try {
+        moved = readTransfer(text);
+      } catch (err) {
+        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, `Nada foi alterado: ${err.message}.`));
+        return;
+      }
+      if (moved && kind === "teacher") {
+        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, "Este \xE9 um arquivo de transfer\xEAncia entre aparelhos; use \u201CImportar respostas de outro aparelho\u201D."));
+        return;
+      }
+      if (moved) return previewTransfer(d, moved);
       if (!acts.length) {
         out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, "Importe primeiro o texto da atividade (abaixo); depois, as respostas."));
         return;
@@ -3875,57 +4085,108 @@
         h("div", { class: "row", style: { marginTop: "8px" } }, apply, h("button", { class: "btn", "data-role": "transfer-cancel", onclick: () => out.replaceChildren() }, "Cancelar"))
       ));
     }
+    function previewTransfer(d, moved) {
+      const here = d.activities[moved.id] || findSame(Object.values(d.activities), moved);
+      const s = summary(moved);
+      let what;
+      if (here) {
+        const trial = mergeActivity(JSON.parse(JSON.stringify(here)), moved);
+        what = `\u201C${here.title}\u201D j\xE1 est\xE1 neste aparelho: ${trial.fromFile.length} ${trial.fromFile.length === 1 ? "quest\xE3o ser\xE1 atualizada" : "quest\xF5es ser\xE3o atualizadas"} com a vers\xE3o mais nova do arquivo${trial.validated.length ? `, ${trial.validated.length} com corre\xE7\xE3o do professor` : ""}; ${trial.keptHere.length} ${trial.keptHere.length === 1 ? "fica" : "ficam"} como ${trial.keptHere.length === 1 ? "est\xE1" : "est\xE3o"} aqui (mais nova${trial.keptHere.length === 1 ? "" : "s"} ou validada${trial.keptHere.length === 1 ? "" : "s"}).`;
+      } else what = `\u201C${moved.title}\u201D ser\xE1 adicionada a este aparelho com ${s.done} de ${s.total} quest\xF5es conclu\xEDdas e ${s.validated} validadas pelo professor.`;
+      out.append(h(
+        "div",
+        { class: "notice", "data-role": "transfer-preview" },
+        h("b", { text: "Arquivo de transfer\xEAncia de outro aparelho." }),
+        h("p", { style: { margin: "6px 0" }, text: what }),
+        h(
+          "div",
+          { class: "row", style: { marginTop: "8px" } },
+          h("button", { class: "btn primary", "data-role": "transfer-apply", onclick: async () => {
+            let act = here;
+            if (here) mergeActivity(here, moved);
+            else {
+              act = moved;
+              d.activities[act.id] = act;
+            }
+            d.last = act.id;
+            await saveNow();
+            const t = summary(act);
+            out.replaceChildren(h("div", { class: "notice ok", "data-role": "transfer-ok" }, `\u201C${act.title}\u201D atualizada neste aparelho: ${t.done} de ${t.total} quest\xF5es conclu\xEDdas, ${t.validated} validadas pelo professor.`));
+            onDone();
+          } }, icon("check"), "Aplicar"),
+          h("button", { class: "btn", "data-role": "transfer-cancel", onclick: () => out.replaceChildren() }, "Cancelar")
+        )
+      ));
+    }
     return h(
       "details",
       { class: "more card", "data-role": "transfer" },
       h("summary", { text: "Transferir respostas e corre\xE7\xF5es" }),
-      h("p", { class: "small muted", text: "Use o arquivo .txt exportado por este app (em outro aparelho, por exemplo o computador). As quest\xF5es s\xE3o identificadas pelo n\xFAmero e conferidas pelo texto em ingl\xEAs; nada \xE9 alterado se o arquivo n\xE3o conferir. Tudo fica s\xF3 neste aparelho." }),
-      h("label", { class: "btn block" }, icon("upload"), "Importar minhas respostas", pick("own")),
+      h("p", { class: "small muted", text: "Para continuar em outro aparelho: no cart\xE3o da atividade, \u201CExportar para outro aparelho\u201D gera um arquivo .json; no outro aparelho, importe-o abaixo (a atividade \xE9 reconhecida e atualizada, sem cart\xE3o repetido; em cada quest\xE3o fica a vers\xE3o mais nova). Tamb\xE9m aceita o .txt exportado para a plataforma. Tudo fica s\xF3 no aparelho." }),
+      h("label", { class: "btn block" }, icon("upload"), "Importar respostas de outro aparelho", pick("own")),
       h("label", { class: "btn block", style: { marginTop: "8px" } }, icon("check"), "Importar corre\xE7\xF5es do professor", pick("teacher")),
-      h("p", { class: "tiny muted", style: { margin: "6px 0 0" }, text: "Corre\xE7\xF5es do professor: o mesmo formato, com as tradu\xE7\xF5es corrigidas. Cada quest\xE3o do arquivo passa a ter a vers\xE3o corrigida como resposta oficial (validada). Pode importar de novo quando houver novas corre\xE7\xF5es." }),
+      h("p", { class: "tiny muted", style: { margin: "6px 0 0" }, text: "Corre\xE7\xF5es do professor (.txt, .docx ou .md): o formato do arquivo exportado para a plataforma, com as tradu\xE7\xF5es corrigidas. Cada quest\xE3o do arquivo passa a ter a vers\xE3o corrigida como resposta oficial (validada). Pode importar de novo quando houver novas corre\xE7\xF5es." }),
       h("div", { style: { marginTop: "10px" } }, out)
     );
   }
   function importCard(App2, onDone) {
     const status3 = h("div", { "data-role": "import-status" });
     const paste = h("textarea", { class: "field", rows: 4, placeholder: "Ou cole aqui o texto da atividade", "aria-label": "Texto da atividade", "data-role": "import-text" });
+    const fail = (msg) => status3.replaceChildren(h("div", { class: "notice bad", "data-role": "import-error" }, h("b", { text: "N\xE3o foi poss\xEDvel importar. " }), msg));
     async function importText(text) {
-      const p = parseActivity(text);
       status3.replaceChildren();
-      if (p.errors.length) {
-        status3.append(h("div", { class: "notice bad", "data-role": "import-error" }, h("b", { text: "N\xE3o foi poss\xEDvel importar. " }), p.errors.join(" ")));
-        return;
-      }
       const d = await loadCourse();
-      const act = newActivity(p);
-      const exists = !!d.activities[act.id];
-      if (!exists) d.activities[act.id] = act;
+      const acts = Object.values(d.activities);
+      try {
+        if (readTransfer(text)) return fail("Este \xE9 um arquivo de transfer\xEAncia. Use \u201CImportar respostas de outro aparelho\u201D, em \u201CTransferir respostas e corre\xE7\xF5es\u201D.");
+      } catch (e) {
+        return fail(e.message);
+      }
+      const p = parseActivity(text);
+      if (p.errors.length) return fail(p.errors.join(" "));
+      const same2 = findSame(acts, p);
+      if (!same2 && acts.length) {
+        const m = matchAnswers(text, acts);
+        if (m && !m.errors.length && m.matched) return fail(`Este arquivo traz respostas da atividade \u201C${m.act.title}\u201D. Use \u201CImportar respostas de outro aparelho\u201D ou \u201CImportar corre\xE7\xF5es do professor\u201D, em \u201CTransferir respostas e corre\xE7\xF5es\u201D.`);
+      }
+      let act = same2;
+      if (same2) {
+        if (isGenericTitle(same2.title) && !isGenericTitle(p.title)) same2.title = p.title;
+      } else {
+        act = newActivity(p);
+        d.activities[act.id] = act;
+      }
       d.last = act.id;
       await saveNow();
       paste.value = "";
       status3.append(h(
         "div",
         { class: "notice ok", "data-role": "import-ok" },
-        exists ? `\u201C${act.title}\u201D j\xE1 est\xE1 neste aparelho: as respostas foram mantidas.` : `\u201C${act.title}\u201D importada: ${act.questions.length} quest\xF5es, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`
+        same2 ? `\u201C${act.title}\u201D j\xE1 est\xE1 neste aparelho: as respostas foram mantidas.` : `\u201C${act.title}\u201D importada: ${act.questions.length} quest\xF5es, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`
       ));
       onDone();
     }
     const file = h("input", {
       type: "file",
-      accept: ".txt,text/plain",
+      accept: ACCEPT_TEXT,
       class: "hidden",
       "data-role": "import-file",
       onchange: async (e) => {
         const f = e.target.files[0];
-        if (f) await importText(await f.text());
         e.target.value = "";
+        if (!f) return;
+        try {
+          await importText(await readImportFile(f));
+        } catch (err) {
+          fail(err.message);
+        }
       }
     });
     return h(
       "details",
       { class: "more card", "data-role": "import" },
       h("summary", { text: "Importar atividade" }),
-      h("p", { class: "small muted", text: "Arquivo de texto (.txt) com o t\xEDtulo da atividade e as quest\xF5es (\u201CQUESTION 1\u201D, \u201CQUESTION 2\u201D\u2026). Cada linha em ingl\xEAs vira um bloco para traduzir, sem alterar o texto. Importar de novo o mesmo arquivo mant\xE9m as respostas." }),
+      h("p", { class: "small muted", text: "Arquivo .txt, .docx (Word) ou .md com o t\xEDtulo da atividade e as quest\xF5es (\u201CQUESTION 1\u201D, \u201CQUESTION 2\u201D\u2026), ou o texto colado abaixo. Cada linha em ingl\xEAs vira um bloco para traduzir, sem alterar o texto. Importar de novo a mesma atividade (em qualquer formato) n\xE3o cria outro cart\xE3o e mant\xE9m as respostas." }),
       h("label", { class: "btn block" }, icon("upload"), "Escolher arquivo", file),
       h("div", { style: { marginTop: "10px" } }, paste),
       h("button", { class: "btn block", style: { margin: "8px 0 12px" }, "data-role": "import-paste", onclick: () => importText(paste.value) }, "Importar texto colado"),
@@ -4004,6 +4265,7 @@
           "data-i": i,
           oninput: () => {
             (act.answers[n] = answersOf(act, n))[i] = ta.value;
+            (act.edited || (act.edited = {}))[n] = Date.now();
             autosize(ta);
             saveSoon2();
             statusChips();
@@ -4148,6 +4410,7 @@
           }
           t.validatedAt = Date.now();
           act.answers[n] = t.blocks.slice();
+          (act.edited || (act.edited = {}))[n] = t.validatedAt;
           await saveNow();
           toast("Quest\xE3o validada pelo professor.");
           redraw();

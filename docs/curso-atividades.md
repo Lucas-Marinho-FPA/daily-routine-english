@@ -40,6 +40,23 @@ Reimportar o mesmo arquivo mantém as respostas (identificador = hash do conteú
 outra atividade. A divisão em blocos é linha a linha (instrução do arquivo da Part 4); quando houver os exemplos de
 segmentação da Part 3, basta ajustar as quebras de linha do arquivo antes de importar.
 
+## Caderno em vários aparelhos (2026-11-09)
+
+- **Adicionar atividade:** arquivo **.txt, .docx (Word) ou .md**, ou texto colado (`js/engine/docread.js`: o .docx é
+  lido no próprio aparelho, sem rede). A atividade é reconhecida pelo **conteúdo em inglês**: importar o mesmo
+  material de novo (em qualquer formato) não cria outro cartão.
+- **Um cartão por atividade:** ao abrir, atividades repetidas são juntadas (fica o título real). Um cartão genérico
+  “Atividade” criado ao importar o TXT de respostas como atividade some: as traduções dele vão para as questões ainda sem
+  resposta da atividade real. Esse TXT agora é recusado em “Adicionar atividade” (com a orientação certa). Cada cartão
+  tem “Remover” (com confirmação).
+- **Exportar para outro aparelho** (cartão da atividade): arquivo `<título>-transferencia.json` com a atividade
+  inteira — questões, textos, respostas, conclusão, validações e data da última edição de cada questão. É diferente do
+  TXT para a plataforma do curso (que continua igual, na questão final).
+- **Importar respostas de outro aparelho:** aceita o .json de transferência (cria a atividade se ela não existir;
+  senão atualiza o mesmo cartão — em cada questão fica a versão editada por último; validação do professor sempre
+  prevalece) e, como antes, o TXT/DOCX/MD no formato da plataforma.
+- **Importar correções do professor:** igual, agora também em .docx e .md.
+
 ## Transferir respostas e correções do professor (2026-11-08)
 
 Área **Curso — Atividades → Transferir respostas e correções** (a atividade precisa estar importada no aparelho):

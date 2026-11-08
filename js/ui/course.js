@@ -3,14 +3,24 @@
 // separados do estado de estudo: nada aqui mexe em jornadas, progresso ou Speaking Lab.
 import { h, icon, toast, bar, confirmSheet } from './dom.js';
 import { getKv, putKv } from '../store/db.js';
+import { readImportFile } from '../engine/docread.js';
 import {
   parseActivity, newActivity, answersOf, isDone, summary, canOpen, finishQuestion,
   isValidated, matchAnswers, applyOwnAnswers, applyTeacherAnswers,
+  findSame, mergeActivity, transferData, readTransfer, dedupe, isGenericTitle,
   exportProblems, exportText, checkTranslation, CHECK_LABEL, CHECK_CLASS,
 } from '../engine/course.js';
 
 export const AREA_NAME = 'Curso — Atividades';
 const KEY = 'course';
+const ACCEPT_TEXT = '.txt,.md,.markdown,.docx,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const slug = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'atividade';
+function download(name, text, type) {
+  const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` })), download: name });
+  document.body.append(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
 const MIRROR = 'drg.course.mirror';
 
 let data = null; // { v: 1, activities: { id: atividade }, last: id|null }
@@ -25,6 +35,7 @@ export async function loadCourse() {
     const ok = (x) => x && x.v === 1 && x.activities;
     // a cópia síncrona feita ao sair do app vence quando é mais nova (o IndexedDB pode não ter terminado de gravar)
     data = ok(mirror) && (!ok(raw) || (mirror.savedAt || 0) > (raw.savedAt || 0)) ? mirror : ok(raw) ? raw : { v: 1, activities: {}, last: null };
+    if (dedupe(data)) await saveNow(); // a mesma atividade importada duas vezes vira um só cartão (progresso juntado)
   }
   return data;
 }
@@ -80,6 +91,18 @@ export function renderCourse(App) {
         h('div', { class: 'small muted', style: { marginTop: '4px' }, 'data-role': 'activity-validated', text: `Validadas pelo professor: ${s.validated} de ${s.total}` }),
         h('button', { class: 'btn primary block', style: { marginTop: '10px' }, 'data-role': 'open-activity', onclick: () => { d.last = act.id; saveSoon(); App.go(qHref(act.id, resumeOf(act))); } },
           icon('play'), s.done ? (s.complete ? 'Abrir' : `Continuar (questão ${resumeOf(act)})`) : 'Começar'),
+        h('div', { class: 'row', style: { marginTop: '8px', gap: '8px' } },
+          h('button', { class: 'btn small', 'data-role': 'export-transfer', onclick: () => {
+            download(`${slug(act.title)}-transferencia.json`, JSON.stringify(transferData(act)), 'application/json');
+            toast('Arquivo de transferência gerado: importe-o no outro aparelho em “Importar respostas de outro aparelho”.', 6000);
+          } }, icon('download'), 'Exportar para outro aparelho'),
+          h('button', { class: 'btn small ghost', 'data-role': 'remove-activity', onclick: async () => {
+            if (!(await confirmSheet(`Remover “${act.title}”?`, 'A atividade e as respostas dela saem deste aparelho. Se quiser guardar, exporte antes para outro aparelho.', { ok: 'Remover', danger: true }))) return;
+            delete d.activities[act.id];
+            if (d.last === act.id) d.last = null;
+            await saveNow();
+            drawList();
+          } }, 'Remover')),
         s.complete ? exportBox(act) : null));
     }
   }
@@ -91,12 +114,21 @@ export function renderCourse(App) {
 // Tudo é lido e gravado só neste aparelho. Antes de alterar qualquer coisa, mostra o que será feito e os problemas.
 function transferCard(onDone) {
   const out = h('div', { 'data-role': 'transfer-status' });
-  const pick = (kind) => h('input', { type: 'file', accept: '.txt,text/plain', class: 'hidden', 'data-role': `import-${kind}`,
-    onchange: async (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) await preview(kind, await f.text()); } });
+  const pick = (kind) => h('input', { type: 'file', accept: kind === 'own' ? `.json,application/json,${ACCEPT_TEXT}` : ACCEPT_TEXT, class: 'hidden', 'data-role': `import-${kind}`,
+    onchange: async (e) => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      let text;
+      try { text = await readImportFile(f); } catch (err) { out.replaceChildren(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, `Não foi possível ler o arquivo: ${err.message}.`)); return; }
+      await preview(kind, text);
+    } });
   async function preview(kind, text) {
     const d = await loadCourse();
     out.replaceChildren();
     const acts = Object.values(d.activities);
+    let moved = null;
+    try { moved = readTransfer(text); } catch (err) { out.append(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, `Nada foi alterado: ${err.message}.`)); return; }
+    if (moved && kind === 'teacher') { out.append(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, 'Este é um arquivo de transferência entre aparelhos; use “Importar respostas de outro aparelho”.')); return; }
+    if (moved) return previewTransfer(d, moved);
     if (!acts.length) { out.append(h('div', { class: 'notice bad', 'data-role': 'transfer-error' }, 'Importe primeiro o texto da atividade (abaixo); depois, as respostas.')); return; }
     const r = matchAnswers(text, acts);
     const teacher = kind === 'teacher';
@@ -129,41 +161,69 @@ function transferCard(onDone) {
       r.warnings.length ? h('div', { class: 'small' }, 'Avisos (a resposta atual desses blocos é mantida):', list(r.warnings)) : null,
       h('div', { class: 'row', style: { marginTop: '8px' } }, apply, h('button', { class: 'btn', 'data-role': 'transfer-cancel', onclick: () => out.replaceChildren() }, 'Cancelar'))));
   }
+  // arquivo de transferência (.json): a atividade completa de outro aparelho; em cada questão fica a versão mais nova
+  function previewTransfer(d, moved) {
+    const here = d.activities[moved.id] || findSame(Object.values(d.activities), moved);
+    const s = summary(moved);
+    let what;
+    if (here) {
+      const trial = mergeActivity(JSON.parse(JSON.stringify(here)), moved);
+      what = `“${here.title}” já está neste aparelho: ${trial.fromFile.length} ${trial.fromFile.length === 1 ? 'questão será atualizada' : 'questões serão atualizadas'} com a versão mais nova do arquivo${trial.validated.length ? `, ${trial.validated.length} com correção do professor` : ''}; ${trial.keptHere.length} ${trial.keptHere.length === 1 ? 'fica' : 'ficam'} como ${trial.keptHere.length === 1 ? 'está' : 'estão'} aqui (mais nova${trial.keptHere.length === 1 ? '' : 's'} ou validada${trial.keptHere.length === 1 ? '' : 's'}).`;
+    } else what = `“${moved.title}” será adicionada a este aparelho com ${s.done} de ${s.total} questões concluídas e ${s.validated} validadas pelo professor.`;
+    out.append(h('div', { class: 'notice', 'data-role': 'transfer-preview' },
+      h('b', { text: 'Arquivo de transferência de outro aparelho.' }), h('p', { style: { margin: '6px 0' }, text: what }),
+      h('div', { class: 'row', style: { marginTop: '8px' } },
+        h('button', { class: 'btn primary', 'data-role': 'transfer-apply', onclick: async () => {
+          let act = here;
+          if (here) mergeActivity(here, moved); else { act = moved; d.activities[act.id] = act; }
+          d.last = act.id;
+          await saveNow();
+          const t = summary(act);
+          out.replaceChildren(h('div', { class: 'notice ok', 'data-role': 'transfer-ok' }, `“${act.title}” atualizada neste aparelho: ${t.done} de ${t.total} questões concluídas, ${t.validated} validadas pelo professor.`));
+          onDone();
+        } }, icon('check'), 'Aplicar'),
+        h('button', { class: 'btn', 'data-role': 'transfer-cancel', onclick: () => out.replaceChildren() }, 'Cancelar'))));
+  }
   return h('details', { class: 'more card', 'data-role': 'transfer' },
     h('summary', { text: 'Transferir respostas e correções' }),
-    h('p', { class: 'small muted', text: 'Use o arquivo .txt exportado por este app (em outro aparelho, por exemplo o computador). As questões são identificadas pelo número e conferidas pelo texto em inglês; nada é alterado se o arquivo não conferir. Tudo fica só neste aparelho.' }),
-    h('label', { class: 'btn block' }, icon('upload'), 'Importar minhas respostas', pick('own')),
+    h('p', { class: 'small muted', text: 'Para continuar em outro aparelho: no cartão da atividade, “Exportar para outro aparelho” gera um arquivo .json; no outro aparelho, importe-o abaixo (a atividade é reconhecida e atualizada, sem cartão repetido; em cada questão fica a versão mais nova). Também aceita o .txt exportado para a plataforma. Tudo fica só no aparelho.' }),
+    h('label', { class: 'btn block' }, icon('upload'), 'Importar respostas de outro aparelho', pick('own')),
     h('label', { class: 'btn block', style: { marginTop: '8px' } }, icon('check'), 'Importar correções do professor', pick('teacher')),
-    h('p', { class: 'tiny muted', style: { margin: '6px 0 0' }, text: 'Correções do professor: o mesmo formato, com as traduções corrigidas. Cada questão do arquivo passa a ter a versão corrigida como resposta oficial (validada). Pode importar de novo quando houver novas correções.' }),
+    h('p', { class: 'tiny muted', style: { margin: '6px 0 0' }, text: 'Correções do professor (.txt, .docx ou .md): o formato do arquivo exportado para a plataforma, com as traduções corrigidas. Cada questão do arquivo passa a ter a versão corrigida como resposta oficial (validada). Pode importar de novo quando houver novas correções.' }),
     h('div', { style: { marginTop: '10px' } }, out));
 }
 
 function importCard(App, onDone) {
   const status = h('div', { 'data-role': 'import-status' });
   const paste = h('textarea', { class: 'field', rows: 4, placeholder: 'Ou cole aqui o texto da atividade', 'aria-label': 'Texto da atividade', 'data-role': 'import-text' });
+  const fail = (msg) => status.replaceChildren(h('div', { class: 'notice bad', 'data-role': 'import-error' }, h('b', { text: 'Não foi possível importar. ' }), msg));
   async function importText(text) {
-    const p = parseActivity(text);
     status.replaceChildren();
-    if (p.errors.length) {
-      status.append(h('div', { class: 'notice bad', 'data-role': 'import-error' }, h('b', { text: 'Não foi possível importar. ' }), p.errors.join(' ')));
-      return;
-    }
     const d = await loadCourse();
-    const act = newActivity(p);
-    const exists = !!d.activities[act.id];
-    if (!exists) d.activities[act.id] = act;
+    const acts = Object.values(d.activities);
+    try { if (readTransfer(text)) return fail('Este é um arquivo de transferência. Use “Importar respostas de outro aparelho”, em “Transferir respostas e correções”.'); } catch (e) { return fail(e.message); }
+    const p = parseActivity(text);
+    if (p.errors.length) return fail(p.errors.join(' '));
+    const same = findSame(acts, p);
+    if (!same && acts.length) {
+      const m = matchAnswers(text, acts);
+      if (m && !m.errors.length && m.matched) return fail(`Este arquivo traz respostas da atividade “${m.act.title}”. Use “Importar respostas de outro aparelho” ou “Importar correções do professor”, em “Transferir respostas e correções”.`);
+    }
+    let act = same;
+    if (same) { if (isGenericTitle(same.title) && !isGenericTitle(p.title)) same.title = p.title; } // mesma atividade: um só cartão
+    else { act = newActivity(p); d.activities[act.id] = act; }
     d.last = act.id;
     await saveNow();
     paste.value = '';
     status.append(h('div', { class: 'notice ok', 'data-role': 'import-ok' },
-      exists ? `“${act.title}” já está neste aparelho: as respostas foram mantidas.` : `“${act.title}” importada: ${act.questions.length} questões, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`));
+      same ? `“${act.title}” já está neste aparelho: as respostas foram mantidas.` : `“${act.title}” importada: ${act.questions.length} questões, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`));
     onDone();
   }
-  const file = h('input', { type: 'file', accept: '.txt,text/plain', class: 'hidden', 'data-role': 'import-file',
-    onchange: async (e) => { const f = e.target.files[0]; if (f) await importText(await f.text()); e.target.value = ''; } });
+  const file = h('input', { type: 'file', accept: ACCEPT_TEXT, class: 'hidden', 'data-role': 'import-file',
+    onchange: async (e) => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { await importText(await readImportFile(f)); } catch (err) { fail(err.message); } } });
   return h('details', { class: 'more card', 'data-role': 'import' },
     h('summary', { text: 'Importar atividade' }),
-    h('p', { class: 'small muted', text: 'Arquivo de texto (.txt) com o título da atividade e as questões (“QUESTION 1”, “QUESTION 2”…). Cada linha em inglês vira um bloco para traduzir, sem alterar o texto. Importar de novo o mesmo arquivo mantém as respostas.' }),
+    h('p', { class: 'small muted', text: 'Arquivo .txt, .docx (Word) ou .md com o título da atividade e as questões (“QUESTION 1”, “QUESTION 2”…), ou o texto colado abaixo. Cada linha em inglês vira um bloco para traduzir, sem alterar o texto. Importar de novo a mesma atividade (em qualquer formato) não cria outro cartão e mantém as respostas.' }),
     h('label', { class: 'btn block' }, icon('upload'), 'Escolher arquivo', file),
     h('div', { style: { marginTop: '10px' } }, paste),
     h('button', { class: 'btn block', style: { margin: '8px 0 12px' }, 'data-role': 'import-paste', onclick: () => importText(paste.value) }, 'Importar texto colado'),
@@ -218,6 +278,7 @@ export function renderCourseQuestion(App, r) {
       const ta = h('textarea', { class: 'field', rows: 2, lang: 'pt-BR', placeholder: 'Tradução em português', 'aria-label': `Tradução do bloco ${i + 1}`, 'data-role': 'block-pt', 'data-i': i,
         oninput: () => {
           (act.answers[n] = answersOf(act, n))[i] = ta.value;
+          (act.edited || (act.edited = {}))[n] = Date.now(); // a versão mais nova vence ao juntar aparelhos
           autosize(ta);
           saveSoon();
           statusChips();
@@ -320,6 +381,7 @@ function teacherBox(act, n, redraw) {
         if (miss.length) { err.replaceChildren(h('div', { class: 'notice warn' }, `Preencha a versão corrigida dos blocos ${miss.join(', ')}.`)); return; }
         t.validatedAt = Date.now();
         act.answers[n] = t.blocks.slice(); // a versão do professor passa a ser a resposta da questão
+        (act.edited || (act.edited = {}))[n] = t.validatedAt;
         await saveNow();
         toast('Questão validada pelo professor.');
         redraw(); // a versão do professor aparece como a resposta oficial
