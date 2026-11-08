@@ -2971,6 +2971,7 @@
   // app/js/ui/pwa.js
   var CHECK_EVERY_MS = 15 * 60 * 1e3;
   var RETRY_AFTER_MS = 60 * 1e3;
+  var RESUME_AFTER_MS = 10 * 1e3;
   var NO_BANNER = ["session"];
   var LS_INSTALLED = "drg.installed";
   var LS_VERSION = "drg.version";
@@ -3018,7 +3019,7 @@
     }
   }
   function initPwa(App2) {
-    const pwa = App2.pwa = { install: "manual", update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false };
+    const pwa = App2.pwa = { install: "manual", update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false, progress: null, lastError: null };
     const refreshInstall = () => {
       pwa.install = isStandalone() ? "standalone" : pwa.deferred ? "available" : lsGet(LS_INSTALLED) ? "installed-elsewhere" : "manual";
     };
@@ -3072,14 +3073,40 @@
           pwa.update = "ready";
           notify();
         }
-        if (worker2.state === "redundant" && pwa.update === "downloading") {
-          pwa.update = "failed";
-          notify();
-        }
+        if (worker2.state === "redundant" && pwa.update === "downloading") interrupted();
       });
     };
+    let resumeTimer = null;
+    const interrupted = () => {
+      const p = pwa.progress || {};
+      pwa.lastError = p.lastError || pwa.lastError;
+      pwa.update = p.downloaded > 0 || p.reused > 0 ? "interrupted" : "failed";
+      notify();
+      clearTimeout(resumeTimer);
+      if (pwa.update === "interrupted") resumeTimer = setTimeout(() => check({ resume: true }), RESUME_AFTER_MS);
+    };
+    pwa.resume = () => {
+      clearTimeout(resumeTimer);
+      return check({ manual: true });
+    };
+    sw.addEventListener("message", (e) => {
+      const d = e.data || {};
+      if (d.type !== "UPDATE_STATUS" || !d.status) return;
+      if (sw.controller && e.source === sw.controller) {
+        pwa.activeStatus = d.status;
+        return;
+      }
+      pwa.progress = d.status;
+      if (d.status.lastError) pwa.lastError = d.status.lastError;
+      if (["preparing", "downloading", "verifying"].includes(d.status.phase) && sw.controller && !["ready", "applying"].includes(pwa.update)) pwa.update = "downloading";
+      notify();
+    });
+    try {
+      sw.startMessages();
+    } catch (e) {
+    }
     let checking = null;
-    const check = ({ opening = false, manual = false } = {}) => {
+    const check = ({ opening = false, manual = false, resume = false } = {}) => {
       const reg = pwa.reg;
       if (!reg) return Promise.resolve("no-reg");
       if (reg.installing) {
@@ -3097,9 +3124,9 @@
       const now = Date.now();
       if (!manual && document.visibilityState !== "visible") return Promise.resolve("skipped");
       if (!manual && !opening && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve("skipped");
-      if (!manual && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve("skipped");
+      if (!manual && !resume && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve("skipped");
       pwa.lastAttempt = now;
-      if (pwa.update === "failed") pwa.update = null;
+      if (pwa.update === "failed" || pwa.update === "interrupted") pwa.update = resume ? "downloading" : null;
       if (manual) pwa.update = "checking";
       notify();
       checking = reg.update().then(() => {
@@ -3206,16 +3233,26 @@
     if (st === "downloading") {
       return h(
         "div",
-        { class: "update-bar", role: "status", "aria-live": "polite", "data-role": "update-downloading" },
+        { class: "update-bar", role: "status", "aria-live": "polite", "data-role": "update-downloading", "data-phase": pwa.progress && pwa.progress.phase || "preparing" },
         icon("download"),
-        h("span", { class: "grow", text: "Baixando uma nova vers\xE3o do aplicativo\u2026" })
+        h("span", { class: "grow", "data-role": "update-progress", text: progressText(pwa.progress) })
+      );
+    }
+    if (st === "interrupted") {
+      const p = pwa.progress || {};
+      return h(
+        "div",
+        { class: "update-bar warn", role: "status", "aria-live": "polite", "data-role": "update-interrupted" },
+        h("span", { class: "grow", text: `Atualiza\xE7\xE3o interrompida${p.total ? ` (${p.present} de ${p.total} arquivos prontos)` : ""}. O que j\xE1 foi baixado est\xE1 guardado; ela continua sozinha em instantes.` }),
+        h("button", { class: "btn small", "data-role": "update-resume", onclick: () => pwa.resume && pwa.resume() }, "Continuar agora")
       );
     }
     if (st === "failed") {
       return h(
         "div",
         { class: "update-bar warn", role: "status", "data-role": "update-failed" },
-        h("span", { class: "grow", text: "N\xE3o foi poss\xEDvel baixar a nova vers\xE3o agora. O app continua funcionando; tentaremos de novo mais tarde." }),
+        h("span", { class: "grow", text: `N\xE3o foi poss\xEDvel baixar a nova vers\xE3o agora${pwa.lastError ? ` (${pwa.lastError})` : ""}. O app continua funcionando nesta vers\xE3o; ele tenta de novo ao ser aberto.` }),
+        h("button", { class: "btn small", "data-role": "update-retry", onclick: () => pwa.resume && pwa.resume() }, "Tentar de novo"),
         h("button", { class: "btn small ghost", onclick: () => {
           pwa.update = null;
           notify();
@@ -3235,6 +3272,15 @@
       } }, "Depois"),
       now
     );
+  }
+  function progressText(p) {
+    if (!p || p.phase === "preparing") return "Preparando a atualiza\xE7\xE3o: conferindo os arquivos que j\xE1 est\xE3o no aparelho\u2026";
+    if (p.phase === "verifying") return "Conferindo os arquivos da nova vers\xE3o\u2026";
+    if (p.phase === "downloading") {
+      const todo = p.downloaded + p.pending;
+      return `Baixando a atualiza\xE7\xE3o: ${p.downloaded} de ${todo} ${todo === 1 ? "arquivo novo" : "arquivos novos"}${p.reused ? ` \xB7 ${p.reused} reaproveitados` : ""}${p.attempt > 1 ? ` \xB7 retomada (tentativa ${p.attempt})` : ""}`;
+    }
+    return "Baixando a atualiza\xE7\xE3o\u2026";
   }
   function live(render) {
     const slot = h("div", { class: "pwa-slot" });
@@ -3337,7 +3383,7 @@
         const res = await pwa.check({ manual: true });
         toast(res === "downloading" ? "Baixando a nova vers\xE3o\u2026 o aviso aparece quando ela estiver pronta." : res === "ready" ? "Nova vers\xE3o pronta: toque em \u201CAtualizar agora\u201D." : res === "error" ? "Sem conex\xE3o: n\xE3o foi poss\xEDvel procurar atualiza\xE7\xF5es agora." : "Voc\xEA j\xE1 est\xE1 na vers\xE3o mais recente.", 5e3);
       } }, "Procurar atualiza\xE7\xE3o");
-      const text = st === "checking" ? "Verificando atualiza\xE7\xE3o\u2026" : st === "ready" ? "Nova vers\xE3o pronta para instalar." : st === "downloading" ? "Baixando a nova vers\xE3o em segundo plano\u2026" : st === "failed" ? "O \xFAltimo download da atualiza\xE7\xE3o falhou; o app tentar\xE1 de novo." : pwa.updatedTo ? "Aplicativo atualizado. O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele." : "O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele.";
+      const text = st === "checking" ? "Verificando atualiza\xE7\xE3o\u2026" : st === "ready" ? "Nova vers\xE3o pronta para instalar." : st === "downloading" ? progressText(pwa.progress) : st === "interrupted" ? "Atualiza\xE7\xE3o interrompida; o que j\xE1 foi baixado est\xE1 guardado e ela continua sozinha." : st === "failed" ? `O \xFAltimo download da atualiza\xE7\xE3o falhou${pwa.lastError ? ` (${pwa.lastError})` : ""}; o app tentar\xE1 de novo.` : pwa.updatedTo ? "Aplicativo atualizado. O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele." : "O app procura atualiza\xE7\xF5es ao ser aberto e ao voltar para ele.";
       return h(
         "div",
         { class: "card flat small", "data-role": "update-status", "data-state": st || "idle" },
@@ -3345,6 +3391,86 @@
         h("div", { class: "tiny muted", style: { marginTop: "6px" }, text: "Atualizar n\xE3o apaga seu progresso. O reconhecimento de fala baixado continua guardado." })
       );
     });
+  }
+  var askWorker = (worker2, type) => new Promise((resolve) => {
+    if (!worker2) return resolve(null);
+    const ch = new MessageChannel();
+    const t = setTimeout(() => resolve(null), 3e3);
+    ch.port1.onmessage = (e) => {
+      clearTimeout(t);
+      resolve(e.data);
+    };
+    try {
+      worker2.postMessage({ type }, [ch.port2]);
+    } catch (e) {
+      clearTimeout(t);
+      resolve(null);
+    }
+  });
+  var fmtTime = (ts) => {
+    try {
+      return ts ? new Date(ts).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "\u2014";
+    } catch (e) {
+      return "\u2014";
+    }
+  };
+  var PHASE = { idle: "parada", preparing: "preparando", downloading: "baixando", verifying: "conferindo", ready: "pronta", interrupted: "interrompida", active: "em uso" };
+  var UPDATE = { checking: "verificando", downloading: "baixando", interrupted: "interrompida (continua sozinha)", ready: "nova vers\xE3o pronta", applying: "aplicando", failed: "falhou" };
+  async function readDiagnostics(App2) {
+    const pwa = App2.pwa || {};
+    const out = { sw: "sem service worker", active: null, available: null, update: UPDATE[pwa.update] || "nenhuma em andamento", files: null, legacy: 0, last: null, error: pwa.lastError || null };
+    if (!("serviceWorker" in navigator)) return out;
+    const reg = pwa.reg || await navigator.serviceWorker.getRegistration().catch(() => null);
+    if (!reg) {
+      out.sw = "n\xE3o registrado";
+      return out;
+    }
+    out.sw = [reg.active && `ativo (${reg.active.state})`, reg.waiting && "vers\xE3o nova em espera", reg.installing && "vers\xE3o nova instalando", navigator.serviceWorker.controller ? "controlando esta tela" : "sem controle desta tela"].filter(Boolean).join(" \xB7 ");
+    const a = await askWorker(reg.active, "VERSION");
+    out.active = a && a.version;
+    const pend = reg.waiting || reg.installing;
+    const b = await askWorker(pend, "VERSION");
+    out.available = b ? b.version : null;
+    try {
+      const keys = await caches.keys();
+      let n = 0;
+      for (const k of keys.filter((x) => x === "drgshell-v1" || x === "drgaudio-v1")) n += (await (await caches.open(k)).keys()).filter((r) => !r.url.includes("/__drg/")).length;
+      out.files = n;
+      out.legacy = keys.filter((x) => x.startsWith("drgapp-") || x.startsWith("drg-")).length;
+      const st = await caches.match(new URL("__drg/update-status.json", reg.scope).href);
+      if (st) out.last = await st.json();
+    } catch (e) {
+    }
+    if (!out.error && out.last && out.last.lastError) out.error = out.last.lastError;
+    return out;
+  }
+  function updateDiagnostics(App2) {
+    const body = h("div", { class: "small", "data-role": "update-diagnostics" }, h("p", { class: "muted", text: "Carregando\u2026" }));
+    const row = (label, value, role) => h(
+      "div",
+      { class: "row nowrap", style: { justifyContent: "space-between", gap: "8px", padding: "3px 0" } },
+      h("span", { class: "muted", text: label }),
+      h("b", { "data-role": role, style: { textAlign: "right" }, text: value == null || value === "" ? "\u2014" : String(value) })
+    );
+    const draw = async () => {
+      const d = await readDiagnostics(App2);
+      const l = d.last;
+      body.replaceChildren(
+        row("Vers\xE3o ativa", d.active, "diag-active"),
+        row("Vers\xE3o dispon\xEDvel", d.available || "nenhuma nova", "diag-available"),
+        row("Service worker", d.sw, "diag-sw"),
+        row("Atualiza\xE7\xE3o", d.update, "diag-update"),
+        row("Arquivos no aparelho", d.files == null ? "\u2014" : `${d.files}${d.legacy ? ` (+ ${d.legacy} cache antigo a limpar)` : ""}`, "diag-files"),
+        row("\xDAltima tentativa", l ? `${fmtTime(l.startedAt)} \xB7 vers\xE3o ${l.version} \xB7 ${PHASE[l.phase] || l.phase} \xB7 ${l.present} de ${l.total} prontos (${l.downloaded} baixados, ${l.reused} reaproveitados) \xB7 tentativa ${l.attempt}` : "\u2014", "diag-last"),
+        row("\xDAltimo erro", d.error || "nenhum", "diag-error"),
+        h("button", { class: "btn small", style: { marginTop: "8px" }, "data-role": "diag-refresh", onclick: draw }, "Atualizar diagn\xF3stico")
+      );
+    };
+    const box2 = h("details", { class: "card flat small", "data-role": "update-diag" }, h("summary", { text: "Diagn\xF3stico da atualiza\xE7\xE3o" }), body);
+    box2.addEventListener("toggle", () => {
+      if (box2.open) draw();
+    });
+    return box2;
   }
 
   // app/js/engine/course.js
@@ -8548,7 +8674,7 @@
       toast("Progresso apagado.");
       App2.go("#/");
     }
-    view.append(h("h2", { text: "Aplicativo" }), h("div", { class: "stack", "data-role": "app-section" }, installCard(App2), updateStatus(App2)));
+    view.append(h("h2", { text: "Aplicativo" }), h("div", { class: "stack", "data-role": "app-section" }, installCard(App2), updateStatus(App2), updateDiagnostics(App2)));
     view.append(h("h2", { text: "Sobre" }), h(
       "div",
       { class: "card small" },

@@ -1,6 +1,9 @@
 // Aplicativo instalável (PWA): registro do service worker, atualização controlada pelo aluno e instalação.
 //
-// Atualização (ver tools/sw.template.js): a versão nova é baixada em segundo plano e ESPERA. O app avisa
+// Atualização (ver tools/sw.template.js): a versão nova baixa SÓ os arquivos que mudaram (os outros são
+// reaproveitados), retoma de onde parou se for interrompida e mostra o progresso real (mensagens UPDATE_STATUS do
+// service worker). Interrompida com algum avanço: o app continua sozinho em 10 s; sem avanço: avisa o erro.
+// A versão nova pronta ESPERA. O app avisa
 // (“Nova versão disponível”) fora das sessões de estudo; só quando o aluno toca “Atualizar agora” o progresso é
 // gravado, a versão nova assume e o app recarrega. Depois de abrir com sucesso, o app pede a limpeza dos arquivos da
 // versão anterior (CLEANUP). Falha no download: a versão em uso continua e o app tenta de novo mais tarde.
@@ -13,6 +16,7 @@ import { requestPersistence } from '../store/db.js';
 
 const CHECK_EVERY_MS = 15 * 60 * 1000; // ao voltar ao app, no máximo uma verificação a cada 15 min
 const RETRY_AFTER_MS = 60 * 1000; // verificação que falhou (sem internet): nova tentativa só depois de 1 min
+const RESUME_AFTER_MS = 10 * 1000; // atualização interrompida que avançou: continua sozinha depois de 10 s
 const NO_BANNER = ['session']; // durante uma sessão o aviso não aparece (volta ao sair)
 const LS_INSTALLED = 'drg.installed';
 const LS_VERSION = 'drg.version'; // última versão do app vista neste navegador (para o aviso “Aplicativo atualizado”)
@@ -51,10 +55,11 @@ export function isStandalone() {
 /**
  * Estado compartilhado (App.pwa):
  *   install: 'standalone' | 'available' | 'installed-elsewhere' | 'manual' | 'unsupported'
- *   update:  null | 'checking' | 'downloading' | 'ready' | 'applying' | 'failed'
+ *   update:  null | 'checking' | 'downloading' | 'interrupted' | 'ready' | 'applying' | 'failed'
+ *   progress: último UPDATE_STATUS da versão em instalação { phase, total, present, reused, downloaded, pending, failed, attempt, lastError }
  */
 export function initPwa(App) {
-  const pwa = App.pwa = { install: 'manual', update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false };
+  const pwa = App.pwa = { install: 'manual', update: null, deferred: early.deferred, reg: null, version: null, lastCheck: 0, lastAttempt: 0, postponed: false, progress: null, lastError: null };
   const refreshInstall = () => {
     pwa.install = isStandalone() ? 'standalone' : pwa.deferred ? 'available' : lsGet(LS_INSTALLED) ? 'installed-elsewhere' : 'manual';
   };
@@ -94,15 +99,38 @@ export function initPwa(App) {
     watched.add(worker);
     worker.addEventListener('statechange', () => {
       if (worker.state === 'installed' && sw.controller) { pwa.update = 'ready'; notify(); }
-      if (worker.state === 'redundant' && pwa.update === 'downloading') { pwa.update = 'failed'; notify(); }
+      if (worker.state === 'redundant' && pwa.update === 'downloading') interrupted();
     });
   };
+  // tentativa encerrada sem concluir: se baixou algo, continua sozinha (nada do que baixou se perde); se não
+  // conseguiu baixar nada, mostra o erro e tenta de novo na próxima abertura/volta ao app (ou no botão)
+  let resumeTimer = null;
+  const interrupted = () => {
+    const p = pwa.progress || {};
+    pwa.lastError = p.lastError || pwa.lastError;
+    pwa.update = p.downloaded > 0 || p.reused > 0 ? 'interrupted' : 'failed';
+    notify();
+    clearTimeout(resumeTimer);
+    if (pwa.update === 'interrupted') resumeTimer = setTimeout(() => check({ resume: true }), RESUME_AFTER_MS);
+  };
+  pwa.resume = () => { clearTimeout(resumeTimer); return check({ manual: true }); };
+  // progresso real enviado pelo service worker que está instalando (o ativo também envia, ao conferir os arquivos)
+  sw.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type !== 'UPDATE_STATUS' || !d.status) return;
+    if (sw.controller && e.source === sw.controller) { pwa.activeStatus = d.status; return; }
+    pwa.progress = d.status;
+    if (d.status.lastError) pwa.lastError = d.status.lastError;
+    if (['preparing', 'downloading', 'verifying'].includes(d.status.phase) && sw.controller && !['ready', 'applying'].includes(pwa.update)) pwa.update = 'downloading';
+    notify();
+  });
+  try { sw.startMessages(); } catch (e) { /* navegador antigo: as mensagens chegam ao carregar */ }
   // procura versão nova: ao abrir o app e ao voltar a ele (no máximo a cada 15 min); “Procurar atualização” (manual)
   // sempre. A verificação só conta como feita quando o navegador de fato consultou o servidor; sem internet, tenta de
   // novo (no máximo uma vez por minuto). Versão já baixando ou pronta: não há o que consultar — o estado é mostrado.
   // Resultado: 'no-reg' | 'downloading' | 'ready' | 'checked' | 'skipped' | 'error'.
   let checking = null;
-  const check = ({ opening = false, manual = false } = {}) => {
+  const check = ({ opening = false, manual = false, resume = false } = {}) => {
     const reg = pwa.reg;
     if (!reg) return Promise.resolve('no-reg');
     if (reg.installing) { watch(reg.installing); return Promise.resolve('downloading'); }
@@ -111,9 +139,9 @@ export function initPwa(App) {
     const now = Date.now();
     if (!manual && document.visibilityState !== 'visible') return Promise.resolve('skipped');
     if (!manual && !opening && now - pwa.lastCheck < CHECK_EVERY_MS) return Promise.resolve('skipped');
-    if (!manual && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve('skipped');
+    if (!manual && !resume && now - pwa.lastAttempt < RETRY_AFTER_MS) return Promise.resolve('skipped');
     pwa.lastAttempt = now;
-    if (pwa.update === 'failed') pwa.update = null;
+    if (pwa.update === 'failed' || pwa.update === 'interrupted') pwa.update = resume ? 'downloading' : null;
     if (manual) pwa.update = 'checking';
     notify();
     checking = reg.update()
@@ -195,13 +223,20 @@ export function updateBanner(App) {
   if (!pwa || NO_BANNER.includes(currentRoute())) return null;
   const st = pwa.update;
   if (st === 'downloading') {
-    return h('div', { class: 'update-bar', role: 'status', 'aria-live': 'polite', 'data-role': 'update-downloading' },
+    return h('div', { class: 'update-bar', role: 'status', 'aria-live': 'polite', 'data-role': 'update-downloading', 'data-phase': (pwa.progress && pwa.progress.phase) || 'preparing' },
       icon('download'),
-      h('span', { class: 'grow', text: 'Baixando uma nova versão do aplicativo…' }));
+      h('span', { class: 'grow', 'data-role': 'update-progress', text: progressText(pwa.progress) }));
+  }
+  if (st === 'interrupted') {
+    const p = pwa.progress || {};
+    return h('div', { class: 'update-bar warn', role: 'status', 'aria-live': 'polite', 'data-role': 'update-interrupted' },
+      h('span', { class: 'grow', text: `Atualização interrompida${p.total ? ` (${p.present} de ${p.total} arquivos prontos)` : ''}. O que já foi baixado está guardado; ela continua sozinha em instantes.` }),
+      h('button', { class: 'btn small', 'data-role': 'update-resume', onclick: () => pwa.resume && pwa.resume() }, 'Continuar agora'));
   }
   if (st === 'failed') {
     return h('div', { class: 'update-bar warn', role: 'status', 'data-role': 'update-failed' },
-      h('span', { class: 'grow', text: 'Não foi possível baixar a nova versão agora. O app continua funcionando; tentaremos de novo mais tarde.' }),
+      h('span', { class: 'grow', text: `Não foi possível baixar a nova versão agora${pwa.lastError ? ` (${pwa.lastError})` : ''}. O app continua funcionando nesta versão; ele tenta de novo ao ser aberto.` }),
+      h('button', { class: 'btn small', 'data-role': 'update-retry', onclick: () => pwa.resume && pwa.resume() }, 'Tentar de novo'),
       h('button', { class: 'btn small ghost', onclick: () => { pwa.update = null; notify(); } }, 'OK'));
   }
   if ((st !== 'ready' && st !== 'applying') || pwa.postponed) return null;
@@ -211,6 +246,17 @@ export function updateBanner(App) {
     h('span', { class: 'grow', text: 'Nova versão disponível. Seu progresso fica salvo.' }),
     h('button', { class: 'btn small ghost', 'data-role': 'update-later', onclick: () => { pwa.postponed = true; notify(); } }, 'Depois'),
     now);
+}
+
+/** Texto do progresso real (nada estimado): fase, arquivos baixados e reaproveitados. */
+export function progressText(p) {
+  if (!p || p.phase === 'preparing') return 'Preparando a atualização: conferindo os arquivos que já estão no aparelho…';
+  if (p.phase === 'verifying') return 'Conferindo os arquivos da nova versão…';
+  if (p.phase === 'downloading') {
+    const todo = p.downloaded + p.pending;
+    return `Baixando a atualização: ${p.downloaded} de ${todo} ${todo === 1 ? 'arquivo novo' : 'arquivos novos'}${p.reused ? ` · ${p.reused} reaproveitados` : ''}${p.attempt > 1 ? ` · retomada (tentativa ${p.attempt})` : ''}`;
+  }
+  return 'Baixando a atualização…';
 }
 
 /** Redesenha um elemento quando o estado de instalação/atualização muda (enquanto estiver na tela). */
@@ -297,12 +343,74 @@ export function updateStatus(App) {
       } }, 'Procurar atualização');
     const text = st === 'checking' ? 'Verificando atualização…'
       : st === 'ready' ? 'Nova versão pronta para instalar.'
-      : st === 'downloading' ? 'Baixando a nova versão em segundo plano…'
-      : st === 'failed' ? 'O último download da atualização falhou; o app tentará de novo.'
+      : st === 'downloading' ? progressText(pwa.progress)
+      : st === 'interrupted' ? 'Atualização interrompida; o que já foi baixado está guardado e ela continua sozinha.'
+      : st === 'failed' ? `O último download da atualização falhou${pwa.lastError ? ` (${pwa.lastError})` : ''}; o app tentará de novo.`
       : pwa.updatedTo ? 'Aplicativo atualizado. O app procura atualizações ao ser aberto e ao voltar para ele.'
       : 'O app procura atualizações ao ser aberto e ao voltar para ele.';
     return h('div', { class: 'card flat small', 'data-role': 'update-status', 'data-state': st || 'idle' },
       h('div', { class: 'row nowrap' }, h('div', { class: 'grow' }, h('b', { text: ver }), h('div', { class: 'muted', text })), action),
       h('div', { class: 'tiny muted', style: { marginTop: '6px' }, text: 'Atualizar não apaga seu progresso. O reconhecimento de fala baixado continua guardado.' }));
   });
+}
+
+// ---------- diagnóstico da atualização (Ajustes) ----------
+const askWorker = (worker, type) => new Promise((resolve) => {
+  if (!worker) return resolve(null);
+  const ch = new MessageChannel();
+  const t = setTimeout(() => resolve(null), 3000);
+  ch.port1.onmessage = (e) => { clearTimeout(t); resolve(e.data); };
+  try { worker.postMessage({ type }, [ch.port2]); } catch (e) { clearTimeout(t); resolve(null); }
+});
+const fmtTime = (ts) => { try { return ts ? new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'; } catch (e) { return '—'; } };
+const PHASE = { idle: 'parada', preparing: 'preparando', downloading: 'baixando', verifying: 'conferindo', ready: 'pronta', interrupted: 'interrompida', active: 'em uso' };
+const UPDATE = { checking: 'verificando', downloading: 'baixando', interrupted: 'interrompida (continua sozinha)', ready: 'nova versão pronta', applying: 'aplicando', failed: 'falhou' };
+
+/** Lê o estado real: service worker, versões, caches e a última tentativa registrada pelo service worker. */
+export async function readDiagnostics(App) {
+  const pwa = App.pwa || {};
+  const out = { sw: 'sem service worker', active: null, available: null, update: UPDATE[pwa.update] || 'nenhuma em andamento', files: null, legacy: 0, last: null, error: pwa.lastError || null };
+  if (!('serviceWorker' in navigator)) return out;
+  const reg = pwa.reg || await navigator.serviceWorker.getRegistration().catch(() => null);
+  if (!reg) { out.sw = 'não registrado'; return out; }
+  out.sw = [reg.active && `ativo (${reg.active.state})`, reg.waiting && 'versão nova em espera', reg.installing && 'versão nova instalando', navigator.serviceWorker.controller ? 'controlando esta tela' : 'sem controle desta tela'].filter(Boolean).join(' · ');
+  const a = await askWorker(reg.active, 'VERSION');
+  out.active = a && a.version;
+  const pend = reg.waiting || reg.installing;
+  const b = await askWorker(pend, 'VERSION');
+  out.available = b ? b.version : null;
+  try {
+    const keys = await caches.keys();
+    let n = 0;
+    for (const k of keys.filter((x) => x === 'drgshell-v1' || x === 'drgaudio-v1')) n += (await (await caches.open(k)).keys()).filter((r) => !r.url.includes('/__drg/')).length;
+    out.files = n;
+    out.legacy = keys.filter((x) => x.startsWith('drgapp-') || x.startsWith('drg-')).length;
+    const st = await caches.match(new URL('__drg/update-status.json', reg.scope).href);
+    if (st) out.last = await st.json();
+  } catch (e) { /* sem acesso aos caches */ }
+  if (!out.error && out.last && out.last.lastError) out.error = out.last.lastError;
+  return out;
+}
+
+/** Bloco “Diagnóstico da atualização” (Ajustes): só valores lidos do aparelho. */
+export function updateDiagnostics(App) {
+  const body = h('div', { class: 'small', 'data-role': 'update-diagnostics' }, h('p', { class: 'muted', text: 'Carregando…' }));
+  const row = (label, value, role) => h('div', { class: 'row nowrap', style: { justifyContent: 'space-between', gap: '8px', padding: '3px 0' } },
+    h('span', { class: 'muted', text: label }), h('b', { 'data-role': role, style: { textAlign: 'right' }, text: value == null || value === '' ? '—' : String(value) }));
+  const draw = async () => {
+    const d = await readDiagnostics(App);
+    const l = d.last;
+    body.replaceChildren(
+      row('Versão ativa', d.active, 'diag-active'),
+      row('Versão disponível', d.available || 'nenhuma nova', 'diag-available'),
+      row('Service worker', d.sw, 'diag-sw'),
+      row('Atualização', d.update, 'diag-update'),
+      row('Arquivos no aparelho', d.files == null ? '—' : `${d.files}${d.legacy ? ` (+ ${d.legacy} cache antigo a limpar)` : ''}`, 'diag-files'),
+      row('Última tentativa', l ? `${fmtTime(l.startedAt)} · versão ${l.version} · ${PHASE[l.phase] || l.phase} · ${l.present} de ${l.total} prontos (${l.downloaded} baixados, ${l.reused} reaproveitados) · tentativa ${l.attempt}` : '—', 'diag-last'),
+      row('Último erro', d.error || 'nenhum', 'diag-error'),
+      h('button', { class: 'btn small', style: { marginTop: '8px' }, 'data-role': 'diag-refresh', onclick: draw }, 'Atualizar diagnóstico'));
+  };
+  const box = h('details', { class: 'card flat small', 'data-role': 'update-diag' }, h('summary', { text: 'Diagnóstico da atualização' }), body);
+  box.addEventListener('toggle', () => { if (box.open) draw(); });
+  return box;
 }

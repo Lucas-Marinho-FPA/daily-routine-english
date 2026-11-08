@@ -29,13 +29,41 @@ Página para divulgar: `install.html` (no endereço público, `…/daily-routine
 |---|---|
 | Publicação | O site novo tem um `sw.js` com outra `VERSION` (hash de todos os arquivos). |
 | Ao abrir o app e ao voltar para ele | O app pede ao navegador para procurar versão nova: sempre ao abrir; ao voltar, no máximo a cada 15 min. A verificação só conta como feita quando o navegador consultou o servidor; sem internet, tenta de novo (no máximo uma vez por minuto). |
-| Download | A versão nova baixa os ~1.800 arquivos para um cache próprio (`drgapp-<versão>`), sempre da rede. Enquanto baixa, aparece “Baixando uma nova versão do aplicativo…” (fora das sessões). Se qualquer arquivo falhar, esse cache incompleto é apagado e a versão em uso continua; o app avisa e tenta de novo depois. |
+| Download (incremental, desde 2026-11-08) | A versão nova baixa **só os arquivos cujo conteúdo mudou** (ver “Atualização incremental e retomável” abaixo). Enquanto prepara/baixa, aparece o progresso real (“Preparando a atualização…”, “Baixando a atualização: x de y arquivos novos · z reaproveitados”, “Conferindo os arquivos…”). Interrompida, guarda o que baixou e continua sozinha; sem conseguir baixar nada, mostra o erro e “Tentar de novo”. |
 | Pronta | A versão nova **espera**. O app mostra “Nova versão disponível — Depois / Atualizar agora”. Durante uma sessão de estudo o aviso não aparece (volta ao sair). “Depois” esconde até a próxima abertura; em Ajustes → Aplicativo o botão continua. Fechar o app por completo também ativa a versão nova na próxima abertura. |
 | “Atualizar agora” | O progresso é gravado, a versão nova assume e o app recarrega. Se a troca não acontecer em 10 s, nada é perdido e o aviso volta. |
-| Depois da abertura | O app, já funcionando na versão nova, pede a limpeza: só então os caches de versões anteriores (`drgapp-…` e os antigos `drg-…`) são apagados — e só se o cache da versão em uso estiver completo e nenhuma outra versão estiver baixando ou esperando. |
+| Depois da abertura | O app, já funcionando na versão nova, pede a limpeza: só então os caches antigos (`drgapp-…`, `drg-…`) são apagados e, dos caches compartilhados, só saem os arquivos que a versão em uso não usa — e só se ela estiver completa e nenhuma outra versão estiver baixando ou esperando. |
 
 - O cache do **reconhecimento de fala** (`asr-local-…`, ~38 MB, baixado sob demanda) nunca é apagado por uma atualização.
 - Antes: a versão nova assumia sozinha e apagava o cache anterior na mesma hora, com a tela antiga ainda aberta.
+
+### Atualização incremental e retomável (2026-11-08)
+
+**Problema (celular, Galaxy S25+ / Samsung Internet):** “Baixando uma nova versão do aplicativo…” sem fim e a versão
+nova (`79916fe`) nunca chegava. Causa medida: cada versão baixava de novo os 1.805 arquivos (15,18 MB, 1.787 áudios),
+ignorando o cache do navegador, num único passo de instalação; de `b25ebbc` para `79916fe` só **um** arquivo mudou
+(`dist/app.js`, 0,45 MB). Qualquer falha, o app fechado no meio ou a rede lenta passando dos **5 minutos** que o
+Chromium dá à instalação descartavam tudo e a tentativa seguinte recomeçava do zero (reproduzido: 300 kbit/s →
+interrompida aos 302 s com 1.280 de 1.805 arquivos; app fechado → baixou outros 15 MB).
+
+**Estratégia nova** (`dev/tools/sw.template.js`, `dev/tools/build-app.mjs`, `js/ui/pwa.js`):
+- O build grava no `sw.js` o hash SHA-256 (16 hex) do conteúdo de cada arquivo. Cada arquivo fica no cache com a chave
+  `<endereço>?v=<hash>`, em dois caches **compartilhados entre versões**: `drgshell-v1` (HTML, CSS, JS, dados, ícones) e
+  `drgaudio-v1` (áudios).
+- A versão nova só baixa o que tem hash novo; o resto já está lá. Arquivos das versões antigas (`drgapp-…`/`drg-…`)
+  são conferidos pelo hash e copiados (o celular em `b25ebbc` baixa só `dist/app.js`).
+- Cada arquivo é conferido pelo hash antes de entrar no cache e entra assim que chega: fechar o app, o Android
+  suspender o navegador ou a rede cair não perdem nada. Falha de um arquivo: até 3 tentativas (30 s de limite cada);
+  os outros continuam.
+- A versão só se declara instalada com **todos** os arquivos presentes e conferidos (integridade antes da ativação).
+- A instalação se encerra sozinha aos 4 min (antes do limite de 5 do navegador), guardando o que baixou; o app
+  continua sozinho 10 s depois (aviso “Atualização interrompida… continua sozinha”) e a tentativa seguinte baixa só o
+  que falta (“retomada (tentativa n)”).
+- Progresso real: o service worker envia `UPDATE_STATUS` às telas e grava `__drg/update-status.json` (`drgshell-v1`).
+- **Ajustes → Aplicativo → Diagnóstico da atualização:** versão ativa, versão disponível, estado do service worker,
+  estado da atualização, arquivos no aparelho, última tentativa (data, fase, prontos/baixados/reaproveitados,
+  tentativa) e último erro.
+- Dados do aluno (IndexedDB `drg` e `localStorage`) nunca são tocados: a limpeza só mexe em caches de arquivos.
 
 **Defeito corrigido (2026-10-31).** Nas versões até `6db56e10bb5d` (`ec33411`), a limpeza pedida a cada abertura do app
 apagava todo cache `drg-` que não fosse o da versão em uso — inclusive o da versão nova já baixada e em espera. Quem

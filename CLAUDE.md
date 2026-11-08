@@ -127,8 +127,13 @@ js/audio/, js/store/  áudio/gravação/ASR e persistência
 
 ## 6. PWA e offline
 
-- Service worker: pré-cache de todos os arquivos (exceto `js/`, `asr/`, `screenshots/`) num cache `drgapp-<VERSION>` (até `6db56e10bb5d`: `drg-<VERSION>`)
-  (VERSION = hash dos arquivos), “cache primeiro”, respostas parciais (Range) para áudio.
+- Service worker: pré-cache de todos os arquivos (exceto `js/`, `asr/`, `screenshots/`), “cache primeiro”, respostas
+  parciais (Range) para áudio. **Desde 2026-11-08: atualização incremental e retomável** — o `sw.js` traz o hash
+  (SHA-256) de cada arquivo; caches compartilhados entre versões `drgshell-v1` (app) e `drgaudio-v1` (áudios), chave
+  `<endereço>?v=<hash>`; só o que mudou é baixado (arquivos de caches antigos `drgapp-…`/`drg-…` são conferidos e
+  copiados), cada arquivo é conferido e guardado ao chegar, a instalação para aos 4 min guardando o progresso e continua
+  depois; diagnóstico em Ajustes. Nunca voltar ao modelo “uma cópia completa por versão” (causa do “Baixando…” sem fim
+  no celular) — `docs/pwa-instalacao.md`.
 - **Atualização controlada:** a versão nova baixa tudo e **espera**; o app mostra “Nova versão disponível” (nunca
   durante uma sessão); só com “Atualizar agora” (ou fechando o app por completo) ela assume; o cache antigo só é
   apagado depois que o app abriu na versão nova (mensagem `CLEANUP`); download com falha descarta o cache incompleto.

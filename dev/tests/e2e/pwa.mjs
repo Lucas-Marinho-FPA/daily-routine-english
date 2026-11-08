@@ -29,7 +29,7 @@ const swOriginal = readFileSync(join(SITE, BASE_PATH.replace(/^\//, ''), 'sw.js'
 const V1 = /const VERSION = '([^']+)'/.exec(swOriginal)[1];
 const swVersion = (v, { broken = false } = {}) => {
   let s = swOriginal.replace(`const VERSION = '${V1}'`, `const VERSION = '${v}'`);
-  if (broken) s = s.replace('const FILES = ["./",', 'const FILES = ["./","audio/nao-existe-nesta-versao.ogg",');
+  if (broken) s = s.replace('const FILES = {"./":', 'const FILES = {"audio/nao-existe-nesta-versao.ogg":"0000000000000000","./":');
   return s;
 };
 let swServed = null; // null = o sw.js do site
@@ -57,6 +57,17 @@ const swVersionNow = () => app(() => new Promise((res) => { const c = navigator.
 const cacheKeys = () => app(() => caches.keys().then((k) => k.sort()));
 const appCaches = (keys) => keys.filter((k) => !/^asr-local-(?!teste)/.test(k)).join(); // o app cria o cache do reconhecimento ao consultar o status
 const progress = () => app(() => { const st = window.DRG_APP.state; return JSON.stringify({ active: st.activeProfile, cards: Object.keys(st.cards).sort(), xp: st.xp, profiles: Object.keys(st.profiles).sort(), settings: st.settings.character }); });
+// a versão do sw.js original tem todos os seus arquivos nos caches compartilhados (chave = endereço?v=hash)?
+const MANIFEST = JSON.parse(/^const FILES = (\{.*\});/m.exec(swOriginal)[1]);
+const storeComplete = () => app(async (m) => {
+  const have = new Set();
+  for (const k of ['drgshell-v1', 'drgaudio-v1']) for (const r of await (await caches.open(k)).keys()) have.add(r.url);
+  const scope = (await navigator.serviceWorker.getRegistration()).scope;
+  const missing = Object.entries(m).filter(([p, hh]) => !have.has(`${new URL(p === './' ? '' : p, scope).href}?v=${hh}`)).length;
+  return { total: Object.keys(m).length, missing };
+}, MANIFEST);
+const waitingVersion = () => app(() => new Promise(async (res) => { const r = await navigator.serviceWorker.getRegistration(); const w = r && r.waiting; if (!w) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data.version); w.postMessage({ type: 'VERSION' }, [ch.port2]); setTimeout(() => res('sem resposta'), 3000); }));
+const STORES = 'drgaudio-v1,drgshell-v1';
 const waitFor = async (fn, arg, ms = 60000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await app(fn, arg)) return true; await page.waitForTimeout(300); } return false; };
 const updateState = () => app(() => window.DRG_APP.pwa && window.DRG_APP.pwa.update);
 // evento de instalação do navegador simulado (o Chromium de teste não o dispara sozinho); o app reage como no Chrome
@@ -92,8 +103,9 @@ await check('P02', 'Service worker ativo e controlando; um único cache do app; 
   const keys = await cacheKeys();
   const ver = await swVersionNow();
   const shotCached = await app(async () => !!(await caches.match(new URL('screenshots/modulo.png', location.href).href)));
-  assert(sw.active && sw.controller && !sw.waiting && ver === V1 && keys.join() === `drgapp-${V1}` && !shotCached, JSON.stringify({ sw, keys, ver, shotCached }));
-  return { versao: ver, caches: keys };
+  const full = await storeComplete();
+  assert(sw.active && sw.controller && !sw.waiting && ver === V1 && keys.join() === STORES && full.missing === 0 && !shotCached, JSON.stringify({ sw, keys, ver, full, shotCached }));
+  return { versao: ver, caches: keys, arquivos: full.total };
 });
 
 await check('P03', 'Instalar: sem o pedido do navegador, só instruções (nada simulado pelo app); com o pedido, botão → recusa tratada → aceite', async () => {
@@ -153,8 +165,9 @@ await check('P05', 'Versão nova publicada: baixada em segundo plano e ESPERA; a
   const keys = await cacheKeys();
   const ver = await swVersionNow();
   await shot('P05-atualizacao-disponivel');
-  assert(ready && banner === 1 && ver === V1 && keys.includes(`drgapp-${V1}`) && keys.includes('drgapp-teste-v2') && keys.includes('asr-local-teste'), JSON.stringify({ ready, banner, ver, keys }));
-  assert(downloading.textos.length === 1 && /Baixando uma nova versão do aplicativo/.test(downloading.textos[0]) && !downloading.aindaVisivel, 'aviso de download: ' + JSON.stringify(downloading));
+  const waiting = await waitingVersion();
+  assert(ready && banner === 1 && ver === V1 && waiting === 'teste-v2' && keys.includes('drgshell-v1') && keys.includes('drgaudio-v1') && keys.includes('asr-local-teste'), JSON.stringify({ ready, banner, ver, waiting, keys }));
+  assert(downloading.textos.length >= 1 && downloading.textos.every((t) => /Preparando a atualização|Baixando a atualização|Conferindo os arquivos/.test(t)) && !downloading.aindaVisivel, 'aviso de download: ' + JSON.stringify(downloading));
   return { emUso: ver, caches: keys, avisoDownload: downloading.textos[0] };
 });
 
@@ -163,11 +176,11 @@ await check('P05b', 'Reabrir o app com a versão nova em espera: o cache dela co
   const ready = await waitFor(() => window.DRG_APP.pwa.update === 'ready');
   await app(() => { window.__marker = 'tela-antiga'; });
   const keys = await cacheKeys();
-  const files = await app(async () => (await (await caches.open('drgapp-teste-v2')).keys()).length);
-  const expected = (swOriginal.match(/^const FILES = (.*);$/m) && JSON.parse(/^const FILES = (.*);$/m.exec(swOriginal)[1]).length) || -1;
+  const full = await storeComplete(); // teste-v2 tem os mesmos arquivos (só muda a versão)
+  const waiting = await waitingVersion();
   const banner = await page.locator('[data-role=update-banner]').count();
-  assert(ready && banner === 1 && keys.includes('drgapp-teste-v2') && files === expected, JSON.stringify({ ready, banner, keys, files, expected }));
-  return { caches: keys, arquivosDaVersaoNova: files };
+  assert(ready && banner === 1 && waiting === 'teste-v2' && full.missing === 0, JSON.stringify({ ready, banner, keys, waiting, full }));
+  return { caches: keys, arquivosDaVersaoNova: `${full.total - full.missing} de ${full.total}` };
 });
 
 await check('P06', 'Durante uma sessão o aviso não aparece nem recarrega nada; ao sair, volta', async () => {
@@ -196,12 +209,13 @@ await check('P07', '“Depois”: o aviso some nesta abertura; a versão continu
 await check('P08', '“Atualizar agora”: grava, ativa a versão nova e recarrega; progresso idêntico; cache antigo removido só depois da abertura; reconhecimento de fala preservado', async () => {
   await page.locator('[data-role=update-status] [data-role=update-now]').click();
   await page.waitForFunction(() => !window.__marker, null, { timeout: 15000 }); // recarregou
-  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drgapp-')).length === 1), null, 20000); // abertura + limpeza
+  await waitFor(() => window.DRG_APP.pwa.version === 'teste-v2', null, 20000); // abertura + limpeza (CLEANUP respondido)
   const ver = await swVersionNow();
   const after = await progress();
   const keys = await cacheKeys();
+  const full = await storeComplete();
   const asr = await app(async () => !!(await caches.match(new URL('asr/teste.bin', location.href).href)));
-  assert(ver === 'teste-v2' && after === before && appCaches(keys) === 'asr-local-teste,drgapp-teste-v2' && asr, JSON.stringify({ ver, keys, asr, same: after === before }));
+  assert(ver === 'teste-v2' && after === before && appCaches(keys) === `asr-local-teste,${STORES}` && full.missing === 0 && asr, JSON.stringify({ ver, keys, asr, full, same: after === before }));
   return { versao: ver, caches: keys, progressoIgual: true };
 });
 
@@ -216,7 +230,9 @@ await check('P09', 'Falha no download da versão nova: a instalação dela é de
   const ver = await swVersionNow();
   await go('#/module/R02');
   const works = await page.locator('[data-role=stage]').count();
-  assert(failed && banner === 1 && !keys.includes('drgapp-teste-v3') && ver === 'teste-v2' && works === 5 && (await progress()) === before, JSON.stringify({ failed, banner, keys, ver, works }));
+  const partial = await app(async () => !!(await (await caches.open('drgaudio-v1')).keys()).find((r) => r.url.includes('nao-existe')));
+  const msg = await page.locator('[data-role=update-failed]').textContent().catch(() => '');
+  assert(failed && banner === 1 && !partial && /HTTP 404/.test(msg) && ver === 'teste-v2' && works === 5 && (await progress()) === before, JSON.stringify({ failed, banner, keys, partial, msg, ver, works }));
   return { estado: 'failed', caches: keys, emUso: ver };
 });
 
@@ -229,10 +245,10 @@ await check('P10', 'Recuperação: a versão seguinte, íntegra, é baixada e ap
   await app(() => { window.__marker = 'antes'; });
   await page.locator('[data-role=update-banner] [data-role=update-now]').click();
   await page.waitForFunction(() => !window.__marker, null, { timeout: 15000 });
-  await waitFor(() => caches.keys().then((k) => k.filter((x) => x.startsWith('drgapp-')).length === 1), null, 20000);
+  await waitFor(() => window.DRG_APP.pwa.version === 'teste-v4', null, 20000);
   const ver = await swVersionNow();
   const keys = await cacheKeys();
-  assert(ready && ver === 'teste-v4' && appCaches(keys) === 'asr-local-teste,drgapp-teste-v4' && (await progress()) === before, JSON.stringify({ ready, ver, keys }));
+  assert(ready && ver === 'teste-v4' && appCaches(keys) === `asr-local-teste,${STORES}` && (await progress()) === before, JSON.stringify({ ready, ver, keys }));
   return { versao: ver, caches: keys };
 });
 

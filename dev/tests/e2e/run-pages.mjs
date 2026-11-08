@@ -165,7 +165,7 @@ await check('T01', 'Abre em localhost e registra o service worker', async () => 
   await go('');
   await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 30000 }).catch(async () => { await page.reload(); });
   await page.waitForFunction(() => navigator.serviceWorker.controller, null, { timeout: 30000 });
-  const cached = await page.evaluate(async () => { const keys = await caches.keys(); const c = await caches.open(keys[0]); return (await c.keys()).length; });
+  const cached = await page.evaluate(async () => { let n = 0; for (const k of await caches.keys()) n += (await (await caches.open(k)).keys()).length; return n; }); // caches do app: drgshell-v1 + drgaudio-v1
   // primeira abertura: escolha do personagem (Lucas marcado); confirmar leva ao Início de sempre
   const pick = await page.locator('[data-role=character-pick] [role=radio][aria-checked=true]').getAttribute('data-character');
   await shot('01-escolha');

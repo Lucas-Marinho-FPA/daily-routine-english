@@ -107,13 +107,17 @@ const walk = (dir) => {
 };
 walk(APP);
 files.sort();
-const hash = createHash('sha256');
-for (const f of files) hash.update(f).update(readFileSync(join(APP, f)));
+// hash do CONTEÚDO de cada arquivo (SHA-256, 16 hex): o service worker só baixa o que mudou e confere cada arquivo
+const fileHash = (f) => createHash('sha256').update(readFileSync(join(APP, f))).digest('hex').slice(0, 16);
+const manifest = { './': fileHash('index.html') };
+for (const f of files) manifest[f] = fileHash(f);
+const swTemplate = readFileSync(join(ROOT, 'tools/sw.template.js'), 'utf8');
+const hash = createHash('sha256').update(swTemplate);
+for (const f of files) hash.update(f).update(manifest[f]);
 const version = hash.digest('hex').slice(0, 12);
-const precache = ['./', ...files];
-const sw = readFileSync(join(ROOT, 'tools/sw.template.js'), 'utf8')
+const sw = swTemplate
   .replace('__VERSION__', version)
-  .replace('__FILES__', JSON.stringify(precache));
+  .replace('__FILES__', JSON.stringify(manifest));
 writeFileSync(join(APP, 'sw.js'), sw);
 const bytes = files.reduce((n, f) => n + statSync(join(APP, f)).size, 0);
 console.log(JSON.stringify({ version, files: files.length, totalMB: +(bytes / 1048576).toFixed(2), bundleKB: Math.round(statSync(join(APP, 'dist/app.js')).size / 1024), asrOptionalMB: +(asrManifest.files.reduce((n, f) => n + f.size, 0) / 1048576).toFixed(1) }));
