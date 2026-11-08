@@ -27,7 +27,7 @@
 - **Regressão completa no build publicado** (logs em `dev/evidence/2026-11-08/`): unitários 207/207; Curso 13/13 com o
   arquivo real (21 questões, 210 blocos) e 13/13 sintético; MVP 14/14; Personagens 14/14; Conversation Practice
   10/10; Armazenamento 10/10; Prática de palavras 15/15; Lukinhas 12/12; PWA 14/14; troca real `b25ebbc` → nova
-  17/17; simulação do Pages 37/37; E2E local 37/37; reconhecimento de voz: ver o log da pasta.
+  17/17; simulação do Pages 37/37; E2E local 37/37; reconhecimento de voz 22/22.
 - **Atenção para a `remodelagem`:** ela foi criada antes desta entrega e **não tem** a área do curso. Antes de publicá-la,
   integrar `mvp-jornadas` (merge) para não remover a área nem os dados do usuário (os dados ficam em `kv` → `course`).
 
