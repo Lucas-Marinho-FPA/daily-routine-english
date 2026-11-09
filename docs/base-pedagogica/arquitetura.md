@@ -210,4 +210,4 @@ privacidade; Markdown gerado; app idêntico e regressão sem diferença.
 | R2 | Alocação sequencial de IDs exige um gravador por vez | uma ingestão por vez, num commit; validador acusa duplicados |
 | R3 | Fontes pessoais já estão em repositórios **públicos** existentes (`daily-english`, etapa anterior em `Bora_de_Ingles`) | fora do escopo desta etapa; não alterados; decisão sua |
 | R4 | Originais privados (Word, pacotes, terceiros) não têm guarda durável até existir o repositório privado | P1 |
-| R5 | `T04` da simulação do Pages é intermitente (falhou uma vez por tempo esgotado na linha de base, passou ao repetir) | registrado; não é efeito da Base |
+| R5 | Simulação do Pages (`run-pages`) intermitente por tempo esgotado de clique: `T04` na linha de base de `b194cee` e `T05` na regressão de 2026-11-09 (app idêntico); ambos passaram ao repetir (37/37) | registrado; não é efeito da Base |
