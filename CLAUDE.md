@@ -1,198 +1,98 @@
-# CLAUDE.md — Daily Routine English (memória permanente)
+# Daily Routine English — Base Pedagógica
 
-Leia este arquivo e depois `HANDOFF.md` (estado atual e próximo passo) antes de qualquer trabalho.
+## Instruções permanentes para Claude Code
 
-## 1. Identidade do projeto
+Este repositório contém a Base Pedagógica do Daily Routine English. Sua função é preservar, estruturar, validar e evoluir o conhecimento linguístico e pedagógico que poderá alimentar o aplicativo. A Base não é o próprio aplicativo.
 
-- **O que é:** app de estudo de **inglês britânico** a partir de rotinas e conversas do dia a dia. HTML5, CSS3 e
-  JavaScript puro (sem framework), PWA instalável, 100% offline depois do primeiro acesso. Hospedado no GitHub Pages:
-  https://lucas-marinho-fpa.github.io/daily-routine-english/ (branch `gh-pages`). Repositório:
-  `Lucas-Marinho-FPA/daily-routine-english`.
-- **Para quem:** o usuário (Lucas, adulto) e a família — cada um estuda com o conteúdo do seu personagem narrativo.
-- **Objetivo educacional:** comunicação real — conseguir contar a própria rotina e participar de conversas sem ler
-  um texto. Não é decorar frases.
-- **Sem custos e sem servidores:** nenhuma API paga, nenhum serviço externo obrigatório, nenhuma gravação enviada a
-  servidor. Política de segurança do HTML proíbe conexões externas.
-- **Bora de Inglês** (`Lucas-Marinho-FPA/Bora_de_Ingles`) é **outro projeto/repositório**. Não modificar. O Daily
-  Routine só reaproveita a convenção de nomes das imagens de personagens (`<dir>/<ESTADO>.png`, seis estados).
-- **Abordagem:** MVP primeiro, mudanças incrementais sobre a arquitetura existente; melhorias não essenciais vão para
-  backlog.
+### Leia primeiro
+Antes de qualquer tarefa, consulte:
+1. `docs/direcionamento/01_ESCOPO_E_ARQUITETURA.md`
+2. `docs/direcionamento/02_REGRAS_DE_TRABALHO.md`
+3. `docs/direcionamento/03_ESTADO_E_APRENDIZADOS.md`
+4. `docs/direcionamento/04_CHECKLIST_DE_CONTINUIDADE.md`
 
-## 2. Metodologia pedagógica
+Depois, consulte os documentos e mecanismos vigentes do próprio repositório, especialmente arquitetura, esquema/modelo de dados, preservação, rastreabilidade, decisões e checklist mestre. Se houver divergência, investigue e apresente evidências; não escolha silenciosamente uma versão.
 
-- **Jornadas → módulos → cinco etapas** (`js/engine/modules.js`), sempre sobre o mesmo contexto do módulo:
-  01 Palavras-chave · 02 Expressões práticas · 03 Ouvir e entender · 04 Falar na prática (Speaking Lab) ·
-  05 Aplicar e conversar (perguntas, leitura, montar/escrever falas, produção livre “sem ler o texto”).
-- **Cadeados:** uma etapa abre quando a anterior foi concluída. Concluir = acertar **ao menos uma vez** a maior parte
-  (80% dos itens; 6 frases ouvidas nas rotinas ou 75% dos trechos nas jornadas; 3 gravações; perguntas respondidas).
-  Visitar não conclui. Um erro depois não fecha a etapa (o item volta na revisão). Etapa sem itens conta como concluída.
-  A situação é **calculada a partir dos cartões** (não há armazenamento à parte).
-- **Aprendizagem cumulativa:** expressões de módulos anteriores voltam ligadas nos textos seguintes; revisão espaçada
-  (Leitner, caixas 0–6) traz de volta o que foi errado ou está vencido.
-- **Vocabulário contextualizado:** cada item aparece numa frase real do texto; phrasal verbs, collocations, conectivos e
-  horários são categorias explícitas (`c`: phrasal, collocation, connector, time, word, verb…).
-- **Gramática em contexto:** notas curtas ligadas ao texto (Present Simple, Present Perfect com “once”, possessivos,
-  preposições, horários britânicos), nunca aulas isoladas.
-- **Prática oral e produção independente:** Speaking Lab + pergunta aberta no fim de cada módulo.
-- **Correção flexível** (`js/engine/checker.js`): resultado por classe — `correct` (inclui variantes equivalentes:
-  contrações, BrE/AmE, números por extenso, sinônimos aceitos), `spelling` (erro de digitação próximo), `grammar`
-  (regra conhecida violada), `meaning` (falta o essencial), `inconclusive` (o motor não sabe se a troca é válida;
-  o aluno pode marcar “Eu estava certo”), `empty`. Na fala livre, **erro de reconhecimento** (transcrição duvidosa)
-  é separado de **erro de inglês** e de **caso inconclusivo**.
-- **Textos de referência não são inventados nem alterados sem autorização.** Conteúdo de apoio escrito pelo app
-  (traduções, explicações, exemplos) é marcado como tal e não cria fatos novos sobre os personagens.
-- Conteúdo de terceiros (ex.: Conversation Book) não é publicado sem licença verificável; o Conversation Practice
-  publicado é original.
+Documentos e mecanismos vigentes (caminhos reais):
+- Arquitetura, estrutura e ferramentas: `docs/base-pedagogica/arquitetura.md` (comandos em §3, validação em §4).
+- Modelo de dados e critérios de consolidação: `docs/base-pedagogica/modelo-de-dados.md`; contrato executável: `base/esquema.json`.
+- Rastreabilidade (fonte × análise × decisão): `docs/base-pedagogica/rastreabilidade.md`.
+- Preservação: `docs/base-pedagogica/politica-de-preservacao.md`.
+- Decisões: `base/registros/decisoes.jsonl` (registros) e `dev/tools/base/decisoes.mjs` (decisões aprovadas aplicadas); análises em `docs/base-pedagogica/analises/`.
+- Checklist mestre — **fonte operacional única** de tarefas e status: `docs/base-pedagogica/checklist.md`.
+- Relatórios derivados (não editar à mão): `docs/base-pedagogica/gerado/`, regenerados por `node dev/tools/base/gerar.mjs`.
+- Ferramentas: `dev/tools/base/` (consolidação, extração, derivação, morfologia, validador, autotestes).
+- Instrução de início de sessão: `docs/direcionamento/05_INSTRUCAO_DE_INICIO_CLAUDE_CODE.md`.
 
-## 3. Personagens narrativos
+### Missão
+Manter uma Base Pedagógica cumulativa, confiável, rastreável e reutilizável, preservando fontes e registros originais e permitindo evolução incremental.
 
-São **protagonistas** dos conteúdos, não perfis de usuário. Não duplicar; não criar novos sistemas de seleção sem
-autorização. Registro: `data/characters.js` (gerado de `dev/content/characters/*.json` + `dev/content/personas-planned.json`).
+### Papel e limites
+- Atue como executor técnico: inspecione, implemente tarefas autorizadas, valide proporcionalmente e registre evidências.
+- O usuário decide escopo, prioridades estratégicas e decisões pedagógicas.
+- Não invente conteúdo, classificações ou decisões pedagógicas.
+- Não altere o aplicativo, sua UX, gamificação ou roadmap como parte deste repositório, salvo solicitação explícita.
+- Não publique conteúdo de terceiros sem direitos/licença adequados.
 
-| id | Nome exibido | Situação | Conteúdo |
-|---|---|---|---|
-| `lucas` | Lucas (adulto) | ativo | `data/content.js` (rotinas R01–R10 do Word + episódios R11–R18, “Lucas 2.0”) — `docs/lucas-jornada.md` |
-| `karla` | Karla | ativo (rótulo “em preparação” herdado) | 11 episódios K01–K11 — `docs/karla-jornada.md` |
-| `lucas-kid` | **Lukinhas** (11 anos) | ativo na branch `mvp-jornadas` (no GitHub; ainda **não publicado** no Pages) | 10 sessões L01–L10 — `docs/lukinhas.md` |
-| `heitor` | Heitor | previsto (sem conteúdo; idade não informada) | — |
+### Regra central: robusto e enxuto
+Faça somente trabalho necessário, com benefício concreto. Antes de criar tarefa, script, documento, abstração ou teste, verifique se já existe solução equivalente e se a mudança resolve um problema real.
 
-- **Conversation Practice** (`cp`) é uma **jornada** independente (não personagem): CP01 “First Steps: Meeting People”,
-  CP02 “What I Think: Likes and Opinions” — `docs/conversation-practice.md`.
-- **Curso — Atividades** (`#/course`) é uma **área** independente (não jornada, não personagem): traduções inglês →
-  português das atividades do curso do usuário, uma questão por vez, salvamento automático, correção do professor por
-  questão e exportação TXT — `docs/curso-atividades.md`. Decisão do responsável (2026-11-08): **nome neutro** no app
-  publicado (o nome do curso/unidade é privado) e **texto das atividades importado no aparelho** (material de terceiros;
-  nunca versionar o texto de uma atividade — testes usam conteúdo sintético ou `DRG_COURSE_FILE` fora do repositório).
-- **Lukinhas:** id interno `lucas-kid`, nome de exibição Lukinhas; fonte `dev/content/characters/lucas-kid.json`, gerada
-  por `dev/tools/lukinhas-source.mjs` (que confere os dez textos aprovados caractere por caractere); publicado em
-  `data/characters.js`. Dias da semana dos treinos de jiu-jitsu **não informados** — não atribuir.
-- **Pendência de produto (decisão do usuário):** foi dito que o produto não deve ter XP, pontuação, recompensas,
-  seleção de personagens/avatares nem personagens como perfis. O código atual (MVP de jornadas, já publicado) **ainda
-  tem** XP, níveis, sequência, conquistas e “Trocar personagem” com progresso por personagem. Não acrescentar nada
-  disso; remover exige tarefa própria autorizada.
+Não refaça trabalho concluído sem evidência de invalidação. Não repita auditorias completas ou suítes de testes por hábito. Não crie documentação duplicada, fases artificiais ou melhorias especulativas.
 
-## 4. Arquitetura técnica (repositório = conteúdo publicado do app)
+### Preservação
+- Nunca sobrescreva ou resuma destrutivamente fontes originais, atividades, respostas, correções, comentários ou exemplos.
+- Preserve identificadores, relações e rastreabilidade.
+- Diferencie fonte original, análise, decisão aprovada e complemento gerado por IA.
+- Não atribua ao professor conteúdo produzido por IA.
+- Não promova hipótese/candidata a fato sem evidência e critério.
+- Registre decisões novas sem apagar decisões históricas que elas substituam.
+- Proteja identificadores e mapeamentos internos protegidos (ex.: nomes privados e mapeamentos da lista codificada do projeto): não os exponha em conteúdo público, builds ou commits. Os IDs da Base (`VOC-…`, `ORI-…`, `ids.jsonl`) são públicos por decisão de arquitetura e não entram nesta regra.
 
-```
-index.html            CSP sem conexões externas; carrega data/*.js e dist/app.js
-manifest.webmanifest  id fixo "/daily-routine-english/index.html", standalone, ícones 192/512/maskable, 3 screenshots
-sw.js                 service worker (GERADO por tools/build-app.mjs a partir de tools/sw.template.js)
-install.html/.js      página de instalação (Chrome / Samsung Internet, QR em img/install-qr.svg)
-css/app.css           estilos (azul-marinho #1d4e89 + laranja --orange; temas claro/escuro)
-dist/app.js           bundle esbuild de js/ (o que o navegador executa)
-data/content.js       conteúdo do Lucas (window.DRG_CONTENT)
-data/characters.js    personagens + pacotes (Karla, Lukinhas) (window.DRG_CHARACTERS)
-data/journeys.js      Conversation Practice (window.DRG_JOURNEYS)
-data/audio-index.js   chaves de áudio embutido → duração (window.DRG_AUDIO)
-data/lexicon.txt.gz   léxico para “é palavra do inglês?” (gerado a partir do conteúdo + lista base)
-audio/*.ogg           clipes Kokoro (Opus) — chave = fnv1a do texto
-asr/                  reconhecimento de fala local opcional (Moonshine tiny + onnxruntime-web, ~38 MB, sob demanda)
-screenshots/          capturas do manifesto (fora do pré-cache)
-docs/                 documentação por tema
-js/main.js            boot, roteador por hash, App (estado, persona, jornada, layout)
-js/engine/            regras puras (sem DOM)
-js/ui/                telas
-js/audio/, js/store/  áudio/gravação/ASR e persistência
-```
+### Git e autorização
+- Trabalhe na branch solicitada pelo usuário; se não estiver nela, informe antes de mudar.
+- Antes de editar, verifique `git status`, branch, HEAD e mudanças locais. Nunca sobrescreva trabalho não commitado.
+- Não faça commit, push, rebase, cherry-pick, reset destrutivo, force-push ou publicação sem autorização explícita para aquela ação.
+- Não reescreva histórico remoto para corrigir questões menores.
+- Preserve commits e evidências existentes.
+- Mudanças estruturais devem ser pequenas, revisáveis e acompanhadas de evidências.
 
-- **Motor:** `scheduler.js` (cartões unidade:id:habilidade, Leitner, `unlockedNew`, `buildSession`, sessão por etapa
-  com filtro), `exercises.js` (gera exercícios: mc, recall, cloze, order, write, seq, tell, retell, conv, listen, read,
-  pairs, vb3 e **nat** — “mais natural”, só para itens com `plain`), `progress.js` (XP, dias, conquistas, migração de
-  estado), `modules.js` (etapas e cadeados), `profiles.js` (progresso por perfil), `characters.js` (registro e visão
-  de conteúdo por personagem), `journeys.js`, `checker.js`, `freeanswer.js`/`coherence.js`/`context.js`/
-  `integrity.js`/`agreement.js`/`wordfeedback.js` (avaliação de fala), `lexicon.js`, `text.js`, `practice.js`,
-  `retention.js`.
-- **Telas:** `home.js` (Início), `modules.js` (lista de módulos, módulo com etapas, Palavras-chave/Expressões),
-  `explore.js` (texto do módulo/rotina — nas sessões do Lukinhas com expressões tocáveis via `expression.js`),
-  `session.js` (sessão de exercícios), `lab.js` + `recwidget.js` + `freeanswer.js` + `inlinewords.js` (Speaking Lab),
-  `settings.js` (Ajustes, backup, seção Aplicativo), `pwa.js` (instalação e atualização), `review.js`, `stats.js`.
-- **Persistência:** IndexedDB `drg` (stores `kv` → `state`, `recordings`, `audio`); localStorage só de reserva.
-  Estado **esquema 2**: `profiles` por personagem (`lucas`, `karla`, `lucas-kid`, `heitor`) e por jornada
-  (`journey:cp`); o perfil ativo fica no topo do estado em execução. Esquema 1 é migrado sem perdas (cópia em
-  `state.prev`). Backup exporta/importa JSON (Ajustes). Gravações: áudio apagado após 7 dias, texto mantido.
+### Testes
+- Reutilize scripts e testes existentes.
+- Teste o que foi alterado e o que pode ter sido afetado.
+- Amplie a regressão somente quando o risco justificar.
+- Informe comandos, resultados e limites dos testes.
+- Não apresente evidência histórica como se tivesse sido executada agora.
 
-## 5. Speaking Lab (aprendizados)
+### Documentação
+- Mantenha uma única fonte operacional para tarefas atuais: o checklist mestre vigente no repositório.
+- Documentos normativos devem explicar regras estáveis, não replicar status de tarefas.
+- Artefatos gerados são derivados; não os edite manualmente se houver gerador.
+- Não crie documentos novos sem necessidade clara.
 
-- Gravação local (MediaRecorder); reconhecimento local opcional (Moonshine tiny, ~38 MB, baixado com consentimento,
-  cache próprio `asr-local-…`); sem ele há gravação e comparação A/B, mas não transcrição.
-- **Leitura em voz alta:** comparação palavra a palavra com a frase-alvo (`wordfeedback.js`): verde = reconhecido,
-  âmbar = possível erro (reconhecimento ou pronúncia — o app não sabe qual), cinza = não avaliado (fala possivelmente
-  cortada, confiança baixa, sem ASR). Normalização: contrações, BrE/AmE, números e horários (“five thirty” ↔ “5:30”),
-  compostos, inserções/omissões sem deslocar destaques.
-- **Resposta livre:** quatro dimensões separadas — **1. adequação** (relação com a pergunta e o elemento pedido),
-  **2. gramática e naturalidade**, **3. confiabilidade da transcrição** (integridade, hipóteses contextuais de erro do
-  reconhecedor rotuladas como sugestão, nunca certeza), **4. ritmo e pausas** (só o que foi medido).
-- **Limitações:** a transcrição **não comprova pronúncia**; não há alinhamento acústico por palavra nem avaliação
-  fonética; o reconhecedor corta textos longos (limite de tokens) — por isso a verificação de integridade.
+### Base e aplicativo no mesmo repositório
+- A raiz do repositório é o **aplicativo publicado** (PWA no GitHub Pages, branch `gh-pages`). A Base fica em `base/`, `docs/base-pedagogica/` e `dev/tools/base/`, fora do pacote e do pré-cache do app (`dev/setup-workdir.sh`, `dev/tools/build-app.mjs`). `bash dev/tools/base/conferir-app.sh` confirma que o app gerado continua idêntico ao publicado.
+- Referência técnica e pedagógica do aplicativo (metodologia, personagens, arquitetura, Speaking Lab, PWA, `dev/`, marcos): `docs/aplicativo-referencia.md`.
+- `HANDOFF.md` é o registro histórico do estado do **aplicativo** até 2026-11-08 (branch `mvp-jornadas`). Não é fonte operacional da Base: o protocolo dele (trocar para `mvp-jornadas`, commitar e enviar ao fim de cada sessão) **não** se aplica aqui — valem este arquivo e o checklist mestre.
 
-## 6. PWA e offline
+### Regras permanentes do projeto
+Herdadas do `CLAUDE.md` anterior e harmonizadas com as regras acima; continuam válidas para a Base e para o aplicativo.
+- Publicação (push para `gh-pages`, deploy) só com autorização explícita. Não alterar `main` nem `cp-publicacao` sem autorização. Force push ou reescrita de histórico remoto: nunca sem justificativa concreta e aprovação expressa.
+- Identidade dos commits, quando autorizados: `Lucas-Marinho-FPA <294024809+Lucas-Marinho-FPA@users.noreply.github.com>`.
+- Nunca enviar a `main` local de clones antigos: ela pode conter o commit `c0cb6c8` (material do Conversation Book sem licença).
+- Nomes privados (empregador, agência, unidades de atendimento) nunca em texto claro no repositório, em builds ou em mensagens de commit. Os padrões de proteção nos builds, testes e no validador da Base estão codificados em base64 de propósito; não os decodifique em arquivos versionados.
+- Área “Curso — Atividades”: nome neutro no app; o nome do curso é privado; o texto das atividades é importado no aparelho e nunca é versionado (testes usam conteúdo sintético ou arquivo fora do repositório).
+- No aplicativo, quando houver tarefa autorizada: não reconstruir o app nem refatorar módulos que funcionam sem justificativa; preferir mudanças pequenas e aditivas; MVP primeiro, o resto vai para backlog; preservar personagens, conteúdos, progresso e funcionalidades existentes e conferir que Lucas/Karla não mudaram; não alterar conteúdo aprovado nem inventar textos ou fatos sem autorização.
+- Não modificar outros repositórios (Bora de Inglês é projeto independente).
+- Não inventar resultados de testes, não reduzir cobertura, não mudar critério pedagógico para passar teste.
+- Ambiente efêmero: o container das sessões na nuvem é temporário. Ao terminar trabalho importante ainda não enviado, avise o usuário e peça autorização para commitar e enviar a branch de trabalho; não encerre em silêncio com trabalho só no ambiente temporário.
 
-- Service worker: pré-cache de todos os arquivos (exceto `js/`, `asr/`, `screenshots/`), “cache primeiro”, respostas
-  parciais (Range) para áudio. **Desde 2026-11-08: atualização incremental e retomável** — o `sw.js` traz o hash
-  (SHA-256) de cada arquivo; caches compartilhados entre versões `drgshell-v1` (app) e `drgaudio-v1` (áudios), chave
-  `<endereço>?v=<hash>`; só o que mudou é baixado (arquivos de caches antigos `drgapp-…`/`drg-…` são conferidos e
-  copiados), cada arquivo é conferido e guardado ao chegar, a instalação para aos 4 min guardando o progresso e continua
-  depois; diagnóstico em Ajustes. Nunca voltar ao modelo “uma cópia completa por versão” (causa do “Baixando…” sem fim
-  no celular) — `docs/pwa-instalacao.md`.
-- **Atualização controlada:** a versão nova baixa tudo e **espera**; o app mostra “Nova versão disponível” (nunca
-  durante uma sessão); só com “Atualizar agora” (ou fechando o app por completo) ela assume; o cache antigo só é
-  apagado depois que o app abriu na versão nova (mensagem `CLEANUP`); download com falha descarta o cache incompleto.
-  Verificação sempre ao abrir e, ao voltar ao app, no máximo a cada 15 min (só conta como feita quando o navegador
-  consultou o servidor). Enquanto baixa: “Baixando uma nova versão do aplicativo…”. Cache do reconhecimento nunca é
-  apagado. **Lição (defeito de 2026-10-31):** a limpeza nunca pode tocar o cache de uma versão baixando ou em espera,
-  e testes de atualização precisam conferir o **conteúdo da tela**, não só a versão do service worker
-  (`tests/e2e/update-transition.mjs`, troca real entre duas versões publicadas).
-- Instalação: botão “Instalar aplicativo” só com `beforeinstallprompt` (Chrome); senão, instruções pelo menu
-  (Chrome / Samsung Internet); nada aparece quando aberto como app. Página `install.html` com QR.
-- **Tamanho offline:** ~11,8 MB antes do Lukinhas → **~14,5 MB** com o Lukinhas (não publicado ainda); +~38 MB se o
-  reconhecimento de fala for instalado.
-- Testes: `tests/e2e/pwa.mjs` (instalabilidade, atualização aceita/adiada/falha/recuperação, offline, página de
-  instalação). Detalhes: `docs/pwa-instalacao.md`.
+### Forma de execução
+Para cada solicitação:
+1. inspecione somente o contexto necessário;
+2. explique brevemente o problema e a menor solução;
+3. implemente apenas o escopo autorizado;
+4. valide proporcionalmente;
+5. atualize somente os documentos afetados;
+6. informe arquivos alterados, testes/evidências, riscos e próximo passo real.
 
-## 7. Fontes, ferramentas e testes — pasta `dev/` (branch `mvp-jornadas`)
-
-A raiz do repositório é o app publicado. Conteúdo-fonte, geradores, build, testes, fixtures, fontes do reconhecimento
-de fala e evidências ficam em **`dev/`** (ver `dev/README.md`). Para trabalhar: `bash dev/setup-workdir.sh ../drg-work`
-monta uma cópia de trabalho (`app/` = raiz do repositório; `content/`, `tools/`, `tests/`, `vendor/` = `dev/`); depois
-`npm ci`, `npm test`, `node tools/build-app.mjs`. Arquivos gerados em `drg-work/app/` voltam para a raiz do repositório.
-Fora do repositório de propósito: `privacy_sanitize.py` (contém os nomes privados que remove), o texto do
-Conversation Book (sem licença), o Word original do usuário, o modelo Kokoro e `node_modules/`.
-- Build: `node tools/build-app.mjs` (roda build de conteúdo, personagens e jornadas; gera `dist/`, `data/`, `sw.js`).
-- Áudio: `tools/gen_audio.py <kokoro.onnx> <voices.bin>` (Kokoro offline; Lukinhas usa a voz `bm_lewis`).
-- Testes: `npm test` (unitários, `node --test`); E2E Chromium: `node tests/e2e/<suíte>.mjs <site> <base> <evidências>`
-  — `run.mjs`, `run-pages.mjs`, `asr-local.mjs`, `storage.mjs`, `wordpractice.mjs`, `characters.mjs`, `journey.mjs`,
-  `mvp.mjs`, `pwa.mjs`, `lukinhas.mjs`, `update-transition.mjs` (argumentos próprios: site antigo, site novo). Rodar as suítes **em sequência** (rodar em paralelo já corrompeu resultados).
-  A simulação do Pages usa `../site/daily-routine-english` (ou `DRG_PAGES_SITE`).
-
-## 8. Regras permanentes
-
-- Não reconstruir o app nem refatorar módulos que funcionam sem justificativa; preferir mudanças pequenas e aditivas.
-- Preservar personagens, conteúdos, progresso e funcionalidades existentes; conferir que Lucas/Karla não mudaram.
-- Não alterar conteúdo aprovado nem inventar textos/fatos sem autorização.
-- MVP primeiro; o resto vai para backlog.
-- Não inventar resultados de testes; não reduzir cobertura; não mudar critério pedagógico para passar teste.
-- **Não publicar** (push para `gh-pages`, deploy) **sem autorização explícita**; não alterar `main` nem
-  `cp-publicacao` sem autorização; **nunca** force push nem reescrita de histórico; preservar autoria dos commits
-  (identidade: `Lucas-Marinho-FPA <294024809+Lucas-Marinho-FPA@users.noreply.github.com>`).
-- **Nunca enviar a `main` local**: ela contém o commit `c0cb6c8` (material do Conversation Book sem licença).
-- Nunca publicar nomes do empregador, da agência ou de unidades de atendimento do usuário (dados privados).
-- Não modificar outros repositórios (Bora de Inglês).
-- Nomes privados (empregador, agência, unidade) nunca em texto claro no repositório: os padrões de proteção nos builds
-  e testes estão codificados em base64 de propósito.
-- **Nenhuma sessão de desenvolvimento pode ser considerada encerrada enquanto existirem alterações, commits ou arquivos
-  importantes exclusivamente num ambiente temporário, sem preservação ou transferência documentada** (o container
-  destas sessões é efêmero: commitar e enviar a branch de desenvolvimento — nunca a produção sem autorização).
-
-## 9. Marcos
-
-| Commit | Marco |
-|---|---|
-| `90689e8` | Avaliação oral em camadas (integridade, coerência, cores por evidência) |
-| `482ec74` · `4d9677e` · `35bd2fb` | Personagens; escolha de personagem; jornada da Karla (K01–K11) |
-| `13de9d2` | Lucas 2.0 (episódios R11–R18) — atual `main` remota |
-| `8cb37c9` · `b582c29` | Conversation Practice original (CP01–CP02), publicado sem o histórico do livro |
-| `aa9c8f8` | Speaking Lab: hipóteses contextuais de erro de reconhecimento + concordância |
-| `0719ac7` | MVP de jornadas: progresso por perfil (esquema 2), módulos com 5 etapas e cadeados |
-| `6a0c5b6` | PWA: atualização controlada, instalação, página com QR — **versão publicada** |
-| `523db11` · `1181ea5` | Lukinhas (10 sessões) + correção do “null” nas páginas de texto — na branch remota `mvp-jornadas`, **não publicados** |
-| `be86c74` · `0d096ad` | Preservação: `dev/` (fontes, ferramentas, testes), `CLAUDE.md`, `HANDOFF.md` — `mvp-jornadas` no GitHub desde 2026-10-31 |
+Se uma tarefa não trouxer benefício claro, recomende não executá-la. Seja objetivo e evite transferir ao usuário investigações que você consegue fazer no repositório.
