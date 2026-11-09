@@ -1,0 +1,40 @@
+{
+  "_ilustrativo": true,
+  "gerado_em": "2026-11-09",
+  "fontes": {
+    "publicada": "b194cee",
+    "remodelagem": "8d5ac0c"
+  },
+  "registros": 39,
+  "por_tipo": {
+    "FON": 7,
+    "ORI": 12,
+    "VOC": 2,
+    "REL": 4,
+    "DIV": 1,
+    "EXP": 2,
+    "PER": 2,
+    "RSP": 4,
+    "ATV": 4,
+    "DEC": 1
+  },
+  "cp01": {
+    "publicada": 65,
+    "remodelagem": 74,
+    "iguais_em_ambas": 65,
+    "mudaram": 0,
+    "so_na_remodelagem": [
+      "cp.team=team",
+      "cp.welcome=welcome",
+      "cp.software-developer=software developer",
+      "cp.friendly=friendly",
+      "cp.everyone=everyone",
+      "cp.join=join",
+      "cp.move=move",
+      "cp.club=club",
+      "cp.later=later"
+    ],
+    "so_na_publicada": []
+  },
+  "get_changed_word_vocab_iguais": false
+}
