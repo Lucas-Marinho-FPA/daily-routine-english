@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { BASE, canon, hashOf, hashBytes, gitShow, lerJsonl, arquivoDe, jsonl, Ids, ARQUIVO_DO_TIPO } from './lib.mjs';
 import { FONTES } from './fontes.mjs';
 import { extrair, recuperavel } from './extrair.mjs';
+import { derivar } from './derivar.mjs';
 
 export const DATA = '2026-11-09';
 const EXTRATOR = 'dev/tools/base/extrair.mjs@1';
@@ -66,11 +67,22 @@ export function consolidar(grupo, adaptador) {
   const ori = (codigo, local) => { const id = oriDe[codigo]?.[local]; if (!id) throw new Error(`ORI inexistente: ${codigo} ${local}`); return id; };
   const conteudo = (id) => novos.get(id).conteudo;
   const semUnidade = (oriId, destino, motivo) => conferencias.find((c) => c.fonte === novos.get(oriId).fonte).sem_unidade.push({ ori: oriId, destino, motivo });
-  const unidades = adaptador({ ids, ori, conteudo, semUnidade, existentes: porId, data: DATA, fontes: oriDe });
+  const doAdaptador = adaptador({ ids, ori, conteudo, semUnidade, existentes: porId, data: DATA, fontes: oriDe });
+  // derivações globais sobre a base inteira (existente + o que este grupo produziu)
+  const combinado = new Map([...porId].filter(([, r]) => r.tipo !== 'ORI'));
+  for (const u of doAdaptador) combinado.set(u.id, u);
+  const ordem = new Map(ids.linhas.map((l, i) => [l.id, i]));
+  const d = derivar({ registros: [...combinado.values()], ids, ordem });
+  const final = new Map(doAdaptador.map((u) => [u.id, u]));
+  for (const u of [...d.unidades, ...d.divergencias, ...d.relacoes]) final.set(u.id, u);
+  const unidades = [...final.values()];
 
   // versões: unidade existente que muda recebe versão nova (histórico só cresce)
   for (const u of unidades) {
     const velho = porId.get(u.id);
+    if (velho && !['ORI', 'FON'].includes(u.tipo) && velho.versao === undefined) { // REL e DIV: sem versão própria; o git guarda o histórico
+      novos.set(u.id, canon(velho) === canon(u) ? velho : ordenar(u)); continue;
+    }
     if (velho && !['ORI', 'FON'].includes(u.tipo)) {
       const { versao: va, historico: ha, ...ca } = velho, { versao: vb, historico: hb, ...cb } = u;
       if (canon(ca) === canon(cb)) { novos.set(u.id, velho); continue; }

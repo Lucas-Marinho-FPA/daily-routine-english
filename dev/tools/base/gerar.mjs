@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { REPO, BASE, hashBytes, lerJsonl, arquivosBase } from './lib.mjs';
+import { FONTES } from './fontes.mjs';
 
 const ROTULO = { FON: 'fontes', ORI: 'registros de origem (literais)', VOC: 'vocabulário (uma palavra)', EXP: 'expressões', GRA: 'estruturas gramaticais', TXT: 'textos', SEG: 'segmentos (parágrafos, frases, falas)', DIA: 'diálogos', PER: 'perguntas', RSP: 'respostas-modelo', ATV: 'atividades', EXE: 'exercícios', CTX: 'contextos', PSG: 'personagens', REL: 'relações', DEC: 'decisões', DIV: 'divergências' };
 const G = 'docs/base-pedagogica/gerado';
@@ -111,7 +112,75 @@ export function gerar() {
     L.push('');
   }
   md[`${G}/gramatica-e-exercicios.md`] = L.join('\n') + '\n';
+  md[`${G}/personagens.md`] = personagens(registros, por);
   return { manifesto, markdown: md };
+}
+
+// ---------- visão integrada dos personagens (só fatos dos dados; propostas ficam fora daqui) ----------
+function personagens(registros, por) {
+  const NOME = { lucas: 'Lucas', karla: 'Karla', lukinhas: 'Lukinhas' };
+  const grupoDaFonte = new Map();
+  for (const f of registros.filter((r) => r.tipo === 'FON')) { const g = FONTES.find((x) => x.codigo === f.codigo)?.grupo; if (NOME[g]) grupoDaFonte.set(f.id, g); }
+  const quemDoOri = (o) => grupoDaFonte.get(por.get(o)?.fonte);
+  const psgGrupo = new Map(registros.filter((r) => r.tipo === 'PSG').map((p) => [p.id, { lucas: 'lucas', karla: 'karla', 'lucas-kid': 'lukinhas' }[p.codigo]]));
+  const txtDe = new Map(registros.filter((r) => r.tipo === 'TXT').map((t) => [t.id, t]));
+  const quemDoSeg = (s) => psgGrupo.get(txtDe.get(por.get(s)?.texto)?.personagens?.[0]);
+  const ordemTxt = (t) => t?.id_original ?? '';
+  const lex = registros.filter((r) => r.tipo === 'VOC' || r.tipo === 'EXP');
+  const info = lex.map((u) => {
+    const fontes = new Set(u.evidencias.map((e) => quemDoOri(e.ori)).filter(Boolean));
+    const uso = new Set((u.exemplos || []).map(quemDoSeg).filter(Boolean));
+    const primeira = {};
+    for (const s of u.exemplos || []) { const g = quemDoSeg(s); const t = txtDe.get(por.get(s).texto); if (g && (!primeira[g] || ordemTxt(t) < primeira[g])) primeira[g] = ordemTxt(t); }
+    return { u, fontes, uso, primeira };
+  });
+  const gs = ['lucas', 'karla', 'lukinhas'];
+  const L = cab('Base Pedagógica — personagens: conhecimento compartilhado e exclusivo');
+  L.push('Duas leituras, sempre separadas: **identidade lexical** (o item consta do material da personagem: a fonte o registra como item) e **uso em texto** (a forma aparece literalmente, ou marcada pela fonte, nos textos da personagem). Uma unidade compartilhada mantém as traduções, notas, exemplos e contextos de cada personagem, cada um com a sua origem.', '');
+  L.push('## Resumo', '', '| Personagem | Itens no material | Exclusivos do material | Unidades usadas nos textos | Textos | Segmentos | Perguntas (respostas-modelo + abertas) |', '|---|---|---|---|---|---|---|');
+  for (const g of gs) {
+    const txts = [...txtDe.values()].filter((t) => psgGrupo.get(t.personagens?.[0]) === g);
+    const nSeg = txts.reduce((n, t) => n + t.segmentos.length, 0);
+    const atvs = registros.filter((r) => r.tipo === 'ATV' && psgGrupo.get(r.personagens?.[0]) === g);
+    const nPerg = atvs.reduce((n, a) => n + (a.respostas || []).length + (a.perguntas_abertas || []).length, 0);
+    L.push(`| ${NOME[g]} | ${info.filter((x) => x.fontes.has(g)).length} | ${info.filter((x) => x.fontes.size === 1 && x.fontes.has(g)).length} | ${info.filter((x) => x.uso.has(g)).length} | ${txts.length} | ${nSeg} | ${nPerg} |`);
+  }
+  L.push('');
+  const lista = (titulo, f) => {
+    const sel = info.filter(f).sort((a, b) => a.u.forma.localeCompare(b.u.forma, 'en'));
+    L.push(`## ${titulo} (${sel.length})`, '');
+    if (!sel.length) { L.push('Nenhum.', ''); return; }
+    L.push('| Unidade | Forma | No material de | Usada nos textos de | Primeira ocorrência por personagem |', '|---|---|---|---|---|');
+    for (const x of sel) L.push(`| ${x.u.id} | ${cel(x.u.forma)} | ${gs.filter((g) => x.fontes.has(g)).map((g) => NOME[g]).join(', ')} | ${gs.filter((g) => x.uso.has(g)).map((g) => NOME[g]).join(', ')} | ${gs.filter((g) => x.primeira[g]).map((g) => `${NOME[g]} ${x.primeira[g]}`).join(' · ')} |`);
+    L.push('');
+  };
+  lista('No material dos três personagens', (x) => x.fontes.size === 3);
+  lista('No material de dois personagens', (x) => x.fontes.size === 2);
+  lista('Só no material de um personagem, mas usada nos textos de outro', (x) => x.fontes.size === 1 && [...x.uso].some((g) => !x.fontes.has(g)));
+  for (const g of gs) {
+    const ex = info.filter((x) => x.fontes.size === 1 && x.fontes.has(g)).map((x) => x.u.forma).sort((a, b) => a.localeCompare(b, 'en'));
+    L.push(`## Exclusivos do material de ${NOME[g]} (${ex.length})`, '', ex.map(cel).join(' · ') || 'Nenhum.', '');
+  }
+  const pers = registros.filter((r) => r.tipo === 'PER');
+  const quemPer = (p) => new Set(p.evidencias.map((e) => quemDoOri(e.ori)).filter(Boolean));
+  const comp = pers.filter((p) => quemPer(p).size > 1);
+  L.push(`## Perguntas com o mesmo enunciado em mais de um personagem (${comp.length})`, '');
+  for (const p of comp) {
+    L.push(`### ${p.id} — “${cel(p.enunciado)}”`, '');
+    const rs = registros.filter((r) => r.tipo === 'RSP' && r.pergunta === p.id);
+    for (const r of rs) L.push(`- ${NOME[psgGrupo.get(r.personagens?.[0])] ?? '?'} (${r.id_original}, ${r.id}): ${cel(r.original)}`);
+    for (const a of registros.filter((r) => r.tipo === 'ATV')) for (const x of a.perguntas_abertas || []) if (x.pergunta === p.id) L.push(`- ${NOME[psgGrupo.get(a.personagens?.[0])] ?? '?'} (${x.id_original}): pergunta aberta, sem resposta-modelo${x.dica ? ` — dica: ${cel(x.dica.valor)}` : ''}`);
+    L.push('');
+  }
+  L.push('## Notas gramaticais por texto (literais das fontes)', '', '| Personagem | Texto | Etapa/nível na fonte | Nota gramatical |', '|---|---|---|---|');
+  for (const t of [...txtDe.values()].filter((t) => t.nota_gramatical).sort((a, b) => ordemTxt(a).localeCompare(ordemTxt(b)))) {
+    L.push(`| ${NOME[psgGrupo.get(t.personagens?.[0])] ?? '—'} | ${cel(t.id_original)} | ${cel(t.estagio?.valor ?? t.nivel_da_fonte?.valor ?? '')} | ${cel(t.nota_gramatical.valor)} |`);
+  }
+  L.push('');
+  const ctxs = registros.filter((r) => r.tipo === 'CTX');
+  L.push('## Contextos narrativos (segmentos por personagem)', '', `| Contexto | ${gs.map((g) => NOME[g]).join(' | ')} |`, `|---|${gs.map(() => '---').join('|')}|`);
+  for (const c of ctxs) L.push(`| ${c.codigo} | ${gs.map((g) => registros.filter((s) => s.tipo === 'SEG' && (s.contextos || []).includes(c.id) && quemDoSeg(s.id) === g).length).join(' | ')} |`);
+  return L.join('\n') + '\n';
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
