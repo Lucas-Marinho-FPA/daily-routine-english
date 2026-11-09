@@ -10,6 +10,7 @@ import { BASE, canon, hashOf, hashBytes, gitShow, lerJsonl, arquivoDe, jsonl, Id
 import { FONTES } from './fontes.mjs';
 import { extrair, recuperavel } from './extrair.mjs';
 import { derivar } from './derivar.mjs';
+import { DECISOES } from './decisoes.mjs';
 
 export const DATA = '2026-11-09';
 const EXTRATOR = 'dev/tools/base/extrair.mjs@1';
@@ -84,7 +85,20 @@ export function consolidar(grupo, adaptador) {
   const combinado = new Map([...porId].filter(([, r]) => r.tipo !== 'ORI'));
   for (const u of doAdaptador) combinado.set(u.id, u);
   const ordem = new Map(ids.linhas.map((l, i) => [l.id, i]));
-  const d = derivar({ registros: [...combinado.values()], ids, ordem });
+  // decisões aprovadas (dev/tools/base/decisoes.mjs): registros DEC imutáveis, criados uma vez, aplicados pela derivação
+  for (const dec of DECISOES) {
+    const id = ids.id('DEC', dec.chave);
+    const { chave, forma, ...campos } = dec;
+    const alvo = [...combinado.values()].find((r) => (r.tipo === 'EXP' || r.tipo === 'VOC') && r.forma === forma);
+    if (!alvo) throw new Error(`decisão ${chave}: unidade “${forma}” inexistente`);
+    const reg = ordenar({ id, tipo: 'DEC', ...campos, evidencias: (alvo.classificacoes_origem || []).map((c) => ({ ori: c.ori })),
+      efeitos: campos.efeitos.map((e) => ({ unidade: alvo.id, ...e })) });
+    const velho = porId.get(id);
+    if (velho && canon(velho) !== canon(reg)) throw new Error(`${id}: uma decisão registrada não muda — revogue-a com uma nova DEC`);
+    combinado.set(id, reg); doAdaptador.push(reg);
+  }
+  const catalogo = JSON.parse(readFileSync(join(BASE, 'progressao/catalogo.json'), 'utf8'));
+  const d = derivar({ registros: [...combinado.values()], ids, ordem, catalogo });
   const final = new Map(doAdaptador.map((u) => [u.id, u]));
   for (const u of [...d.unidades, ...d.divergencias, ...d.relacoes]) final.set(u.id, u);
   const unidades = [...final.values()];
@@ -99,7 +113,10 @@ export function consolidar(grupo, adaptador) {
       const { versao: va, historico: ha, ...ca } = velho, { versao: vb, historico: hb, ...cb } = u;
       if (canon(ca) === canon(cb)) { novos.set(u.id, velho); continue; }
       u.versao = velho.versao + 1;
-      u.historico = [...velho.historico, { versao: u.versao, data: DATA, mudanca: `atualizada na consolidação do grupo “${grupo}”` }];
+      const novaDec = u.subtipo_decisao && u.subtipo_decisao !== velho.subtipo_decisao;
+      u.historico = [...velho.historico, novaDec
+        ? { versao: u.versao, data: DATA, mudanca: `classificação central aplicada (subtipo: ${u.subtipo}); classificações de origem preservadas`, decisao: u.subtipo_decisao }
+        : { versao: u.versao, data: DATA, mudanca: `atualizada na consolidação do grupo “${grupo}”` }];
     }
     novos.set(u.id, ordenar(u));
   }

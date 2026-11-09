@@ -22,6 +22,8 @@ try {
   // fonte e adaptador sintéticos (texto inventado só para o teste)
   gravar('fonte.json', JSON.stringify({ items: [{ en: 'synthetic word', pt: 'palavra sintética' }, { en: 'another word', pt: 'outra palavra' }], _doc: 'teste' }));
   gravar('dev/tools/base/fontes.mjs', `export const FONTES = [{ codigo: 'T1', titulo: 'fonte sintética', grupo: 'teste', arquivo: 'fonte.json', versao: process.env.REV_FONTE, natureza: 'autoria', distribuicao: 'integral', regras: ['/items/*', '/_doc'] }];\n`);
+  gravar('dev/tools/base/decisoes.mjs', `export const DECISOES = [{ chave: 'subtipo:synthetic word', forma: 'synthetic word', data: '2026-11-09', status: 'aprovada', aprovada_por: 'teste',
+  decisao: process.env.DEC_TEXTO || 'decisão sintética', justificativa: 'teste', efeitos: [{ campo: 'subtipo', valor: 'collocation' }] }];\n`);
   gravar('dev/tools/base/adaptadores/teste.mjs', `export default function ({ ids, conteudo, semUnidade, data, fontes }) {
   const out = [];
   for (const [local, o] of Object.entries(fontes.T1)) {
@@ -78,6 +80,15 @@ try {
   d();
   console.log(`${recusou ? 'ok   ' : 'FALHA'} consolidação recusa regravar um ORI existente diferente (imutabilidade no gravador)`);
   if (!recusou) { falhas++; console.log(rec.out); }
+  // decisão aplicada (subtipo central + DIV inexistente aqui) e imutável depois de registrada
+  const exp = ler('base/registros/expressoes.jsonl');
+  const okDec = exp.includes('"subtipo":"collocation"') && exp.includes('"subtipo_decisao":"DEC-000001"');
+  console.log(`${okDec ? 'ok   ' : 'FALHA'} decisão aprovada aplicada à unidade (subtipo central + referência à DEC)`); if (!okDec) falhas++;
+  process.env.DEC_TEXTO = 'decisão sintética ALTERADA';
+  const rd = node('dev/tools/base/consolidar.mjs', 'teste');
+  delete process.env.DEC_TEXTO;
+  const recusouDec = rd.code !== 0 && rd.out.includes('uma decisão registrada não muda');
+  console.log(`${recusouDec ? 'ok   ' : 'FALHA'} consolidação recusa alterar uma DEC já registrada`); if (!recusouDec) { falhas++; console.log(rd.out); }
   console.log(`autoteste da base: ${falhas ? 'FALHOU' : 'ok'} (${falhas} falha(s))`);
   process.exitCode = falhas ? 1 : 0;
 } finally { rmSync(T, { recursive: true, force: true }); }

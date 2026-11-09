@@ -15,6 +15,7 @@ import { gerar } from './gerar.mjs';
 export const ESQUEMA = JSON.parse(readFileSync(join(BASE, 'esquema.json'), 'utf8'));
 const CATALOGO = JSON.parse(readFileSync(join(BASE, 'progressao/catalogo.json'), 'utf8'));
 const MAPA_SUBTIPO = CATALOGO.categorias_que_nomeiam_subtipo;
+const PARADIGMAS = Object.fromEntries(Object.entries(CATALOGO.paradigmas_verbais || {}).filter(([k]) => k !== '_doc'));
 const ID_RE = new RegExp(ESQUEMA.$defs.id.pattern);
 const SO_POR_DECISAO = ['equivalente_a', 'semelhante_a'];
 export const VERIFICACOES = {
@@ -117,6 +118,17 @@ export function validar({ registros, ids = [], conferencias = new Map(), gitFont
       }
     }
     if (r.tipo === 'DIV' && new Set((r.versoes || []).map((x) => canon(x.valor))).size < 2) err(r.id, 7, 'divergência sem valores diferentes');
+    if (r.subtipo_decisao) {
+      const dec = porId.get(r.subtipo_decisao);
+      if (dec?.status !== 'aprovada' || !(dec.efeitos || []).some((e) => e.unidade === r.id && e.campo === 'subtipo' && e.valor === r.subtipo)) err(r.id, 7, 'classificação central sem DEC aprovada com o mesmo efeito');
+    }
+    if (r.tipo === 'REL' && r.relacao === 'aparece_em' && r.forma_encontrada !== undefined) {
+      const sg = porId.get(r.para);
+      const p = r.posicao || {};
+      if (sg?.tipo !== 'SEG' || sg.original.slice(p.inicio, p.fim) !== r.forma_encontrada) err(r.id, 7, 'ocorrência registrada não está no texto na posição indicada');
+      const verbo = String(r.criterio || '').split(':')[1];
+      if (r.status === 'confirmada' && !(String(r.criterio).startsWith('paradigma_verbal_catalogo:') && PARADIGMAS[verbo])) err(r.id, 8, 'ocorrência flexionada confirmada sem paradigma no catálogo');
+    }
 
     // 8. origem do enriquecimento e classificação
     for (const k of ['traducoes', 'explicacoes', 'habilidades']) for (const x of r[k] || []) {
@@ -250,6 +262,8 @@ export function autoteste() {
     [7, 'equivalente_a sem DEC aprovada', ({ rs, ids }) => { const a = rs.filter((r) => r.tipo === 'VOC'); const r = { tipo: 'REL', de: a[0].id, relacao: 'equivalente_a', para: a[1].id, status: 'confirmada', evidencias: [a[0].evidencias[0]] }; novoId(rs, ids, r, 'REL-999990'); rs.push(r); }],
     [7, 'duplicado_de com conteúdo diferente', ({ rs, ids }) => { const o = rs.filter((r) => r.tipo === 'ORI'); const r = { tipo: 'REL', de: o[0].id, relacao: 'duplicado_de', para: o[1].id, status: 'confirmada', evidencias: [{ ori: o[0].id }] }; novoId(rs, ids, r, 'REL-999991'); rs.push(r); }],
     [7, 'divergência anulada sem motivo', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DIV'); d.status = 'anulada'; delete d.motivo; const u = acha(rs, (r) => r.id === d.unidade); u.divergencias = u.divergencias.filter((x) => x !== d.id); }],
+    [7, 'ocorrência flexionada fora da posição registrada', ({ rs }) => { const r = acha(rs, (x) => x.relacao === 'aparece_em' && x.forma_encontrada); r.posicao = { inicio: r.posicao.inicio + 1, fim: r.posicao.fim + 1 }; }],
+    [8, 'ocorrência candidata marcada como confirmada', ({ rs }) => { acha(rs, (x) => x.relacao === 'aparece_em' && x.status === 'proposta').status = 'confirmada'; }],
     [8, 'tradução sem origem', ({ rs }) => { delete acha(rs, (r) => r.traducoes?.length).traducoes[0].origem; }],
     [8, 'subtipo central forçado sem fonte que o nomeie', ({ rs }) => { const u = acha(rs, (r) => r.tipo === 'EXP' && r.subtipo === null && !(r.classificacoes_origem || []).some((c) => c.subtipo)); u.subtipo = 'phrasal'; }],
     [8, 'classificação com subtipo diferente do catálogo', ({ rs }) => { acha(rs, (r) => r.classificacoes_origem?.some((c) => c.categoria === 'word')).classificacoes_origem.find((c) => c.categoria === 'word').subtipo = 'chunk'; }],

@@ -1,17 +1,44 @@
 {
   "descricao": "Códigos fixos da Base (não são registros numerados). A atribuição de uma habilidade a uma unidade sempre leva origem (ORI, DEC ou autoria do projeto).",
   "habilidades": [
-    { "codigo": "hab:reading", "nome": "Leitura" },
-    { "codigo": "hab:writing", "nome": "Escrita" },
-    { "codigo": "hab:listening", "nome": "Compreensão oral" },
-    { "codigo": "hab:speaking", "nome": "Produção oral" },
-    { "codigo": "hab:vocabulary", "nome": "Vocabulário" },
-    { "codigo": "hab:grammar", "nome": "Gramática" },
-    { "codigo": "hab:functional", "nome": "Uso funcional (comunicação em situação real)" }
+    {
+      "codigo": "hab:reading",
+      "nome": "Leitura"
+    },
+    {
+      "codigo": "hab:writing",
+      "nome": "Escrita"
+    },
+    {
+      "codigo": "hab:listening",
+      "nome": "Compreensão oral"
+    },
+    {
+      "codigo": "hab:speaking",
+      "nome": "Produção oral"
+    },
+    {
+      "codigo": "hab:vocabulary",
+      "nome": "Vocabulário"
+    },
+    {
+      "codigo": "hab:grammar",
+      "nome": "Gramática"
+    },
+    {
+      "codigo": "hab:functional",
+      "nome": "Uso funcional (comunicação em situação real)"
+    }
   ],
   "jornadas": [
-    { "codigo": "jor:daily-routine", "nome": "Daily Routine (Lucas, Karla, Lukinhas)" },
-    { "codigo": "jor:conversation-practice", "nome": "Conversation Practice" }
+    {
+      "codigo": "jor:daily-routine",
+      "nome": "Daily Routine (Lucas, Karla, Lukinhas)"
+    },
+    {
+      "codigo": "jor:conversation-practice",
+      "nome": "Conversation Practice"
+    }
   ],
   "categorias_que_nomeiam_subtipo": {
     "_doc": "Categorias das fontes (campo c) cujo nome é o próprio subtipo de EXP. Só estas classificam; as demais (word, verb, professional, sentence, rótulos de seção) ficam registradas em classificacoes_origem com subtipo null.",
@@ -19,5 +46,14 @@
     "collocation": "collocation",
     "connector": "conector",
     "time": "tempo"
+  },
+  "paradigmas_verbais": {
+    "_doc": "Verbos com paradigma explícito: ocorrências flexionadas de expressões com estes verbos-cabeça são associadas como CONFIRMADAS (forma canônica + resto idêntico e adjacente). Os demais verbos só geram candidatas (proposta). Escopo aprovado em 2026-11-09: get (get changed, get dressed).",
+    "get": {
+      "terceira_pessoa": "gets",
+      "gerundio": "getting",
+      "passado": "got",
+      "participio": "gotten"
+    }
   }
 }

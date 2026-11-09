@@ -2,7 +2,7 @@
 
 > Gerado por `node dev/tools/base/gerar.mjs` a partir de `base/`. **Não editar à mão** — a validação compara.
 
-Esquema: `base-pedagogica/esquema/2.1.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados — aguardando revisão**
+Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados — aguardando revisão**
 
 ## Registros por tipo
 
@@ -22,7 +22,7 @@ Esquema: `base-pedagogica/esquema/2.1.0` · estado: **consolidação em andament
 | `EXE` | exercícios | 4 |
 | `CTX` | contextos | 8 |
 | `PSG` | personagens | 6 |
-| `REL` | relações | 22 |
+| `REL` | relações | 79 |
 | `DEC` | decisões | 0 |
 | `DIV` | divergências | 13 |
 
@@ -71,8 +71,8 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | `base/conferencia/FON-000009.json` | — | `6c826cfbf9fa8c4b` |
 | `base/conferencia/FON-000010.json` | — | `e06e1bb3eff7be53` |
 | `base/fontes/fontes.jsonl` | 10 | `a41dd0102aef9e3c` |
-| `base/ids.jsonl` | 3652 | `10f4178d4b1d9b56` |
-| `base/progressao/catalogo.json` | — | `0afb089b508b35e8` |
+| `base/ids.jsonl` | 3709 | `88a337f8e601b2b7` |
+| `base/progressao/catalogo.json` | — | `3845ea5d59a62342` |
 | `base/progressao/grafo.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/progressao/percursos.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/registros/atividades.jsonl` | 50 | `7cd50edd2ce4de3e` |
@@ -97,4 +97,4 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | `base/registros/respostas.jsonl` | 138 | `0a25c8b27a67f551` |
 | `base/registros/textos.jsonl` | 355 | `1421e959244be324` |
 | `base/registros/vocabulario.jsonl` | 110 | `124f3d4132fb490e` |
-| `base/relacoes/relacoes.jsonl` | 22 | `91cb066b92738ca9` |
+| `base/relacoes/relacoes.jsonl` | 79 | `837eb7ff73a9bcac` |
