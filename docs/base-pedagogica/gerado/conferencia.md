@@ -349,7 +349,7 @@
 | DIV-000005 | EXP-000041 | traduções de “work on” | “trabalhar em” ← ORI-000107; “trabalhar em” ← ORI-000192; “trabalhar em/aprimorar” ← ORI-000223; “trabalhar em/aprimorar” ← ORI-000347 | aberta |
 | DIV-000006 | EXP-000057 | traduções de “clear the table” | “tirar/limpar a mesa” ← ORI-000156; “tirar a mesa” ← ORI-000166 | aberta |
 | DIV-000007 | EXP-000108 | traduções de “wind down” | “desacelerar/relaxar antes de dormir” ← ORI-000306; “desacelerar/relaxar” ← ORI-000351 | aberta |
-| DIV-000008 | EXP-000124 | nível de origem de “go for a run” | “1” ← ORI-001250; “2” ← ORI-001771 | aberta |
+| DIV-000008 | EXP-000124 | nível de origem de “go for a run” | “1” ← ORI-001250; “2” ← ORI-001771 | anulada |
 | DIV-000009 | VOC-000025 | traduções de “client” | “cliente” ← ORI-001314; “aluno(a), cliente” ← ORI-001808 | aberta |
 
 ## Relações

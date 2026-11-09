@@ -1,6 +1,6 @@
 {
   "nome": "Base Pedagógica Mestra — Daily Routine English",
-  "esquema": "base-pedagogica/esquema/2.0.0",
+  "esquema": "base-pedagogica/esquema/2.1.0",
   "estado": "consolidação em andamento: Lucas R1–R7 aprovado; Karla R8 consolidada — aguardando revisão",
   "arquitetura": "docs/base-pedagogica/arquitetura.md",
   "preservacao": {
@@ -133,7 +133,7 @@
     },
     {
       "caminho": "registros/divergencias.jsonl",
-      "sha256": "cd0d6275aea2320b0c7b23f1e81740124ef717adf9088f5e535e64614a3aae9a",
+      "sha256": "805a0b9a85636c75f2c8054a451d31aaae082793b3b48840a3c57c72e03f752c",
       "registros": 9
     },
     {
@@ -143,7 +143,7 @@
     },
     {
       "caminho": "registros/expressoes.jsonl",
-      "sha256": "3f8bf09a3e0a0c00abac6e2cebeda80949c0535ce2beee0053b58353482c2e23",
+      "sha256": "160264f1fea5a363a93f76c82566f6fd30e242a1af5d55e69cf9aaa77c112819",
       "registros": 367
     },
     {

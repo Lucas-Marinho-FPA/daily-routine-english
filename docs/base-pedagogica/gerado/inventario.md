@@ -2,7 +2,7 @@
 
 > Gerado por `node dev/tools/base/gerar.mjs` a partir de `base/`. **Não editar à mão** — a validação compara.
 
-Esquema: `base-pedagogica/esquema/2.0.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla R8 consolidada — aguardando revisão**
+Esquema: `base-pedagogica/esquema/2.1.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla R8 consolidada — aguardando revisão**
 
 ## Registros por tipo
 
@@ -26,7 +26,7 @@ Esquema: `base-pedagogica/esquema/2.0.0` · estado: **consolidação em andament
 | `DEC` | decisões | 0 |
 | `DIV` | divergências | 9 |
 
-Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de texto”: 35 · “sem tradução”: 17 · divergências abertas: 9
+Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de texto”: 35 · “sem tradução”: 17 · divergências abertas: 8
 
 ## Fontes
 
@@ -75,9 +75,9 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | `base/registros/contextos.jsonl` | 13 | `229efafaf83568ff` |
 | `base/registros/decisoes.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/registros/dialogos.jsonl` | 12 | `9f2e924b97f1f5dd` |
-| `base/registros/divergencias.jsonl` | 9 | `cd0d6275aea2320b` |
+| `base/registros/divergencias.jsonl` | 9 | `805a0b9a85636c75` |
 | `base/registros/exercicios.jsonl` | 4 | `096933d06e7941a6` |
-| `base/registros/expressoes.jsonl` | 367 | `3f8bf09a3e0a0c00` |
+| `base/registros/expressoes.jsonl` | 367 | `160264f1fea5a363` |
 | `base/registros/gramatica.jsonl` | 18 | `5236f3dc0d27b8d2` |
 | `base/registros/origem/FON-000001.jsonl` | 373 | `405834757d0ee102` |
 | `base/registros/origem/FON-000002.jsonl` | 247 | `0df8a5b2b95136c9` |

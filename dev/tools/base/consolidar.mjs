@@ -67,7 +67,19 @@ export function consolidar(grupo, adaptador) {
   const ori = (codigo, local) => { const id = oriDe[codigo]?.[local]; if (!id) throw new Error(`ORI inexistente: ${codigo} ${local}`); return id; };
   const conteudo = (id) => novos.get(id).conteudo;
   const semUnidade = (oriId, destino, motivo) => conferencias.find((c) => c.fonte === novos.get(oriId).fonte).sem_unidade.push({ ori: oriId, destino, motivo });
-  const doAdaptador = adaptador({ ids, ori, conteudo, semUnidade, existentes: porId, data: DATA, fontes: oriDe });
+  const brutos = adaptador({ ids, ori, conteudo, semUnidade, existentes: porId, data: DATA, fontes: oriDe });
+  // um grupo nunca apaga o que outro registrou: a unidade existente é unida ao que o adaptador devolveu
+  // (listas: união, mantendo a ordem existente; valores: o do adaptador, sem perder campos que só a existente tem)
+  const doAdaptador = brutos.map((u) => {
+    const velho = porId.get(u.id);
+    if (!velho || ['ORI', 'FON', 'REL', 'DIV'].includes(u.tipo)) return u;
+    const m = { ...velho, ...u };
+    for (const k of Object.keys(velho)) if (Array.isArray(velho[k]) && Array.isArray(u[k]) && !['historico'].includes(k)) {
+      const vistos = new Set(velho[k].map(canon)); m[k] = [...velho[k], ...u[k].filter((x) => !vistos.has(canon(x)))];
+    }
+    m.versao = velho.versao; m.historico = velho.historico;
+    return m;
+  });
   // derivações globais sobre a base inteira (existente + o que este grupo produziu)
   const combinado = new Map([...porId].filter(([, r]) => r.tipo !== 'ORI'));
   for (const u of doAdaptador) combinado.set(u.id, u);

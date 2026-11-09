@@ -45,16 +45,25 @@ export function derivar({ registros, ids, ordem }) {
     const lista = [];
     const cls = (u.classificacoes_origem || []).filter((c) => c.subtipo);
     if (new Set(cls.map((c) => c.subtipo)).size > 1) lista.push(['subtipo', `subtipo de “${u.forma}”`, cls.map((c) => ({ valor: c.categoria, ori: c.ori }))]);
-    for (const [campo, rot, val] of [['traducoes', 'traduções', (x) => x.texto], ['niveis_origem', 'nível de origem', (x) => x.valor], ['pronuncia', 'pronúncia', (x) => x.valor]]) {
+    for (const [campo, rot, val] of [['traducoes', 'traduções', (x) => x.texto], ['pronuncia', 'pronúncia', (x) => x.valor]]) {
       const l = u[campo] || [];
       if (new Set(l.map(val)).size > 1) lista.push([campo, `${rot} de “${u.forma}”`, l.map((x) => ({ valor: val(x), ori: x.origem.ori }))]);
     }
+    // níveis só se comparam dentro da MESMA escala (cada pacote tem a sua; arquitetura §5)
+    const porEscala = new Map();
+    for (const n of u.niveis_origem || []) (porEscala.get(n.escala) || porEscala.set(n.escala, []).get(n.escala)).push(n);
+    const conflito = [...porEscala.values()].filter((l) => new Set(l.map((x) => x.valor)).size > 1).flat();
+    if (conflito.length) lista.push(['niveis_origem', `nível de origem de “${u.forma}”`, conflito.map((x) => ({ valor: x.valor, ori: x.origem.ori }))]);
     const ds = lista.map(([campo, assunto, versoes]) => {
       const id = ids.id('DIV', `${u.id}:${campo}`);
       const velho = porId.get(id);
       const d = { id, tipo: 'DIV', unidade: u.id, campo, assunto, versoes, status: velho?.status ?? 'aberta', ...(velho?.decisao ? { decisao: velho.decisao } : {}) };
       divs.push(d); return id;
     });
+    // divergência derivada antes que o critério atual não confirma: anulada com motivo (nunca apagada; ID não reaproveitado)
+    for (const d0 of (u.divergencias || []).filter((d) => !ds.includes(d) && porId.get(d)?.unidade === u.id).map((d) => porId.get(d))) {
+      if (d0.status === 'aberta') divs.push({ ...d0, status: 'anulada', motivo: d0.campo === 'niveis_origem' ? 'critério corrigido: níveis de escalas de pacotes diferentes não se comparam' : 'o critério atual não confirma a divergência' });
+    }
     const manter = (u.divergencias || []).filter((d) => !ds.includes(d) && porId.get(d)?.unidade !== u.id);
     const todasDiv = [...ds, ...manter];
     if (todasDiv.length) u.divergencias = todasDiv; else delete u.divergencias;

@@ -74,6 +74,8 @@ export function validar({ registros, ids = [], conferencias = new Map(), gitFont
     for (const e of validarEsquema(ESQUEMA, s, limpo)) err(r.id, 1, e);
     if (Array.isArray(r.historico) && r.historico.length && r.historico.at(-1).versao !== r.versao) err(r.id, 1, 'última entrada do histórico ≠ versão');
     if (r.tipo === 'DIV' && r.status === 'resolvida' && !r.decisao) err(r.id, 1, 'divergência resolvida sem DEC');
+    if (r.tipo === 'DIV' && r.status === 'anulada' && !(typeof r.motivo === 'string' && r.motivo.trim())) err(r.id, 7, 'divergência anulada sem motivo');
+    if (r.tipo === 'DIV' && r.status === 'anulada' && (porId.get(r.unidade)?.divergencias || []).includes(r.id)) err(r.id, 7, 'divergência anulada ainda listada na unidade');
 
     // 3. referências: todo ID citado fora do conteúdo literal existe
     if (r.tipo !== 'ORI') {
@@ -247,6 +249,7 @@ export function autoteste() {
     [6, 'ORI sem destino', ({ cs }) => { const c = [...cs.values()].find((x) => x.sem_unidade.length); c.sem_unidade.shift(); }],
     [7, 'equivalente_a sem DEC aprovada', ({ rs, ids }) => { const a = rs.filter((r) => r.tipo === 'VOC'); const r = { tipo: 'REL', de: a[0].id, relacao: 'equivalente_a', para: a[1].id, status: 'confirmada', evidencias: [a[0].evidencias[0]] }; novoId(rs, ids, r, 'REL-999990'); rs.push(r); }],
     [7, 'duplicado_de com conteúdo diferente', ({ rs, ids }) => { const o = rs.filter((r) => r.tipo === 'ORI'); const r = { tipo: 'REL', de: o[0].id, relacao: 'duplicado_de', para: o[1].id, status: 'confirmada', evidencias: [{ ori: o[0].id }] }; novoId(rs, ids, r, 'REL-999991'); rs.push(r); }],
+    [7, 'divergência anulada sem motivo', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DIV'); d.status = 'anulada'; delete d.motivo; const u = acha(rs, (r) => r.id === d.unidade); u.divergencias = u.divergencias.filter((x) => x !== d.id); }],
     [8, 'tradução sem origem', ({ rs }) => { delete acha(rs, (r) => r.traducoes?.length).traducoes[0].origem; }],
     [8, 'subtipo central forçado sem fonte que o nomeie', ({ rs }) => { const u = acha(rs, (r) => r.tipo === 'EXP' && r.subtipo === null && !(r.classificacoes_origem || []).some((c) => c.subtipo)); u.subtipo = 'phrasal'; }],
     [8, 'classificação com subtipo diferente do catálogo', ({ rs }) => { acha(rs, (r) => r.classificacoes_origem?.some((c) => c.categoria === 'word')).classificacoes_origem.find((c) => c.categoria === 'word').subtipo = 'chunk'; }],

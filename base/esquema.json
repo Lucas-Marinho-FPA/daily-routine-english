@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "base-pedagogica/esquema/2.0.0",
-  "title": "Base Pedagógica — esquema 2.0.0 (base única pública, 2026-11-09)",
+  "$id": "base-pedagogica/esquema/2.1.0",
+  "title": "Base Pedagógica — esquema 2.1.0 (base única pública, 2026-11-09; DIV anulada)",
   "description": "Cada registro é validado por tipos[<tipo>]. Campos não listados são permitidos (extensão aditiva); os listados são verificados. Normativo: docs/base-pedagogica/modelo-de-dados.md.",
   "$defs": {
     "id": { "type": "string", "pattern": "^(FON|ORI|VOC|EXP|GRA|TXT|SEG|DIA|PER|RSP|ATV|EXE|CTX|PSG|REL|DEC|DIV)-[0-9]{6}$" },
@@ -119,6 +119,6 @@
     "DIV": { "type": "object", "required": ["id", "tipo", "unidade", "campo", "assunto", "versoes", "status"],
       "properties": { "id": { "$ref": "#/$defs/id" }, "tipo": { "const": "DIV" }, "unidade": { "$ref": "#/$defs/id" }, "campo": { "type": "string" },
         "versoes": { "type": "array", "minItems": 2, "items": { "type": "object", "required": ["valor", "ori"], "properties": { "ori": { "$ref": "#/$defs/idOri" } } } },
-        "status": { "enum": ["aberta", "resolvida"] }, "decisao": { "$ref": "#/$defs/idDec" } } }
+        "status": { "enum": ["aberta", "resolvida", "anulada"] }, "decisao": { "$ref": "#/$defs/idDec" }, "motivo": { "type": "string" } } }
   }
 }
