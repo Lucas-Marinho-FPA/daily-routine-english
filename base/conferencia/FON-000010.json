@@ -1,0 +1,30 @@
+{
+  "fonte": "FON-000010",
+  "codigo": "R14",
+  "arquivo": "dev/tests/fixtures/lukinhas-texts.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:6ca5e81355022ce179b81e4a2a61adc078f8630bc5e1b592786c0161db0d9a8f",
+  "originais": 11,
+  "incorporados": 11,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 10,
+    "sem_unidade": 1,
+    "por_destino": {
+      "metadado": 1
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/texts/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-002293",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    }
+  ],
+  "listas": []
+}

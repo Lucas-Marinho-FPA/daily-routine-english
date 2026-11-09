@@ -1,0 +1,117 @@
+{
+  "fonte": "FON-000009",
+  "codigo": "R9",
+  "arquivo": "dev/content/characters/lucas-kid.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:d0431343c0fd18d786a08286803a89552af019cd124cb69af05d7abfe6052de7",
+  "originais": 345,
+  "incorporados": 345,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 340,
+    "sem_unidade": 5,
+    "por_destino": {
+      "metadado": 5
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/id",
+    "/name",
+    "/short",
+    "/status",
+    "/audience",
+    "/age",
+    "/idPrefix",
+    "/itemPrefix",
+    "/audio",
+    "/profile/summary",
+    "/profile/family",
+    "/profile/notProvided/*",
+    "/profile/source",
+    "/visual",
+    "/facts/*",
+    "/themes",
+    "/routines/*/id",
+    "/routines/*/title",
+    "/routines/*/pt",
+    "/routines/*/dayType",
+    "/routines/*/priority",
+    "/routines/*/goal",
+    "/routines/*/usage",
+    "/routines/*/kind",
+    "/routines/*/grammar",
+    "/routines/*/session",
+    "/routines/*/blocks/*/pt",
+    "/routines/*/blocks/*/ctx",
+    "/routines/*/blocks/*/sentences/*",
+    "/items/*",
+    "/questions/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-001948",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    },
+    {
+      "ori": "ORI-001955",
+      "destino": "metadado",
+      "motivo": "prefixo de identificadores do app"
+    },
+    {
+      "ori": "ORI-001956",
+      "destino": "metadado",
+      "motivo": "prefixo de identificadores de itens do app"
+    },
+    {
+      "ori": "ORI-001957",
+      "destino": "metadado",
+      "motivo": "voz usada para gerar o áudio no app"
+    },
+    {
+      "ori": "ORI-001965",
+      "destino": "metadado",
+      "motivo": "configuração das imagens do personagem no app (arquivos e estados)"
+    }
+  ],
+  "listas": [
+    "/profile/notProvided",
+    "/facts",
+    "/routines",
+    "/routines/0/blocks",
+    "/routines/0/blocks/0/sentences",
+    "/routines/0/blocks/1/sentences",
+    "/routines/1/blocks",
+    "/routines/1/blocks/0/sentences",
+    "/routines/1/blocks/1/sentences",
+    "/routines/2/blocks",
+    "/routines/2/blocks/0/sentences",
+    "/routines/2/blocks/1/sentences",
+    "/routines/3/blocks",
+    "/routines/3/blocks/0/sentences",
+    "/routines/3/blocks/1/sentences",
+    "/routines/4/blocks",
+    "/routines/4/blocks/0/sentences",
+    "/routines/4/blocks/1/sentences",
+    "/routines/5/blocks",
+    "/routines/5/blocks/0/sentences",
+    "/routines/5/blocks/1/sentences",
+    "/routines/6/blocks",
+    "/routines/6/blocks/0/sentences",
+    "/routines/6/blocks/1/sentences",
+    "/routines/7/blocks",
+    "/routines/7/blocks/0/sentences",
+    "/routines/7/blocks/1/sentences",
+    "/routines/8/blocks",
+    "/routines/8/blocks/0/sentences",
+    "/routines/8/blocks/1/sentences",
+    "/routines/9/blocks",
+    "/routines/9/blocks/0/sentences",
+    "/routines/9/blocks/1/sentences",
+    "/routines/9/blocks/2/sentences",
+    "/items",
+    "/questions"
+  ]
+}

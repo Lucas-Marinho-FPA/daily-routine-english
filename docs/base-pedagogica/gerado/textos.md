@@ -636,3 +636,185 @@ Objetivo: Planejar a semana com prioridades, prever imprevistos com “if” e r
 - I turn off the light, ready for another week.  
   _Apago a luz, pronta para mais uma semana._
 
+## TXT-000035 · L01 — My Morning Routine (Sessão 01 · Minha rotina da manhã)
+
+Objetivo: Compreender e descrever ações cotidianas utilizando frases simples.
+
+- I usually wake up very early in the morning.  
+  _Normalmente eu acordo bem cedo de manhã._
+- First, I make my bed and go downstairs to feed my dog.  
+  _Primeiro, arrumo a cama e desço para dar comida ao meu cachorro._
+- I also clean up after him and take the rubbish out.  
+  _Também limpo a sujeira que ele faz e levo o lixo para fora._
+- Then, I have breakfast and take a shower.  
+  _Depois, tomo café da manhã e tomo banho._
+- After that, I help around the house with some chores.  
+  _Em seguida, ajudo em casa com algumas tarefas._
+- At around eleven o'clock, I freshen up and go downstairs to watch TV with my brother.  
+  _Por volta das onze, eu me arrumo e desço para ver TV com o meu irmão._
+- My dad lets us watch television until our school minibus arrives at about twelve forty.  
+  _Meu pai deixa a gente ver televisão até o transporte escolar chegar, por volta de meio-dia e quarenta._
+
+## TXT-000036 · L02 — Getting Ready for the Day (Sessão 02 · Preparando-me para o dia)
+
+Objetivo: Organizar acontecimentos cronologicamente e compreender conectivos temporais.
+
+- My mornings start really early.  
+  _Minhas manhãs começam bem cedo._
+- As soon as I get up, I tidy my bed and head downstairs.  
+  _Assim que me levanto, arrumo a cama e desço._
+- I put some food in my dog's bowl and make sure everything is clean.  
+  _Coloco comida na tigela do meu cachorro e confiro se está tudo limpo._
+- Once I've looked after my dog, I have a good breakfast.  
+  _Depois de cuidar do meu cachorro, tomo um bom café da manhã._
+- Then, I head upstairs to take a shower.  
+  _Então, subo para tomar banho._
+- After getting dressed, I help my family with a few things around the house.  
+  _Depois de me vestir, ajudo minha família com algumas coisas em casa._
+- Later on, my brother and I go downstairs to relax and watch TV while we wait for our school transport.  
+  _Mais tarde, eu e meu irmão descemos para descansar e ver TV enquanto esperamos o transporte da escola._
+
+## TXT-000037 · L03 — Looking After My Dog (Sessão 03 · Cuidando do meu cachorro)
+
+Objetivo: Ampliar o vocabulário por meio de situações familiares e atividades concretas.
+
+- One of my first jobs every morning is looking after my dog.  
+  _Uma das minhas primeiras tarefas toda manhã é cuidar do meu cachorro._
+- I get out of bed, make it properly and take his food downstairs.  
+  _Saio da cama, arrumo direitinho e levo a comida dele lá para baixo._
+- Once he's eaten, I clean up after him and sort out any mess.  
+  _Depois que ele come, limpo a sujeira dele e dou um jeito em qualquer bagunça._
+- Then, I take the rubbish out and get ready for breakfast.  
+  _Depois, levo o lixo para fora e me preparo para o café da manhã._
+- After eating, I jump in the shower and help with the household chores.  
+  _Depois de comer, tomo um banho rápido e ajudo nas tarefas de casa._
+- I always try to do my bit around the house before relaxing in the living room with my brother.  
+  _Sempre tento fazer a minha parte em casa antes de relaxar na sala com o meu irmão._
+
+## TXT-000038 · L04 — Helping Around the House (Sessão 04 · Ajudando em casa)
+
+Objetivo: Aprender a descrever responsabilidades domésticas e utilizar expressões naturais.
+
+- After breakfast, I don't just sit around doing nothing.  
+  _Depois do café da manhã, eu não fico só à toa sem fazer nada._
+- I usually lend a hand with the housework.  
+  _Normalmente dou uma mão no serviço de casa._
+- There are always little jobs to do, such as tidying things up, putting things away and keeping the house clean.  
+  _Sempre tem pequenas tarefas para fazer, como arrumar as coisas, guardar tudo no lugar e manter a casa limpa._
+- Before that, I make sure my dog has been fed and his mess has been cleared away.  
+  _Antes disso, confiro se meu cachorro já comeu e se a sujeira dele já foi limpa._
+- Once I've finished my chores, I go upstairs to freshen up.  
+  _Depois de terminar minhas tarefas, subo para me arrumar._
+- Then, I head down to the living room and spend some time with my brother.  
+  _Depois, desço para a sala e passo um tempo com o meu irmão._
+
+## TXT-000039 · L05 — It's Jiu-Jitsu Time! (Sessão 05 · Hora do jiu-jitsu!)
+
+Objetivo: Descrever atividades específicas, horários e deslocamentos.
+
+- On a jiu-jitsu day, my morning is a little different.  
+  _Em dia de jiu-jitsu, minha manhã é um pouco diferente._
+- After waking up, making my bed and feeding the dog, I have breakfast and take a shower.  
+  _Depois de acordar, arrumar a cama e dar comida ao cachorro, tomo café da manhã e tomo banho._
+- I also help out with some chores before getting ready for training.  
+  _Também ajudo com algumas tarefas antes de me preparar para o treino._
+- At twenty to ten, my brother and I get changed into our jiu-jitsu clothes and head off to class.  
+  _Às nove e quarenta, eu e meu irmão vestimos a roupa de jiu-jitsu e saímos para a aula._
+- We get back home at eleven o'clock.  
+  _Voltamos para casa às onze horas._
+- Then, we put our dog's lead on and take him out for a walk until half past eleven.  
+  _Depois, colocamos a guia no nosso cachorro e levamos ele para passear até as onze e meia._
+
+## TXT-000040 · L06 — Back Home and Ready to Relax (Sessão 06 · De volta em casa e pronto para relaxar)
+
+Objetivo: Compreender e utilizar phrasal verbs em situações cotidianas.
+
+- When we get back from jiu-jitsu, it's time to take our dog out.  
+  _Quando voltamos do jiu-jitsu, é hora de levar nosso cachorro para passear._
+- We grab his lead, put it on him and head outside for a walk.  
+  _Pegamos a guia dele, colocamos nele e saímos para uma caminhada._
+- We usually stay out for about half an hour.  
+  _Normalmente ficamos fora por mais ou menos meia hora._
+- Once we get home, we take another shower and freshen up.  
+  _Quando chegamos em casa, tomamos outro banho e nos arrumamos._
+- After that, we make our way downstairs to the living room.  
+  _Depois disso, vamos lá para baixo, para a sala._
+- My dad lets my brother and me kick back and watch some TV.  
+  _Meu pai deixa eu e meu irmão relaxarmos e vermos um pouco de TV._
+- It's a nice way to relax before the school minibus turns up.  
+  _É um jeito gostoso de descansar antes de o transporte escolar aparecer._
+
+## TXT-000041 · L07 — My Morning, Step by Step (Sessão 07 · Minha manhã, passo a passo)
+
+Objetivo: Trabalhar horários, organização temporal e continuidade de ações.
+
+- My morning is quite busy, so I have to keep an eye on the time.  
+  _Minha manhã é bem corrida, então preciso ficar de olho no horário._
+- I get up early, make my bed and go downstairs to feed the dog.  
+  _Levanto cedo, arrumo a cama e desço para dar comida ao cachorro._
+- After cleaning up after him, I take out the rubbish and have a filling breakfast.  
+  _Depois de limpar a sujeira dele, levo o lixo para fora e tomo um café da manhã reforçado._
+- Then, I have a shower and get on with my chores.  
+  _Depois, tomo banho e sigo com as minhas tarefas._
+- On training days, my brother and I leave at twenty to ten.  
+  _Nos dias de treino, eu e meu irmão saímos às nove e quarenta._
+- We return at eleven, walk the dog for half an hour and get ready for the rest of the day.  
+  _Voltamos às onze, passeamos com o cachorro por meia hora e nos preparamos para o resto do dia._
+
+## TXT-000042 · L08 — A Typical Day at Home (Sessão 08 · Um dia normal em casa)
+
+Objetivo: Compreender linguagem conversacional e reconhecer expressões informais naturais.
+
+- I'm usually up bright and early.  
+  _Normalmente estou de pé bem cedinho._
+- First things first, I sort out my dog's breakfast and clean up after him.  
+  _Primeiro o mais importante: cuido do café da manhã do meu cachorro e limpo a sujeira dele._
+- Then, I get myself ready, have breakfast and pitch in with whatever needs doing around the house.  
+  _Depois, eu me arrumo, tomo café da manhã e ajudo no que precisar ser feito em casa._
+- If it's a jiu-jitsu day, my brother and I get our gear on and head out for training.  
+  _Se é dia de jiu-jitsu, eu e meu irmão vestimos o nosso equipamento e saímos para o treino._
+- When we come back, we take the dog for a walk.  
+  _Quando voltamos, levamos o cachorro para passear._
+- Later, we chill out in the living room and watch TV until our school ride shows up.  
+  _Mais tarde, relaxamos na sala e vemos TV até a condução da escola aparecer._
+
+## TXT-000043 · L09 — Keeping My Morning Organised (Sessão 09 · Mantendo a manhã organizada)
+
+Objetivo: Desenvolver precisão vocabular e maior flexibilidade na construção de frases.
+
+- I like to get things done in the morning before it's time to go to school.  
+  _Gosto de resolver as coisas de manhã, antes da hora de ir para a escola._
+- I start by making my bed and taking care of my dog.  
+  _Começo arrumando a cama e cuidando do meu cachorro._
+- Once I've fed him and cleaned up after him, I take the rubbish out and sit down for a proper breakfast.  
+  _Depois de dar comida a ele e limpar a sujeira dele, levo o lixo para fora e me sento para um café da manhã de verdade._
+- I then have a shower and crack on with my household chores.  
+  _Depois tomo banho e mando ver nas tarefas de casa._
+- On training days, my brother and I head off to jiu-jitsu at twenty to ten.  
+  _Nos dias de treino, eu e meu irmão saímos para o jiu-jitsu às nove e quarenta._
+- By half past eleven, we're back from walking the dog and ready to wind down.  
+  _Até as onze e meia, já voltamos do passeio com o cachorro e estamos prontos para relaxar._
+
+## TXT-000044 · L10 — My Daily Routine: The Full Story (Sessão 10 · Minha rotina: a história completa)
+
+Objetivo: Integrar todo o vocabulário, expressões e construções trabalhados anteriormente, preparando Lukinhas para falar de maneira independente.
+
+- My mornings are usually quite busy, but I've got a routine that helps me get everything done.  
+  _Minhas manhãs costumam ser bem corridas, mas eu tenho uma rotina que me ajuda a dar conta de tudo._
+- I wake up early, make my bed and head downstairs to feed my dog.  
+  _Acordo cedo, arrumo a cama e desço para dar comida ao meu cachorro._
+- Once I've cleaned up after him and taken the rubbish out, I sit down for a hearty breakfast.  
+  _Depois de limpar a sujeira dele e levar o lixo para fora, eu me sento para um café da manhã caprichado._
+- After that, I jump in the shower and lend a hand with the household chores.  
+  _Depois disso, tomo um banho rápido e dou uma mão nas tarefas de casa._
+- On jiu-jitsu days, my brother and I get changed and head off to training at twenty to ten.  
+  _Nos dias de jiu-jitsu, eu e meu irmão trocamos de roupa e saímos para o treino às nove e quarenta._
+- We get back at eleven, put the dog's lead on and take him out for a walk.  
+  _Voltamos às onze, colocamos a guia no cachorro e levamos ele para passear._
+- Once we're home again, we freshen up and head downstairs.  
+  _Quando estamos em casa de novo, nos arrumamos e descemos._
+- My dad lets us kick back and watch TV until our school minibus pulls up at around twelve forty.  
+  _Meu pai deixa a gente relaxar e ver TV até o transporte escolar parar aqui na frente, por volta de meio-dia e quarenta._
+- And that's pretty much how I spend my morning!  
+  _E é mais ou menos assim que eu passo a minha manhã!_
+

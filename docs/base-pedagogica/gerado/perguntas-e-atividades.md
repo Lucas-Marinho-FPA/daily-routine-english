@@ -384,3 +384,83 @@
   She believes that taking care of herself helps her take care of the people she loves.
 - **How are you going to organise your week?** (K.Q35) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I'm going to…’, ‘I'll…’, ‘If…, I'll…’ e ‘I need to make time for…’._
 
+## ATV-000041 · L01 · perguntas
+
+- **What time do you wake up?** (L.Q1)  
+  I usually wake up very early in the morning.
+- **What do you do after breakfast?** (L.Q2)  
+  After breakfast, I take a shower and help around the house with some chores.
+- **Now, tell me about your morning without reading the text.** (L.Q3) — pergunta aberta, sem resposta-modelo na fonte; dica: _Conte do seu jeito, sem olhar o texto. Tente usar: wake up, make my bed, feed my dog, take the rubbish out, freshen up._
+
+## ATV-000042 · L02 · perguntas
+
+- **What do you do as soon as you get up?** (L.Q4)  
+  As soon as I get up, I tidy my bed and head downstairs.
+- **What do you and your brother do while you wait for your school transport?** (L.Q5)  
+  We go downstairs to relax and watch TV while we wait for our school transport.
+- **Now, tell me about your morning in order, without reading the text.** (L.Q6) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use palavras de sequência: first, as soon as, once, then, after that, later on._
+
+## ATV-000043 · L03 · perguntas
+
+- **How do you look after your dog?** (L.Q7)  
+  I take his food downstairs, and once he's eaten, I clean up after him and sort out any mess.
+- **What do you do after eating?** (L.Q8)  
+  After eating, I jump in the shower and help with the household chores.
+- **Now, tell me how you look after your dog, without reading the text.** (L.Q9) — pergunta aberta, sem resposta-modelo na fonte; dica: _Tente usar: look after, feed, clean up after him, sort out._
+
+## ATV-000044 · L04 · perguntas
+
+- **What do you do around the house?** (L.Q10)  
+  I usually lend a hand with the housework, such as tidying things up and putting things away.
+- **What do you do once you've finished your chores?** (L.Q11)  
+  Once I've finished my chores, I go upstairs to freshen up.
+- **Now, tell me how you help around the house, without reading the text.** (L.Q12) — pergunta aberta, sem resposta-modelo na fonte; dica: _Tente usar: lend a hand, tidy things up, put things away, housework._
+
+## ATV-000045 · L05 · perguntas
+
+- **What happens on jiu-jitsu days?** (L.Q13)  
+  At twenty to ten, my brother and I get changed and head off to class. We get back home at eleven.
+- **What time do you get back home?** (L.Q14)  
+  We get back home at eleven o'clock.
+- **Now, tell me about a jiu-jitsu day without reading the text.** (L.Q15) — pergunta aberta, sem resposta-modelo na fonte; dica: _Diga os horários: twenty to ten, eleven o’clock, half past eleven. Tente usar: get changed, head off, get back, put the lead on._
+
+## ATV-000046 · L06 · perguntas
+
+- **What do you do when you get back from jiu-jitsu?** (L.Q16)  
+  We grab our dog's lead, put it on him and head outside for a walk.
+- **How long do you stay out with your dog?** (L.Q17)  
+  We usually stay out for about half an hour.
+- **Now, tell me what you do after jiu-jitsu, without reading the text.** (L.Q18) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use alguns phrasal verbs: get back, head outside, stay out, freshen up, kick back._
+
+## ATV-000047 · L07 · perguntas
+
+- **Why do you have to keep an eye on the time?** (L.Q19)  
+  Because my morning is quite busy.
+- **What time do you leave for training?** (L.Q20)  
+  My brother and I leave at twenty to ten.
+- **Now, tell me about your morning step by step, with the times, without reading the text.** (L.Q21) — pergunta aberta, sem resposta-modelo na fonte; dica: _Diga a ordem e os horários: first, then, after that, at twenty to ten, at eleven._
+
+## ATV-000048 · L08 · perguntas
+
+- **What do you do first thing in the morning?** (L.Q22)  
+  First things first, I sort out my dog's breakfast and clean up after him.
+- **What do you do until your school ride shows up?** (L.Q23)  
+  We chill out in the living room and watch TV.
+- **Now, tell me about a typical day at home in a relaxed way, without reading the text.** (L.Q24) — pergunta aberta, sem resposta-modelo na fonte; dica: _Fale como numa conversa: first things first, pitch in, chill out, show up._
+
+## ATV-000049 · L09 · perguntas
+
+- **How do you start your morning?** (L.Q25)  
+  I start by making my bed and taking care of my dog.
+- **Where are you by half past eleven on training days?** (L.Q26)  
+  By half past eleven, we're back from walking the dog and ready to wind down.
+- **Now, tell me how you keep your morning organised, without reading the text.** (L.Q27) — pergunta aberta, sem resposta-modelo na fonte; dica: _Tente usar: get things done, start by, crack on with, wind down._
+
+## ATV-000050 · L10 · perguntas
+
+- **What do you do before going to school?** (L.Q28)  
+  I watch TV with my brother until our school minibus pulls up at around twelve forty.
+- **How do you spend your morning on jiu-jitsu days?** (L.Q29)  
+  My brother and I get changed and head off to training at twenty to ten. We get back at eleven and take the dog out for a walk.
+- **Now, tell me the full story of your morning, without reading the text.** (L.Q30) — pergunta aberta, sem resposta-modelo na fonte; dica: _Conte a manhã inteira, de acordar até o transporte escolar, e o que muda nos dias de jiu-jitsu. Use o que você aprendeu nas dez sessões._
+

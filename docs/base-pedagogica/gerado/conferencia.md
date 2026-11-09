@@ -338,6 +338,38 @@
 
 </details>
 
+## R9 — Lukinhas — pacote do personagem (perfil, 10 sessões, itens, perguntas) (`FON-000009`)
+
+- Arquivo: `dev/content/characters/lucas-kid.json` @ `b194cee` · SHA-256 `d0431343c0fd18d786a08286803a89552af019cd124cb69af05d7abfe6052de7`
+- Registros originais: **345** · incorporados (ORI): **345** · pendentes: **0** · reconstruível a partir dos ORI: **sim**
+- Destino: 340 em unidades · 5 preservados sem unidade (metadado 5) · situação: **concluida**
+
+<details><summary>Registros preservados sem unidade pedagógica</summary>
+
+| ORI | Local | Destino | Motivo |
+|---|---|---|---|
+| ORI-001948 | `/_doc` | metadado | documentação do arquivo |
+| ORI-001955 | `/idPrefix` | metadado | prefixo de identificadores do app |
+| ORI-001956 | `/itemPrefix` | metadado | prefixo de identificadores de itens do app |
+| ORI-001957 | `/audio` | metadado | voz usada para gerar o áudio no app |
+| ORI-001965 | `/visual` | metadado | configuração das imagens do personagem no app (arquivos e estados) |
+
+</details>
+
+## R14 — Lukinhas — os dez textos definitivos aprovados (`FON-000010`)
+
+- Arquivo: `dev/tests/fixtures/lukinhas-texts.json` @ `b194cee` · SHA-256 `6ca5e81355022ce179b81e4a2a61adc078f8630bc5e1b592786c0161db0d9a8f`
+- Registros originais: **11** · incorporados (ORI): **11** · pendentes: **0** · reconstruível a partir dos ORI: **sim**
+- Destino: 10 em unidades · 1 preservados sem unidade (metadado 1) · situação: **concluida**
+
+<details><summary>Registros preservados sem unidade pedagógica</summary>
+
+| ORI | Local | Destino | Motivo |
+|---|---|---|---|
+| ORI-002293 | `/_doc` | metadado | documentação do arquivo |
+
+</details>
+
 ## Divergências
 
 | ID | Unidade | Assunto | Versões (valor ← ORI) | Situação |
@@ -348,9 +380,13 @@
 | DIV-000004 | EXP-000030 | traduções de “get back to” | “retomar” ← ORI-000080; “retomar” ← ORI-000195; “voltar a uma tarefa” ← ORI-000277; “retomar” ← ORI-000344 | aberta |
 | DIV-000005 | EXP-000041 | traduções de “work on” | “trabalhar em” ← ORI-000107; “trabalhar em” ← ORI-000192; “trabalhar em/aprimorar” ← ORI-000223; “trabalhar em/aprimorar” ← ORI-000347 | aberta |
 | DIV-000006 | EXP-000057 | traduções de “clear the table” | “tirar/limpar a mesa” ← ORI-000156; “tirar a mesa” ← ORI-000166 | aberta |
-| DIV-000007 | EXP-000108 | traduções de “wind down” | “desacelerar/relaxar antes de dormir” ← ORI-000306; “desacelerar/relaxar” ← ORI-000351 | aberta |
+| DIV-000007 | EXP-000108 | traduções de “wind down” | “desacelerar/relaxar antes de dormir” ← ORI-000306; “desacelerar/relaxar” ← ORI-000351; “desacelerar, relaxar” ← ORI-002256 | aberta |
 | DIV-000008 | EXP-000124 | nível de origem de “go for a run” | “1” ← ORI-001250; “2” ← ORI-001771 | anulada |
 | DIV-000009 | VOC-000025 | traduções de “client” | “cliente” ← ORI-001314; “aluno(a), cliente” ← ORI-001808 | aberta |
+| DIV-000010 | EXP-000006 | subtipo de “get changed” | “collocation” ← ORI-000386; “phrasal” ← ORI-002221 | aberta |
+| DIV-000011 | VOC-000001 | traduções de “grab” | “pegar rapidamente” ← ORI-000135; “pegar (rapidinho)” ← ORI-002228 | aberta |
+| DIV-000012 | VOC-000042 | traduções de “leave” | “sair (de um lugar)” ← ORI-000586; “sair, partir” ← ORI-002238 | aberta |
+| DIV-000013 | EXP-000365 | subtipo de “take care of” | “phrasal” ← ORI-001902; “collocation” ← ORI-002251 | aberta |
 
 ## Relações
 
@@ -377,4 +413,5 @@
 | REL-000019 | EXP-000196 | variante_de | GRA-000017 | proposta |
 | REL-000020 | EXP-000197 | variante_de | GRA-000018 | proposta |
 | REL-000021 | ORI-001909 | duplicado_de | ORI-000629 | confirmada |
+| REL-000022 | ORI-002263 | duplicado_de | ORI-000055 | confirmada |
 

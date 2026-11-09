@@ -14,6 +14,7 @@ evolução controlada.** A Base é o repositório central do conhecimento autora
 | `modelo-de-dados.md` | identificadores, campos de cada tipo, relações, critérios de consolidação |
 | `rastreabilidade.md` | registro de origem, hashes, conferência e recuperabilidade, versões, duplicados |
 | `politica-de-preservacao.md` | regras obrigatórias, divergências, lacunas, terceiros, proteção do aplicativo |
+| `analises/*.md` | análises linguísticas e pedagógicas (ex.: `get-changed.md`) — interpretações, separadas dos registros; nada nelas vale como classificação sem `DEC` aprovada |
 | `gerado/*.md` | leitura gerada de `base/` (inventário, conferência por fonte, vocabulário, textos, perguntas, gramática) — **nunca editar à mão** |
 
 ## 1. Visão geral
@@ -110,7 +111,7 @@ O validador reprova se houver:
 | Ordem | Fontes (inventário da Etapa 1) | Situação |
 |---|---|---|
 | 1 | Lucas: extração do Word e enriquecimentos (R1–R7) | **consolidada — aguardando revisão** |
-| 2 | Karla e Lukinhas (R8, R9 + R14, R11) | pendente |
+| 2 | Karla e Lukinhas (R8, R9 + R14) | **consolidada — aguardando revisão** (R11, personas previstas, fica para quando houver conteúdo) |
 | 3 | Conversation Practice: publicada `b194cee` e `remodelagem` `8d5ac0c` (R10, R18) | pendente; itens só da remodelagem como `proposto` |
 | 4 | Expressões de apoio e FreeDict (R12, R13) | pendente; FreeDict sob GPL-2.0+, licença e atribuição registradas |
 | 5 | Documentos pedagógicos (R17) | pendente |

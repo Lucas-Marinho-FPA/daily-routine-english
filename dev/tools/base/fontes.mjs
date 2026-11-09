@@ -58,4 +58,18 @@ export const FONTES = [
       '/routines/*/usage/*', '/routines/*/blocks/*/pt', '/routines/*/blocks/*/kind', '/routines/*/blocks/*/ctx', '/routines/*/blocks/*/sentences/*',
       '/items/*', '/questions/*', '/journey/_doc', '/journey/stages/*', '/journey/secondaryCharacters/*'],
   },
+  {
+    codigo: 'R9', titulo: 'Lukinhas — pacote do personagem (perfil, 10 sessões, itens, perguntas)', grupo: 'lukinhas',
+    arquivo: 'dev/content/characters/lucas-kid.json', versao: VERSAO_PUBLICADA, natureza: 'autoria', distribuicao: 'integral',
+    regras: ['/_doc', '/id', '/name', '/short', '/status', '/audience', '/age', '/idPrefix', '/itemPrefix', '/audio', '/profile/summary',
+      '/profile/family', '/profile/notProvided/*', '/profile/source', '/visual', '/facts/*', '/themes', '/routines/*/id', '/routines/*/title',
+      '/routines/*/pt', '/routines/*/dayType', '/routines/*/priority', '/routines/*/goal', '/routines/*/usage', '/routines/*/kind',
+      '/routines/*/grammar', '/routines/*/session', '/routines/*/blocks/*/pt', '/routines/*/blocks/*/ctx', '/routines/*/blocks/*/sentences/*',
+      '/items/*', '/questions/*'],
+  },
+  {
+    codigo: 'R14', titulo: 'Lukinhas — os dez textos definitivos aprovados', grupo: 'lukinhas',
+    arquivo: 'dev/tests/fixtures/lukinhas-texts.json', versao: VERSAO_PUBLICADA, natureza: 'autoria', distribuicao: 'integral',
+    regras: ['/_doc', '/texts/*'],
+  },
 ];
