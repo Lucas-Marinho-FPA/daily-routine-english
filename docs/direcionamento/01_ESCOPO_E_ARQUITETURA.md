@@ -23,17 +23,8 @@ A Base Pedagógica é o patrimônio estruturado de conhecimento linguístico e p
 
 O projeto `Daily Routine English — Produto e Desenvolvimento` governa o aplicativo. A Base fornece conhecimento estruturado; o produto define como consumi-lo e apresentá-lo, respeitando validação e direitos.
 
-## Arquitetura conceitual
-O snapshot recebido continha estrutura para:
-- esquema/contrato dos registros;
-- registros estruturados por tipo;
-- fontes e reconstruções de origem;
-- conferências e rastreabilidade;
-- relações entre registros;
-- ferramentas de extração, consolidação, decisões, validação e geração;
-- documentação normativa e saídas derivadas.
-
-Os caminhos reais podem ter mudado. Antes de editar, inspecione a estrutura atual e reutilize os mecanismos existentes. Não recrie componentes apenas porque a descrição acima não coincide exatamente com os nomes atuais.
+## Arquitetura
+A arquitetura técnica (estrutura, ferramentas, validação, plano de consolidação) está em `docs/base-pedagogica/arquitetura.md`; os caminhos dos documentos e mecanismos vigentes, no `CLAUDE.md`. Reutilize os mecanismos existentes; não recrie componentes.
 
 ## Princípios
 - Identificadores estáveis e rastreabilidade explícita.

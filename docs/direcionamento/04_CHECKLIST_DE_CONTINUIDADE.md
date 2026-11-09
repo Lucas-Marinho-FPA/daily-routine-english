@@ -1,5 +1,11 @@
 # Checklist de continuidade — executar uma vez na transição
 
+> **Cumprido em 2026-11-09, sobre o commit `3eec624`. Fora do fluxo operacional ativo** — mantido só como registro.
+> Resultado: repositório e branch `base-pedagogica` confirmados, árvore limpa; nenhuma mudança na Base desde `3d1ab20`;
+> `validar.mjs` 3.712 registros, 0 erros, 0 avisos; `gerar.mjs --conferir` igual; varredura de privacidade dos documentos
+> novos sem ocorrências. Os ajustes documentais que resultaram dele estão no checklist mestre
+> (`docs/base-pedagogica/checklist.md`). Não há inventário recorrente: novas sessões seguem `05_INSTRUCAO_DE_INICIO_CLAUDE_CODE.md`.
+
 Esta lista não é um novo plano de desenvolvimento. É uma conferência mínima para uma nova sessão assumir o trabalho sem retrabalho.
 
 ## Inventário somente leitura

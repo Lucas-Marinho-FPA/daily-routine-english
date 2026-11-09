@@ -7,7 +7,14 @@ Origem deste checklist: o checklist de conclusão da Fase 0 (relatório “Fase 
 repositório), as entregas da Fase 1 e o escopo planejado das Fases 2 a 7, informado pelo usuário em 2026-11-09. O escopo
 planejado **não** equivale a especificação detalhada concluída: as Fases 2 a 7 estão todas **não iniciadas**.
 
-## 1. Checklist mestre — Fases 0 a 7
+Escopo (2026-11-09): itens próprios do aplicativo (UX, interface, PWA, testes do app e em aparelhos, publicação, motor de
+aprendizagem) saíram do fluxo ativo deste checklist — as Fases 6 e 7, a parte de implementação de itens das Fases 4 e 5 (decisão do
+usuário, 2026-11-09) e dois itens das Fases 0 e 5. Ficam preservados na
+§1.1 como registro histórico; pertencem ao projeto *Daily Routine English — Produto e Desenvolvimento*, que não tem
+checklist neste repositório, por isso não foram transferidos. A Base continua responsável por preparar, preservar,
+estruturar e disponibilizar o conhecimento que o app consumir.
+
+## 1. Checklist mestre — Fases 0 a 5 (Base Pedagógica)
 
 ### Fase 0 — Preparação e segurança — **concluída**
 
@@ -20,8 +27,8 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | Inventário do que não pode ser perdido; diferenças da `remodelagem`; mapa de testes e documentação | concluído | relatórios da Fase 0 e da Fase 1 (Etapa 1) |
 | Linha de base de testes registrada | concluído | unitários 215 aprovados · 0 falhas · 1 ignorado; E2E todas as suítes aprovadas; intermitência T04/T05 depois explicada e corrigida nos testes (`c818524`) |
 | Branch de trabalho da Fase 1 | concluído | `base-pedagogica`, criada de `b194cee` |
-| Quais recursos da `remodelagem` entram no app | pendente | decisão de produto, fora da Base; na Base vale P6 (conteúdo só da remodelagem entra como `proposto`) |
-| Branch padrão (`main` desatualizada) | pendente | não decidido |
+| Quais recursos da `remodelagem` entram no app | fora da Base (§1.1) | decisão de produto; na Base vale P6 (conteúdo só da remodelagem entra como `proposto`) |
+| Branch padrão (`main` desatualizada) | pendente | não decidido; decisão do usuário sobre o repositório, não tarefa da Base |
 
 ### Fase 1 — Base Pedagógica Mestra — **em andamento**
 
@@ -31,9 +38,9 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | Etapa 2 — diagnóstico | concluído | relatório da Fase 1 |
 | Etapa 3 — arquitetura | concluído (aprovada; base única pública em 2026-11-09) | `arquitetura.md`, `modelo-de-dados.md`, `rastreabilidade.md`, `politica-de-preservacao.md` |
 | Etapa 4.1 — R1–R7 Lucas | **concluído e aprovado** | `3820cb9`; 1.362 ORI, 0 pendentes, reconstruíveis |
-| Etapa 4.2 — R8 Karla | consolidada; **fechamento em andamento** (aguardando revisão) | `d2e6c28`; 585/585, 0 pendentes |
-| Etapa 4.2 — R9 Lukinhas | consolidado; **fechamento em andamento** (aguardando revisão) | `0145029`; 345/345, 0 pendentes |
-| Etapa 4.2 — R14 textos aprovados | preservados; **fechamento em andamento** (aguardando revisão) | `0145029`; 11/11; conferidos caractere por caractere |
+| Etapa 4.2 — R8 Karla | **concluído e aprovado**, com ressalvas | `d2e6c28`; 585/585, 0 pendentes; fechamento aprovado pelo usuário em 2026-11-09 (fontes integralmente incorporadas e rastreadas; não significa divergências resolvidas); ressalvas: `DIV-000009` aberta e 12 formas flexionadas candidatas sem confirmação |
+| Etapa 4.2 — R9 Lukinhas | **concluído e aprovado**, com ressalvas | `0145029`; 345/345, 0 pendentes; fechamento aprovado pelo usuário em 2026-11-09 (fontes integralmente incorporadas e rastreadas; não significa divergências resolvidas); ressalvas: `DIV-000007`, `DIV-000011`, `DIV-000012` abertas e 13 formas flexionadas candidatas sem confirmação |
+| Etapa 4.2 — R14 textos aprovados | **concluído e aprovado** | `0145029`; 11/11; conferidos caractere por caractere; fechamento aprovado pelo usuário em 2026-11-09; nenhuma divergência pendente |
 | R11 personas previstas (Heitor) | pendente | sem conteúdo |
 | R10 + R18 Conversation Practice (publicada e `remodelagem`) | pendente | não iniciar sem autorização |
 | R12 expressões de apoio · R13 FreeDict | pendente | FreeDict sob GPL-2.0+ |
@@ -70,36 +77,39 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | Organização por progressão e contexto | não iniciado |
 | Palavras, expressões e relações semânticas | não iniciado |
 | Collocations, phrasal verbs e exemplos | não iniciado |
-| Traduções, revisão espaçada e critérios de domínio | não iniciado |
+| Traduções e critérios de domínio (conteúdo pedagógico; a implementação da revisão espaçada é do app — §1.1) | não iniciado |
 
 ### Fase 5 — Atividades inteligentes — **não iniciada**
 
 | Item planejado | Estado |
 |---|---|
 | Integração das fontes de aprendizagem | não iniciado |
-| Reading, Writing, Listening e Speaking | não iniciado |
+| Reading, Writing, Listening e Speaking — produção e estruturação pedagógica (implementação e avaliação no app — §1.1) | não iniciado |
 | Construção de frases e atividades cumulativas | não iniciado |
-| Adaptação ao domínio demonstrado | não iniciado |
+| Adaptação ao domínio demonstrado | fora da Base (§1.1) |
 
-### Fase 6 — Experiência integrada — **não iniciada**
+### 1.1 Itens do aplicativo retirados do fluxo ativo da Base (2026-11-09)
 
-| Item planejado | Estado |
-|---|---|
-| Daily Routine e Conversation Practice como jornadas independentes e complementares | não iniciado |
-| Progresso separado e histórico | não iniciado |
-| Continuidade, revisão e persistência | não iniciado |
-| Experiência offline e UX simples | não iniciado |
+Registro histórico: estavam no escopo planejado informado em 2026-11-09 (Fases 0, 4, 5, 6 e 7). Não são tarefas da Base;
+pertencem ao projeto Produto e Desenvolvimento. O texto e o estado anteriores (“não iniciado” / “pendente”) estão
+preservados abaixo e no histórico do git; o roadmap do aplicativo não foi alterado.
 
-### Fase 7 — Validação, estabilidade e publicação — **não iniciada**
-
-| Item planejado | Estado |
-|---|---|
-| Testes unitários e E2E | não iniciado |
-| Regressão e migração de dados | não iniciado |
-| Validação do corretor, revisão espaçada e atividades | não iniciado |
-| Speaking Lab, ASR, PWA e funcionamento offline | não iniciado |
-| Testes físicos no Galaxy S25+ | não iniciado |
-| Autorização final de publicação | não iniciado |
+| Origem | Item | Estado anterior |
+|---|---|---|
+| Fase 0 | Quais recursos da `remodelagem` entram no app | pendente (decisão de produto) |
+| Fase 4 | Revisão espaçada — implementação (texto original: “Traduções, revisão espaçada e critérios de domínio”; traduções e critérios de domínio continuam na Fase 4) | não iniciado |
+| Fase 5 | Reading, Writing, Listening e Speaking — implementação e avaliação no app (a produção pedagógica continua na Fase 5) | não iniciado |
+| Fase 5 | Adaptação ao domínio demonstrado | não iniciado |
+| Fase 6 — Experiência integrada | Daily Routine e Conversation Practice como jornadas independentes e complementares | não iniciado |
+| Fase 6 | Progresso separado e histórico | não iniciado |
+| Fase 6 | Continuidade, revisão e persistência | não iniciado |
+| Fase 6 | Experiência offline e UX simples | não iniciado |
+| Fase 7 — Validação, estabilidade e publicação | Testes unitários e E2E | não iniciado |
+| Fase 7 | Regressão e migração de dados | não iniciado |
+| Fase 7 | Validação do corretor, revisão espaçada e atividades | não iniciado |
+| Fase 7 | Speaking Lab, ASR, PWA e funcionamento offline | não iniciado |
+| Fase 7 | Testes físicos no Galaxy S25+ | não iniciado |
+| Fase 7 | Autorização final de publicação | não iniciado |
 
 ## 2. Checklist operacional — fechamento de R8/R9/R14 (2026-11-09, com os ajustes finais)
 
@@ -121,7 +131,8 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | R1–R7 preservados; app e `gh-pages` intocados | concluído | §4 abaixo |
 | Documentos e checklists atualizados | concluído | este arquivo (incl. Fases 2–7), `arquitetura.md`, `modelo-de-dados.md`, `rastreabilidade.md`, `analises/get-changed.md`, `gerado/conferencia.md` (tabela de decisões) |
 | Incidente de privacidade no commit `5c9c8f7` | corrigido no commit seguinte | o título da Fase 3 levou ao repositório público uma sigla da lista de nomes protegidos do projeto; a varredura acusou, mas a cadeia de comandos não interrompeu o envio. Correção: título trocado por “atividades do curso”; o validador passou a varrer também `docs/base-pedagogica/` (verificação 9, com autoteste). O texto continua no histórico do `5c9c8f7` — removê-lo exigiria reescrever o histórico remoto (force push), o que depende de autorização expressa |
-| Revisão e aprovação do usuário | pendente | aguardando |
+| Revisão e aprovação do usuário | concluído | aprovado em 2026-11-09, com as ressalvas registradas na Fase 1 (R8, R9); R14 sem divergências pendentes |
+| Referências desatualizadas fora deste fechamento | pendente (manutenção futura) | `dev/tools/base/gerar.mjs` ainda escreve “DEC-000001/2” e “aguardando revisão” em `gerado/inventario.md`; `arquitetura.md` §6 (ordem 2) ainda diz “aguardando revisão”. Corrigir o gerador, regenerar e ajustar a arquitetura numa manutenção própria |
 
 ## 3. Histórico de commits da Fase 1 (conferido no git)
 
@@ -141,7 +152,8 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | `a524f00` | decisões linguísticas aprovadas (get changed, take care of) | fechamento 4.2 |
 | `7deef8e` | indicadores de compartilhamento, documentação e checklists | fechamento 4.2 |
 | `5c9c8f7` | revisão de “take care of” (`DEC-000003` revoga `DEC-000002`), Fases 2–7 no checklist | ajustes finais 4.2 |
-| (este commit) | correção de privacidade no checklist; varredura de nomes privados estendida aos documentos | ajustes finais 4.2 |
+| `3d1ab20` | correção de privacidade no checklist; varredura de nomes privados estendida aos documentos | ajustes finais 4.2 |
+| `3eec624` | direcionamento documental: `CLAUDE.md` como ponto de entrada, `docs/direcionamento/`, `docs/aplicativo-referencia.md` (sem mudança na Base nem no app) | continuidade |
 
 **Correção:** a mensagem de progresso da etapa 4.2 disse “cinco commits enviados”. O git mostra **quatro** commits
 nessa etapa (`35d60d1`, `d2e6c28`, `e165e7a`, `0145029`), todos enviados. O quinto contado era `e287651`, da etapa

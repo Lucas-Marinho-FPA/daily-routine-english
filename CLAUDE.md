@@ -9,7 +9,6 @@ Antes de qualquer tarefa, consulte:
 1. `docs/direcionamento/01_ESCOPO_E_ARQUITETURA.md`
 2. `docs/direcionamento/02_REGRAS_DE_TRABALHO.md`
 3. `docs/direcionamento/03_ESTADO_E_APRENDIZADOS.md`
-4. `docs/direcionamento/04_CHECKLIST_DE_CONTINUIDADE.md`
 
 Depois, consulte os documentos e mecanismos vigentes do próprio repositório, especialmente arquitetura, esquema/modelo de dados, preservação, rastreabilidade, decisões e checklist mestre. Se houver divergência, investigue e apresente evidências; não escolha silenciosamente uma versão.
 
