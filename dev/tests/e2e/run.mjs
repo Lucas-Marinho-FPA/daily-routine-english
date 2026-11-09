@@ -86,11 +86,14 @@ async function answer(mode = 'right') {
   if (!ex) throw new Error('sem exercício');
   const bar = page.locator('.actionbar');
   const clickBar = (name) => bar.getByRole('button', { name, exact: true }).click();
+  // texto EXATO da opção: com hasText (substring) + first(), “heat up” casava com “heat up my lunch” já associado
+  // (botão desabilitado) e o clique esperava 30 s — causa da intermitência de T04/T05
+  const exato = (sel, texto) => page.locator(sel).filter({ hasText: new RegExp(`^\\s*${texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`) }).first();
   switch (ex.type) {
     case 'learn': await clickBar('Próximo'); return ex.type;
     case 'mc': {
       const opt = mode === 'right' ? ex.options.find((o) => o.correct) : ex.options.find((o) => !o.correct);
-      await page.locator('.options .option', { hasText: opt.pt }).first().click();
+      await exato('.options .option', opt.pt).click();
       break;
     }
     case 'recall': case 'cloze': case 'vb3': {
@@ -127,8 +130,8 @@ async function answer(mode = 'right') {
     }
     case 'pairs': {
       for (const p of ex.pairs) {
-        await page.locator('.pairs .option.en', { hasText: p.en }).first().click();
-        await page.locator('.pairs .option:not(.en)', { hasText: p.pt }).first().click();
+        await exato('.pairs .option.en', p.en).click();
+        await exato('.pairs .option:not(.en)', p.pt).click();
       }
       break;
     }
