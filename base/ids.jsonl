@@ -2157,3 +2157,932 @@
 {"id":"REL-000018","tipo":"REL","chave":"REL:EXP-000195:variante_de:GRA-000016","criado_em":"2026-11-09"}
 {"id":"REL-000019","tipo":"REL","chave":"REL:EXP-000196:variante_de:GRA-000017","criado_em":"2026-11-09"}
 {"id":"REL-000020","tipo":"REL","chave":"REL:EXP-000197:variante_de:GRA-000018","criado_em":"2026-11-09"}
+{"id":"FON-000008","tipo":"FON","chave":"FON:R8","criado_em":"2026-11-09"}
+{"id":"ORI-001363","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/_doc","criado_em":"2026-11-09"}
+{"id":"ORI-001364","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/id","criado_em":"2026-11-09"}
+{"id":"ORI-001365","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/name","criado_em":"2026-11-09"}
+{"id":"ORI-001366","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/status","criado_em":"2026-11-09"}
+{"id":"ORI-001367","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/idPrefix","criado_em":"2026-11-09"}
+{"id":"ORI-001368","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/occupation","criado_em":"2026-11-09"}
+{"id":"ORI-001369","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/workplace","criado_em":"2026-11-09"}
+{"id":"ORI-001370","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/0","criado_em":"2026-11-09"}
+{"id":"ORI-001371","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/1","criado_em":"2026-11-09"}
+{"id":"ORI-001372","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/2","criado_em":"2026-11-09"}
+{"id":"ORI-001373","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/3","criado_em":"2026-11-09"}
+{"id":"ORI-001374","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/4","criado_em":"2026-11-09"}
+{"id":"ORI-001375","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/5","criado_em":"2026-11-09"}
+{"id":"ORI-001376","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/6","criado_em":"2026-11-09"}
+{"id":"ORI-001377","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/7","criado_em":"2026-11-09"}
+{"id":"ORI-001378","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/8","criado_em":"2026-11-09"}
+{"id":"ORI-001379","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/traits/9","criado_em":"2026-11-09"}
+{"id":"ORI-001380","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/0","criado_em":"2026-11-09"}
+{"id":"ORI-001381","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/1","criado_em":"2026-11-09"}
+{"id":"ORI-001382","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/2","criado_em":"2026-11-09"}
+{"id":"ORI-001383","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/3","criado_em":"2026-11-09"}
+{"id":"ORI-001384","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/4","criado_em":"2026-11-09"}
+{"id":"ORI-001385","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/5","criado_em":"2026-11-09"}
+{"id":"ORI-001386","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/6","criado_em":"2026-11-09"}
+{"id":"ORI-001387","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/7","criado_em":"2026-11-09"}
+{"id":"ORI-001388","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/8","criado_em":"2026-11-09"}
+{"id":"ORI-001389","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/9","criado_em":"2026-11-09"}
+{"id":"ORI-001390","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/interests/10","criado_em":"2026-11-09"}
+{"id":"ORI-001391","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/summary","criado_em":"2026-11-09"}
+{"id":"ORI-001392","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/0","criado_em":"2026-11-09"}
+{"id":"ORI-001393","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/1","criado_em":"2026-11-09"}
+{"id":"ORI-001394","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/2","criado_em":"2026-11-09"}
+{"id":"ORI-001395","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/3","criado_em":"2026-11-09"}
+{"id":"ORI-001396","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/4","criado_em":"2026-11-09"}
+{"id":"ORI-001397","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/5","criado_em":"2026-11-09"}
+{"id":"ORI-001398","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/notProvided/6","criado_em":"2026-11-09"}
+{"id":"ORI-001399","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/studies/0","criado_em":"2026-11-09"}
+{"id":"ORI-001400","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/studies/1","criado_em":"2026-11-09"}
+{"id":"ORI-001401","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/family","criado_em":"2026-11-09"}
+{"id":"ORI-001402","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/motto","criado_em":"2026-11-09"}
+{"id":"ORI-001403","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/profile/source","criado_em":"2026-11-09"}
+{"id":"ORI-001404","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/visual","criado_em":"2026-11-09"}
+{"id":"ORI-001405","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/0","criado_em":"2026-11-09"}
+{"id":"ORI-001406","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/1","criado_em":"2026-11-09"}
+{"id":"ORI-001407","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/2","criado_em":"2026-11-09"}
+{"id":"ORI-001408","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/3","criado_em":"2026-11-09"}
+{"id":"ORI-001409","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/4","criado_em":"2026-11-09"}
+{"id":"ORI-001410","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/5","criado_em":"2026-11-09"}
+{"id":"ORI-001411","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/6","criado_em":"2026-11-09"}
+{"id":"ORI-001412","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/7","criado_em":"2026-11-09"}
+{"id":"ORI-001413","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/8","criado_em":"2026-11-09"}
+{"id":"ORI-001414","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/9","criado_em":"2026-11-09"}
+{"id":"ORI-001415","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/10","criado_em":"2026-11-09"}
+{"id":"ORI-001416","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/11","criado_em":"2026-11-09"}
+{"id":"ORI-001417","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/12","criado_em":"2026-11-09"}
+{"id":"ORI-001418","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/13","criado_em":"2026-11-09"}
+{"id":"ORI-001419","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/14","criado_em":"2026-11-09"}
+{"id":"ORI-001420","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/15","criado_em":"2026-11-09"}
+{"id":"ORI-001421","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/16","criado_em":"2026-11-09"}
+{"id":"ORI-001422","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/17","criado_em":"2026-11-09"}
+{"id":"ORI-001423","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/18","criado_em":"2026-11-09"}
+{"id":"ORI-001424","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/19","criado_em":"2026-11-09"}
+{"id":"ORI-001425","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/20","criado_em":"2026-11-09"}
+{"id":"ORI-001426","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/facts/21","criado_em":"2026-11-09"}
+{"id":"ORI-001427","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/0","criado_em":"2026-11-09"}
+{"id":"ORI-001428","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/1","criado_em":"2026-11-09"}
+{"id":"ORI-001429","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/2","criado_em":"2026-11-09"}
+{"id":"ORI-001430","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/3","criado_em":"2026-11-09"}
+{"id":"ORI-001431","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/4","criado_em":"2026-11-09"}
+{"id":"ORI-001432","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/5","criado_em":"2026-11-09"}
+{"id":"ORI-001433","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/6","criado_em":"2026-11-09"}
+{"id":"ORI-001434","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/7","criado_em":"2026-11-09"}
+{"id":"ORI-001435","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/8","criado_em":"2026-11-09"}
+{"id":"ORI-001436","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/themes/9","criado_em":"2026-11-09"}
+{"id":"ORI-001437","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/id","criado_em":"2026-11-09"}
+{"id":"ORI-001438","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/title","criado_em":"2026-11-09"}
+{"id":"ORI-001439","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001440","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001441","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/priority","criado_em":"2026-11-09"}
+{"id":"ORI-001442","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001443","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001444","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001445","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001446","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001447","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001448","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001449","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001450","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001451","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001452","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001453","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001454","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001455","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001456","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001457","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/3/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001458","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/3/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001459","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/3/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001460","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/4/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001461","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/4/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001462","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/4/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001463","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001464","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001465","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001466","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001467","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001468","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/blocks/5/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001469","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001470","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/0/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001471","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/id","criado_em":"2026-11-09"}
+{"id":"ORI-001472","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/title","criado_em":"2026-11-09"}
+{"id":"ORI-001473","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001474","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001475","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/priority","criado_em":"2026-11-09"}
+{"id":"ORI-001476","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001477","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001478","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001479","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001480","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001481","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001482","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001483","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001484","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001485","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001486","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001487","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001488","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001489","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/1/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001490","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/id","criado_em":"2026-11-09"}
+{"id":"ORI-001491","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/title","criado_em":"2026-11-09"}
+{"id":"ORI-001492","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001493","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001494","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/priority","criado_em":"2026-11-09"}
+{"id":"ORI-001495","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001496","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001497","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001498","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001499","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001500","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001501","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001502","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001503","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001504","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001505","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001506","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001507","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/2/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001508","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/id","criado_em":"2026-11-09"}
+{"id":"ORI-001509","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/title","criado_em":"2026-11-09"}
+{"id":"ORI-001510","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001511","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001512","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001513","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001514","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001515","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001516","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001517","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/basis/3","criado_em":"2026-11-09"}
+{"id":"ORI-001518","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/basis/4","criado_em":"2026-11-09"}
+{"id":"ORI-001519","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001520","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001521","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001522","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001523","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001524","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001525","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001526","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001527","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001528","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001529","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001530","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001531","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001532","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001533","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001534","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001535","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/1/sentences/4","criado_em":"2026-11-09"}
+{"id":"ORI-001536","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001537","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001538","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001539","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001540","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/3/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001541","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/id","criado_em":"2026-11-09"}
+{"id":"ORI-001542","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/title","criado_em":"2026-11-09"}
+{"id":"ORI-001543","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001544","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001545","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001546","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001547","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001548","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001549","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001550","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001551","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001552","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001553","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001554","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001555","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001556","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001557","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001558","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001559","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001560","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001561","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001562","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001563","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001564","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001565","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/1/sentences/4","criado_em":"2026-11-09"}
+{"id":"ORI-001566","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001567","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001568","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001569","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001570","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/4/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001571","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/id","criado_em":"2026-11-09"}
+{"id":"ORI-001572","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/title","criado_em":"2026-11-09"}
+{"id":"ORI-001573","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001574","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001575","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001576","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001577","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001578","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001579","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001580","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001581","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001582","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001583","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001584","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001585","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001586","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001587","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001588","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001589","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001590","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001591","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001592","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001593","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001594","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001595","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/1/sentences/4","criado_em":"2026-11-09"}
+{"id":"ORI-001596","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001597","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001598","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001599","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001600","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/5/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001601","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/id","criado_em":"2026-11-09"}
+{"id":"ORI-001602","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/title","criado_em":"2026-11-09"}
+{"id":"ORI-001603","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001604","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001605","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001606","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001607","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001608","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001609","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001610","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001611","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001612","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001613","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001614","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001615","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001616","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001617","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001618","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001619","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001620","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001621","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001622","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001623","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001624","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001625","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001626","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001627","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001628","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001629","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/6/blocks/2/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001630","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/id","criado_em":"2026-11-09"}
+{"id":"ORI-001631","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/title","criado_em":"2026-11-09"}
+{"id":"ORI-001632","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001633","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001634","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001635","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001636","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001637","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001638","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001639","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001640","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001641","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001642","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001643","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001644","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001645","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001646","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001647","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001648","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001649","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001650","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001651","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001652","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001653","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001654","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001655","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001656","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001657","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001658","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001659","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001660","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/7/blocks/2/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001661","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/id","criado_em":"2026-11-09"}
+{"id":"ORI-001662","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/title","criado_em":"2026-11-09"}
+{"id":"ORI-001663","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001664","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001665","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001666","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001667","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001668","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001669","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001670","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/basis/3","criado_em":"2026-11-09"}
+{"id":"ORI-001671","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/basis/4","criado_em":"2026-11-09"}
+{"id":"ORI-001672","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001673","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001674","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001675","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001676","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001677","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001678","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001679","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001680","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001681","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001682","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001683","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001684","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001685","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001686","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001687","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001688","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001689","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001690","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/8/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001691","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/id","criado_em":"2026-11-09"}
+{"id":"ORI-001692","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/title","criado_em":"2026-11-09"}
+{"id":"ORI-001693","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001694","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001695","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001696","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001697","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001698","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001699","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001700","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001701","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001702","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001703","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001704","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001705","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001706","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001707","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001708","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001709","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001710","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001711","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001712","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001713","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001714","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001715","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001716","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001717","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001718","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001719","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001720","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001721","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/9/blocks/2/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001722","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/id","criado_em":"2026-11-09"}
+{"id":"ORI-001723","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/title","criado_em":"2026-11-09"}
+{"id":"ORI-001724","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001725","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/kind","criado_em":"2026-11-09"}
+{"id":"ORI-001726","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/dayType","criado_em":"2026-11-09"}
+{"id":"ORI-001727","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/stage","criado_em":"2026-11-09"}
+{"id":"ORI-001728","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/0","criado_em":"2026-11-09"}
+{"id":"ORI-001729","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/1","criado_em":"2026-11-09"}
+{"id":"ORI-001730","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/2","criado_em":"2026-11-09"}
+{"id":"ORI-001731","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/3","criado_em":"2026-11-09"}
+{"id":"ORI-001732","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/4","criado_em":"2026-11-09"}
+{"id":"ORI-001733","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/basis/5","criado_em":"2026-11-09"}
+{"id":"ORI-001734","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/goal","criado_em":"2026-11-09"}
+{"id":"ORI-001735","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/grammar","criado_em":"2026-11-09"}
+{"id":"ORI-001736","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/usage/0","criado_em":"2026-11-09"}
+{"id":"ORI-001737","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/usage/1","criado_em":"2026-11-09"}
+{"id":"ORI-001738","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/0/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001739","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/0/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001740","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/0/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001741","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/0/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001742","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/0/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001743","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001744","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001745","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001746","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001747","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001748","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/1/sentences/3","criado_em":"2026-11-09"}
+{"id":"ORI-001749","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/2/pt","criado_em":"2026-11-09"}
+{"id":"ORI-001750","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/2/ctx","criado_em":"2026-11-09"}
+{"id":"ORI-001751","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/2/sentences/0","criado_em":"2026-11-09"}
+{"id":"ORI-001752","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/2/sentences/1","criado_em":"2026-11-09"}
+{"id":"ORI-001753","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/routines/10/blocks/2/sentences/2","criado_em":"2026-11-09"}
+{"id":"ORI-001754","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/0","criado_em":"2026-11-09"}
+{"id":"ORI-001755","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/1","criado_em":"2026-11-09"}
+{"id":"ORI-001756","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/2","criado_em":"2026-11-09"}
+{"id":"ORI-001757","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/3","criado_em":"2026-11-09"}
+{"id":"ORI-001758","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/4","criado_em":"2026-11-09"}
+{"id":"ORI-001759","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/5","criado_em":"2026-11-09"}
+{"id":"ORI-001760","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/6","criado_em":"2026-11-09"}
+{"id":"ORI-001761","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/7","criado_em":"2026-11-09"}
+{"id":"ORI-001762","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/8","criado_em":"2026-11-09"}
+{"id":"ORI-001763","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/9","criado_em":"2026-11-09"}
+{"id":"ORI-001764","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/10","criado_em":"2026-11-09"}
+{"id":"ORI-001765","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/11","criado_em":"2026-11-09"}
+{"id":"ORI-001766","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/12","criado_em":"2026-11-09"}
+{"id":"ORI-001767","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/13","criado_em":"2026-11-09"}
+{"id":"ORI-001768","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/14","criado_em":"2026-11-09"}
+{"id":"ORI-001769","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/15","criado_em":"2026-11-09"}
+{"id":"ORI-001770","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/16","criado_em":"2026-11-09"}
+{"id":"ORI-001771","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/17","criado_em":"2026-11-09"}
+{"id":"ORI-001772","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/18","criado_em":"2026-11-09"}
+{"id":"ORI-001773","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/19","criado_em":"2026-11-09"}
+{"id":"ORI-001774","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/20","criado_em":"2026-11-09"}
+{"id":"ORI-001775","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/21","criado_em":"2026-11-09"}
+{"id":"ORI-001776","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/22","criado_em":"2026-11-09"}
+{"id":"ORI-001777","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/23","criado_em":"2026-11-09"}
+{"id":"ORI-001778","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/24","criado_em":"2026-11-09"}
+{"id":"ORI-001779","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/25","criado_em":"2026-11-09"}
+{"id":"ORI-001780","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/26","criado_em":"2026-11-09"}
+{"id":"ORI-001781","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/27","criado_em":"2026-11-09"}
+{"id":"ORI-001782","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/28","criado_em":"2026-11-09"}
+{"id":"ORI-001783","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/29","criado_em":"2026-11-09"}
+{"id":"ORI-001784","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/30","criado_em":"2026-11-09"}
+{"id":"ORI-001785","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/31","criado_em":"2026-11-09"}
+{"id":"ORI-001786","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/32","criado_em":"2026-11-09"}
+{"id":"ORI-001787","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/33","criado_em":"2026-11-09"}
+{"id":"ORI-001788","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/34","criado_em":"2026-11-09"}
+{"id":"ORI-001789","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/35","criado_em":"2026-11-09"}
+{"id":"ORI-001790","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/36","criado_em":"2026-11-09"}
+{"id":"ORI-001791","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/37","criado_em":"2026-11-09"}
+{"id":"ORI-001792","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/38","criado_em":"2026-11-09"}
+{"id":"ORI-001793","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/39","criado_em":"2026-11-09"}
+{"id":"ORI-001794","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/40","criado_em":"2026-11-09"}
+{"id":"ORI-001795","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/41","criado_em":"2026-11-09"}
+{"id":"ORI-001796","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/42","criado_em":"2026-11-09"}
+{"id":"ORI-001797","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/43","criado_em":"2026-11-09"}
+{"id":"ORI-001798","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/44","criado_em":"2026-11-09"}
+{"id":"ORI-001799","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/45","criado_em":"2026-11-09"}
+{"id":"ORI-001800","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/46","criado_em":"2026-11-09"}
+{"id":"ORI-001801","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/47","criado_em":"2026-11-09"}
+{"id":"ORI-001802","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/48","criado_em":"2026-11-09"}
+{"id":"ORI-001803","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/49","criado_em":"2026-11-09"}
+{"id":"ORI-001804","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/50","criado_em":"2026-11-09"}
+{"id":"ORI-001805","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/51","criado_em":"2026-11-09"}
+{"id":"ORI-001806","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/52","criado_em":"2026-11-09"}
+{"id":"ORI-001807","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/53","criado_em":"2026-11-09"}
+{"id":"ORI-001808","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/54","criado_em":"2026-11-09"}
+{"id":"ORI-001809","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/55","criado_em":"2026-11-09"}
+{"id":"ORI-001810","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/56","criado_em":"2026-11-09"}
+{"id":"ORI-001811","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/57","criado_em":"2026-11-09"}
+{"id":"ORI-001812","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/58","criado_em":"2026-11-09"}
+{"id":"ORI-001813","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/59","criado_em":"2026-11-09"}
+{"id":"ORI-001814","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/60","criado_em":"2026-11-09"}
+{"id":"ORI-001815","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/61","criado_em":"2026-11-09"}
+{"id":"ORI-001816","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/62","criado_em":"2026-11-09"}
+{"id":"ORI-001817","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/63","criado_em":"2026-11-09"}
+{"id":"ORI-001818","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/64","criado_em":"2026-11-09"}
+{"id":"ORI-001819","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/65","criado_em":"2026-11-09"}
+{"id":"ORI-001820","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/66","criado_em":"2026-11-09"}
+{"id":"ORI-001821","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/67","criado_em":"2026-11-09"}
+{"id":"ORI-001822","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/68","criado_em":"2026-11-09"}
+{"id":"ORI-001823","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/69","criado_em":"2026-11-09"}
+{"id":"ORI-001824","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/70","criado_em":"2026-11-09"}
+{"id":"ORI-001825","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/71","criado_em":"2026-11-09"}
+{"id":"ORI-001826","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/72","criado_em":"2026-11-09"}
+{"id":"ORI-001827","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/73","criado_em":"2026-11-09"}
+{"id":"ORI-001828","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/74","criado_em":"2026-11-09"}
+{"id":"ORI-001829","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/75","criado_em":"2026-11-09"}
+{"id":"ORI-001830","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/76","criado_em":"2026-11-09"}
+{"id":"ORI-001831","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/77","criado_em":"2026-11-09"}
+{"id":"ORI-001832","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/78","criado_em":"2026-11-09"}
+{"id":"ORI-001833","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/79","criado_em":"2026-11-09"}
+{"id":"ORI-001834","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/80","criado_em":"2026-11-09"}
+{"id":"ORI-001835","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/81","criado_em":"2026-11-09"}
+{"id":"ORI-001836","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/82","criado_em":"2026-11-09"}
+{"id":"ORI-001837","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/83","criado_em":"2026-11-09"}
+{"id":"ORI-001838","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/84","criado_em":"2026-11-09"}
+{"id":"ORI-001839","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/85","criado_em":"2026-11-09"}
+{"id":"ORI-001840","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/86","criado_em":"2026-11-09"}
+{"id":"ORI-001841","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/87","criado_em":"2026-11-09"}
+{"id":"ORI-001842","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/88","criado_em":"2026-11-09"}
+{"id":"ORI-001843","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/89","criado_em":"2026-11-09"}
+{"id":"ORI-001844","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/90","criado_em":"2026-11-09"}
+{"id":"ORI-001845","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/91","criado_em":"2026-11-09"}
+{"id":"ORI-001846","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/92","criado_em":"2026-11-09"}
+{"id":"ORI-001847","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/93","criado_em":"2026-11-09"}
+{"id":"ORI-001848","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/94","criado_em":"2026-11-09"}
+{"id":"ORI-001849","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/95","criado_em":"2026-11-09"}
+{"id":"ORI-001850","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/96","criado_em":"2026-11-09"}
+{"id":"ORI-001851","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/97","criado_em":"2026-11-09"}
+{"id":"ORI-001852","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/98","criado_em":"2026-11-09"}
+{"id":"ORI-001853","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/99","criado_em":"2026-11-09"}
+{"id":"ORI-001854","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/100","criado_em":"2026-11-09"}
+{"id":"ORI-001855","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/101","criado_em":"2026-11-09"}
+{"id":"ORI-001856","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/102","criado_em":"2026-11-09"}
+{"id":"ORI-001857","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/103","criado_em":"2026-11-09"}
+{"id":"ORI-001858","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/104","criado_em":"2026-11-09"}
+{"id":"ORI-001859","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/105","criado_em":"2026-11-09"}
+{"id":"ORI-001860","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/106","criado_em":"2026-11-09"}
+{"id":"ORI-001861","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/107","criado_em":"2026-11-09"}
+{"id":"ORI-001862","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/108","criado_em":"2026-11-09"}
+{"id":"ORI-001863","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/109","criado_em":"2026-11-09"}
+{"id":"ORI-001864","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/110","criado_em":"2026-11-09"}
+{"id":"ORI-001865","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/111","criado_em":"2026-11-09"}
+{"id":"ORI-001866","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/112","criado_em":"2026-11-09"}
+{"id":"ORI-001867","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/113","criado_em":"2026-11-09"}
+{"id":"ORI-001868","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/114","criado_em":"2026-11-09"}
+{"id":"ORI-001869","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/115","criado_em":"2026-11-09"}
+{"id":"ORI-001870","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/116","criado_em":"2026-11-09"}
+{"id":"ORI-001871","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/117","criado_em":"2026-11-09"}
+{"id":"ORI-001872","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/118","criado_em":"2026-11-09"}
+{"id":"ORI-001873","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/119","criado_em":"2026-11-09"}
+{"id":"ORI-001874","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/120","criado_em":"2026-11-09"}
+{"id":"ORI-001875","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/121","criado_em":"2026-11-09"}
+{"id":"ORI-001876","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/122","criado_em":"2026-11-09"}
+{"id":"ORI-001877","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/123","criado_em":"2026-11-09"}
+{"id":"ORI-001878","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/124","criado_em":"2026-11-09"}
+{"id":"ORI-001879","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/125","criado_em":"2026-11-09"}
+{"id":"ORI-001880","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/126","criado_em":"2026-11-09"}
+{"id":"ORI-001881","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/127","criado_em":"2026-11-09"}
+{"id":"ORI-001882","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/128","criado_em":"2026-11-09"}
+{"id":"ORI-001883","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/129","criado_em":"2026-11-09"}
+{"id":"ORI-001884","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/130","criado_em":"2026-11-09"}
+{"id":"ORI-001885","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/131","criado_em":"2026-11-09"}
+{"id":"ORI-001886","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/132","criado_em":"2026-11-09"}
+{"id":"ORI-001887","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/133","criado_em":"2026-11-09"}
+{"id":"ORI-001888","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/134","criado_em":"2026-11-09"}
+{"id":"ORI-001889","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/135","criado_em":"2026-11-09"}
+{"id":"ORI-001890","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/136","criado_em":"2026-11-09"}
+{"id":"ORI-001891","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/137","criado_em":"2026-11-09"}
+{"id":"ORI-001892","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/138","criado_em":"2026-11-09"}
+{"id":"ORI-001893","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/139","criado_em":"2026-11-09"}
+{"id":"ORI-001894","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/140","criado_em":"2026-11-09"}
+{"id":"ORI-001895","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/141","criado_em":"2026-11-09"}
+{"id":"ORI-001896","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/142","criado_em":"2026-11-09"}
+{"id":"ORI-001897","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/143","criado_em":"2026-11-09"}
+{"id":"ORI-001898","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/144","criado_em":"2026-11-09"}
+{"id":"ORI-001899","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/145","criado_em":"2026-11-09"}
+{"id":"ORI-001900","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/146","criado_em":"2026-11-09"}
+{"id":"ORI-001901","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/147","criado_em":"2026-11-09"}
+{"id":"ORI-001902","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/148","criado_em":"2026-11-09"}
+{"id":"ORI-001903","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/149","criado_em":"2026-11-09"}
+{"id":"ORI-001904","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/items/150","criado_em":"2026-11-09"}
+{"id":"ORI-001905","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/0","criado_em":"2026-11-09"}
+{"id":"ORI-001906","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/1","criado_em":"2026-11-09"}
+{"id":"ORI-001907","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/2","criado_em":"2026-11-09"}
+{"id":"ORI-001908","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/3","criado_em":"2026-11-09"}
+{"id":"ORI-001909","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/4","criado_em":"2026-11-09"}
+{"id":"ORI-001910","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/5","criado_em":"2026-11-09"}
+{"id":"ORI-001911","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/6","criado_em":"2026-11-09"}
+{"id":"ORI-001912","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/7","criado_em":"2026-11-09"}
+{"id":"ORI-001913","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/8","criado_em":"2026-11-09"}
+{"id":"ORI-001914","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/9","criado_em":"2026-11-09"}
+{"id":"ORI-001915","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/10","criado_em":"2026-11-09"}
+{"id":"ORI-001916","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/11","criado_em":"2026-11-09"}
+{"id":"ORI-001917","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/12","criado_em":"2026-11-09"}
+{"id":"ORI-001918","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/13","criado_em":"2026-11-09"}
+{"id":"ORI-001919","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/14","criado_em":"2026-11-09"}
+{"id":"ORI-001920","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/15","criado_em":"2026-11-09"}
+{"id":"ORI-001921","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/16","criado_em":"2026-11-09"}
+{"id":"ORI-001922","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/17","criado_em":"2026-11-09"}
+{"id":"ORI-001923","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/18","criado_em":"2026-11-09"}
+{"id":"ORI-001924","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/19","criado_em":"2026-11-09"}
+{"id":"ORI-001925","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/20","criado_em":"2026-11-09"}
+{"id":"ORI-001926","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/21","criado_em":"2026-11-09"}
+{"id":"ORI-001927","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/22","criado_em":"2026-11-09"}
+{"id":"ORI-001928","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/23","criado_em":"2026-11-09"}
+{"id":"ORI-001929","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/24","criado_em":"2026-11-09"}
+{"id":"ORI-001930","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/25","criado_em":"2026-11-09"}
+{"id":"ORI-001931","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/26","criado_em":"2026-11-09"}
+{"id":"ORI-001932","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/27","criado_em":"2026-11-09"}
+{"id":"ORI-001933","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/28","criado_em":"2026-11-09"}
+{"id":"ORI-001934","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/29","criado_em":"2026-11-09"}
+{"id":"ORI-001935","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/30","criado_em":"2026-11-09"}
+{"id":"ORI-001936","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/31","criado_em":"2026-11-09"}
+{"id":"ORI-001937","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/32","criado_em":"2026-11-09"}
+{"id":"ORI-001938","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/33","criado_em":"2026-11-09"}
+{"id":"ORI-001939","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/questions/34","criado_em":"2026-11-09"}
+{"id":"ORI-001940","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/_doc","criado_em":"2026-11-09"}
+{"id":"ORI-001941","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/stages/A","criado_em":"2026-11-09"}
+{"id":"ORI-001942","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/stages/B","criado_em":"2026-11-09"}
+{"id":"ORI-001943","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/stages/C","criado_em":"2026-11-09"}
+{"id":"ORI-001944","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/stages/D","criado_em":"2026-11-09"}
+{"id":"ORI-001945","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/secondaryCharacters/0","criado_em":"2026-11-09"}
+{"id":"ORI-001946","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/secondaryCharacters/1","criado_em":"2026-11-09"}
+{"id":"ORI-001947","tipo":"ORI","chave":"ORI:FON-000008@b194cee:/journey/secondaryCharacters/2","criado_em":"2026-11-09"}
+{"id":"PSG-000002","tipo":"PSG","chave":"PSG:karla","criado_em":"2026-11-09"}
+{"id":"VOC-000077","tipo":"VOC","chave":"VOC:club","criado_em":"2026-11-09"}
+{"id":"EXP-000258","tipo":"EXP","chave":"EXP:personal trainer","criado_em":"2026-11-09"}
+{"id":"EXP-000259","tipo":"EXP","chave":"EXP:Pilates instructor","criado_em":"2026-11-09"}
+{"id":"EXP-000260","tipo":"EXP","chave":"EXP:personal training client","criado_em":"2026-11-09"}
+{"id":"EXP-000261","tipo":"EXP","chave":"EXP:leave for work","criado_em":"2026-11-09"}
+{"id":"EXP-000262","tipo":"EXP","chave":"EXP:go for lunch","criado_em":"2026-11-09"}
+{"id":"EXP-000263","tipo":"EXP","chave":"EXP:do my own workout","criado_em":"2026-11-09"}
+{"id":"EXP-000264","tipo":"EXP","chave":"EXP:teach a class","criado_em":"2026-11-09"}
+{"id":"EXP-000265","tipo":"EXP","chave":"EXP:group Pilates class","criado_em":"2026-11-09"}
+{"id":"EXP-000266","tipo":"EXP","chave":"EXP:organise dinner","criado_em":"2026-11-09"}
+{"id":"EXP-000267","tipo":"EXP","chave":"EXP:the children's snack","criado_em":"2026-11-09"}
+{"id":"EXP-000268","tipo":"EXP","chave":"EXP:plan the next day","criado_em":"2026-11-09"}
+{"id":"EXP-000269","tipo":"EXP","chave":"EXP:wait for my husband","criado_em":"2026-11-09"}
+{"id":"EXP-000270","tipo":"EXP","chave":"EXP:on Tuesdays and Thursdays","criado_em":"2026-11-09"}
+{"id":"EXP-000271","tipo":"EXP","chave":"EXP:cancel in advance","criado_em":"2026-11-09"}
+{"id":"EXP-000272","tipo":"EXP","chave":"EXP:sleep until","criado_em":"2026-11-09"}
+{"id":"EXP-000273","tipo":"EXP","chave":"EXP:spinning class","criado_em":"2026-11-09"}
+{"id":"EXP-000274","tipo":"EXP","chave":"EXP:earlier than usual","criado_em":"2026-11-09"}
+{"id":"EXP-000275","tipo":"EXP","chave":"EXP:more time with","criado_em":"2026-11-09"}
+{"id":"EXP-000276","tipo":"EXP","chave":"EXP:at lunchtime","criado_em":"2026-11-09"}
+{"id":"EXP-000277","tipo":"EXP","chave":"EXP:my younger son","criado_em":"2026-11-09"}
+{"id":"EXP-000278","tipo":"EXP","chave":"EXP:my older son","criado_em":"2026-11-09"}
+{"id":"EXP-000279","tipo":"EXP","chave":"EXP:give someone a hug","criado_em":"2026-11-09"}
+{"id":"VOC-000078","tipo":"VOC","chave":"VOC:independent","criado_em":"2026-11-09"}
+{"id":"EXP-000280","tipo":"EXP","chave":"EXP:tell someone about","criado_em":"2026-11-09"}
+{"id":"VOC-000079","tipo":"VOC","chave":"VOC:often","criado_em":"2026-11-09"}
+{"id":"EXP-000281","tipo":"EXP","chave":"EXP:be there for someone","criado_em":"2026-11-09"}
+{"id":"EXP-000282","tipo":"EXP","chave":"EXP:How was your day?","criado_em":"2026-11-09"}
+{"id":"EXP-000283","tipo":"EXP","chave":"EXP:a maths test","criado_em":"2026-11-09"}
+{"id":"EXP-000284","tipo":"EXP","chave":"EXP:finish your homework","criado_em":"2026-11-09"}
+{"id":"EXP-000285","tipo":"EXP","chave":"EXP:not yet","criado_em":"2026-11-09"}
+{"id":"EXP-000286","tipo":"EXP","chave":"EXP:of course","criado_em":"2026-11-09"}
+{"id":"EXP-000287","tipo":"EXP","chave":"EXP:after dinner","criado_em":"2026-11-09"}
+{"id":"VOC-000080","tipo":"VOC","chave":"VOC:always","criado_em":"2026-11-09"}
+{"id":"EXP-000288","tipo":"EXP","chave":"EXP:read someone a story","criado_em":"2026-11-09"}
+{"id":"EXP-000289","tipo":"EXP","chave":"EXP:this afternoon","criado_em":"2026-11-09"}
+{"id":"VOC-000081","tipo":"VOC","chave":"VOC:participant","criado_em":"2026-11-09"}
+{"id":"VOC-000082","tipo":"VOC","chave":"VOC:mat","criado_em":"2026-11-09"}
+{"id":"VOC-000083","tipo":"VOC","chave":"VOC:nervous","criado_em":"2026-11-09"}
+{"id":"EXP-000290","tipo":"EXP","chave":"EXP:lie on your back","criado_em":"2026-11-09"}
+{"id":"EXP-000291","tipo":"EXP","chave":"EXP:take a deep breath","criado_em":"2026-11-09"}
+{"id":"EXP-000292","tipo":"EXP","chave":"EXP:engage your core","criado_em":"2026-11-09"}
+{"id":"EXP-000293","tipo":"EXP","chave":"EXP:keep your shoulders relaxed","criado_em":"2026-11-09"}
+{"id":"VOC-000084","tipo":"VOC","chave":"VOC:tense","criado_em":"2026-11-09"}
+{"id":"EXP-000294","tipo":"EXP","chave":"EXP:a little","criado_em":"2026-11-09"}
+{"id":"EXP-000295","tipo":"EXP","chave":"EXP:move slowly, with control","criado_em":"2026-11-09"}
+{"id":"EXP-000296","tipo":"EXP","chave":"EXP:matter more than","criado_em":"2026-11-09"}
+{"id":"EXP-000297","tipo":"EXP","chave":"EXP:at the end of","criado_em":"2026-11-09"}
+{"id":"VOC-000085","tipo":"VOC","chave":"VOC:stretch","criado_em":"2026-11-09"}
+{"id":"EXP-000298","tipo":"EXP","chave":"EXP:listen carefully","criado_em":"2026-11-09"}
+{"id":"EXP-000299","tipo":"EXP","chave":"EXP:become aware of","criado_em":"2026-11-09"}
+{"id":"EXP-000300","tipo":"EXP","chave":"EXP:improve your posture","criado_em":"2026-11-09"}
+{"id":"VOC-000086","tipo":"VOC","chave":"VOC:stiff","criado_em":"2026-11-09"}
+{"id":"EXP-000301","tipo":"EXP","chave":"EXP:How are you feeling today?","criado_em":"2026-11-09"}
+{"id":"EXP-000302","tipo":"EXP","chave":"EXP:sleep well","criado_em":"2026-11-09"}
+{"id":"EXP-000303","tipo":"EXP","chave":"EXP:adjust the training plan","criado_em":"2026-11-09"}
+{"id":"EXP-000304","tipo":"EXP","chave":"EXP:work on mobility","criado_em":"2026-11-09"}
+{"id":"EXP-000305","tipo":"EXP","chave":"EXP:lower back","criado_em":"2026-11-09"}
+{"id":"EXP-000306","tipo":"EXP","chave":"EXP:keep your back straight","criado_em":"2026-11-09"}
+{"id":"EXP-000307","tipo":"EXP","chave":"EXP:control the movement","criado_em":"2026-11-09"}
+{"id":"EXP-000308","tipo":"EXP","chave":"EXP:feel better","criado_em":"2026-11-09"}
+{"id":"VOC-000087","tipo":"VOC","chave":"VOC:confident","criado_em":"2026-11-09"}
+{"id":"EXP-000309","tipo":"EXP","chave":"EXP:progress takes time","criado_em":"2026-11-09"}
+{"id":"VOC-000088","tipo":"VOC","chave":"VOC:consistency","criado_em":"2026-11-09"}
+{"id":"EXP-000310","tipo":"EXP","chave":"EXP:check my schedule","criado_em":"2026-11-09"}
+{"id":"VOC-000089","tipo":"VOC","chave":"VOC:schedule","criado_em":"2026-11-09"}
+{"id":"EXP-000311","tipo":"EXP","chave":"EXP:a quiet morning","criado_em":"2026-11-09"}
+{"id":"EXP-000312","tipo":"EXP","chave":"EXP:speciality coffee","criado_em":"2026-11-09"}
+{"id":"EXP-000313","tipo":"EXP","chave":"EXP:rich aroma","criado_em":"2026-11-09"}
+{"id":"EXP-000314","tipo":"EXP","chave":"EXP:freshly ground beans","criado_em":"2026-11-09"}
+{"id":"EXP-000315","tipo":"EXP","chave":"EXP:slow down","criado_em":"2026-11-09"}
+{"id":"EXP-000316","tipo":"EXP","chave":"EXP:enjoy reading","criado_em":"2026-11-09"}
+{"id":"VOC-000090","tipo":"VOC","chave":"VOC:novel","criado_em":"2026-11-09"}
+{"id":"EXP-000317","tipo":"EXP","chave":"EXP:I'd rather… than…","criado_em":"2026-11-09"}
+{"id":"EXP-000318","tipo":"EXP","chave":"EXP:first thing in the morning","criado_em":"2026-11-09"}
+{"id":"VOC-000091","tipo":"VOC","chave":"VOC:underline","criado_em":"2026-11-09"}
+{"id":"EXP-000319","tipo":"EXP","chave":"EXP:in the margin","criado_em":"2026-11-09"}
+{"id":"VOC-000092","tipo":"VOC","chave":"VOC:posture","criado_em":"2026-11-09"}
+{"id":"EXP-000320","tipo":"EXP","chave":"EXP:Would you like…?","criado_em":"2026-11-09"}
+{"id":"VOC-000093","tipo":"VOC","chave":"VOC:flavour","criado_em":"2026-11-09"}
+{"id":"EXP-000321","tipo":"EXP","chave":"EXP:study Nutrition","criado_em":"2026-11-09"}
+{"id":"EXP-000322","tipo":"EXP","chave":"EXP:postgraduate course","criado_em":"2026-11-09"}
+{"id":"EXP-000323","tipo":"EXP","chave":"EXP:this term","criado_em":"2026-11-09"}
+{"id":"EXP-000324","tipo":"EXP","chave":"EXP:how the body moves","criado_em":"2026-11-09"}
+{"id":"VOC-000094","tipo":"VOC","chave":"VOC:affect","criado_em":"2026-11-09"}
+{"id":"VOC-000095","tipo":"VOC","chave":"VOC:demanding","criado_em":"2026-11-09"}
+{"id":"EXP-000325","tipo":"EXP","chave":"EXP:connect theory with practice","criado_em":"2026-11-09"}
+{"id":"EXP-000326","tipo":"EXP","chave":"EXP:last night","criado_em":"2026-11-09"}
+{"id":"EXP-000327","tipo":"EXP","chave":"EXP:research paper","criado_em":"2026-11-09"}
+{"id":"VOC-000096","tipo":"VOC","chave":"VOC:recovery","criado_em":"2026-11-09"}
+{"id":"EXP-000328","tipo":"EXP","chave":"EXP:had to","criado_em":"2026-11-09"}
+{"id":"VOC-000097","tipo":"VOC","chave":"VOC:technical","criado_em":"2026-11-09"}
+{"id":"EXP-000329","tipo":"EXP","chave":"EXP:look up","criado_em":"2026-11-09"}
+{"id":"EXP-000330","tipo":"EXP","chave":"EXP:take notes","criado_em":"2026-11-09"}
+{"id":"EXP-000331","tipo":"EXP","chave":"EXP:explain something clearly","criado_em":"2026-11-09"}
+{"id":"VOC-000098","tipo":"VOC","chave":"VOC:assignment","criado_em":"2026-11-09"}
+{"id":"EXP-000332","tipo":"EXP","chave":"EXP:Shall we…?","criado_em":"2026-11-09"}
+{"id":"EXP-000333","tipo":"EXP","chave":"EXP:lecture notes","criado_em":"2026-11-09"}
+{"id":"EXP-000334","tipo":"EXP","chave":"EXP:good idea","criado_em":"2026-11-09"}
+{"id":"EXP-000335","tipo":"EXP","chave":"EXP:last Tuesday","criado_em":"2026-11-09"}
+{"id":"EXP-000336","tipo":"EXP","chave":"EXP:my plans change","criado_em":"2026-11-09"}
+{"id":"EXP-000337","tipo":"EXP","chave":"EXP:cancel a session","criado_em":"2026-11-09"}
+{"id":"VOC-000099","tipo":"VOC","chave":"VOC:appointment","criado_em":"2026-11-09"}
+{"id":"EXP-000338","tipo":"EXP","chave":"EXP:take longer than expected","criado_em":"2026-11-09"}
+{"id":"EXP-000339","tipo":"EXP","chave":"EXP:by noon","criado_em":"2026-11-09"}
+{"id":"EXP-000340","tipo":"EXP","chave":"EXP:have no time left","criado_em":"2026-11-09"}
+{"id":"EXP-000341","tipo":"EXP","chave":"EXP:stick to a plan","criado_em":"2026-11-09"}
+{"id":"VOC-000100","tipo":"VOC","chave":"VOC:option","criado_em":"2026-11-09"}
+{"id":"EXP-000342","tipo":"EXP","chave":"EXP:catch up on","criado_em":"2026-11-09"}
+{"id":"EXP-000343","tipo":"EXP","chave":"EXP:in the end","criado_em":"2026-11-09"}
+{"id":"EXP-000344","tipo":"EXP","chave":"EXP:decide to","criado_em":"2026-11-09"}
+{"id":"EXP-000345","tipo":"EXP","chave":"EXP:shorter than usual","criado_em":"2026-11-09"}
+{"id":"VOC-000101","tipo":"VOC","chave":"VOC:flexible","criado_em":"2026-11-09"}
+{"id":"VOC-000102","tipo":"VOC","chave":"VOC:disciplined","criado_em":"2026-11-09"}
+{"id":"EXP-000346","tipo":"EXP","chave":"EXP:be going to","criado_em":"2026-11-09"}
+{"id":"EXP-000347","tipo":"EXP","chave":"EXP:take part in","criado_em":"2026-11-09"}
+{"id":"VOC-000103","tipo":"VOC","chave":"VOC:race","criado_em":"2026-11-09"}
+{"id":"EXP-000348","tipo":"EXP","chave":"EXP:in a few months","criado_em":"2026-11-09"}
+{"id":"EXP-000349","tipo":"EXP","chave":"EXP:combine… with…","criado_em":"2026-11-09"}
+{"id":"EXP-000350","tipo":"EXP","chave":"EXP:workout station","criado_em":"2026-11-09"}
+{"id":"VOC-000104","tipo":"VOC","chave":"VOC:challenge","criado_em":"2026-11-09"}
+{"id":"VOC-000105","tipo":"VOC","chave":"VOC:endurance","criado_em":"2026-11-09"}
+{"id":"EXP-000351","tipo":"EXP","chave":"EXP:running pace","criado_em":"2026-11-09"}
+{"id":"EXP-000352","tipo":"EXP","chave":"EXP:get longer","criado_em":"2026-11-09"}
+{"id":"EXP-000353","tipo":"EXP","chave":"EXP:stronger than","criado_em":"2026-11-09"}
+{"id":"EXP-000354","tipo":"EXP","chave":"EXP:last month","criado_em":"2026-11-09"}
+{"id":"EXP-000355","tipo":"EXP","chave":"EXP:train hard","criado_em":"2026-11-09"}
+{"id":"EXP-000356","tipo":"EXP","chave":"EXP:make time for","criado_em":"2026-11-09"}
+{"id":"VOC-000106","tipo":"VOC","chave":"VOC:might","criado_em":"2026-11-09"}
+{"id":"EXP-000357","tipo":"EXP","chave":"EXP:rest day","criado_em":"2026-11-09"}
+{"id":"EXP-000358","tipo":"EXP","chave":"EXP:do my best","criado_em":"2026-11-09"}
+{"id":"EXP-000359","tipo":"EXP","chave":"EXP:come and watch","criado_em":"2026-11-09"}
+{"id":"EXP-000360","tipo":"EXP","chave":"EXP:more fun","criado_em":"2026-11-09"}
+{"id":"EXP-000361","tipo":"EXP","chave":"EXP:take things slowly","criado_em":"2026-11-09"}
+{"id":"EXP-000362","tipo":"EXP","chave":"EXP:the week ahead","criado_em":"2026-11-09"}
+{"id":"EXP-000363","tipo":"EXP","chave":"EXP:set aside time for","criado_em":"2026-11-09"}
+{"id":"EXP-000364","tipo":"EXP","chave":"EXP:at once","criado_em":"2026-11-09"}
+{"id":"VOC-000107","tipo":"VOC","chave":"VOC:priority","criado_em":"2026-11-09"}
+{"id":"VOC-000108","tipo":"VOC","chave":"VOC:busy","criado_em":"2026-11-09"}
+{"id":"VOC-000109","tipo":"VOC","chave":"VOC:perfect","criado_em":"2026-11-09"}
+{"id":"EXP-000365","tipo":"EXP","chave":"EXP:take care of","criado_em":"2026-11-09"}
+{"id":"EXP-000366","tipo":"EXP","chave":"EXP:turn off the light","criado_em":"2026-11-09"}
+{"id":"EXP-000367","tipo":"EXP","chave":"EXP:ready for","criado_em":"2026-11-09"}
+{"id":"TXT-000024","tipo":"TXT","chave":"TXT:karla:K01","criado_em":"2026-11-09"}
+{"id":"SEG-000142","tipo":"SEG","chave":"SEG:ORI-001447","criado_em":"2026-11-09"}
+{"id":"SEG-000143","tipo":"SEG","chave":"SEG:ORI-001448","criado_em":"2026-11-09"}
+{"id":"SEG-000144","tipo":"SEG","chave":"SEG:ORI-001451","criado_em":"2026-11-09"}
+{"id":"SEG-000145","tipo":"SEG","chave":"SEG:ORI-001452","criado_em":"2026-11-09"}
+{"id":"SEG-000146","tipo":"SEG","chave":"SEG:ORI-001455","criado_em":"2026-11-09"}
+{"id":"SEG-000147","tipo":"SEG","chave":"SEG:ORI-001456","criado_em":"2026-11-09"}
+{"id":"SEG-000148","tipo":"SEG","chave":"SEG:ORI-001459","criado_em":"2026-11-09"}
+{"id":"SEG-000149","tipo":"SEG","chave":"SEG:ORI-001462","criado_em":"2026-11-09"}
+{"id":"SEG-000150","tipo":"SEG","chave":"SEG:ORI-001465","criado_em":"2026-11-09"}
+{"id":"SEG-000151","tipo":"SEG","chave":"SEG:ORI-001466","criado_em":"2026-11-09"}
+{"id":"SEG-000152","tipo":"SEG","chave":"SEG:ORI-001467","criado_em":"2026-11-09"}
+{"id":"SEG-000153","tipo":"SEG","chave":"SEG:ORI-001468","criado_em":"2026-11-09"}
+{"id":"TXT-000025","tipo":"TXT","chave":"TXT:karla:K02","criado_em":"2026-11-09"}
+{"id":"SEG-000154","tipo":"SEG","chave":"SEG:ORI-001480","criado_em":"2026-11-09"}
+{"id":"SEG-000155","tipo":"SEG","chave":"SEG:ORI-001481","criado_em":"2026-11-09"}
+{"id":"SEG-000156","tipo":"SEG","chave":"SEG:ORI-001482","criado_em":"2026-11-09"}
+{"id":"SEG-000157","tipo":"SEG","chave":"SEG:ORI-001485","criado_em":"2026-11-09"}
+{"id":"SEG-000158","tipo":"SEG","chave":"SEG:ORI-001486","criado_em":"2026-11-09"}
+{"id":"SEG-000159","tipo":"SEG","chave":"SEG:ORI-001487","criado_em":"2026-11-09"}
+{"id":"TXT-000026","tipo":"TXT","chave":"TXT:karla:K03","criado_em":"2026-11-09"}
+{"id":"SEG-000160","tipo":"SEG","chave":"SEG:ORI-001499","criado_em":"2026-11-09"}
+{"id":"SEG-000161","tipo":"SEG","chave":"SEG:ORI-001502","criado_em":"2026-11-09"}
+{"id":"SEG-000162","tipo":"SEG","chave":"SEG:ORI-001505","criado_em":"2026-11-09"}
+{"id":"TXT-000027","tipo":"TXT","chave":"TXT:karla:K04","criado_em":"2026-11-09"}
+{"id":"SEG-000163","tipo":"SEG","chave":"SEG:ORI-001525","criado_em":"2026-11-09"}
+{"id":"SEG-000164","tipo":"SEG","chave":"SEG:ORI-001526","criado_em":"2026-11-09"}
+{"id":"SEG-000165","tipo":"SEG","chave":"SEG:ORI-001527","criado_em":"2026-11-09"}
+{"id":"SEG-000166","tipo":"SEG","chave":"SEG:ORI-001531","criado_em":"2026-11-09"}
+{"id":"SEG-000167","tipo":"SEG","chave":"SEG:ORI-001532","criado_em":"2026-11-09"}
+{"id":"SEG-000168","tipo":"SEG","chave":"SEG:ORI-001533","criado_em":"2026-11-09"}
+{"id":"SEG-000169","tipo":"SEG","chave":"SEG:ORI-001534","criado_em":"2026-11-09"}
+{"id":"SEG-000170","tipo":"SEG","chave":"SEG:ORI-001535","criado_em":"2026-11-09"}
+{"id":"DIA-000007","tipo":"DIA","chave":"DIA:ORI-001529","criado_em":"2026-11-09"}
+{"id":"SEG-000171","tipo":"SEG","chave":"SEG:ORI-001538","criado_em":"2026-11-09"}
+{"id":"SEG-000172","tipo":"SEG","chave":"SEG:ORI-001539","criado_em":"2026-11-09"}
+{"id":"SEG-000173","tipo":"SEG","chave":"SEG:ORI-001540","criado_em":"2026-11-09"}
+{"id":"TXT-000028","tipo":"TXT","chave":"TXT:karla:K05","criado_em":"2026-11-09"}
+{"id":"SEG-000174","tipo":"SEG","chave":"SEG:ORI-001555","criado_em":"2026-11-09"}
+{"id":"SEG-000175","tipo":"SEG","chave":"SEG:ORI-001556","criado_em":"2026-11-09"}
+{"id":"SEG-000176","tipo":"SEG","chave":"SEG:ORI-001557","criado_em":"2026-11-09"}
+{"id":"SEG-000177","tipo":"SEG","chave":"SEG:ORI-001561","criado_em":"2026-11-09"}
+{"id":"SEG-000178","tipo":"SEG","chave":"SEG:ORI-001562","criado_em":"2026-11-09"}
+{"id":"SEG-000179","tipo":"SEG","chave":"SEG:ORI-001563","criado_em":"2026-11-09"}
+{"id":"SEG-000180","tipo":"SEG","chave":"SEG:ORI-001564","criado_em":"2026-11-09"}
+{"id":"SEG-000181","tipo":"SEG","chave":"SEG:ORI-001565","criado_em":"2026-11-09"}
+{"id":"DIA-000008","tipo":"DIA","chave":"DIA:ORI-001559","criado_em":"2026-11-09"}
+{"id":"SEG-000182","tipo":"SEG","chave":"SEG:ORI-001568","criado_em":"2026-11-09"}
+{"id":"SEG-000183","tipo":"SEG","chave":"SEG:ORI-001569","criado_em":"2026-11-09"}
+{"id":"SEG-000184","tipo":"SEG","chave":"SEG:ORI-001570","criado_em":"2026-11-09"}
+{"id":"TXT-000029","tipo":"TXT","chave":"TXT:karla:K06","criado_em":"2026-11-09"}
+{"id":"SEG-000185","tipo":"SEG","chave":"SEG:ORI-001586","criado_em":"2026-11-09"}
+{"id":"SEG-000186","tipo":"SEG","chave":"SEG:ORI-001587","criado_em":"2026-11-09"}
+{"id":"SEG-000187","tipo":"SEG","chave":"SEG:ORI-001591","criado_em":"2026-11-09"}
+{"id":"SEG-000188","tipo":"SEG","chave":"SEG:ORI-001592","criado_em":"2026-11-09"}
+{"id":"SEG-000189","tipo":"SEG","chave":"SEG:ORI-001593","criado_em":"2026-11-09"}
+{"id":"SEG-000190","tipo":"SEG","chave":"SEG:ORI-001594","criado_em":"2026-11-09"}
+{"id":"SEG-000191","tipo":"SEG","chave":"SEG:ORI-001595","criado_em":"2026-11-09"}
+{"id":"DIA-000009","tipo":"DIA","chave":"DIA:ORI-001589","criado_em":"2026-11-09"}
+{"id":"SEG-000192","tipo":"SEG","chave":"SEG:ORI-001598","criado_em":"2026-11-09"}
+{"id":"SEG-000193","tipo":"SEG","chave":"SEG:ORI-001599","criado_em":"2026-11-09"}
+{"id":"SEG-000194","tipo":"SEG","chave":"SEG:ORI-001600","criado_em":"2026-11-09"}
+{"id":"TXT-000030","tipo":"TXT","chave":"TXT:karla:K07","criado_em":"2026-11-09"}
+{"id":"SEG-000195","tipo":"SEG","chave":"SEG:ORI-001615","criado_em":"2026-11-09"}
+{"id":"SEG-000196","tipo":"SEG","chave":"SEG:ORI-001616","criado_em":"2026-11-09"}
+{"id":"SEG-000197","tipo":"SEG","chave":"SEG:ORI-001617","criado_em":"2026-11-09"}
+{"id":"SEG-000198","tipo":"SEG","chave":"SEG:ORI-001620","criado_em":"2026-11-09"}
+{"id":"SEG-000199","tipo":"SEG","chave":"SEG:ORI-001621","criado_em":"2026-11-09"}
+{"id":"SEG-000200","tipo":"SEG","chave":"SEG:ORI-001622","criado_em":"2026-11-09"}
+{"id":"SEG-000201","tipo":"SEG","chave":"SEG:ORI-001626","criado_em":"2026-11-09"}
+{"id":"SEG-000202","tipo":"SEG","chave":"SEG:ORI-001627","criado_em":"2026-11-09"}
+{"id":"SEG-000203","tipo":"SEG","chave":"SEG:ORI-001628","criado_em":"2026-11-09"}
+{"id":"SEG-000204","tipo":"SEG","chave":"SEG:ORI-001629","criado_em":"2026-11-09"}
+{"id":"DIA-000010","tipo":"DIA","chave":"DIA:ORI-001624","criado_em":"2026-11-09"}
+{"id":"TXT-000031","tipo":"TXT","chave":"TXT:karla:K08","criado_em":"2026-11-09"}
+{"id":"SEG-000205","tipo":"SEG","chave":"SEG:ORI-001645","criado_em":"2026-11-09"}
+{"id":"SEG-000206","tipo":"SEG","chave":"SEG:ORI-001646","criado_em":"2026-11-09"}
+{"id":"SEG-000207","tipo":"SEG","chave":"SEG:ORI-001647","criado_em":"2026-11-09"}
+{"id":"SEG-000208","tipo":"SEG","chave":"SEG:ORI-001650","criado_em":"2026-11-09"}
+{"id":"SEG-000209","tipo":"SEG","chave":"SEG:ORI-001651","criado_em":"2026-11-09"}
+{"id":"SEG-000210","tipo":"SEG","chave":"SEG:ORI-001652","criado_em":"2026-11-09"}
+{"id":"SEG-000211","tipo":"SEG","chave":"SEG:ORI-001653","criado_em":"2026-11-09"}
+{"id":"SEG-000212","tipo":"SEG","chave":"SEG:ORI-001657","criado_em":"2026-11-09"}
+{"id":"SEG-000213","tipo":"SEG","chave":"SEG:ORI-001658","criado_em":"2026-11-09"}
+{"id":"SEG-000214","tipo":"SEG","chave":"SEG:ORI-001659","criado_em":"2026-11-09"}
+{"id":"SEG-000215","tipo":"SEG","chave":"SEG:ORI-001660","criado_em":"2026-11-09"}
+{"id":"DIA-000011","tipo":"DIA","chave":"DIA:ORI-001655","criado_em":"2026-11-09"}
+{"id":"TXT-000032","tipo":"TXT","chave":"TXT:karla:K09","criado_em":"2026-11-09"}
+{"id":"SEG-000216","tipo":"SEG","chave":"SEG:ORI-001678","criado_em":"2026-11-09"}
+{"id":"SEG-000217","tipo":"SEG","chave":"SEG:ORI-001679","criado_em":"2026-11-09"}
+{"id":"SEG-000218","tipo":"SEG","chave":"SEG:ORI-001680","criado_em":"2026-11-09"}
+{"id":"SEG-000219","tipo":"SEG","chave":"SEG:ORI-001683","criado_em":"2026-11-09"}
+{"id":"SEG-000220","tipo":"SEG","chave":"SEG:ORI-001684","criado_em":"2026-11-09"}
+{"id":"SEG-000221","tipo":"SEG","chave":"SEG:ORI-001685","criado_em":"2026-11-09"}
+{"id":"SEG-000222","tipo":"SEG","chave":"SEG:ORI-001686","criado_em":"2026-11-09"}
+{"id":"SEG-000223","tipo":"SEG","chave":"SEG:ORI-001689","criado_em":"2026-11-09"}
+{"id":"SEG-000224","tipo":"SEG","chave":"SEG:ORI-001690","criado_em":"2026-11-09"}
+{"id":"TXT-000033","tipo":"TXT","chave":"TXT:karla:K10","criado_em":"2026-11-09"}
+{"id":"SEG-000225","tipo":"SEG","chave":"SEG:ORI-001706","criado_em":"2026-11-09"}
+{"id":"SEG-000226","tipo":"SEG","chave":"SEG:ORI-001707","criado_em":"2026-11-09"}
+{"id":"SEG-000227","tipo":"SEG","chave":"SEG:ORI-001708","criado_em":"2026-11-09"}
+{"id":"SEG-000228","tipo":"SEG","chave":"SEG:ORI-001711","criado_em":"2026-11-09"}
+{"id":"SEG-000229","tipo":"SEG","chave":"SEG:ORI-001712","criado_em":"2026-11-09"}
+{"id":"SEG-000230","tipo":"SEG","chave":"SEG:ORI-001713","criado_em":"2026-11-09"}
+{"id":"SEG-000231","tipo":"SEG","chave":"SEG:ORI-001714","criado_em":"2026-11-09"}
+{"id":"SEG-000232","tipo":"SEG","chave":"SEG:ORI-001718","criado_em":"2026-11-09"}
+{"id":"SEG-000233","tipo":"SEG","chave":"SEG:ORI-001719","criado_em":"2026-11-09"}
+{"id":"SEG-000234","tipo":"SEG","chave":"SEG:ORI-001720","criado_em":"2026-11-09"}
+{"id":"SEG-000235","tipo":"SEG","chave":"SEG:ORI-001721","criado_em":"2026-11-09"}
+{"id":"DIA-000012","tipo":"DIA","chave":"DIA:ORI-001716","criado_em":"2026-11-09"}
+{"id":"TXT-000034","tipo":"TXT","chave":"TXT:karla:K11","criado_em":"2026-11-09"}
+{"id":"SEG-000236","tipo":"SEG","chave":"SEG:ORI-001740","criado_em":"2026-11-09"}
+{"id":"SEG-000237","tipo":"SEG","chave":"SEG:ORI-001741","criado_em":"2026-11-09"}
+{"id":"SEG-000238","tipo":"SEG","chave":"SEG:ORI-001742","criado_em":"2026-11-09"}
+{"id":"SEG-000239","tipo":"SEG","chave":"SEG:ORI-001745","criado_em":"2026-11-09"}
+{"id":"SEG-000240","tipo":"SEG","chave":"SEG:ORI-001746","criado_em":"2026-11-09"}
+{"id":"SEG-000241","tipo":"SEG","chave":"SEG:ORI-001747","criado_em":"2026-11-09"}
+{"id":"SEG-000242","tipo":"SEG","chave":"SEG:ORI-001748","criado_em":"2026-11-09"}
+{"id":"SEG-000243","tipo":"SEG","chave":"SEG:ORI-001751","criado_em":"2026-11-09"}
+{"id":"SEG-000244","tipo":"SEG","chave":"SEG:ORI-001752","criado_em":"2026-11-09"}
+{"id":"SEG-000245","tipo":"SEG","chave":"SEG:ORI-001753","criado_em":"2026-11-09"}
+{"id":"PER-000110","tipo":"PER","chave":"PER:What time do you usually wake up?","criado_em":"2026-11-09"}
+{"id":"RSP-000092","tipo":"RSP","chave":"RSP:ORI-001905","criado_em":"2026-11-09"}
+{"id":"PER-000111","tipo":"PER","chave":"PER:What do you do in the morning at work?","criado_em":"2026-11-09"}
+{"id":"RSP-000093","tipo":"RSP","chave":"RSP:ORI-001906","criado_em":"2026-11-09"}
+{"id":"PER-000112","tipo":"PER","chave":"PER:When do you do your own workout?","criado_em":"2026-11-09"}
+{"id":"RSP-000094","tipo":"RSP","chave":"RSP:ORI-001907","criado_em":"2026-11-09"}
+{"id":"PER-000113","tipo":"PER","chave":"PER:What do you teach in the afternoon?","criado_em":"2026-11-09"}
+{"id":"RSP-000095","tipo":"RSP","chave":"RSP:ORI-001908","criado_em":"2026-11-09"}
+{"id":"RSP-000096","tipo":"RSP","chave":"RSP:ORI-001909","criado_em":"2026-11-09"}
+{"id":"PER-000114","tipo":"PER","chave":"PER:What is different on Tuesdays and Thursdays?","criado_em":"2026-11-09"}
+{"id":"RSP-000097","tipo":"RSP","chave":"RSP:ORI-001910","criado_em":"2026-11-09"}
+{"id":"PER-000115","tipo":"PER","chave":"PER:What do you do if you can't work out at lunchtime?","criado_em":"2026-11-09"}
+{"id":"RSP-000098","tipo":"RSP","chave":"RSP:ORI-001911","criado_em":"2026-11-09"}
+{"id":"PER-000116","tipo":"PER","chave":"PER:What happens on Tuesdays and Thursdays when Karla gets home earlier?","criado_em":"2026-11-09"}
+{"id":"RSP-000099","tipo":"RSP","chave":"RSP:ORI-001912","criado_em":"2026-11-09"}
+{"id":"PER-000117","tipo":"PER","chave":"PER:What does your younger son do when you get home?","criado_em":"2026-11-09"}
+{"id":"RSP-000100","tipo":"RSP","chave":"RSP:ORI-001913","criado_em":"2026-11-09"}
+{"id":"PER-000118","tipo":"PER","chave":"PER:Why does Karla help her younger son after dinner?","criado_em":"2026-11-09"}
+{"id":"RSP-000101","tipo":"RSP","chave":"RSP:ORI-001914","criado_em":"2026-11-09"}
+{"id":"PER-000119","tipo":"PER","chave":"PER:What do you usually do in the evening with your family?","criado_em":"2026-11-09"}
+{"id":"PER-000120","tipo":"PER","chave":"PER:What do you tell the class at the start?","criado_em":"2026-11-09"}
+{"id":"RSP-000102","tipo":"RSP","chave":"RSP:ORI-001916","criado_em":"2026-11-09"}
+{"id":"PER-000121","tipo":"PER","chave":"PER:Why are some of the participants nervous?","criado_em":"2026-11-09"}
+{"id":"RSP-000103","tipo":"RSP","chave":"RSP:ORI-001917","criado_em":"2026-11-09"}
+{"id":"PER-000122","tipo":"PER","chave":"PER:Give three simple instructions for an exercise you know.","criado_em":"2026-11-09"}
+{"id":"PER-000123","tipo":"PER","chave":"PER:What do you ask your clients at the start of a session?","criado_em":"2026-11-09"}
+{"id":"RSP-000104","tipo":"RSP","chave":"RSP:ORI-001919","criado_em":"2026-11-09"}
+{"id":"PER-000124","tipo":"PER","chave":"PER:Why does Karla change Sophie's training plan?","criado_em":"2026-11-09"}
+{"id":"RSP-000105","tipo":"RSP","chave":"RSP:ORI-001920","criado_em":"2026-11-09"}
+{"id":"PER-000125","tipo":"PER","chave":"PER:What do you tell your clients about progress?","criado_em":"2026-11-09"}
+{"id":"RSP-000106","tipo":"RSP","chave":"RSP:ORI-001921","criado_em":"2026-11-09"}
+{"id":"PER-000126","tipo":"PER","chave":"PER:How do you feel after a long day at work or school?","criado_em":"2026-11-09"}
+{"id":"PER-000127","tipo":"PER","chave":"PER:Why do you prefer speciality coffee?","criado_em":"2026-11-09"}
+{"id":"RSP-000107","tipo":"RSP","chave":"RSP:ORI-001923","criado_em":"2026-11-09"}
+{"id":"PER-000128","tipo":"PER","chave":"PER:What would you rather do first thing in the morning?","criado_em":"2026-11-09"}
+{"id":"RSP-000108","tipo":"RSP","chave":"RSP:ORI-001924","criado_em":"2026-11-09"}
+{"id":"PER-000129","tipo":"PER","chave":"PER:What do you enjoy doing on a quiet morning?","criado_em":"2026-11-09"}
+{"id":"PER-000130","tipo":"PER","chave":"PER:What are you studying at the moment?","criado_em":"2026-11-09"}
+{"id":"RSP-000109","tipo":"RSP","chave":"RSP:ORI-001926","criado_em":"2026-11-09"}
+{"id":"PER-000131","tipo":"PER","chave":"PER:What did Karla do when a paragraph was too technical?","criado_em":"2026-11-09"}
+{"id":"RSP-000110","tipo":"RSP","chave":"RSP:ORI-001927","criado_em":"2026-11-09"}
+{"id":"PER-000132","tipo":"PER","chave":"PER:What are you learning at the moment, and how do you study?","criado_em":"2026-11-09"}
+{"id":"PER-000133","tipo":"PER","chave":"PER:What went wrong last Tuesday?","criado_em":"2026-11-09"}
+{"id":"RSP-000111","tipo":"RSP","chave":"RSP:ORI-001929","criado_em":"2026-11-09"}
+{"id":"PER-000134","tipo":"PER","chave":"PER:What did you decide to do in the end?","criado_em":"2026-11-09"}
+{"id":"RSP-000112","tipo":"RSP","chave":"RSP:ORI-001930","criado_em":"2026-11-09"}
+{"id":"PER-000135","tipo":"PER","chave":"PER:Tell me about a day when your plans changed. What did you do?","criado_em":"2026-11-09"}
+{"id":"PER-000136","tipo":"PER","chave":"PER:What are you going to improve before the race?","criado_em":"2026-11-09"}
+{"id":"RSP-000113","tipo":"RSP","chave":"RSP:ORI-001932","criado_em":"2026-11-09"}
+{"id":"PER-000137","tipo":"PER","chave":"PER:What will you do if you feel too tired?","criado_em":"2026-11-09"}
+{"id":"RSP-000114","tipo":"RSP","chave":"RSP:ORI-001933","criado_em":"2026-11-09"}
+{"id":"PER-000138","tipo":"PER","chave":"PER:Why is Hyrox a challenge for Karla?","criado_em":"2026-11-09"}
+{"id":"RSP-000115","tipo":"RSP","chave":"RSP:ORI-001934","criado_em":"2026-11-09"}
+{"id":"PER-000139","tipo":"PER","chave":"PER:What goal are you working towards at the moment?","criado_em":"2026-11-09"}
+{"id":"PER-000140","tipo":"PER","chave":"PER:How do you plan your week?","criado_em":"2026-11-09"}
+{"id":"RSP-000116","tipo":"RSP","chave":"RSP:ORI-001936","criado_em":"2026-11-09"}
+{"id":"PER-000141","tipo":"PER","chave":"PER:What will you do if a client cancels?","criado_em":"2026-11-09"}
+{"id":"RSP-000117","tipo":"RSP","chave":"RSP:ORI-001937","criado_em":"2026-11-09"}
+{"id":"PER-000142","tipo":"PER","chave":"PER:What does Karla believe about taking care of herself?","criado_em":"2026-11-09"}
+{"id":"RSP-000118","tipo":"RSP","chave":"RSP:ORI-001938","criado_em":"2026-11-09"}
+{"id":"PER-000143","tipo":"PER","chave":"PER:How are you going to organise your week?","criado_em":"2026-11-09"}
+{"id":"ATV-000030","tipo":"ATV","chave":"ATV:karla:K01:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000031","tipo":"ATV","chave":"ATV:karla:K02:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000032","tipo":"ATV","chave":"ATV:karla:K03:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000033","tipo":"ATV","chave":"ATV:karla:K04:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000034","tipo":"ATV","chave":"ATV:karla:K05:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000035","tipo":"ATV","chave":"ATV:karla:K06:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000036","tipo":"ATV","chave":"ATV:karla:K07:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000037","tipo":"ATV","chave":"ATV:karla:K08:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000038","tipo":"ATV","chave":"ATV:karla:K09:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000039","tipo":"ATV","chave":"ATV:karla:K10:perguntas","criado_em":"2026-11-09"}
+{"id":"ATV-000040","tipo":"ATV","chave":"ATV:karla:K11:perguntas","criado_em":"2026-11-09"}
+{"id":"PSG-000003","tipo":"PSG","chave":"PSG:karla:Sophie","criado_em":"2026-11-09"}
+{"id":"PSG-000004","tipo":"PSG","chave":"PSG:karla:Ana","criado_em":"2026-11-09"}
+{"id":"PSG-000005","tipo":"PSG","chave":"PSG:karla:Younger son / Older son / Husband","criado_em":"2026-11-09"}
+{"id":"DIV-000008","tipo":"DIV","chave":"DIV:EXP-000124:niveis_origem","criado_em":"2026-11-09"}
+{"id":"DIV-000009","tipo":"DIV","chave":"DIV:VOC-000025:traducoes","criado_em":"2026-11-09"}
+{"id":"REL-000021","tipo":"REL","chave":"REL:ORI-001909:duplicado_de:ORI-000629","criado_em":"2026-11-09"}

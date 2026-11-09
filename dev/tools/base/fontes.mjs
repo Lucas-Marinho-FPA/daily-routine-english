@@ -48,4 +48,14 @@ export const FONTES = [
       '/routines/*/grammar', '/routines/*/usage/*', '/routines/*/blocks/*/pt', '/routines/*/blocks/*/kind', '/routines/*/blocks/*/ctx',
       '/routines/*/blocks/*/sentences/*', '/routines/*/universe', '/routines/*/traits/*', '/items/*', '/questions/*'],
   },
+  {
+    codigo: 'R8', titulo: 'Karla — pacote da personagem (perfil, 11 episódios, itens, perguntas)', grupo: 'karla',
+    arquivo: 'dev/content/characters/karla.json', versao: VERSAO_PUBLICADA, natureza: 'autoria', distribuicao: 'integral',
+    regras: ['/_doc', '/id', '/name', '/status', '/idPrefix', '/profile/occupation', '/profile/workplace', '/profile/traits/*',
+      '/profile/interests/*', '/profile/summary', '/profile/notProvided/*', '/profile/studies/*', '/profile/family', '/profile/motto',
+      '/profile/source', '/visual', '/facts/*', '/themes/*', '/routines/*/id', '/routines/*/title', '/routines/*/pt', '/routines/*/kind',
+      '/routines/*/dayType', '/routines/*/priority', '/routines/*/stage', '/routines/*/basis/*', '/routines/*/goal', '/routines/*/grammar',
+      '/routines/*/usage/*', '/routines/*/blocks/*/pt', '/routines/*/blocks/*/kind', '/routines/*/blocks/*/ctx', '/routines/*/blocks/*/sentences/*',
+      '/items/*', '/questions/*', '/journey/_doc', '/journey/stages/*', '/journey/secondaryCharacters/*'],
+  },
 ];

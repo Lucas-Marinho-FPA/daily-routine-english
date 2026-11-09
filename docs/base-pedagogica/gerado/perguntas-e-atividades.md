@@ -289,3 +289,98 @@
   It made him think about his priorities.
 - **What book, film or idea has changed the way you think? Do you agree with it?** (R18.Q3) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I agree that…’, ‘I'm not sure…’, ‘It depends on…’ e ‘In my opinion…’._
 
+## ATV-000030 · K01 · perguntas
+
+- **What time do you usually wake up?** (K.Q1)  
+  I usually wake up at around 5:00 a.m.
+- **What do you do in the morning at work?** (K.Q2)  
+  From 7:00 to 11:00 a.m., I work with my personal training clients.
+- **When do you do your own workout?** (K.Q3)  
+  I do my own workout from 12:30 to 1:30 p.m.
+- **What do you teach in the afternoon?** (K.Q4)  
+  I teach group Pilates classes from 2:00 to 4:30 p.m.
+- **What do you do when you get home?** (K.Q5)  
+  I organise dinner for my family and the children's snack.
+
+## ATV-000031 · K02 · perguntas
+
+- **What is different on Tuesdays and Thursdays?** (K.Q6)  
+  I finish my classes at around 3:00 p.m., do my workout at 4:00 p.m. and get home at around 5:30 p.m.
+- **What happens on Tuesdays and Thursdays when Karla gets home earlier?** (K.Q8)  
+  She has more time with her family.
+
+## ATV-000032 · K03 · perguntas
+
+- **What do you do if you can't work out at lunchtime?** (K.Q7)  
+  I can go for a run at another time.
+
+## ATV-000033 · K04 · perguntas
+
+- **What does your younger son do when you get home?** (K.Q9)  
+  He runs to give me a hug.
+- **Why does Karla help her younger son after dinner?** (K.Q10)  
+  Because he hasn't finished his homework yet.
+- **What do you usually do in the evening with your family?** (K.Q11) — pergunta aberta, sem resposta-modelo na fonte; dica: _Fale da sua noite real: ‘In the evening, I usually…’, ‘We have dinner together…’, ‘I try to…’._
+
+## ATV-000034 · K05 · perguntas
+
+- **What do you tell the class at the start?** (K.Q12)  
+  I tell them to lie on their backs and take a deep breath.
+- **Why are some of the participants nervous?** (K.Q13)  
+  Because it's their first class.
+- **Give three simple instructions for an exercise you know.** (K.Q14) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use o imperativo: ‘Stand up straight’, ‘Breathe in’, ‘Move slowly’, ‘Keep your back straight’._
+
+## ATV-000035 · K06 · perguntas
+
+- **What do you ask your clients at the start of a session?** (K.Q15)  
+  I ask them how they are feeling today.
+- **Why does Karla change Sophie's training plan?** (K.Q16)  
+  Because Sophie is tired and her lower back feels stiff.
+- **What do you tell your clients about progress?** (K.Q17)  
+  Progress takes time and consistency.
+- **How do you feel after a long day at work or school?** (K.Q18) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I feel…’, ‘a bit tired’, ‘my back feels stiff’ e ‘I need to…’._
+
+## ATV-000036 · K07 · perguntas
+
+- **Why do you prefer speciality coffee?** (K.Q19)  
+  Because I love the rich aroma.
+- **What would you rather do first thing in the morning?** (K.Q20)  
+  I'd rather read a few pages than check my phone.
+- **What do you enjoy doing on a quiet morning?** (K.Q21) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I enjoy…ing’, ‘I prefer…’ e ‘I'd rather… than…’._
+
+## ATV-000037 · K08 · perguntas
+
+- **What are you studying at the moment?** (K.Q22)  
+  I'm studying Nutrition, and I'm also doing a postgraduate course in Biomechanics.
+- **What did Karla do when a paragraph was too technical?** (K.Q23)  
+  She read it twice, looked up a few words and took notes.
+- **What are you learning at the moment, and how do you study?** (K.Q24) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use o Present Continuous: ‘I'm learning…’, ‘I'm working on…’ e ‘I usually take notes…’._
+
+## ATV-000038 · K09 · perguntas
+
+- **What went wrong last Tuesday?** (K.Q25)  
+  A client cancelled her session, and another appointment took longer than expected.
+- **What did you decide to do in the end?** (K.Q26)  
+  I decided to run in the evening and study after dinner.
+- **Tell me about a day when your plans changed. What did you do?** (K.Q27) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use o passado: ‘My plans changed…’, ‘At first, I felt…’, ‘In the end, I decided to…’._
+
+## ATV-000039 · K10 · perguntas
+
+- **What are you going to improve before the race?** (K.Q28)  
+  I'm going to improve my endurance and my running pace.
+- **What will you do if you feel too tired?** (K.Q29)  
+  If I feel too tired, I might take a rest day.
+- **Why is Hyrox a challenge for Karla?** (K.Q30)  
+  Because it combines running with demanding workout stations.
+- **What goal are you working towards at the moment?** (K.Q31) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I'm going to…’, ‘I want to improve…’ e ‘If…, I might…’._
+
+## ATV-000040 · K11 · perguntas
+
+- **How do you plan your week?** (K.Q32)  
+  I review my schedule and set aside time for my studies, my clients and my own training.
+- **What will you do if a client cancels?** (K.Q33)  
+  I'll use the time to catch up on my reading.
+- **What does Karla believe about taking care of herself?** (K.Q34)  
+  She believes that taking care of herself helps her take care of the people she loves.
+- **How are you going to organise your week?** (K.Q35) — pergunta aberta, sem resposta-modelo na fonte; dica: _Use ‘I'm going to…’, ‘I'll…’, ‘If…, I'll…’ e ‘I need to make time for…’._
+

@@ -1,7 +1,7 @@
 {
   "nome": "Base Pedagógica Mestra — Daily Routine English",
   "esquema": "base-pedagogica/esquema/2.0.0",
-  "estado": "consolidação em andamento: Lucas R1–R7 consolidado, aguardando revisão do usuário",
+  "estado": "consolidação em andamento: Lucas R1–R7 aprovado; Karla R8 consolidada — aguardando revisão",
   "arquitetura": "docs/base-pedagogica/arquitetura.md",
   "preservacao": {
     "branch": "arquivo/publicado-2026-11-08",
@@ -11,12 +11,12 @@
     {
       "ordem": 1,
       "fontes": "Lucas: extração do Word e enriquecimentos (R1–R7)",
-      "situacao": "consolidada — aguardando revisão"
+      "situacao": "consolidada e aprovada"
     },
     {
       "ordem": 2,
       "fontes": "Karla e Lukinhas (R8, R9, R14, R11)",
-      "situacao": "pendente"
+      "situacao": "Karla (R8) consolidada — aguardando revisão; Lukinhas pendente"
     },
     {
       "ordem": 3,
@@ -84,14 +84,18 @@
       "sha256": "921ba45cdca6c1ab58dfbc723abe9b0fbfb47b82a90eedb2c17980d3403cfc74"
     },
     {
+      "caminho": "conferencia/FON-000008.json",
+      "sha256": "14b6d2907545b1ce59279468369a0c47915643dd2a66cb9a6eb5b1c0b081c35f"
+    },
+    {
       "caminho": "fontes/fontes.jsonl",
-      "sha256": "8c42d3de431965645627e83450bbc256da22882163b220cb3dba0743ec22c4d2",
-      "registros": 7
+      "sha256": "b027c437385649ef2ca78508c36773ae42b0b0c7be01e57bce800ae8d89ed3f1",
+      "registros": 8
     },
     {
       "caminho": "ids.jsonl",
-      "sha256": "81e13fc47e038c9812abea8ab569c3a57ff6b85ab4d6002888a541833da78505",
-      "registros": 2159
+      "sha256": "2fb1b104041ccd04f826f11dd4becdd10fafb8ae7c89142ca27ac4f234f769cf",
+      "registros": 3088
     },
     {
       "caminho": "progressao/catalogo.json",
@@ -109,13 +113,13 @@
     },
     {
       "caminho": "registros/atividades.jsonl",
-      "sha256": "4826031fc31085292c8891ad0e600540df3270fbdeb015fc3079c6499c20136a",
-      "registros": 29
+      "sha256": "b67b8b4f57be55db5a4500598fe559ff0e0f5312efe48b2b400de9744d37ddb4",
+      "registros": 40
     },
     {
       "caminho": "registros/contextos.jsonl",
-      "sha256": "a438a0d78fd5762e721216333ee285ceb96d5829a95fe3bf0a8cce6e8092ebe9",
-      "registros": 9
+      "sha256": "229efafaf83568ffb99d2ff0094ae459348332b89cf83e38a692452641f54d29",
+      "registros": 13
     },
     {
       "caminho": "registros/decisoes.jsonl",
@@ -124,13 +128,13 @@
     },
     {
       "caminho": "registros/dialogos.jsonl",
-      "sha256": "d56d1256ada45579a881c4b0c7d42df15868d2f8ba65d7f27cc67da6cab9ad78",
-      "registros": 6
+      "sha256": "9f2e924b97f1f5ddf102207126d4af32d53d89aab2c0c72d2af681542d0b60bd",
+      "registros": 12
     },
     {
       "caminho": "registros/divergencias.jsonl",
-      "sha256": "06ffd1131c86f5dac6b473cbf589551ec92b696e0c2db1d82d42f33560a76931",
-      "registros": 7
+      "sha256": "cd0d6275aea2320b0c7b23f1e81740124ef717adf9088f5e535e64614a3aae9a",
+      "registros": 9
     },
     {
       "caminho": "registros/exercicios.jsonl",
@@ -139,8 +143,8 @@
     },
     {
       "caminho": "registros/expressoes.jsonl",
-      "sha256": "b70bee5b401f2dd7747c388527984b05ab1e5512400a0646cea4bea2ddea4049",
-      "registros": 257
+      "sha256": "3f8bf09a3e0a0c00abac6e2cebeda80949c0535ce2beee0053b58353482c2e23",
+      "registros": 367
     },
     {
       "caminho": "registros/gramatica.jsonl",
@@ -183,29 +187,34 @@
       "registros": 421
     },
     {
+      "caminho": "registros/origem/FON-000008.jsonl",
+      "sha256": "e566fe85004b53f15202cbfe60a59970ef0a3b5bd45fe8324129704736efcbc3",
+      "registros": 585
+    },
+    {
       "caminho": "registros/perguntas.jsonl",
-      "sha256": "0fd6ea4114da25b99271e93385dcd5043e51a61070a03f12e0b5bcad0048d8da",
-      "registros": 109
+      "sha256": "068757cea50d7804b53ee37157ba79e9a3256618a929df6d385a188a56986ec7",
+      "registros": 143
     },
     {
       "caminho": "registros/respostas.jsonl",
-      "sha256": "59b84220718a55df924e115db2657a2c90db997ea9bf7a8804a828fe5b9b4b7a",
-      "registros": 91
+      "sha256": "9bbae9d96c124ce45efa7cc75593a0f6f924e2bb9bdf74ab0a21ae7be394935e",
+      "registros": 118
     },
     {
       "caminho": "registros/textos.jsonl",
-      "sha256": "5dfce9ceb042391e460e3fc89b9bb4fe6311768a040b3ee97b4c6013fbefcef0",
-      "registros": 164
+      "sha256": "c35cca902ab015dd7e076e7f1710ceffe9b954006b3b89a706cac5404d091cbd",
+      "registros": 279
     },
     {
       "caminho": "registros/vocabulario.jsonl",
-      "sha256": "d3291b4148cfbd2f76e41c074d8c3fe4bd4660a377573199c1ec3751b856b2a5",
-      "registros": 76
+      "sha256": "2d55750d441979f55df4f52bf766051a88d436eab3a32c480575aaf37e578cbc",
+      "registros": 109
     },
     {
       "caminho": "relacoes/relacoes.jsonl",
-      "sha256": "4fb9f95b7a4f0affaa17147b1ca5fbde9e4e7aaa85f7aa008fa8b88b6f14c350",
-      "registros": 20
+      "sha256": "efcd837c27a00b987e8c27fb4a4149612e55c5944b945bf53803bfdd18aa962b",
+      "registros": 21
     }
   ]
 }

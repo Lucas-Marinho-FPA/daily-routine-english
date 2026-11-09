@@ -373,3 +373,266 @@ Objetivo: Resumir a ideia de um livro, dar uma opinião equilibrada, concordar e
 
 - Meta principal: comunicar sua rotina com clareza e naturalidade — não recitar um texto perfeito.
 
+## TXT-000024 · K01 — A Normal Workday (Dia de trabalho normal (rotina-base))
+
+Objetivo: Descrever o dia normal da Karla em ordem: manhã, alunos de personal, almoço e treino, Pilates, último aluno e noite com a família.
+
+- I wake up at around 5:00 a.m.  
+  _Acordo por volta das 5h._
+- I take a shower, get ready and leave for work.  
+  _Tomo banho, me arrumo e saio para trabalhar._
+- I work at a club as a personal trainer and Pilates instructor.  
+  _Trabalho em um clube como personal trainer e instrutora de Pilates._
+- From 7:00 to 11:00 a.m., I work with my personal training clients.  
+  _Das 7h às 11h, atendo meus alunos de personal._
+- I go for lunch at around 11:10 a.m.  
+  _Vou almoçar por volta das 11h10._
+- From 12:30 to 1:30 p.m., I do my own workout.  
+  _Das 12h30 às 13h30, faço meu próprio treino._
+- From 2:00 to 4:30 p.m., I teach group Pilates classes.  
+  _Das 14h às 16h30, dou aulas coletivas de Pilates._
+- From 5:30 to 6:30 p.m., I work with my last personal training client.  
+  _Das 17h30 às 18h30, atendo meu último aluno de personal._
+- I get home at around 7:10 p.m.  
+  _Chego em casa por volta das 19h10._
+- I organise dinner for my family and the children's snack.  
+  _Organizo o jantar da família e o lanche das crianças._
+- I plan the next day, take a shower and wait for my husband.  
+  _Organizo o dia seguinte, tomo banho e espero meu marido._
+- We have dinner and talk, and I usually go to bed at around 10:00 p.m.  
+  _Jantamos e conversamos, e eu costumo me deitar por volta das 22h._
+
+## TXT-000025 · K02 — A Shorter Day (Tuesdays and Thursdays) (Dia mais curto (terças e quintas))
+
+Objetivo: Contar o que muda nas terças e quintas: aulas até as 15h, treino às 16h e chegada em casa mais cedo.
+
+- On Tuesdays and Thursdays, I finish my classes at around 3:00 p.m.  
+  _Às terças e quintas, termino minhas aulas por volta das 15h._
+- I do my workout at 4:00 p.m.  
+  _Faço meu treino às 16h._
+- I get home at around 5:30 p.m.  
+  _Chego em casa por volta das 17h30._
+- On these days, I get home earlier than usual.  
+  _Nesses dias, chego em casa mais cedo do que o normal._
+- On other days, I get home later, at around 7:10 p.m.  
+  _Nos outros dias, chego mais tarde, por volta das 19h10._
+- So on Tuesdays and Thursdays, I have more time with my family.  
+  _Então, às terças e quintas, tenho mais tempo com a minha família._
+
+## TXT-000026 · K03 — When Plans Change (Quando os planos mudam (possibilidades))
+
+Objetivo: Falar de mudanças que PODEM acontecer: cancelamento, aula de spinning, corrida. Use “when”, “if” e “can”.
+
+- When a client cancels in advance, I can sleep until 6:00 a.m. and leave later.  
+  _Quando um aluno cancela com antecedência, posso dormir até as 6h e sair mais tarde._
+- If a client doesn't come and there's a chance at the club, I can join a spinning class.  
+  _Se um aluno falta e surge uma oportunidade no clube, posso participar de uma aula de spinning._
+- When I can't work out at lunchtime, I can go for a run at another time.  
+  _Quando não consigo treinar na hora do almoço, posso correr em outro horário._
+
+## TXT-000027 · K04 — Evenings at Home (Noites em casa)
+
+Objetivo: Falar da família e da noite em casa: chegada, conversa no jantar, lição de casa e hora de dormir.
+
+- When I get home, my younger son runs to give me a hug.  
+  _Quando chego em casa, meu filho mais novo corre para me dar um abraço._
+- My older son is more independent, but he likes to tell me about his day.  
+  _Meu filho mais velho é mais independente, mas gosta de me contar sobre o dia dele._
+- I'm often tired, but I try to be there for them.  
+  _Muitas vezes estou cansada, mas tento estar presente para eles._
+- **Karla:** How was your day at school?  
+  _Karla: Como foi seu dia na escola?_
+- **Older son:** It was good. We had a maths test.  
+  _Filho mais velho: Foi bom. Tivemos prova de matemática._
+- **Karla:** Have you finished your homework?  
+  _Karla: Você já terminou a lição de casa?_
+- **Younger son:** Not yet. Can you help me with it, Mum?  
+  _Filho mais novo: Ainda não. Você me ajuda, mãe?_
+- **Karla:** Of course. Let's do it after dinner.  
+  _Karla: Claro. Vamos fazer depois do jantar._
+- After dinner, I help my younger son get ready for bed.  
+  _Depois do jantar, ajudo meu filho mais novo a se preparar para dormir._
+- He always asks me to read him a story.  
+  _Ele sempre me pede para ler uma história para ele._
+- Then I plan the next day and spend some quality time with my husband.  
+  _Depois, organizo o dia seguinte e passo um tempo de qualidade com meu marido._
+
+## TXT-000028 · K05 — Teaching a Pilates Class (Dando uma aula de Pilates)
+
+Objetivo: Dar e entender instruções de movimento numa aula de Pilates e descrever o que está acontecendo agora.
+
+- This afternoon, I'm teaching a group Pilates class at the club.  
+  _Hoje à tarde, estou dando uma aula coletiva de Pilates no clube._
+- The participants are arriving and putting their mats on the floor.  
+  _Os participantes estão chegando e colocando os colchonetes no chão._
+- Some of them are a bit nervous because it's their first class.  
+  _Alguns estão um pouco nervosos porque é a primeira aula deles._
+- **Karla:** Lie on your back and take a deep breath.  
+  _Karla: Deitem de costas e respirem fundo._
+- **Karla:** Engage your core and keep your shoulders relaxed.  
+  _Karla: Ativem o centro do corpo e mantenham os ombros relaxados._
+- **Participant:** Is this right? My neck feels a bit tense.  
+  _Participante: Está certo assim? Meu pescoço está um pouco tenso._
+- **Karla:** Almost. Lower your chin a little and move slowly, with control.  
+  _Karla: Quase. Abaixe um pouco o queixo e movimente-se devagar, com controle._
+- **Karla:** Remember, quality matters more than speed.  
+  _Karla: Lembrem-se: qualidade importa mais do que velocidade._
+- At the end of the class, we stretch and breathe slowly.  
+  _No fim da aula, alongamos e respiramos devagar._
+- I ask everyone how they feel, and I listen carefully.  
+  _Pergunto a todos como se sentem e escuto com atenção._
+- I love seeing people become more aware of their bodies.  
+  _Adoro ver as pessoas ficarem mais conscientes do próprio corpo._
+
+## TXT-000029 · K06 — A Session with a Client (Uma sessão com uma aluna)
+
+Objetivo: Conduzir o começo de uma sessão: perguntar como a pessoa está, ajustar o plano e dar orientações curtas.
+
+- My first client today is Sophie, and she wants to improve her posture.  
+  _Minha primeira aluna hoje é a Sophie, e ela quer melhorar a postura._
+- She sits at a desk all day, so her back often feels stiff.  
+  _Ela fica sentada a uma mesa o dia todo, então as costas dela muitas vezes ficam rígidas._
+- **Karla:** Good morning, Sophie! How are you feeling today?  
+  _Karla: Bom dia, Sophie! Como você está se sentindo hoje?_
+- **Sophie:** A bit tired. I didn't sleep very well.  
+  _Sophie: Um pouco cansada. Não dormi muito bem._
+- **Karla:** No problem. We can adjust the training plan and work on mobility today.  
+  _Karla: Sem problema. Podemos ajustar o plano de treino e trabalhar a mobilidade hoje._
+- **Sophie:** Great. My lower back feels stiff after work.  
+  _Sophie: Ótimo. Minha lombar fica rígida depois do trabalho._
+- **Karla:** Then let's start slowly. Keep your back straight and control the movement.  
+  _Karla: Então vamos começar devagar. Mantenha as costas retas e controle o movimento._
+- At the end of the session, Sophie feels better and more confident.  
+  _No fim da sessão, a Sophie se sente melhor e mais confiante._
+- I remind her that progress takes time and consistency.  
+  _Lembro a ela que o progresso exige tempo e consistência._
+- Then I write a few notes and check my schedule for the next client.  
+  _Depois, faço algumas anotações e confiro minha agenda para o próximo aluno._
+
+## TXT-000030 · K07 — Coffee and a Good Book (Café e um bom livro)
+
+Objetivo: Falar de preferências e de pequenos prazeres: café especial, leitura e um momento de calma.
+
+- On quiet mornings, I like to make a cup of coffee and sit down with a book.  
+  _Nas manhãs tranquilas, gosto de fazer uma xícara de café e me sentar com um livro._
+- I prefer speciality coffee because I love the rich aroma.  
+  _Prefiro café especial porque adoro o aroma intenso._
+- The smell of freshly ground beans helps me slow down.  
+  _O cheiro dos grãos recém-moídos me ajuda a desacelerar._
+- I enjoy reading about science, but I also like good novels.  
+  _Gosto de ler sobre ciência, mas também gosto de bons romances._
+- I'd rather read a few pages than check my phone first thing in the morning.  
+  _Prefiro ler algumas páginas a olhar o celular logo cedo._
+- Sometimes I underline a sentence or write a note in the margin.  
+  _Às vezes, sublinho uma frase ou escrevo uma anotação na margem._
+- **Husband:** Are you reading that book about posture again?  
+  _Marido: Você está lendo aquele livro sobre postura de novo?_
+- **Karla:** No, this one is a novel. It helps me switch off.  
+  _Karla: Não, este é um romance. Ele me ajuda a desligar._
+- **Husband:** Would you like another coffee?  
+  _Marido: Você quer outro café?_
+- **Karla:** Yes, please. This one has a lovely flavour.  
+  _Karla: Sim, por favor. Este tem um sabor delicioso._
+
+## TXT-000031 · K08 — Studying Nutrition and Biomechanics (Estudando Nutrição e Biomecânica)
+
+Objetivo: Falar dos estudos: o que está aprendendo, uma dificuldade, como a resolveu e um prazo com uma colega.
+
+- I'm studying Nutrition, and I'm also doing a postgraduate course in Biomechanics.  
+  _Estou estudando Nutrição e também estou fazendo uma pós-graduação em Biomecânica._
+- This term, I'm learning how the body moves and how food affects energy.  
+  _Neste semestre, estou aprendendo como o corpo se movimenta e como a alimentação afeta a energia._
+- It's demanding, but I enjoy connecting theory with my work.  
+  _É exigente, mas gosto de relacionar a teoria com o meu trabalho._
+- Last night, I read a research paper about protein and recovery.  
+  _Ontem à noite, li um artigo científico sobre proteína e recuperação._
+- I had to read one paragraph twice because it was quite technical.  
+  _Tive de ler um parágrafo duas vezes porque era bem técnico._
+- So I looked up a few words and took notes in my notebook.  
+  _Então procurei algumas palavras e fiz anotações no meu caderno._
+- Now I can explain it clearly to my clients.  
+  _Agora consigo explicar isso com clareza aos meus alunos._
+- **Ana:** Have you started the biomechanics assignment?  
+  _Ana: Você já começou o trabalho de biomecânica?_
+- **Karla:** Yes, I'm working on it, but the deadline is on Friday.  
+  _Karla: Sim, estou trabalhando nele, mas o prazo é na sexta._
+- **Ana:** Me too. Shall we go over our lecture notes together?  
+  _Ana: Eu também. Vamos repassar juntas as anotações das aulas?_
+- **Karla:** Good idea. Let's meet after my last client.  
+  _Karla: Boa ideia. Vamos nos encontrar depois do meu último aluno._
+
+## TXT-000032 · K09 — A Tuesday That Didn't Go to Plan (Uma terça que não saiu como planejado)
+
+Objetivo: Contar um dia em que os planos mudaram: o problema, as opções, a decisão e o que aprendeu.
+
+- Last Tuesday, my plans changed completely.  
+  _Na terça passada, meus planos mudaram completamente._
+- A client cancelled her session, and another appointment took longer than expected.  
+  _Uma aluna cancelou a sessão, e outro compromisso demorou mais do que o previsto._
+- By noon, there was no time left in my schedule for my own workout.  
+  _Ao meio-dia, já não havia tempo na minha agenda para o meu próprio treino._
+- At first, I felt frustrated because I like to stick to my plans.  
+  _No começo, fiquei frustrada porque gosto de seguir meus planos._
+- Then I took a deep breath and looked at my options.  
+  _Então respirei fundo e analisei minhas opções._
+- I could go for a run later, or I could catch up on my assignment.  
+  _Eu poderia correr mais tarde, ou poderia pôr meu trabalho da faculdade em dia._
+- In the end, I decided to run in the evening and study after dinner.  
+  _No fim, decidi correr à noite e estudar depois do jantar._
+- The run was shorter than usual, but I felt much better.  
+  _A corrida foi mais curta do que o normal, mas me senti muito melhor._
+- I learnt that being flexible is part of being disciplined.  
+  _Aprendi que ser flexível faz parte de ser disciplinada._
+
+## TXT-000033 · K10 — Getting Ready for Hyrox (Preparando-se para o Hyrox)
+
+Objetivo: Falar de uma meta: o desafio, o plano de treino, o que vai melhorar e o que fazer se estiver cansada.
+
+- I'm going to take part in a Hyrox race in a few months.  
+  _Vou participar de uma prova de Hyrox daqui a alguns meses._
+- Hyrox combines running with demanding workout stations.  
+  _O Hyrox combina corrida com estações de treino exigentes._
+- It's a challenge for my body and my mind.  
+  _É um desafio para o meu corpo e para a minha mente._
+- I want to improve my endurance and my running pace.  
+  _Quero melhorar minha resistência e meu ritmo de corrida._
+- My runs are getting longer, and my legs feel stronger than they did last month.  
+  _Minhas corridas estão ficando mais longas, e minhas pernas estão mais fortes do que no mês passado._
+- I'll train hard, but I'll also make time for recovery.  
+  _Vou treinar firme, mas também vou reservar tempo para a recuperação._
+- If I feel too tired, I might take a rest day.  
+  _Se eu estiver cansada demais, talvez tire um dia de descanso._
+- **Younger son:** Mum, are you going to win the race?  
+  _Filho mais novo: Mãe, você vai ganhar a prova?_
+- **Karla:** I don't know, but I'm going to do my best.  
+  _Karla: Não sei, mas vou dar o meu melhor._
+- **Younger son:** Can I come and watch you?  
+  _Filho mais novo: Posso ir te assistir?_
+- **Karla:** Of course! It will be more fun with you there.  
+  _Karla: Claro! Vai ser mais divertido com você lá._
+
+## TXT-000034 · K11 — Sunday: Planning the Week Ahead (Domingo: planejando a semana)
+
+Objetivo: Planejar a semana com prioridades, prever imprevistos com “if” e refletir sobre equilíbrio.
+
+- On Sunday mornings, we have breakfast together and take things slowly.  
+  _Nas manhãs de domingo, tomamos café da manhã juntos e fazemos tudo com calma._
+- Later, I review my schedule for the week ahead.  
+  _Mais tarde, reviso minha agenda para a semana que vem._
+- I set aside time for my studies, my clients and my own training.  
+  _Reservo tempo para os meus estudos, os meus alunos e o meu próprio treino._
+- I can't do everything at once, so I choose my priorities.  
+  _Não consigo fazer tudo ao mesmo tempo, então escolho minhas prioridades._
+- If a client cancels, I'll use the time to catch up on my reading.  
+  _Se um aluno cancelar, vou usar o tempo para pôr minha leitura em dia._
+- If I can't train at lunchtime, I'll go for a run in the evening.  
+  _Se eu não puder treinar na hora do almoço, vou correr à noite._
+- And I'll always make time for my family.  
+  _E sempre vou reservar tempo para a minha família._
+- My week will be busy, but I don't need to be perfect.  
+  _Minha semana vai ser cheia, mas não preciso ser perfeita._
+- Taking care of myself helps me take care of the people I love.  
+  _Cuidar de mim me ajuda a cuidar das pessoas que eu amo._
+- I turn off the light, ready for another week.  
+  _Apago a luz, pronta para mais uma semana._
+

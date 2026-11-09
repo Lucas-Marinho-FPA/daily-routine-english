@@ -322,6 +322,22 @@
 
 </details>
 
+## R8 — Karla — pacote da personagem (perfil, 11 episódios, itens, perguntas) (`FON-000008`)
+
+- Arquivo: `dev/content/characters/karla.json` @ `b194cee` · SHA-256 `68c96a814c4444ac03226c3c850cc9d1ac4613e27a068d65804d622cc958a448`
+- Registros originais: **585** · incorporados (ORI): **585** · pendentes: **0** · reconstruível a partir dos ORI: **sim**
+- Destino: 582 em unidades · 3 preservados sem unidade (metadado 3) · situação: **concluida**
+
+<details><summary>Registros preservados sem unidade pedagógica</summary>
+
+| ORI | Local | Destino | Motivo |
+|---|---|---|---|
+| ORI-001363 | `/_doc` | metadado | documentação do arquivo |
+| ORI-001367 | `/idPrefix` | metadado | prefixo de identificadores do app |
+| ORI-001404 | `/visual` | metadado | configuração das imagens do personagem no app (arquivos e estados) |
+
+</details>
+
 ## Divergências
 
 | ID | Unidade | Assunto | Versões (valor ← ORI) | Situação |
@@ -333,6 +349,8 @@
 | DIV-000005 | EXP-000041 | traduções de “work on” | “trabalhar em” ← ORI-000107; “trabalhar em” ← ORI-000192; “trabalhar em/aprimorar” ← ORI-000223; “trabalhar em/aprimorar” ← ORI-000347 | aberta |
 | DIV-000006 | EXP-000057 | traduções de “clear the table” | “tirar/limpar a mesa” ← ORI-000156; “tirar a mesa” ← ORI-000166 | aberta |
 | DIV-000007 | EXP-000108 | traduções de “wind down” | “desacelerar/relaxar antes de dormir” ← ORI-000306; “desacelerar/relaxar” ← ORI-000351 | aberta |
+| DIV-000008 | EXP-000124 | nível de origem de “go for a run” | “1” ← ORI-001250; “2” ← ORI-001771 | aberta |
+| DIV-000009 | VOC-000025 | traduções de “client” | “cliente” ← ORI-001314; “aluno(a), cliente” ← ORI-001808 | aberta |
 
 ## Relações
 
@@ -358,4 +376,5 @@
 | REL-000018 | EXP-000195 | variante_de | GRA-000016 | proposta |
 | REL-000019 | EXP-000196 | variante_de | GRA-000017 | proposta |
 | REL-000020 | EXP-000197 | variante_de | GRA-000018 | proposta |
+| REL-000021 | ORI-001909 | duplicado_de | ORI-000629 | confirmada |
 
