@@ -1,20 +1,15 @@
-// PROTÓTIPO — gera exemplos ILUSTRATIVOS da Base Pedagógica a partir das fontes reais (somente leitura, via git show).
-// Os IDs da faixa 900000 e o campo "_ilustrativo" marcam que nada aqui é a Base de verdade (Etapa 4 ainda não começou).
-// Uso (na raiz do repositório): node docs/base-pedagogica/prototipo/gerar-exemplos.mjs
-import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+// Gera os exemplos ILUSTRATIVOS da Base Pedagógica a partir das fontes reais (somente leitura, via git show).
+// Os IDs da faixa 900000 e o campo "_ilustrativo" marcam que nada aqui é a Base de verdade: é a amostra usada pelo
+// autoteste do validador e pelos exemplos de modelo-de-dados.md. Nunca grava em base/.
+// Uso (na raiz do repositório): node dev/tools/base/gerar-exemplos.mjs
 import { writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hashOf, at, gitShow } from './lib.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
+const HERE = join(dirname(fileURLToPath(import.meta.url)), 'exemplos');
 const PUB = 'b194cee', REMOD = '8d5ac0c';
-const show = (rev, path) => JSON.parse(execFileSync('git', ['show', `${rev}:${path}`], { maxBuffer: 1 << 26 }).toString('utf8'));
-const at = (doc, ptr) => ptr.split('/').slice(1).reduce((o, k) => o[k.replace(/~1/g, '/').replace(/~0/g, '~')], doc);
-// forma canônica: chaves em ordem alfabética, sem espaços; strings EXATAMENTE como na fonte (sem normalizar nada)
-export const canon = (x) => (Array.isArray(x) ? `[${x.map(canon).join(',')}]` : x && typeof x === 'object'
-  ? `{${Object.keys(x).sort().map((k) => `${JSON.stringify(k)}:${canon(x[k])}`).join(',')}}` : JSON.stringify(x));
-export const hashOf = (x) => `sha256:${createHash('sha256').update(canon(x), 'utf8').digest('hex')}`;
+const show = (rev, path) => gitShow(rev, path);
 
 let n = 900000;
 const ids = {};
@@ -40,7 +35,7 @@ const docs = {};
 const doc = (f) => (docs[f] ||= show(srcRev[f], srcPath[f]));
 const ori = (f, local, tipo_original) => {
   const conteudo = at(doc(f), local);
-  return add({ id: nid('ORI'), tipo: 'ORI', camada: 'publica', fonte: f, versao_fonte: srcRev[f], local, id_original: conteudo && conteudo.id ? conteudo.id : null, tipo_original, conteudo, hash: hashOf(conteudo), extraido_em: '2026-11-09', extrator: 'prototipo/gerar-exemplos' });
+  return add({ id: nid('ORI'), tipo: 'ORI', camada: 'publica', fonte: f, versao_fonte: srcRev[f], local, id_original: conteudo && conteudo.id ? conteudo.id : null, tipo_original, conteudo, hash: hashOf(conteudo), extraido_em: '2026-11-09', extrator: 'dev/tools/base/gerar-exemplos' });
 };
 const byId = (id) => out.find((r) => r.id === id);
 const rel = (de, relacao, para, status, evidencias, extra = {}) => add({ id: nid('REL'), tipo: 'REL', de, relacao, para, status, evidencias, ...extra });
@@ -88,7 +83,7 @@ pergunta('What time do you wake up?', [q1, q2], [[q1, 'PSG:lucas'], [q2, 'PSG:lu
 const q3 = ori(F.qs, '/new/7', 'enrich.question');
 const q4 = ori(F.karla, '/questions/4', 'karla.question');
 pergunta('What do you do when you get home?', [q3, q4], [[q3, 'PSG:lucas'], [q4, 'PSG:karla']]);
-add({ id: 'DEC-900001', tipo: 'DEC', data: '2026-11-09', decisao: 'perguntas de conversa mobilizam speaking e functional', justificativa: 'ILUSTRATIVO — no app essas perguntas são respondidas falando (Speaking Lab) sobre a própria rotina', aprovada_por: 'pendente (exemplo)' });
+add({ id: 'DEC-900001', tipo: 'DEC', data: '2026-11-09', decisao: 'perguntas de conversa mobilizam speaking e functional', justificativa: 'ILUSTRATIVO — no app essas perguntas são respondidas falando (Speaking Lab) sobre a própria rotina', status: 'proposta', aprovada_por: 'pendente (exemplo)' });
 
 // ---------- caso 4: item sem frase (Lucas) ----------
 const W = doc(F.word);
@@ -107,10 +102,12 @@ const iA = new Map(A.map((x, i) => [x.id, i]));
 let iguais = 0, mudaram = 0;
 const novos = [];
 B.forEach((x, j) => { if (!iA.has(x.id)) novos.push([x, j]); else if (hashOf(A[iA.get(x.id)]) === hashOf(x)) iguais++; else mudaram++; });
-const t0 = novos[0];
-const oT = ori(F.cpR, `/items/${t0[1]}`, 'cp.item');
-add({ id: nid('VOC'), tipo: 'VOC', camada: 'publica', status: 'proposto', versao: 1, historico: H('só na remodelagem (não publicada): aguarda decisão'), jornadas: ['jor:conversation-practice'],
-  forma: t0[0].en, evidencias: [{ ori: oT, campo: 'en' }], traducoes: [{ texto: t0[0].pt, origem: { ori: oT } }] });
+// P6: os itens só da remodelagem ficam preservados à parte (ORI da versão 8d5ac0c) e entram como "proposto"
+for (const [x, j] of novos) {
+  const o = ori(F.cpR, `/items/${j}`, 'cp.item');
+  add({ id: nid('VOC'), tipo: 'VOC', camada: 'publica', status: 'proposto', versao: 1, historico: H('só na remodelagem (não publicada): proposta, não ativada'), jornadas: ['jor:conversation-practice'],
+    forma: x.en, evidencias: [{ ori: o, campo: 'en' }], traducoes: [{ texto: x.pt, origem: { ori: o } }] });
+}
 const resumoCP = { publicada: A.length, remodelagem: B.length, iguais_em_ambas: iguais, mudaram: mudaram, so_na_remodelagem: novos.map(([x]) => `${x.id}=${x.en}`), so_na_publicada: A.filter((x) => !B.some((y) => y.id === x.id)).map((x) => x.id) };
 
 writeFileSync(join(HERE, 'exemplos.jsonl'), out.map((r) => JSON.stringify(r)).join('\n') + '\n');

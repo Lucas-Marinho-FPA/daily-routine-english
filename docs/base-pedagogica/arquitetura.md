@@ -1,276 +1,213 @@
-# Base Pedagógica Mestra — Arquitetura (Fase 1, Etapa 3)
+# Base Pedagógica Mestra — Arquitetura
 
-Status: **proposta para revisão** (não aprovada; nenhuma ingestão feita). Branch `base-pedagogica`, criada de `b194cee`.
-Referência de diagnóstico: `fase1-diagnostico.md` (Etapas 1 e 2). Protótipo executável: `docs/base-pedagogica/prototipo/`.
+Status: **APROVADA em 2026-11-09** com as decisões P1–P6 (§9). Estrutura pública preparada e vazia; **ingestão e
+consolidação (Etapa 4) bloqueadas até nova autorização expressa**. Branch de trabalho `base-pedagogica`, criada de
+`b194cee` (versão publicada, preservada na branch `arquivo/publicado-2026-11-08`).
 
-Princípio: a Base é o patrimônio de conhecimento do projeto; o aplicativo é **um** consumidor. Nada aqui depende de
-telas, módulos do app, IndexedDB, service worker ou motor pedagógico.
+Princípio central: **preservar integralmente o conhecimento antes de transformá-lo**. A Base é o patrimônio de
+conhecimento do projeto; o aplicativo é **um** consumidor. Nada aqui depende de telas, IndexedDB, service worker ou do
+motor pedagógico, e nada aqui altera o app.
 
----
+| Documento | Trata de |
+|---|---|
+| `arquitetura.md` (este) | visão geral, diretórios, camadas, progressão, validação, plano de ingestão, decisões, riscos |
+| `modelo-de-dados.md` | identificadores, campos de cada tipo, relações, exemplos reais |
+| `rastreabilidade.md` | registro de origem, hash, evidências, origem do enriquecimento, versões, duplicados, conferência por fonte |
+| `politica-de-preservacao.md` | regras obrigatórias da consolidação, imutabilidade, divergências, lacunas, terceiros, proteção da publicação |
+| `gerado/*.md` | leitura gerada de `base/` por `dev/tools/base/gerar.mjs` — **nunca editar à mão** |
+
+Os quatro primeiros são normativos (escritos à mão, um assunto em cada, sem repetição). Os dados ficam em JSON/JSONL;
+todo Markdown sobre o **conteúdo** da Base é gerado.
 
 ## 1. Visão geral
 
 Dois níveis de registro, sempre separados:
 
-1. **Registro de origem (`ORI`)** — cópia **literal e imutável** de um registro de uma fonte (um item, uma pergunta, um
-   parágrafo do Word, uma linha de JSON), com fonte, localização, identificador original e hash. É a prova de
-   preservação: o conteúdo original nunca é editado, resumido nem descartado.
-2. **Unidades pedagógicas** — o conhecimento organizado (vocabulário, expressões, gramática, textos, diálogos,
-   perguntas, respostas, atividades, exercícios, contextos). Cada unidade **aponta para as evidências** (`ORI`) de onde
-   vem cada informação; o que for escrito pelo projeto (explicação, nível, classe gramatical) é marcado como
-   enriquecimento, com origem própria.
+1. **Registro de origem (`ORI`)** — cópia literal e **imutável** de um registro de uma fonte, com fonte, versão,
+   localização, identificador original e hash (`rastreabilidade.md`). É a prova de preservação.
+2. **Unidades pedagógicas** — vocabulário, expressões, gramática, textos, segmentos, diálogos, perguntas, respostas,
+   atividades, exercícios, contextos, personagens (`modelo-de-dados.md`). Cada informação de uma unidade aponta para os
+   `ORI` de onde veio; o que for escrito pelo projeto é marcado como tal.
 
-Ligações entre registros ficam num arquivo de **relações** explícitas (com tipo, evidência e status). Decisões que
-juntam, separam ou resolvem registros ficam num **registro de decisões**. Nada é consolidado automaticamente.
-
-Duas camadas (decisão aprovada):
-
-| Camada | Conteúdo | Onde |
-|---|---|---|
-| Pública | autoria do projeto já generalizada; conteúdo licenciado compatível (ex.: FreeDict, GPL-2.0+) | repositório (branch `base-pedagogica`) |
-| Privada | originais pessoais (Word das rotinas, histórico do `daily-english`, etapa anterior em `Bora_de_Ingles`); terceiros sem licença (Conversation Book, atividades do curso); registros internos | **fora** do repositório público (ver §8 e pendência P1) |
-
-As duas compartilham **o mesmo espaço de identificadores**; a pública só conhece o **ID** de um registro privado,
-nunca o conteúdo, o caminho ou o nome.
+Ligações entre registros ficam em **relações** explícitas (`REL`); o que junta, separa ou resolve registros fica em
+**decisões** (`DEC`); versões conflitantes ficam em **divergências** (`DIV`). Nada é consolidado automaticamente.
 
 ## 2. Estrutura de diretórios
 
 ```
-base/                                   camada pública (dados)
-  manifesto.json                        versão do esquema, arquivos, contagens e hash de cada arquivo
-  ids.jsonl                             registro permanente de IDs (id, tipo, camada, criado_em) — só acrescenta
-  esquemas/                             JSON Schema de cada tipo de registro
-  fontes/fontes.jsonl                   FON: fontes públicas (e privadas só como id + natureza)
+base/                                   camada pública (dados) — fora do app e do pré-cache (§2.1)
+  manifesto.json                        esquema, estado, plano de ingestão; lista de arquivos com SHA-256 e contagem (gerada)
+  ids.jsonl                             registro permanente de IDs {id, tipo, camada, criado_em} — só acrescenta
+  esquemas/base.schema.json             JSON Schema 1.0.0 de todos os tipos
+  fontes/fontes.jsonl                   FON: fontes públicas (privadas só como id + natureza)
   origem/<FON-id>.jsonl                 ORI: registros literais, um arquivo por fonte (e por versão da fonte)
-  conhecimento/vocabulario.jsonl        VOC
-  conhecimento/expressoes.jsonl         EXP (phrasal, collocation, funcional, conector, tempo, chunk)
-  conhecimento/gramatica.jsonl          GRA
-  conteudo/textos.jsonl                 TXT (textos-modelo, blocos) e SEG (frases/falas)
-  conteudo/dialogos.jsonl               DIA
-  conteudo/contextos.jsonl              CTX (situações, cenas) e PSG (personagens)
-  atividades/perguntas.jsonl            PER
-  atividades/respostas.jsonl            RSP
-  atividades/atividades.jsonl           ATV
-  atividades/exercicios.jsonl           EXE
+  conferencia/<FON-id>.json             contagem do extrator, pendentes com motivo, órfãos justificados
+  conhecimento/{vocabulario,expressoes,gramatica}.jsonl        VOC · EXP · GRA
+  conteudo/{textos,dialogos,contextos}.jsonl                   TXT+SEG · DIA · CTX+PSG
+  atividades/{perguntas,respostas,atividades,exercicios}.jsonl PER · RSP · ATV · EXE
   relacoes/relacoes.jsonl               REL
-  habilidades/catalogo.json             as 7 habilidades (fixo)
-  progressao/grafo.jsonl                arestas de pré-requisito/relacionamento com evidência
-  progressao/percursos.jsonl            percursos por jornada (sequências de unidades)
-  decisoes/decisoes.jsonl               DEC (equivalências, resoluções, aprovações)
-  decisoes/divergencias.jsonl           DIV (todas as versões de cada divergência)
-  conferencia/                          gerado: por fonte (originais, incorporados, pendentes, duplicados, divergências)
-docs/base-pedagogica/                   leitura (Markdown GERADO a partir de base/; não editar à mão)
-  arquitetura.md                        este documento (normativo; único escrito à mão)
-  visao-geral.md · vocabulario.md · expressoes-e-estruturas.md · gramatica.md · atividades.md
-  habilidades.md · progressao-pedagogica.md · inventario-fontes.md · rastreabilidade.md
-dev/tools/base/                         extração, validação e geração (Etapa 4)
-<privado>/base/                         mesma estrutura de base/ para a camada privada (fora do repositório público)
+  habilidades/catalogo.json             7 habilidades e 2 jornadas (códigos fixos)
+  progressao/{grafo,percursos}.jsonl    arestas com evidência; percursos por jornada
+  decisoes/{decisoes,divergencias}.jsonl DEC · DIV
+docs/base-pedagogica/                   os 4 documentos normativos + gerado/ (Markdown gerado)
+dev/tools/base/                         lib.mjs, validar.mjs, autoteste-base.mjs, gerar.mjs, gerar-exemplos.mjs,
+                                        conferir-app.sh, exemplos/ (amostra ilustrativa, IDs 900001+)
 ```
 
-Observação técnica (pendência P2): hoje `dev/setup-workdir.sh` copia para o app toda pasta da raiz que não seja
-`dev`, `docs` ou os `.md` — uma pasta `base/` na raiz entraria no pré-cache do app num build. Para não tocar no app,
-há duas opções: (a) `base/` na raiz + uma exclusão de uma linha no `setup-workdir.sh`; (b) `dev/base/`, sem nenhuma
-alteração de ferramenta. Recomendação: **(a)**, porque deixa a Base independente do app; requer sua aprovação.
+### 2.1 Exclusão do app (decisão P2)
+
+Antes desta etapa, `dev/setup-workdir.sh` copiava para `app/` toda pasta da raiz exceto `dev` e `docs`; com `base/` na
+raiz, o build passaria a incluí-la no pré-cache do PWA (contraprova executada: com as ferramentas de `b194cee`, o
+service worker mudaria de `552fc39dda0b` para `b256aaabc0ed` e listaria `base/…`). Ajustes, sem efeito no app:
+
+- `dev/setup-workdir.sh`: `base` entra na lista de exclusões (não é copiada para `app/`).
+- `dev/tools/build-app.mjs`: o levantamento do pré-cache ignora `base/`, `docs/` e `dev/` (proteção extra).
+- `dev/tools/base/conferir-app.sh`: monta a cópia de trabalho da árvore atual, roda o build e compara arquivo por
+  arquivo com o app de `b194cee`; falha se `base/`, `docs/` ou `dev/` aparecerem no app ou no pré-cache.
+
+Observação: o GitHub Pages serve a branch `gh-pages` inteira. `base/` (camada pública) só chegaria lá numa
+publicação futura autorizada; mesmo assim, não seria baixada pelo app nem guardada no aparelho.
 
 ## 3. Formato
 
-- **JSONL** (um registro por linha) para todos os conjuntos de registros: diffs limpos no git, crescimento por
-  acréscimo, leitura em streaming. Volume previsto na migração: ~5 mil `ORI` e ~3 mil unidades — confortável.
-- **JSON** para manifesto, catálogo de habilidades e esquemas.
-- **Um arquivo de origem por fonte** (`origem/<FON>.jsonl`): a conferência de cada fonte é independente.
-- **Markdown só gerado** (`docs/base-pedagogica/*.md`, exceto `arquitetura.md`): uma única verdade.
-- Sem banco de dados, sem servidor: scripts Node no padrão do repositório (`node --test`, sem dependências novas).
+- **JSONL** (um registro por linha) para todos os conjuntos de registros; **JSON** para manifesto, catálogo,
+  conferências e esquema. Diffs limpos no git, crescimento por acréscimo.
+- **Um arquivo de origem por fonte**: a conferência de cada fonte é independente.
+- **Markdown só gerado** a partir dos dados (`gerado/`).
+- Sem banco de dados, sem servidor, sem dependências novas: scripts Node do próprio repositório.
 
-## 4. Identificadores
+## 4. Camadas pública e privada (decisão P1)
 
-Formato definitivo: **`<TIPO>-<NNNNNN>`** (prefixo de 3 letras + 6 dígitos), alocado **sequencialmente** no momento
-em que o registro nasce e gravado em `ids.jsonl`. Nunca é reutilizado, nunca muda (nem quando o conteúdo muda de
-módulo, de jornada ou de texto). Não é derivado do conteúdo (um hash mudaria com a edição).
-
-| Prefixo | Tipo | Prefixo | Tipo |
+| Camada | Conteúdo | Onde | Faixa de IDs |
 |---|---|---|---|
-| `FON` | fonte | `PER` | pergunta |
-| `ORI` | registro de origem (literal) | `RSP` | resposta-modelo |
-| `VOC` | palavra / lexema | `ATV` | atividade |
-| `EXP` | expressão (subtipo: phrasal, collocation, funcional, conector, tempo, chunk) | `EXE` | exercício |
-| `GRA` | estrutura gramatical | `CTX` | contexto narrativo / situação |
-| `TXT` | texto (texto-modelo, bloco) | `PSG` | personagem |
-| `SEG` | segmento (frase de texto, fala de diálogo) | `REL` | relação |
-| `DIA` | diálogo | `DEC` / `DIV` | decisão / divergência |
+| Pública | autoria do projeto já generalizada; conteúdo licenciado compatível (FreeDict, GPL-2.0+) | `base/` neste repositório | `000001`–`499999` |
+| Privada | originais pessoais (Word das rotinas, `daily-english`, etapa anterior); terceiros sem licença; registros internos | repositório **privado** separado (§4.1) | `500000`–`899999` |
+| Ilustrativa | exemplos de documentação e autoteste | `dev/tools/base/exemplos/` | `900000`+ (com `_ilustrativo`) |
 
-Códigos fixos (não numerados): habilidades `hab:reading`, `hab:writing`, `hab:listening`, `hab:speaking`,
-`hab:vocabulary`, `hab:grammar`, `hab:functional`; jornadas `jor:daily-routine`, `jor:conversation-practice`.
+- As faixas evitam colisão sem coordenação entre os repositórios; o padrão do ID é o mesmo (`modelo-de-dados.md`).
+- A camada pública só conhece o **ID e a natureza** de uma fonte privada (`{"id": "FON-500001", "camada": "privada",
+  "natureza": "pessoal"}`) — nunca conteúdo, nome de arquivo, caminho ou nome de pessoa/empresa.
+- Referências da pública para a privada são só IDs. A privada pode referenciar a pública livremente.
+- Privacidade é verificada automaticamente (§7, verificação 9): padrões de nomes privados (codificados, regra do
+  projeto) e **impressões digitais** (SHA-256 de cada linha das fontes privadas), cuja lista fica **na camada
+  privada** (hashes de linhas curtas poderiam ser adivinhados) e é passada ao validador por `--impressoes`.
 
-O identificador **original** de cada fonte (`it.grab`, `lk.grab`, `R01.Q1`, `K.Q5`, `/routines/3/phrasal/2`) fica
-gravado no `ORI` como `id_original` e `local` — a origem continua identificável.
+### 4.1 Estrutura privada proposta (repositório ainda NÃO criado)
 
-## 5. Modelo de dados
+Verificado em 2026-11-09: nenhum repositório privado apropriado existe na conta (os 5 repositórios acessíveis são
+públicos). Proposta para sua aprovação — nome **`daily-routine-english-privado`**, visibilidade **privada**, sem
+colaboradores adicionais:
 
-Campos comuns a toda unidade: `id`, `tipo`, `camada`, `status` (`proposto` | `ativo` | `retirado`), `versao`,
-`historico[]`, `jornadas[]`, `evidencias[]` (lista de `ORI` + campo de onde veio cada informação).
-Separação obrigatória dentro de cada unidade: **`original`** (texto literal, copiado do `ORI`) · **`traducoes`**
-(cada uma com sua origem) · **`explicacoes`** (com origem) · **`enriquecimento`** (classe, IPA, nível, habilidades —
-com origem `ORI`, `DEC` ou “autoria do projeto”, nunca sem origem).
-
-### 5.1 Registro de origem (`ORI`)
-```jsonc
-{ "id": "ORI-000123", "tipo": "ORI", "camada": "publica",
-  "fonte": "FON-000001", "versao_fonte": "b194cee",
-  "local": "/routines/3/phrasal/2",            // JSON pointer, índice de parágrafo, linha…
-  "id_original": null, "tipo_original": "word.phrasal",
-  "conteudo": { "en": "grab", "pt": "pegar rapidamente", "note": "Grab a snack / grab a coffee." },
-  "hash": "sha256:…",                          // do conteúdo (forma canônica), NÃO do arquivo
-  "extraido_em": "2026-11-09", "extrator": "dev/tools/base/extrair@1",
-  "versoes": [] }                              // só acrescenta, se a fonte mudar
 ```
-**Hash do registro**: SHA-256 de uma serialização determinística do conteúdo original — JSON com as chaves em ordem
-alfabética, sem espaços, strings **exatamente como na fonte** (sem normalizar Unicode, aspas, espaços ou maiúsculas).
-Para texto de DOCX/TXT, o hash é do texto do parágrafo/linha como extraído. O hash do **arquivo** fica na `FON`.
+daily-routine-english-privado/
+  LEIAME.md                       finalidade, regras (nada daqui vai para o público), como validar
+  fontes-originais/               arquivos originais intocados (Word E1, pacotes E2, documento E5 quando chegar, E3, E4)
+    SHA256SUMS                    hash de cada arquivo original (conferido antes de cada ingestão)
+  base/                           mesma estrutura da pública: manifesto, ids.jsonl (faixa 500000–899999), esquemas
+                                  (cópia versionada do público), fontes/, origem/, conferencia/, unidades, relacoes/, decisoes/
+  privacidade/impressoes.txt      SHA-256 das linhas das fontes privadas (para o validador público)
+```
 
-### 5.2 Vocabulário (`VOC`) e expressões (`EXP`)
-`forma` (inglês, literal), `subtipo` (EXP), `traducoes[]` `{texto, contexto, ori}`, `significado[]`, `classe_gramatical`
-(só com evidência), `pronuncia[]` `{ipa, ori}`, `exemplos` (→ `SEG`), `contextos` (→ `CTX`), `variacoes[]`,
-`funcao_comunicativa` (EXP), `estruturas` (→ `GRA`), `classificacoes_origem[]` `{categoria, ori}` (a categoria de
-cada fonte preservada, ex.: `collocation`, `phrasal`).
+Manifesto, IDs, hashes, rastreabilidade e versões próprios; validado pelas mesmas ferramentas
+(`node dev/tools/base/validar.mjs --base <privado>/base --camada privada`). Criação, permissões e qualquer
+compartilhamento dependem de autorização específica sua.
 
-### 5.3 Gramática (`GRA`)
-`estrutura`, `funcao`, `formacao[]`, `regras[]`, `exemplos` (→ `SEG`), `erros_frequentes[]` (inclui as 22 regras do
-corretor, com `ori`), `prerequisitos` (→ grafo), `relacionadas` (→ `GRA`). Fontes hoje: notas de gramática dos
-41 módulos, toolkit do Word (12 estruturas, 6 de Present Simple), regras de erro. Sempre ligada a exemplos de texto
-(gramática em contexto).
+## 5. Progressão pedagógica
 
-### 5.4 Textos, segmentos e diálogos (`TXT`, `SEG`, `DIA`)
-`TXT`: `original` integral, `traducao` (com origem), `personagens` (→ `PSG`), `contexto` (→ `CTX`), `segmentos` (→ `SEG`,
-em ordem). `SEG`: `original`, `traducao`, `falante` (diálogo), `vocabulario`/`expressoes`/`estruturas` (→ unidades).
-`DIA`: `falas` (→ `SEG` em ordem), `participantes`, `situacao`.
+- **Grafo** (`progressao/grafo.jsonl`): arestas `prerequisito_de` e `relacionada_a`, cada uma com evidência de um
+  destes tipos — ordem na fonte (introduzida antes na mesma jornada), dependência estrutural documentada (`DEC`), uso
+  conjunto nos mesmos segmentos. Sem evidência, sem aresta.
+- **Complexidade** por medidas verificáveis (tamanho, estruturas, frequência, primeira aparição), não por nível único.
+- **`lvl` (1–4)** preservado como `nivel_origem` com o escopo do pacote; não comparado entre pacotes. **Nenhum CEFR**
+  sem evidência externa documentada.
+- **Percursos** (`progressao/percursos.jsonl`): a ordem atual (R01–R18, K01–K11, L01–L10, CP01–CP02) e outros sobre o
+  mesmo grafo.
+- A Base registra **o que** revisar e **que evidência** demonstra domínio; **como** agendar (Leitner) e liberar etapas
+  continua no app. A Base não muda o motor.
 
-### 5.5 Perguntas, respostas, atividades e exercícios (`PER`, `RSP`, `ATV`, `EXE`)
-- `PER`: `enunciado` literal, `tipo` (compreensão, conversa, transferência, aberta pessoal…), `contexto`.
-- `RSP`: resposta-modelo literal ligada a **uma** pergunta **num contexto/personagem**, `alternativas[]`
-  (variações aceitas, cada uma com origem), `palavras_chave`, `criterios`.
-- `ATV`: `enunciado` integral, `contexto`, `perguntas` (→ `PER`), `respostas` (→ `RSP`), `conhecimentos`
-  (→ VOC/EXP/GRA), `habilidades` (com evidência), `criterios_avaliacao`, `origem`.
-- `EXE`: exercícios originais (drills, checklists) e **modelos** de exercício (ex.: ordenar frase, completar lacuna),
-  sem copiar a lógica do app.
+## 6. Ferramentas
 
-### 5.6 Contextos e personagens (`CTX`, `PSG`)
-Situações narrativas (manhã, trajeto, trabalho…), cenas e personagens (Lucas, Karla, Lukinhas, Heitor), com os
-fatos de cada fonte preservados (`fatos[]` com `ori`).
+| Comando (na raiz) | Faz |
+|---|---|
+| `node dev/tools/base/validar.mjs` | valida `base/` inteira (verificações 1–11) |
+| `node dev/tools/base/validar.mjs --arquivo <x.jsonl>` | valida um conjunto de registros (5, 10, 11 aparecem como “n/a”) |
+| `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez na amostra e exige reprovação (20 casos) |
+| `node dev/tools/base/autoteste-base.mjs` | idem para as verificações que dependem do git (repositório temporário, 10 casos) |
+| `node dev/tools/base/gerar.mjs [--conferir]` | regenera a lista de arquivos do manifesto e `gerado/*.md` |
+| `node dev/tools/base/gerar-exemplos.mjs` | regenera a amostra ilustrativa a partir de `b194cee`/`8d5ac0c` (determinística) |
+| `bash dev/tools/base/conferir-app.sh [ref]` | verificação 12: app gerado idêntico ao de `ref` e fora do pré-cache |
 
-## 6. Relações
+## 7. Validação automatizada
 
-Arquivo `relacoes/relacoes.jsonl`: `{ id: "REL-…", de, tipo, para, evidencias[], status: "proposta"|"confirmada", decisao }`.
+O validador reprova se houver:
 
-| Tipo | Significado | Como nasce |
-|---|---|---|
-| `duplicado_de` | conteúdo **literalmente igual** (mesmo hash) | automático (comparação de hash) — `confirmada` |
-| `variante_de` | mesma forma, diferença de escrita, tradução, categoria ou formatação | automático como **candidata** (`proposta`) |
-| `semelhante_a` | parecido, mas pedagogicamente distinto | só por decisão (`DEC`) |
-| `equivalente_a` | expressa o mesmo conhecimento | **só por decisão documentada** (`DEC`), nunca por palavras parecidas |
-| `contextualiza` | texto/segmento que dá contexto a uma unidade | da fonte (ex.: `ex[].src`) |
-| `aparece_em` | unidade presente num texto, atividade ou jornada | da fonte |
-| `prerequisito_de` | precisa ser dominado antes | com evidência (§9) |
+1. **Esquema** — registro fora de `base.schema.json` (interpretador próprio do subconjunto usado; conferido contra o
+   Ajv: 550 casos, 0 discordância); o próprio esquema com palavra-chave não suportada ou `$ref` quebrado.
+2. **Identificadores** — fora do padrão, prefixo ≠ tipo, duplicado, fora da faixa da camada, ausente de `ids.jsonl`,
+   tipo/camada diferente do registrado, registrado duas vezes.
+3. **Referências** quebradas (evidência, fonte, relação, pergunta, resposta, divergência, decisão, origem).
+4. **Hashes** — hash do registro ≠ hash da forma canônica do conteúdo; conteúdo ≠ original **recalculado na fonte, na
+   versão registrada** (`git show`); local inexistente; hash do arquivo de origem (`FON.hash_arquivo`) diferente.
+5. **Conservação por fonte** — originais contados ≠ `ORI` incorporados + pendentes; pendente sem motivo; fonte com `ORI`
+   e sem conferência.
+6. **`ORI` órfão** — nenhuma unidade, divergência ou justificativa aponta para ele.
+7. **Relações** — `equivalente_a`/`semelhante_a` sem `DEC` **aprovada**; `duplicado_de` sem conteúdo idêntico; `DIV`
+   resolvida sem `DEC`.
+8. **Origem do enriquecimento** — tradução, explicação, habilidade, classe gramatical ou pronúncia sem origem;
+   classificação central (subtipo) forçada enquanto as fontes divergem.
+9. **Privacidade** — nome privado (arquivos e registros), fonte privada com campos além de id/natureza, registro ou
+   `ORI` privado na pública, fonte pessoal/terceiros marcada como pública, linha idêntica a fonte privada.
+10. **Gerados** — manifesto ou Markdown diferente do regenerado.
+11. **Imutabilidade** — `ORI`, arquivo de origem ou linha de `ids.jsonl` existente em `HEAD` (ou `--imutavel-desde
+    <rev>`) removido ou alterado.
+12. **App inalterado** — `conferir-app.sh` + regressão das suítes do app (procedimento, fora do validador).
 
-## 7. Versionamento e histórico
+Avisos (não reprovam): origem apoiada numa `DEC` ainda não aprovada.
 
-- `ORI` é **imutável**. Se a fonte mudar (nova versão), entra um novo `ORI` com `versao_fonte` nova e
-  `variante_de`/`duplicado_de` para o anterior; o anterior nunca é apagado.
-- Unidades têm `versao` (inteiro) e `historico[]` só de acréscimo: `{versao, data, mudanca, motivo, decisao}`.
-- Nada é apagado: retirar = `status: "retirado"` + `DEC`. IDs nunca são reaproveitados (`ids.jsonl` só acrescenta).
-- O git guarda o histórico completo; `manifesto.json` registra a versão do esquema (semver) e o hash de cada arquivo.
+## 8. Plano de ingestão fonte a fonte (Etapa 4 — bloqueada até autorização)
 
-## 8. Separação pública × privada
+Uma fonte por vez, cada uma num commit próprio na branch de trabalho, na ordem abaixo. Para cada fonte:
 
-- Toda fonte tem `natureza` (autoria, pessoal, terceiros sem licença, licenciada, derivada) e `camada`.
-- **Nada** de fonte pessoal ou de terceiros sem licença entra em `base/` pública: nem texto, nem nome de arquivo,
-  nem caminho. Na pública aparece só `{"id": "FON-000020", "camada": "privada", "natureza": "terceiros"}`.
-- A camada privada usa a mesma estrutura e os mesmos IDs; referências da pública para a privada são só IDs.
-- A validação (§10) procura nomes privados (padrões codificados, como já é regra do projeto) e **impressões digitais**
-  (hashes de cada parágrafo/linha das fontes privadas) em todos os arquivos públicos — qualquer ocorrência reprova.
+1. Conferir o hash do arquivo original (`FON.hash_arquivo`; privadas: `SHA256SUMS`).
+2. Extrair **todos** os registros literais para `origem/<FON>.jsonl` (`ORI`, sem normalizar nada); gravar
+   `conferencia/<FON>.json` com a contagem do extrator e os pendentes com motivo.
+3. Criar unidades apontando para os `ORI`; registrar `duplicado_de` (automático, conteúdo idêntico), `variante_de`
+   (proposta), `DIV` para versões conflitantes e lacunas — nada resolvido sem `DEC`.
+4. `gerar.mjs`; `validar.mjs` com 0 erro; `conferir-app.sh` idêntico; relatório da fonte (originais, incorporados,
+   pendentes, duplicados, divergências, lacunas) para sua revisão antes da próxima fonte.
 
-## 9. Progressão pedagógica
-
-- Grafo (`progressao/grafo.jsonl`): arestas `prerequisito_de` e `relacionada_a` entre unidades, cada uma com
-  `evidencias` de um destes tipos: **ordem na fonte** (introduzida num módulo anterior da mesma jornada),
-  **dependência estrutural documentada** (`DEC`, ex.: Present Simple antes de advérbios de frequência), **uso
-  conjunto** (aparecem juntas nos mesmos segmentos). Sem evidência, sem aresta.
-- **Complexidade** registrada por medidas verificáveis (tamanho, número de estruturas, frequência nas fontes,
-  jornada/módulo de primeira aparição), não por um nível único.
-- **Escala interna `lvl` (1–4)** preservada como `nivel_origem` **com o escopo** (`"escala do pacote Lucas"`); não é
-  universal e não é comparada entre pacotes. **Nenhum CEFR** sem evidência externa documentada.
-- **Percursos** (`progressao/percursos.jsonl`): sequências por jornada e personagem (ex.: a ordem atual R01–R18,
-  K01–K11, L01–L10, CP01–CP02), permitindo vários percursos sobre o mesmo grafo.
-- **Revisão cumulativa e domínio**: a Base registra **o que** deve ser revisto e **que evidência** demonstra domínio
-  (ex.: produzir a expressão em contexto, responder sem ler); **como** agendar (Leitner) e liberar etapas continua no
-  app, que consome a Base. A Base não muda o motor.
-
-## 10. Validação automatizada (Etapas 4–6)
-
-`dev/tools/base/validar.mjs` (protótipo em `docs/base-pedagogica/prototipo/validar.mjs`), reprova se:
-
-1. Registro fora do esquema (JSON Schema).
-2. ID duplicado, fora do padrão ou ausente de `ids.jsonl`; ID reaproveitado.
-3. Referência quebrada (evidência, relação, unidade, fonte inexistente).
-4. **Hash** de algum `ORI` diferente do recalculado na fonte, na versão registrada (fontes públicas; privadas na
-   camada privada).
-5. **Conservação** por fonte: originais contados pelo extrator ≠ `ORI` incorporados + pendentes listados com motivo.
-6. `ORI` órfão (nenhuma unidade nem pendência aponta para ele).
-7. `equivalente_a`/`semelhante_a` sem `DEC`; `duplicado_de` sem hashes iguais.
-8. Enriquecimento sem origem (classe, IPA, nível, habilidade).
-9. **Privacidade**: padrão de nome privado ou impressão digital de fonte privada/terceiros em arquivo público.
-10. Markdown desatualizado (regerar e comparar).
-11. O app mudou (build do app idêntico ao de `b194cee` e regressão).
-
-## 11. Plano de migração (Etapa 4, após aprovação)
-
-| Ordem | Fonte(s) | Camada | Observação |
+| Ordem | Fonte(s) (inventário da Etapa 1) | Camada | Observação |
 |---|---|---|---|
-| 1 | R1 extração do Word (generalizada), R2–R7 enriquecimentos | pública | `ORI` por registro; unidades VOC/EXP/GRA/TXT/PER/RSP do Lucas |
-| 2 | R8 Karla, R9 Lukinhas (+ R14 textos aprovados), R11 personas | pública | |
-| 3 | R10 Conversation Practice (`b194cee`) e R18 (`remodelagem` `8d5ac0c`) | pública | versões da mesma fonte (§12, CP01) |
-| 4 | R12 expressões de apoio, R13 FreeDict (referência, sem virar unidade por entrada) | pública | |
-| 5 | R17 documentos pedagógicos (orientações, decisões) | pública | |
-| 6 | E1 Word original, E2 etapa anterior | privada | conferência E1 × R1 campo a campo |
-| 7 | E5 `daily-english` | privada | **conferência só depois do `.docx` original** |
-| 8 | E3 Conversation Book, E4 atividades do curso | privada | terceiros; nunca na pública |
-| — | E6 Bora de Inglês | — | **independente**: só referência cruzada (`FON` + `semelhante_a` proposto), sem ingestão |
+| 1 | R1 extração do Word (generalizada); R2–R7 enriquecimentos e episódios | pública | Lucas: VOC/EXP/GRA/TXT/PER/RSP; 28 itens sem frase → lacuna |
+| 2 | R8 Karla; R9 Lukinhas + R14 textos aprovados; R11 personas previstas | pública | perguntas repetidas: uma `PER`, uma `RSP` por personagem |
+| 3 | R10 Conversation Practice (`b194cee`, 65 itens CP01) e R18 remodelagem (`8d5ac0c`) | pública | 9 itens só da remodelagem como `proposto` (P6) |
+| 4 | R12 expressões de apoio; R13 FreeDict | pública | FreeDict como referência licenciada, sem virar unidade por entrada |
+| 5 | R17 documentos pedagógicos | pública | orientações e decisões já documentadas |
+| 6 | E1 Word original; E2 etapa anterior | privada | conferência E1 × R1 campo a campo; requer P1 |
+| 7 | E5 `daily-english` | privada | **pendente do documento original (P4)**; nada completado por inferência |
+| 8 | E3 terceiros sem licença; E4 atividades do curso | privada | nunca na pública |
+| — | E6 Bora de Inglês | — | independente: só referência cruzada |
 
-Critério de cada fonte: originais = incorporados + pendentes com motivo; 100% dos hashes conferidos; nenhuma
-violação de privacidade; Markdown gerado; regressão do app sem diferença.
+Critério de cada fonte: originais = incorporados + pendentes com motivo; 100% dos hashes conferidos; 0 violação de
+privacidade; Markdown gerado; app idêntico e regressão sem diferença.
 
-## 12. Casos reais do diagnóstico
+## 9. Decisões aprovadas (2026-11-09)
 
-(Exemplos completos e hashes reais em `prototipo/exemplos.jsonl`, gerados das fontes de `b194cee`/`8d5ac0c`.)
-
-1. **“grab”** — 2 `ORI`: Word `/routines/3/phrasal/2` (“pegar rapidamente”, nota “Grab a snack / grab a coffee.”) e
-   `lucas-kid.json /items/38` (“pegar (rapidinho)”, categoria `word`). Uma `VOC` “grab” (a **forma** é literalmente
-   igual) com **duas traduções**, cada uma com seu `ORI` e contexto (trabalho × casa/cachorro). Relação
-   `variante_de` (`proposta`) entre os `ORI`. Nenhuma tradução escolhida; a classe gramatical fica vazia até haver
-   evidência (`verb` e `word` ficam como classificações de origem).
-2. **“get changed”** — 3 `ORI` no Word (R01 vocabulário, R08 vocabulário **e** R08 phrasal) + `lk.get-changed`
-   (`phrasal`). A divergência de categoria **já existe na fonte original** → `DIV` com as versões (collocation × phrasal)
-   e `EXP` com `classificacoes_origem` das duas; subtipo definitivo só por `DEC`.
-3. **Perguntas repetidas** — “What time do you wake up?” (Word R01, Lucas; `lucas-kid` L.Q1) e “What do you do when
-   you get home?” (Lucas `questions.json /new/7`; Karla K.Q5): **uma `PER`** por enunciado (literalmente igual →
-   `duplicado_de` entre os `ORI`) e **uma `RSP` por personagem** (as respostas-modelo são diferentes e continuam
-   separadas), em duas `ATV` de jornadas/personagens diferentes.
-4. **Itens sem frase** — 28 itens do Lucas (8 phrasal, 11 conectores, 7 frases, 1 tempo, 1 palavra; ex.: `get back to`,
-   `get up`, `go over`, `send out`, `finish up`); 3 aparecem só em perguntas. Viram unidades normais, com
-   `aparece_em` apenas onde houver evidência; a conferência lista “sem contexto de texto” como lacuna, sem remover.
-5. **CP01: 65 × 74 itens** — a mesma fonte (`journeys/cp.json`) em duas versões: `b194cee` (publicada, 65) e
-   `remodelagem` `8d5ac0c` (74). Os 65 iguais → `ORI` da versão publicada + `duplicado_de` na outra versão; os 9 novos
-   (`team`, `welcome`, `software developer`, `friendly`, `everyone`, `join`, `move`, `club`, `later`) → `ORI` com
-   `versao_fonte: 8d5ac0c` e unidades com `status: "proposto"` (não publicadas) até decisão.
-
-## 13. Riscos e pendências
-
-| ID | Pendência / risco | Decisão de quem |
+| ID | Decisão | Situação |
 |---|---|---|
-| P1 | **Onde guardar a camada privada de forma durável.** Este ambiente é temporário; proposta: repositório **privado** no GitHub (ex.: `daily-routine-english-privado`) | sua (criação de repositório) |
-| P2 | `base/` na raiz (com exclusão de uma linha no `setup-workdir.sh`) ou `dev/base/` (sem alteração) | sua |
-| P3 | Tag `publicado-2026-11-08` recusada pelo canal git (envio cortado); usada a branch `arquivo/publicado-2026-11-08`. A tag existe só localmente | pode ser criada pelo GitHub (Releases) por você, se quiser |
-| P4 | `Histórico IA inglês.docx` (conferência do `daily-english`) | aguardando o arquivo |
-| P5 | Subtipos/categorias divergentes (“get changed”, “take care of”…) e equivalências | `DEC` por caso, com sua revisão |
-| P6 | Conteúdo só da `remodelagem` (9 itens CP01, 187 traduções de apoio) entra como `proposto` | confirmar |
-| R1 | Volume de decisões manuais (divergências) pode crescer | priorizar por uso |
-| R2 | Alocação sequencial de IDs exige um único gravador por vez | regra de processo |
+| P1 | Camada privada num **repositório privado no GitHub**, independente do público | nenhum existente; proposta em §4.1 aguardando autorização para criar |
+| P2 | `base/` na **raiz** do repositório público, fora do app e do pré-cache | feito (§2.1), app conferido idêntico |
+| P3 | Proteção da publicação pela branch **`arquivo/publicado-2026-11-08`** (= `b194cee`); tag local `publicado-2026-11-08` só auxiliar, **não** é proteção remota | conferido em 2026-11-09 |
+| P4 | `Histórico IA inglês.docx` será enviado; até lá a conferência de E5 fica **pendente**, sem conclusão nem preenchimento por inferência | pendente |
+| P5 | Sem decisão linguística/pedagógica sem evidência; divergências preservadas com todas as versões, sem classificação central forçada (`politica-de-preservacao.md` §4) | regra ativa (validador, verificação 8) |
+| P6 | CP01: 65 publicados preservados; 9 só da remodelagem preservados à parte como **propostas**, com origem e versão, não ativados | regra ativa |
+
+## 10. Riscos e pendências
+
+| ID | Risco / pendência | Tratamento |
+|---|---|---|
+| R1 | Volume de decisões manuais (divergências) | priorizar por uso; nada se resolve sem `DEC` |
+| R2 | Alocação sequencial de IDs exige um gravador por vez | uma ingestão por vez, num commit; validador acusa duplicados |
+| R3 | Fontes pessoais já estão em repositórios **públicos** existentes (`daily-english`, etapa anterior em `Bora_de_Ingles`) | fora do escopo desta etapa; não alterados; decisão sua |
+| R4 | Originais privados (Word, pacotes, terceiros) não têm guarda durável até existir o repositório privado | P1 |
+| R5 | `T04` da simulação do Pages é intermitente (falhou uma vez por tempo esgotado na linha de base, passou ao repetir) | registrado; não é efeito da Base |

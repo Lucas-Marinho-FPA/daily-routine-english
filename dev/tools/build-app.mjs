@@ -101,7 +101,8 @@ const walk = (dir) => {
     const p = join(dir, name);
     const rel = relative(APP, p).split('\\').join('/');
     // screenshots/: só para o pedido de instalação do navegador (online); não ocupam espaço no aparelho
-    if (statSync(p).isDirectory()) { if (rel !== 'js' && rel !== 'asr' && rel !== 'screenshots') walk(p); continue; }
+    // base/, docs/, dev/: Base Pedagógica e documentação — nunca no pré-cache (proteção extra; setup-workdir.sh já não os copia)
+    if (statSync(p).isDirectory()) { if (!['js', 'asr', 'screenshots', 'base', 'docs', 'dev'].includes(rel)) walk(p); continue; }
     if (rel === 'sw.js' || name.startsWith('.') || !/\.(html|js|css|webmanifest|png|svg|ogg|json|gz|txt)$/.test(name)) continue;
     files.push(rel);
   }

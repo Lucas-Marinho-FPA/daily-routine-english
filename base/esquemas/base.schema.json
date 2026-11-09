@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "base-pedagogica/esquema/1.0.0",
+  "title": "Base Pedagógica Mestra — esquema 1.0.0 (aprovado em 2026-11-09)",
+  "description": "Cada registro é validado por tipos[<tipo>]. Campos não listados são permitidos (extensão aditiva); os listados são verificados. Normativo: docs/base-pedagogica/modelo-de-dados.md.",
+  "$defs": {
+    "id": { "type": "string", "pattern": "^(FON|ORI|VOC|EXP|GRA|TXT|SEG|DIA|PER|RSP|ATV|EXE|CTX|PSG|REL|DEC|DIV)-[0-9]{6}$" },
+    "idOri": { "type": "string", "pattern": "^ORI-[0-9]{6}$" },
+    "idDec": { "type": "string", "pattern": "^DEC-[0-9]{6}$" },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "data": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "camada": { "enum": ["publica", "privada"] },
+    "status": { "enum": ["proposto", "ativo", "retirado"] },
+    "jornada": { "enum": ["jor:daily-routine", "jor:conversation-practice"] },
+    "habilidade": { "enum": ["hab:reading", "hab:writing", "hab:listening", "hab:speaking", "hab:vocabulary", "hab:grammar", "hab:functional"] },
+    "lacuna": { "enum": ["sem_contexto_de_texto", "sem_traducao", "sem_resposta_modelo", "fonte_pendente_de_conferencia", "outra"] },
+    "evidencia": {
+      "type": "object", "required": ["ori"],
+      "properties": { "ori": { "$ref": "#/$defs/idOri" }, "campo": { "type": "string" } }
+    },
+    "origemInfo": {
+      "description": "toda informação traduzida, explicada ou enriquecida diz de onde veio: um ORI, uma DEC ou autoria do projeto",
+      "type": "object",
+      "properties": { "ori": { "$ref": "#/$defs/idOri" }, "decisao": { "$ref": "#/$defs/idDec" }, "autoria": { "const": "projeto" } },
+      "anyOf": [{ "required": ["ori"] }, { "required": ["decisao"] }, { "required": ["autoria"] }]
+    },
+    "textoComOrigem": {
+      "type": "object", "required": ["texto", "origem"],
+      "properties": { "texto": { "type": "string" }, "contexto": { "type": "string" }, "origem": { "$ref": "#/$defs/origemInfo" } }
+    },
+    "classificacaoOrigem": {
+      "type": "object", "required": ["categoria", "ori"],
+      "properties": { "categoria": { "type": "string" }, "ori": { "$ref": "#/$defs/idOri" } }
+    },
+    "historico": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "object", "required": ["versao", "data", "mudanca"],
+        "properties": { "versao": { "type": "integer", "minimum": 1 }, "data": { "$ref": "#/$defs/data" }, "mudanca": { "type": "string" }, "motivo": { "type": "string" }, "decisao": { "$ref": "#/$defs/idDec" } } }
+    },
+    "unidadeBase": {
+      "type": "object",
+      "required": ["id", "tipo", "camada", "status", "versao", "historico", "evidencias"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "camada": { "$ref": "#/$defs/camada" }, "status": { "$ref": "#/$defs/status" },
+        "versao": { "type": "integer", "minimum": 1 }, "historico": { "$ref": "#/$defs/historico" },
+        "jornadas": { "type": "array", "items": { "$ref": "#/$defs/jornada" } },
+        "evidencias": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidencia" } },
+        "traducoes": { "type": "array", "items": { "$ref": "#/$defs/textoComOrigem" } },
+        "explicacoes": { "type": "array", "items": { "$ref": "#/$defs/textoComOrigem" } },
+        "classificacoes_origem": { "type": "array", "items": { "$ref": "#/$defs/classificacaoOrigem" } },
+        "divergencias": { "type": "array", "items": { "type": "string", "pattern": "^DIV-[0-9]{6}$" } },
+        "lacunas": { "type": "array", "items": { "$ref": "#/$defs/lacuna" } }
+      }
+    }
+  },
+  "tipos": {
+    "FON": {
+      "type": "object", "required": ["id", "tipo", "camada", "natureza"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "tipo": { "const": "FON" }, "camada": { "$ref": "#/$defs/camada" },
+        "natureza": { "enum": ["autoria", "pessoal", "terceiros", "licenciada", "derivada"] },
+        "arquivo": { "type": "string", "description": "só na camada pública; fontes privadas não têm caminho na pública" },
+        "versao": { "type": "string" }, "hash_arquivo": { "$ref": "#/$defs/hash" }, "licenca": { "type": "string" },
+        "conferencia": { "enum": ["pendente", "em_andamento", "concluida"] }
+      }
+    },
+    "ORI": {
+      "type": "object", "required": ["id", "tipo", "camada", "fonte", "versao_fonte", "local", "conteudo", "hash", "extraido_em", "extrator"],
+      "properties": {
+        "id": { "$ref": "#/$defs/idOri" }, "tipo": { "const": "ORI" }, "camada": { "$ref": "#/$defs/camada" },
+        "fonte": { "type": "string", "pattern": "^FON-[0-9]{6}$" }, "versao_fonte": { "type": "string" }, "local": { "type": "string" },
+        "id_original": { "type": ["string", "null"] }, "tipo_original": { "type": "string" },
+        "conteudo": {}, "hash": { "$ref": "#/$defs/hash" }, "extraido_em": { "$ref": "#/$defs/data" }, "extrator": { "type": "string" }
+      }
+    },
+    "VOC": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["forma"],
+      "properties": { "tipo": { "const": "VOC" }, "forma": { "type": "string" },
+        "classe_gramatical": { "type": ["object", "null"] }, "pronuncia": { "type": "array" } } },
+    "EXP": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["forma"],
+      "properties": { "tipo": { "const": "EXP" }, "forma": { "type": "string" },
+        "subtipo": { "enum": ["phrasal", "collocation", "funcional", "conector", "tempo", "chunk", null] },
+        "funcao_comunicativa": { "type": ["string", "null"] } } },
+    "GRA": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["estrutura"], "properties": { "tipo": { "const": "GRA" } } },
+    "TXT": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["original"], "properties": { "tipo": { "const": "TXT" }, "original": { "type": "string" } } },
+    "SEG": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["original"], "properties": { "tipo": { "const": "SEG" }, "original": { "type": "string" } } },
+    "DIA": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["falas"], "properties": { "tipo": { "const": "DIA" }, "falas": { "type": "array" } } },
+    "PER": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["enunciado"], "properties": { "tipo": { "const": "PER" }, "enunciado": { "type": "string" } } },
+    "RSP": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["pergunta", "original"],
+      "properties": { "tipo": { "const": "RSP" }, "pergunta": { "type": "string", "pattern": "^PER-[0-9]{6}$" }, "original": { "type": "string" } } },
+    "ATV": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "required": ["perguntas"],
+      "properties": { "tipo": { "const": "ATV" }, "perguntas": { "type": "array" },
+        "habilidades": { "type": "array", "items": { "type": "object", "required": ["habilidade", "origem"], "properties": { "habilidade": { "$ref": "#/$defs/habilidade" }, "origem": { "$ref": "#/$defs/origemInfo" } } } } } },
+    "EXE": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "properties": { "tipo": { "const": "EXE" } } },
+    "CTX": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "properties": { "tipo": { "const": "CTX" } } },
+    "PSG": { "allOf": [{ "$ref": "#/$defs/unidadeBase" }], "properties": { "tipo": { "const": "PSG" } } },
+    "REL": { "type": "object", "required": ["id", "tipo", "de", "relacao", "para", "status", "evidencias"],
+      "properties": { "id": { "$ref": "#/$defs/id" }, "tipo": { "const": "REL" }, "de": { "$ref": "#/$defs/id" }, "para": { "$ref": "#/$defs/id" },
+        "relacao": { "enum": ["duplicado_de", "variante_de", "semelhante_a", "equivalente_a", "contextualiza", "aparece_em", "prerequisito_de", "relacionada_a"] },
+        "status": { "enum": ["proposta", "confirmada"] }, "decisao": { "$ref": "#/$defs/idDec" },
+        "evidencias": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidencia" } } } },
+    "DEC": { "type": "object", "required": ["id", "tipo", "data", "decisao", "justificativa", "status", "aprovada_por"],
+      "properties": { "id": { "$ref": "#/$defs/idDec" }, "tipo": { "const": "DEC" }, "data": { "$ref": "#/$defs/data" },
+        "status": { "enum": ["proposta", "aprovada", "revogada"] }, "evidencias": { "type": "array", "items": { "$ref": "#/$defs/evidencia" } } } },
+    "DIV": { "type": "object", "required": ["id", "tipo", "assunto", "versoes", "status"],
+      "properties": { "id": { "$ref": "#/$defs/id" }, "tipo": { "const": "DIV" },
+        "versoes": { "type": "array", "minItems": 2, "items": { "type": "object", "required": ["valor", "ori"], "properties": { "ori": { "$ref": "#/$defs/idOri" } } } },
+        "status": { "enum": ["aberta", "resolvida"] }, "decisao": { "$ref": "#/$defs/idDec" } } }
+  }
+}

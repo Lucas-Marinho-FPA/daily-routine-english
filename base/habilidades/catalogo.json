@@ -1,0 +1,16 @@
+{
+  "descricao": "Catálogo fixo de habilidades (códigos, não registros numerados). A atribuição de uma habilidade a uma unidade sempre leva origem (ORI, DEC ou autoria do projeto).",
+  "habilidades": [
+    { "codigo": "hab:reading", "nome": "Leitura" },
+    { "codigo": "hab:writing", "nome": "Escrita" },
+    { "codigo": "hab:listening", "nome": "Compreensão oral" },
+    { "codigo": "hab:speaking", "nome": "Produção oral" },
+    { "codigo": "hab:vocabulary", "nome": "Vocabulário" },
+    { "codigo": "hab:grammar", "nome": "Gramática" },
+    { "codigo": "hab:functional", "nome": "Uso funcional (comunicação em situação real)" }
+  ],
+  "jornadas": [
+    { "codigo": "jor:daily-routine", "nome": "Daily Routine (Lucas, Karla, Lukinhas)" },
+    { "codigo": "jor:conversation-practice", "nome": "Conversation Practice" }
+  ]
+}
