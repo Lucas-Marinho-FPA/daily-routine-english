@@ -1,5 +1,5 @@
 {
-  "descricao": "Catálogo fixo de habilidades (códigos, não registros numerados). A atribuição de uma habilidade a uma unidade sempre leva origem (ORI, DEC ou autoria do projeto).",
+  "descricao": "Códigos fixos da Base (não são registros numerados). A atribuição de uma habilidade a uma unidade sempre leva origem (ORI, DEC ou autoria do projeto).",
   "habilidades": [
     { "codigo": "hab:reading", "nome": "Leitura" },
     { "codigo": "hab:writing", "nome": "Escrita" },
@@ -12,5 +12,12 @@
   "jornadas": [
     { "codigo": "jor:daily-routine", "nome": "Daily Routine (Lucas, Karla, Lukinhas)" },
     { "codigo": "jor:conversation-practice", "nome": "Conversation Practice" }
-  ]
+  ],
+  "categorias_que_nomeiam_subtipo": {
+    "_doc": "Categorias das fontes (campo c) cujo nome é o próprio subtipo de EXP. Só estas classificam; as demais (word, verb, professional, sentence, rótulos de seção) ficam registradas em classificacoes_origem com subtipo null.",
+    "phrasal": "phrasal",
+    "collocation": "collocation",
+    "connector": "conector",
+    "time": "tempo"
+  }
 }

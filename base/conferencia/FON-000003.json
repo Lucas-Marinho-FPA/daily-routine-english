@@ -1,0 +1,38 @@
+{
+  "fonte": "FON-000003",
+  "codigo": "R3",
+  "arquivo": "dev/content/enrich/questions.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:a399ee623264266fda661c0ebd6bb100e514b96a5685d7aaa7ce430684ac9b05",
+  "originais": 23,
+  "incorporados": 23,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 21,
+    "sem_unidade": 2,
+    "por_destino": {
+      "metadado": 2
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/new/*",
+    "/keywords/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-000621",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    },
+    {
+      "ori": "ORI-000638",
+      "destino": "metadado",
+      "motivo": "documentação do campo de palavras-chave"
+    }
+  ],
+  "listas": [
+    "/new"
+  ]
+}

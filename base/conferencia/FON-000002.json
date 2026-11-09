@@ -1,0 +1,36 @@
+{
+  "fonte": "FON-000002",
+  "codigo": "R2",
+  "arquivo": "dev/content/enrich/items.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:d2b3dfae7d3bc7c9198057dede4e9fdc5fa1b716bd501787f3e12340345b2b93",
+  "originais": 247,
+  "incorporados": 247,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 246,
+    "sem_unidade": 1,
+    "por_destino": {
+      "metadado": 1
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/aliases/*",
+    "/table/*",
+    "/new/*",
+    "/verbs/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-000374",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    }
+  ],
+  "listas": [
+    "/new",
+    "/verbs"
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "fonte": "FON-000005",
+  "codigo": "R5",
+  "arquivo": "dev/content/enrich/structure.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:612cc90c6c2885919bf17ec2cce171ad7c2561751b3fdba0b67984594685506d",
+  "originais": 77,
+  "incorporados": 77,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 63,
+    "sem_unidade": 14,
+    "por_destino": {
+      "metadado": 14
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/contexts/*",
+    "/categories/*",
+    "/routines/*/pt",
+    "/routines/*/dayType",
+    "/routines/*/priority",
+    "/routines/*/blocks/*",
+    "/dayTypes/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-000841",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    },
+    {
+      "ori": "ORI-000850",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000851",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000852",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000853",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000854",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000855",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000856",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000857",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000858",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000859",
+      "destino": "metadado",
+      "motivo": "rótulo de categoria da fonte (os valores aparecem em classificacoes_origem)"
+    },
+    {
+      "ori": "ORI-000915",
+      "destino": "metadado",
+      "motivo": "rótulo do tipo de dia (o valor aparece em TXT.tipo_de_dia)"
+    },
+    {
+      "ori": "ORI-000916",
+      "destino": "metadado",
+      "motivo": "rótulo do tipo de dia (o valor aparece em TXT.tipo_de_dia)"
+    },
+    {
+      "ori": "ORI-000917",
+      "destino": "metadado",
+      "motivo": "rótulo do tipo de dia (o valor aparece em TXT.tipo_de_dia)"
+    }
+  ],
+  "listas": [
+    "/contexts",
+    "/categories",
+    "/routines/R01/blocks",
+    "/routines/R02/blocks",
+    "/routines/R03/blocks",
+    "/routines/R04/blocks",
+    "/routines/R05/blocks",
+    "/routines/R06/blocks",
+    "/routines/R07/blocks",
+    "/routines/R08/blocks",
+    "/routines/R09/blocks",
+    "/routines/R10/blocks"
+  ]
+}

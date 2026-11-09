@@ -1,122 +1,102 @@
 # Base Pedagógica — Modelo de dados
 
-Normativo (aprovado em 2026-11-09). Esquema executável: `base/esquemas/base.schema.json` (1.0.0). Origem, hash e
-histórico estão em `rastreabilidade.md`; regras de preservação em `politica-de-preservacao.md`.
-
-Todos os exemplos abaixo são **ilustrativos**: vêm de `dev/tools/base/exemplos/exemplos.jsonl`, gerados das fontes
-reais de `b194cee`/`8d5ac0c`, com IDs da faixa `900001+` e o campo `_ilustrativo: true`. Não fazem parte da Base.
+Normativo. Esquema executável: `base/esquema.json` (2.0.0). Origem, hash e versões: `rastreabilidade.md`.
+Exemplos citados abaixo são registros **reais** da base (consolidação de R1–R7).
 
 ## 1. Identificadores
 
-Formato: **`<TIPO>-<NNNNNN>`** (prefixo de 3 letras + 6 dígitos), alocado sequencialmente quando o registro nasce e
-gravado em `base/ids.jsonl` (`{id, tipo, camada, criado_em}`). Nunca muda, nunca é reutilizado, não deriva do conteúdo.
+Formato **`<TIPO>-<NNNNNN>`**: prefixo de 3 letras e **uma única sequência pública por tipo**, a partir de `000001`.
+Cada ID é gravado em `base/ids.jsonl` com uma **chave estável** (`{id, tipo, chave, criado_em}`), por isso consolidar de
+novo a mesma fonte dá os mesmos IDs. Nunca muda, nunca é reaproveitado, não deriva do conteúdo.
 
-| Prefixo | Tipo | Prefixo | Tipo |
-|---|---|---|---|
-| `FON` | fonte | `PER` | pergunta |
-| `ORI` | registro de origem (literal, imutável) | `RSP` | resposta-modelo |
-| `VOC` | palavra / lexema | `ATV` | atividade |
-| `EXP` | expressão | `EXE` | exercício |
-| `GRA` | estrutura gramatical | `CTX` | contexto / situação |
-| `TXT` | texto (texto-modelo, bloco) | `PSG` | personagem |
-| `SEG` | segmento (frase de texto, fala) | `REL` | relação |
-| `DIA` | diálogo | `DEC` / `DIV` | decisão / divergência |
+| Prefixo | Tipo | Chave estável |
+|---|---|---|
+| `FON` | fonte | código do inventário (`R1`) |
+| `ORI` | registro de origem | fonte + versão + local (`FON-000001@b194cee:/routines/3/phrasal/2`) |
+| `VOC` / `EXP` | palavra / expressão | forma literal |
+| `GRA` | estrutura gramatical | estrutura literal |
+| `TXT` / `SEG` / `DIA` | texto / segmento / diálogo | identificador da fonte (`lucas:R01`) / `ORI` do segmento / `ORI` do bloco |
+| `PER` / `RSP` / `ATV` | pergunta / resposta-modelo / atividade | enunciado literal / `ORI` da pergunta / grupo na fonte |
+| `EXE` / `CTX` / `PSG` | exercício / contexto / personagem | `ORI` ou grupo / código da fonte / código do personagem |
+| `REL` / `DEC` / `DIV` | relação / decisão / divergência | de + relação + para / — / unidade + campo |
 
-Faixas: pública `000001`–`499999`; privada `500000`–`899999`; ilustrativa `900000`+ (`arquitetura.md` §4).
-Códigos fixos (não numerados): habilidades `hab:reading`, `hab:writing`, `hab:listening`, `hab:speaking`,
-`hab:vocabulary`, `hab:grammar`, `hab:functional`; jornadas `jor:daily-routine`, `jor:conversation-practice`.
-O identificador **original** da fonte (`lk.grab`, `/routines/3/phrasal/2`…) fica no `ORI` (`id_original`, `local`).
+Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas `jor:daily-routine`,
+`jor:conversation-practice`. O identificador da fonte (`R01.Q1`, `R01-B7`, `lk.grab`) fica em `id_original`.
 
 ## 2. Campos comuns às unidades
 
-`VOC EXP GRA TXT SEG DIA PER RSP ATV EXE CTX PSG` têm:
-
 | Campo | Regra |
 |---|---|
-| `id`, `tipo`, `camada` | obrigatórios |
-| `status` | `proposto` (registrado, **não ativo**) · `ativo` · `retirado` (nunca apagado) |
-| `versao`, `historico[]` | obrigatórios; ver `rastreabilidade.md` §5 |
-| `evidencias[]` | obrigatório, ≥ 1: `{ori, campo?}` — de qual `ORI` (e de qual campo dele) vem a unidade |
-| `jornadas[]` | `jor:*` |
-| `traducoes[]`, `explicacoes[]` | `{texto, contexto?, origem}` — sempre separados do original, cada um com origem |
-| `classificacoes_origem[]` | `{categoria, ori}` — a categoria **de cada fonte**, preservada mesmo quando divergem |
-| `divergencias[]` | `DIV` abertas que afetam a unidade |
-| `lacunas[]` | `sem_contexto_de_texto`, `sem_traducao`, `sem_resposta_modelo`, `fonte_pendente_de_conferencia`, `outra` |
+| `id`, `tipo`, `status` | `proposto` (registrado, não ativo) · `ativo` · `retirado` (nunca apagado) |
+| `versao`, `historico[]` | `rastreabilidade.md` §5 |
+| `evidencias[]` | ≥ 1 `{ori, campo?}` |
+| `jornadas[]`, `personagens[]` | `jor:*`; `PSG-*` (atribuição pelo escopo da fonte) |
+| `traducoes[]`, `explicacoes[]` | `{texto, contexto?, origem}` — separados do original |
+| `classificacoes_origem[]` | `{categoria, subtipo, ori}` — a categoria literal de cada fonte; `subtipo` só quando o catálogo diz que aquela categoria nomeia um subtipo |
+| `niveis_origem[]` | `{valor, escala, origem}` — nível da fonte com a escala dela; nunca CEFR |
+| `atributos_origem[]` | `{campo, valor, origem}` — campos da fonte sem semântica própria na Base (ex.: `match`, `icon`, `kind`), preservados e ligados |
+| `divergencias[]`, `lacunas[]`, `revisoes[]` | `DIV-*`; lacunas registradas; registros de revisão linguística (`ORI`) ligados |
+| campo único com origem | `{valor, origem}` (ex.: `titulo`, `objetivo`, `tipo_de_dia`, `falante`, `dica`) |
 
-`origem` = `{ori}` | `{decisao}` | `{autoria: "projeto"}` — nunca ausente.
+`origem` = `{ori, campo?}` | `{decisao}` | `{autoria: "projeto"}` — nunca ausente.
 
 ## 3. Tipos
 
-### `FON` — fonte
-`natureza` (`autoria`, `pessoal`, `terceiros`, `licenciada`, `derivada`), `camada`, e só na pública: `arquivo`,
-`versao` (commit), `hash_arquivo`, `licenca`, `conferencia` (`pendente` · `em_andamento` · `concluida`).
-Fonte privada na pública: **apenas** `{id, tipo, camada, natureza, conferencia}`.
-
-### `ORI` — registro de origem
-`fonte`, `versao_fonte`, `local` (JSON pointer, índice de parágrafo, linha), `id_original`, `tipo_original`,
-`conteudo` (literal), `hash`, `extraido_em`, `extrator`. Detalhes em `rastreabilidade.md` §1–2.
-
-### `VOC` e `EXP` — vocabulário e expressões
-`forma` (inglês, literal); `EXP.subtipo` ∈ `phrasal`, `collocation`, `funcional`, `conector`, `tempo`, `chunk` ou
-`null` (**`null` enquanto as fontes divergem**, `politica-de-preservacao.md` §4); `classe_gramatical` (só com
-`origem`), `pronuncia[]` (cada uma com origem), `exemplos` (→ `SEG`), `contextos` (→ `CTX`), `funcao_comunicativa`.
-
-### `GRA` — gramática
-`estrutura`, `funcao`, `formacao[]`, `regras[]`, `exemplos` (→ `SEG`), `erros_frequentes[]` (com `ori`),
-`relacionadas` (→ `GRA`). Sempre ligada a exemplos de texto (gramática em contexto).
-
-### `TXT`, `SEG`, `DIA` — textos, segmentos, diálogos
-`TXT.original` integral (nunca resumido), `segmentos` (→ `SEG`, em ordem), `personagens` (→ `PSG`), `contexto`.
-`SEG.original`, `falante`, `vocabulario`/`expressoes`/`estruturas` (→ unidades). `DIA.falas` (→ `SEG`), `participantes`.
-
-### `PER`, `RSP`, `ATV`, `EXE` — perguntas, respostas, atividades, exercícios
-- `PER.enunciado` literal; enunciados literalmente iguais em fontes diferentes = **uma** `PER` com várias evidências.
-- `RSP`: resposta-modelo literal (`original`) de **uma** pergunta (`pergunta` → `PER`) **num personagem/contexto**;
-  respostas diferentes nunca se fundem. `alternativas[]` com origem.
-- `ATV`: `perguntas` (→ `PER`), `respostas` (→ `RSP`), `personagem`, `habilidades[]` `{habilidade, origem}`,
-  `conhecimentos` (→ VOC/EXP/GRA). Enunciados de atividade são integrais — nunca resumidos.
-- `EXE`: exercícios originais (drills, checklists) e modelos de exercício, sem copiar a lógica do app.
-
-### `CTX`, `PSG` — contextos e personagens
-Situações (manhã, trajeto, trabalho…) e personagens (Lucas, Karla, Lukinhas, Heitor) com `fatos[]` `{texto, ori}`
-das fontes; nenhum fato novo sem fonte.
-
-### `REL`, `DEC`, `DIV`
-- `REL`: `{de, relacao, para, status (proposta|confirmada), evidencias[], decisao?}` — tipos na §4.
-- `DEC`: `{data, decisao, justificativa, status (proposta|aprovada|revogada), aprovada_por, evidencias?}`. Só uma
-  `DEC` **aprovada** sustenta equivalência ou resolve divergência.
-- `DIV`: `{assunto, versoes[] {valor, ori}, status (aberta|resolvida), decisao?}` — todas as versões preservadas.
+- **`FON`** — `codigo`, `titulo`, `natureza` (`autoria` · `derivada` · `licenciada` · `terceiros`), `distribuicao`
+  (`integral` · `somente_referencia`), `arquivo`, `versao`, `hash_arquivo`, `licenca`, `conferencia`
+  (`pendente` · `em_andamento` · `concluida`). Fonte `somente_referencia`: identificação e licença, **sem conteúdo**.
+- **`ORI`** — `fonte`, `versao_fonte`, `local` (JSON pointer), `id_original`, `regra`, `conteudo`, `hash`, `extraido_em`, `extrator`.
+- **`VOC` / `EXP`** — `forma` literal; `EXP.subtipo` (`phrasal` · `collocation` · `funcional` · `conector` · `tempo` ·
+  `chunk` · `null`); `pronuncia[]`, `variantes[]` (`aceita`, `forma_no_texto_original`), `formas_verbais[]`,
+  `exemplos[]` (→ `SEG`), `erros_frequentes[]` (`ORI` de regra de erro cuja correção é a própria forma).
+- **`GRA`** — `estrutura` literal, traduções, explicações, `atributos_origem.secao`.
+- **`TXT`** — `segmentos[]` (ordem da fonte), `titulo`, `titulo_pt`, `objetivo`, `tipo_de_dia`, `estagio`,
+  `nota_gramatical`, `explicacoes` (notas de uso), `blocos[]` (episódios), `dialogos[]`, `personagens[]`.
+- **`SEG`** — `original` (parágrafo/frase/fala literal, sem divisão), `texto`, `traducoes`, `falante`, `contextos[]`
+  (+ `contextos_origem`), `revisoes[]`.
+- **`DIA`** — `falas[]` (→ `SEG`), `participantes[]`, `titulo_pt`, `texto`, `contextos[]`.
+- **`PER`** — `enunciado` literal; o mesmo enunciado em vários registros = **uma** `PER` com várias evidências.
+- **`RSP`** — `original` literal de **uma** pergunta num personagem/contexto; `criterios[]` (palavras-chave da fonte).
+- **`ATV`** — `perguntas[]`, `respostas[]`, `perguntas_abertas[]` (pergunta pessoal sem resposta-modelo na fonte, com
+  `dica`), `contexto`, `personagens[]`, `habilidades[]` (só com origem).
+- **`EXE`** — `itens[]` (evidências: cada item aponta para o texto literal no `ORI`), `titulo`.
+- **`CTX`** — `codigo`, `nome`, `traducoes`. **`PSG`** — `codigo`, `tracos[]`, `fatos[]`, `pendencias_da_fonte[]`.
+- **`REL`** — `{de, relacao, para, status, evidencias, decisao?, motivo}`. **`DEC`** — decisão com `status`
+  (`proposta` · `aprovada` · `revogada`). **`DIV`** — `{unidade, campo, assunto, versoes[{valor, ori}], status}`.
 
 ## 4. Relações
 
 | Tipo | Significado | Como nasce |
 |---|---|---|
-| `duplicado_de` | conteúdo **literalmente igual** (hash, ou campo indicado em `evidencias[].campo`) | automático, `confirmada` |
-| `variante_de` | mesma forma; difere em escrita, tradução, categoria ou formato | automático como **`proposta`** |
-| `semelhante_a` | parecido, pedagogicamente distinto | só com `DEC` aprovada |
-| `equivalente_a` | expressa o mesmo conhecimento | **só com `DEC` aprovada e documentada**, nunca automática |
-| `contextualiza` | texto/segmento que dá contexto a uma unidade | da fonte |
-| `aparece_em` | unidade presente num texto, atividade ou jornada | da fonte |
-| `prerequisito_de`, `relacionada_a` | progressão | com evidência (`arquitetura.md` §5) |
+| `duplicado_de` | conteúdo literalmente igual (hash, ou o campo indicado) | automático, `confirmada` |
+| `variante_de` | mesma forma com diferença de escrita, ou apelido declarado pela fonte | apelido da fonte → `confirmada`; só maiúscula/minúscula → `proposta` |
+| `semelhante_a`, `equivalente_a` | parecido / mesmo conhecimento | **só com `DEC` aprovada** |
+| `contextualiza`, `aparece_em` | contexto / presença | da fonte |
+| `prerequisito_de`, `relacionada_a` | progressão | com evidência |
 
-## 5. Casos reais (amostra ilustrativa)
+## 5. Critérios de consolidação (aplicados pelo adaptador, verificados pelo validador)
 
-1. **“grab”** — 2 `ORI`: Word `/routines/3/phrasal/2` (“pegar rapidamente”, nota “Grab a snack / grab a coffee.”) e
-   `lucas-kid.json /items/38` (“pegar (rapidinho)”, categoria `word`). Uma `VOC` com **duas traduções**, cada uma com
-   seu `ORI` e contexto; `variante_de` **proposta** entre os `ORI`; `classe_gramatical: null` até haver evidência.
-2. **“get changed”** — 4 `ORI` preservados (Word R01 vocabulário, R08 vocabulário, R08 phrasal; `lucas-kid /items/31`
-   phrasal). `DIV` aberta com as 4 versões; `EXP` com `subtipo: null` e as 4 `classificacoes_origem`.
-3. **Perguntas repetidas** — “What time do you wake up?” (Lucas, Lukinhas) e “What do you do when you get home?”
-   (Lucas, Karla): uma `PER` por enunciado (`duplicado_de` no campo `q`), **uma `RSP` e uma `ATV` por personagem**.
-4. **Item sem frase** — “get up”: `EXP` normal com `lacunas: ["sem_contexto_de_texto"]`; nada inventado.
-5. **CP01 65 × 74** — os 65 da versão publicada são idênticos nas duas versões; os 9 só da remodelagem (`team`,
-   `welcome`, `software developer`, `friendly`, `everyone`, `join`, `move`, `club`, `later`) têm `ORI` próprio com
-   `versao_fonte: 8d5ac0c` e `VOC` com `status: "proposto"`.
+1. **Forma literal idêntica = mesma unidade.** Uma palavra → `VOC`; mais de uma → `EXP` (critério estrutural).
+   Grafias diferentes são unidades diferentes, ligadas por `variante_de` quando houver base para isso.
+2. **Subtipo** só quando as categorias da fonte que nomeiam subtipo (`progressao/catalogo.json`) concordam. Rótulos de
+   seção não classificam (a tabela “Phrasal verbs e expressões verbais” do Word mistura os dois — revisão REV-07).
+   Fontes que discordam → `subtipo: null` + `DIV`.
+3. **Traduções, níveis e pronúncias** diferentes para a mesma forma: todos preservados, cada um com origem, e `DIV`.
+4. **Textos** são guardados na granularidade da fonte: um `SEG` por parágrafo (rotinas do Word) ou por frase/fala
+   (episódios). A tradução paralela do Word é ligada pelo mesmo índice (listas `en`/`pt` de mesmo tamanho na fonte).
+5. **Exemplos** (`exemplos[]`): segmentos em que a forma, uma variante ou o `match` da fonte aparece literalmente
+   (sem diferenciar maiúsculas, com limites de palavra); formas terminadas em “…” são modelos e procuram a parte antes
+   das reticências. Sem ocorrência → lacuna `sem_contexto_de_texto`.
+6. **Perguntas**: numeração do app preservada em `id_original` (`R02.Q5` continua depois das do Word); perguntas
+   pessoais sem resposta-modelo ficam em `perguntas_abertas` com a dica — **nenhuma resposta é inventada**.
+7. **Registros sem unidade** (documentação de arquivo, rótulos, regras internas do corretor, revisões de alcance amplo)
+   ficam preservados como `ORI` com destino e motivo na conferência.
 
-```json
-{"id":"VOC-900001","tipo":"VOC","camada":"publica","status":"ativo","versao":1,"forma":"grab",
- "evidencias":[{"ori":"ORI-900001","campo":"en"},{"ori":"ORI-900002","campo":"en"}],
- "traducoes":[{"texto":"pegar rapidamente","contexto":"Lucas · trabalho (R04)","origem":{"ori":"ORI-900001"}},
-              {"texto":"pegar (rapidinho)","contexto":"Lukinhas · casa (L06)","origem":{"ori":"ORI-900002"}}],
- "classe_gramatical":null, "...": "registro completo em exemplos.jsonl"}
-```
+## 6. Exemplos reais (consolidação R1–R7)
+
+- **“get changed”** (`EXP-000006`): 4 evidências no Word (R01 vocabulário, R08 vocabulário, R08 tabela de phrasal,
+  revisão do toolkit) + tabela R2 (`c: collocation`) → `subtipo: collocation`, com as categorias de seção preservadas.
+  Quando outra fonte (Lukinhas) classificar como `phrasal`, a divergência será registrada (P5).
+- **“wake up”** (`EXP-000001`): três traduções “acordar” com origens distintas; IPA e nível da tabela R2; `phrasal`.
+- **“start up / boot up” → “start up”**: apelido declarado em R2 → `REL variante_de` `confirmada`.
+- **Perguntas abertas**: 17 perguntas de transferência dos episódios e 1 de R3 ficam em `perguntas_abertas`, com dica.

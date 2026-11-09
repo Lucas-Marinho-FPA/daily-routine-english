@@ -34,15 +34,52 @@ export const lerJsonl = (txt) => txt.split('\n').filter((l) => l.trim()).map((l,
   try { return JSON.parse(l); } catch (e) { throw new Error(`linha ${i + 1}: JSON inválido (${e.message})`); }
 });
 
-// todos os arquivos de dados de base/ (exceto esquemas e manifesto), em ordem estável
+// todos os arquivos de dados de base/ (exceto esquema e manifesto), em ordem estável
 export const arquivosBase = (dir = BASE) => {
   const out = [];
   const walk = (d) => { for (const n of readdirSync(d).sort()) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else out.push(relative(dir, p).split('\\').join('/')); } };
   if (existsSync(dir)) walk(dir);
-  return out.filter((f) => f !== 'manifesto.json' && !f.startsWith('esquemas/') && !f.endsWith('.gitkeep'));
+  return out.filter((f) => f !== 'manifesto.json' && f !== 'esquema.json' && !f.endsWith('.gitkeep'));
 };
 
-// Nomes privados protegidos — o mesmo padrão dos builds do projeto, codificado de propósito.
+// arquivo de cada tipo de registro (ORI: um arquivo por fonte)
+export const ARQUIVO_DO_TIPO = {
+  FON: 'fontes/fontes.jsonl', VOC: 'registros/vocabulario.jsonl', EXP: 'registros/expressoes.jsonl', GRA: 'registros/gramatica.jsonl',
+  TXT: 'registros/textos.jsonl', SEG: 'registros/textos.jsonl', DIA: 'registros/dialogos.jsonl', CTX: 'registros/contextos.jsonl', PSG: 'registros/contextos.jsonl',
+  PER: 'registros/perguntas.jsonl', RSP: 'registros/respostas.jsonl', ATV: 'registros/atividades.jsonl', EXE: 'registros/exercicios.jsonl',
+  DEC: 'registros/decisoes.jsonl', DIV: 'registros/divergencias.jsonl', REL: 'relacoes/relacoes.jsonl',
+};
+export const arquivoDe = (r) => (r.tipo === 'ORI' ? `registros/origem/${r.fonte}.jsonl` : ARQUIVO_DO_TIPO[r.tipo]);
+
+// pointer helpers
+export const esc = (k) => String(k).replace(/~/g, '~0').replace(/\//g, '~1');
+export const ptr = (...ks) => ks.map((k) => `/${esc(k)}`).join('');
+
+// grava JSONL estável: uma linha por registro, na ordem recebida, chaves na ordem em que o registro foi montado
+export const jsonl = (rs) => (rs.length ? rs.map((r) => JSON.stringify(r)).join('\n') + '\n' : '');
+
+// Alocador de IDs: uma única sequência por prefixo; cada ID tem uma chave estável (o mesmo registro de origem ou
+// a mesma unidade recebe sempre o mesmo ID). ids.jsonl só cresce; IDs nunca são reaproveitados.
+export class Ids {
+  constructor(linhas = [], data) {
+    this.linhas = linhas.map((l) => ({ ...l }));
+    this.porChave = new Map(this.linhas.map((l) => [l.chave, l.id]));
+    this.max = {};
+    for (const l of this.linhas) { const t = l.id.slice(0, 3), n = Number(l.id.slice(4)); this.max[t] = Math.max(this.max[t] || 0, n); }
+    this.data = data;
+  }
+  id(tipo, chave) {
+    const k = `${tipo}:${chave}`;
+    if (this.porChave.has(k)) return this.porChave.get(k);
+    const n = (this.max[tipo] || 0) + 1; this.max[tipo] = n;
+    const id = `${tipo}-${String(n).padStart(6, '0')}`;
+    this.porChave.set(k, id); this.linhas.push({ id, tipo, chave: k, criado_em: this.data });
+    return id;
+  }
+}
+
+// Nomes privados protegidos (regra permanente do projeto: empregador, agência, unidade) — o mesmo padrão dos builds,
+// codificado de propósito.
 export const PRIVATE = new RegExp(Buffer.from('XGIoPzppdGFbdcO6XXxFQUN8cGVyc29ubmFsaXRcdyp8bGFzdHJvKVxi', 'base64').toString('utf8'), 'i');
 
 // ---------- validador mínimo de JSON Schema (subconjunto usado em base/esquemas) ----------

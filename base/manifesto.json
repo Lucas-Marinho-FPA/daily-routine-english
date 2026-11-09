@@ -1,156 +1,101 @@
 {
-  "nome": "Base Pedagógica Mestra — camada pública",
-  "esquema": "base-pedagogica/esquema/1.0.0",
-  "camada": "publica",
-  "estado": "estrutura preparada; ingestão (Etapa 4) bloqueada até autorização expressa",
+  "nome": "Base Pedagógica Mestra — Daily Routine English",
+  "esquema": "base-pedagogica/esquema/2.0.0",
+  "estado": "consolidação em andamento: Lucas R1–R7 consolidado, aguardando revisão do usuário",
   "arquitetura": "docs/base-pedagogica/arquitetura.md",
-  "aprovacao": {
-    "data": "2026-11-09",
-    "decisoes": "P1–P6, arquitetura.md §9"
-  },
   "preservacao": {
     "branch": "arquivo/publicado-2026-11-08",
     "commit": "b194cee3593fb540434b22be5df116b61256bba8"
   },
-  "camada_privada": {
-    "local": "repositório privado separado (proposto; ainda não criado)",
-    "referencia": "somente IDs"
-  },
-  "plano_de_ingestao": [
+  "plano": [
     {
       "ordem": 1,
-      "fontes": "R1 extração do Word (generalizada); R2–R7 enriquecimentos e episódios",
-      "camada": "publica",
-      "conferencia": "pendente"
+      "fontes": "Lucas: extração do Word e enriquecimentos (R1–R7)",
+      "situacao": "consolidada — aguardando revisão"
     },
     {
       "ordem": 2,
-      "fontes": "R8 Karla; R9 Lukinhas + R14 textos aprovados; R11 personas previstas",
-      "camada": "publica",
-      "conferencia": "pendente"
+      "fontes": "Karla e Lukinhas (R8, R9, R14, R11)",
+      "situacao": "pendente"
     },
     {
       "ordem": 3,
-      "fontes": "R10 Conversation Practice (b194cee, 65 itens CP01) e R18 remodelagem (8d5ac0c)",
-      "camada": "publica",
-      "conferencia": "pendente",
-      "observacao": "9 itens só da remodelagem entram como proposto (P6)"
+      "fontes": "Conversation Practice: versão publicada (b194cee) e remodelagem (8d5ac0c) (R10, R18)",
+      "situacao": "pendente",
+      "observacao": "itens só da remodelagem entram como proposto"
     },
     {
       "ordem": 4,
-      "fontes": "R12 expressões de apoio; R13 FreeDict (GPL-2.0+, referência)",
-      "camada": "publica",
-      "conferencia": "pendente"
+      "fontes": "Expressões de apoio e FreeDict (R12, R13)",
+      "situacao": "pendente",
+      "observacao": "FreeDict sob GPL-2.0+: licença e atribuição registradas"
     },
     {
       "ordem": 5,
-      "fontes": "R17 documentos pedagógicos",
-      "camada": "publica",
-      "conferencia": "pendente"
+      "fontes": "Documentos pedagógicos (R17)",
+      "situacao": "pendente"
     },
     {
       "ordem": 6,
-      "fontes": "E1 Word original; E2 etapa anterior",
-      "camada": "privada",
-      "conferencia": "pendente",
-      "observacao": "conferência E1 × R1 campo a campo"
-    },
-    {
-      "ordem": 7,
-      "fontes": "E5 daily-english",
-      "camada": "privada",
-      "conferencia": "pendente",
-      "observacao": "aguardando o documento original enviado pelo usuário (P4); não concluir nem completar por inferência"
-    },
-    {
-      "ordem": 8,
-      "fontes": "E3 material de terceiros sem licença; E4 atividades do curso",
-      "camada": "privada",
-      "conferencia": "pendente",
-      "observacao": "terceiros: nunca na camada pública"
+      "fontes": "Daily-English (E5)",
+      "situacao": "pendente",
+      "observacao": "aguardando o documento original Histórico IA inglês.docx; não declarar conferido antes dele; nada completado por inferência"
     },
     {
       "ordem": "—",
-      "fontes": "E6 Bora de Inglês",
-      "camada": "—",
-      "conferencia": "não se aplica",
-      "observacao": "projeto independente: só referência cruzada"
+      "fontes": "Materiais de terceiros sem licença de redistribuição (E3, E4)",
+      "situacao": "fora da distribuição",
+      "observacao": "podem ser registrados como fontes externas (somente_referencia), sem conteúdo"
+    },
+    {
+      "ordem": "—",
+      "fontes": "Bora de Inglês (E6)",
+      "situacao": "independente",
+      "observacao": "só referências cruzadas quando pertinentes"
     }
   ],
   "arquivos": [
     {
-      "caminho": "atividades/atividades.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000001.json",
+      "sha256": "d3fc9c3aa6d8b2962beae438b68d3a0228db38faa10fb7832475201d186182c4"
     },
     {
-      "caminho": "atividades/exercicios.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000002.json",
+      "sha256": "358e68047ce61dec9eaac81ed85db28013567c4f4f12a20634bfa9a4238fca11"
     },
     {
-      "caminho": "atividades/perguntas.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000003.json",
+      "sha256": "0097b1c9326117fcdff633e48035ba70602baeeae7c00ca384b3616650d0cdd7"
     },
     {
-      "caminho": "atividades/respostas.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000004.json",
+      "sha256": "a1ade23bb1bf2e0ca828045c605ca231a051a2d428462a2e02598335b316008a"
     },
     {
-      "caminho": "conhecimento/expressoes.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000005.json",
+      "sha256": "296f094c50d1829e5d39dc95594187a00de15eebb8e17ad182f2f1c23eb2ae1a"
     },
     {
-      "caminho": "conhecimento/gramatica.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000006.json",
+      "sha256": "6812c3a07b1ba081b6b7c8b44ee2ff74b2f4926550ef06263f2d787ddfeaa908"
     },
     {
-      "caminho": "conhecimento/vocabulario.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "conteudo/contextos.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "conteudo/dialogos.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "conteudo/textos.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "decisoes/decisoes.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "decisoes/divergencias.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "caminho": "conferencia/FON-000007.json",
+      "sha256": "921ba45cdca6c1ab58dfbc723abe9b0fbfb47b82a90eedb2c17980d3403cfc74"
     },
     {
       "caminho": "fontes/fontes.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
-    },
-    {
-      "caminho": "habilidades/catalogo.json",
-      "sha256": "54f5bbe998e998aa84140a8225661966d164c3b289d22901b50cc4e8569ff7f9"
+      "sha256": "8c42d3de431965645627e83450bbc256da22882163b220cb3dba0743ec22c4d2",
+      "registros": 7
     },
     {
       "caminho": "ids.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "sha256": "81e13fc47e038c9812abea8ab569c3a57ff6b85ab4d6002888a541833da78505",
+      "registros": 2159
+    },
+    {
+      "caminho": "progressao/catalogo.json",
+      "sha256": "0afb089b508b35e8258196ef314be39f8e94a4c1ce4422d5553c04c2e6360f5b"
     },
     {
       "caminho": "progressao/grafo.jsonl",
@@ -163,9 +108,104 @@
       "registros": 0
     },
     {
-      "caminho": "relacoes/relacoes.jsonl",
+      "caminho": "registros/atividades.jsonl",
+      "sha256": "4826031fc31085292c8891ad0e600540df3270fbdeb015fc3079c6499c20136a",
+      "registros": 29
+    },
+    {
+      "caminho": "registros/contextos.jsonl",
+      "sha256": "a438a0d78fd5762e721216333ee285ceb96d5829a95fe3bf0a8cce6e8092ebe9",
+      "registros": 9
+    },
+    {
+      "caminho": "registros/decisoes.jsonl",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "registros": 0
+    },
+    {
+      "caminho": "registros/dialogos.jsonl",
+      "sha256": "d56d1256ada45579a881c4b0c7d42df15868d2f8ba65d7f27cc67da6cab9ad78",
+      "registros": 6
+    },
+    {
+      "caminho": "registros/divergencias.jsonl",
+      "sha256": "06ffd1131c86f5dac6b473cbf589551ec92b696e0c2db1d82d42f33560a76931",
+      "registros": 7
+    },
+    {
+      "caminho": "registros/exercicios.jsonl",
+      "sha256": "096933d06e7941a6a3be8c28d3b48d33266b747a7123846a52189a1fc88ee873",
+      "registros": 4
+    },
+    {
+      "caminho": "registros/expressoes.jsonl",
+      "sha256": "b70bee5b401f2dd7747c388527984b05ab1e5512400a0646cea4bea2ddea4049",
+      "registros": 257
+    },
+    {
+      "caminho": "registros/gramatica.jsonl",
+      "sha256": "5236f3dc0d27b8d236b655154d2fc4f813f6e49482fd238c37d2fa24daacf765",
+      "registros": 18
+    },
+    {
+      "caminho": "registros/origem/FON-000001.jsonl",
+      "sha256": "405834757d0ee1022c9da9a1df82398c8aa9e7206c14c21fac777e7dbc2b0711",
+      "registros": 373
+    },
+    {
+      "caminho": "registros/origem/FON-000002.jsonl",
+      "sha256": "0df8a5b2b95136c9dd2d0b6134e4648aa59898931b661a5093f9cbabc8bc8bcd",
+      "registros": 247
+    },
+    {
+      "caminho": "registros/origem/FON-000003.jsonl",
+      "sha256": "b817bb4fd4dc1b2e84c013b7591109bd65cc418f2fd9a569271ebbac005ae564",
+      "registros": 23
+    },
+    {
+      "caminho": "registros/origem/FON-000004.jsonl",
+      "sha256": "1d0e2851d311c8be08460341c4c7fe8006fef70a223df8a87ea3b597f22158f2",
+      "registros": 197
+    },
+    {
+      "caminho": "registros/origem/FON-000005.jsonl",
+      "sha256": "2e3aabfe455a56a83cf4204f0ab8cf3685a26a895d57c03f35c762d5b6453a4a",
+      "registros": 77
+    },
+    {
+      "caminho": "registros/origem/FON-000006.jsonl",
+      "sha256": "7a022a88e80230ead6ffcc8555b14da11235e4ea8e960c0b8db8d5ce1206906b",
+      "registros": 24
+    },
+    {
+      "caminho": "registros/origem/FON-000007.jsonl",
+      "sha256": "c82abeb00cab26fb4e52c74ed7891e746f823237bcd2eda7bbc86ca438cf37df",
+      "registros": 421
+    },
+    {
+      "caminho": "registros/perguntas.jsonl",
+      "sha256": "0fd6ea4114da25b99271e93385dcd5043e51a61070a03f12e0b5bcad0048d8da",
+      "registros": 109
+    },
+    {
+      "caminho": "registros/respostas.jsonl",
+      "sha256": "59b84220718a55df924e115db2657a2c90db997ea9bf7a8804a828fe5b9b4b7a",
+      "registros": 91
+    },
+    {
+      "caminho": "registros/textos.jsonl",
+      "sha256": "5dfce9ceb042391e460e3fc89b9bb4fe6311768a040b3ee97b4c6013fbefcef0",
+      "registros": 164
+    },
+    {
+      "caminho": "registros/vocabulario.jsonl",
+      "sha256": "d3291b4148cfbd2f76e41c074d8c3fe4bd4660a377573199c1ec3751b856b2a5",
+      "registros": 76
+    },
+    {
+      "caminho": "relacoes/relacoes.jsonl",
+      "sha256": "4fb9f95b7a4f0affaa17147b1ca5fbde9e4e7aaa85f7aa008fa8b88b6f14c350",
+      "registros": 20
     }
   ]
 }

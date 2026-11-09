@@ -1,0 +1,995 @@
+{
+  "fonte": "FON-000004",
+  "codigo": "R4",
+  "arquivo": "dev/content/enrich/language.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:f53d1d97fcdbfa4a9ffcce20ebc87cd77db0562669f0695b4ef1e549e3b082f2",
+  "originais": 197,
+  "incorporados": 197,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 6,
+    "sem_unidade": 191,
+    "por_destino": {
+      "metadado": 2,
+      "recurso_do_corretor": 167,
+      "pendente_decisao": 22
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/contractions/*",
+    "/spellingAmE/*",
+    "/practiceVerb",
+    "/synonyms/_doc",
+    "/synonyms/groups/*",
+    "/errors/*",
+    "/stopwords/*",
+    "/determiners/*",
+    "/numberWords/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-000644",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    },
+    {
+      "ori": "ORI-000645",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000646",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000647",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000648",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000649",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000650",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000651",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000652",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000653",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000654",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000655",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000656",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000657",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000658",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000659",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000660",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000661",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000662",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000663",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000664",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000665",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000666",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000667",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000668",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000669",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000670",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000671",
+      "destino": "recurso_do_corretor",
+      "motivo": "contração e forma expandida usadas pelo corretor"
+    },
+    {
+      "ori": "ORI-000672",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000673",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000674",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000675",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000676",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000677",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000678",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000679",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000680",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000681",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000682",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000683",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000684",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000685",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000686",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000687",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000688",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000689",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000690",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000691",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000692",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000693",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000694",
+      "destino": "recurso_do_corretor",
+      "motivo": "grafia americana → britânica usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000695",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra practice (AmE) × practise (BrE) usada pelo corretor"
+    },
+    {
+      "ori": "ORI-000696",
+      "destino": "metadado",
+      "motivo": "documentação dos grupos de sinônimos"
+    },
+    {
+      "ori": "ORI-000697",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000698",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000699",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000700",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000701",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000702",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000703",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000704",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000705",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000706",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000707",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000708",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000709",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000710",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000711",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000712",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000713",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000714",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000715",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000716",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000717",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000718",
+      "destino": "pendente_decisao",
+      "motivo": "grupo de sinônimos aceitos pelo corretor; equivalência entre unidades só com decisão aprovada (DEC)"
+    },
+    {
+      "ori": "ORI-000720",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “listen to” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000721",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “discuss” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000723",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “open the app” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000724",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “spend time + -ing” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000726",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “doesn't + verbo base” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000727",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “Does” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000728",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “verbo + -s” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000729",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “doesn't” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000730",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “arrive at” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000734",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “laptop” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000735",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “in the morning” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000736",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “at night” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000737",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “go home” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000738",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “every day” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000739",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “are” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000740",
+      "destino": "recurso_do_corretor",
+      "motivo": "regra de erro frequente; a correção “practice (substantivo)” não é forma literal de nenhum item (vínculo exigiria inferência)"
+    },
+    {
+      "ori": "ORI-000741",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000742",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000743",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000744",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000745",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000746",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000747",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000748",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000749",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000750",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000751",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000752",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000753",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000754",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000755",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000756",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000757",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000758",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000759",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000760",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000761",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000762",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000763",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000764",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000765",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000766",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000767",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000768",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000769",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000770",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000771",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000772",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000773",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000774",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000775",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000776",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000777",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000778",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000779",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000780",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000781",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000782",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000783",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000784",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000785",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000786",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000787",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000788",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000789",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000790",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000791",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000792",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000793",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000794",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000795",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000796",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000797",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000798",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000799",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000800",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000801",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000802",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000803",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000804",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000805",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000806",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000807",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000808",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000809",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000810",
+      "destino": "recurso_do_corretor",
+      "motivo": "palavra funcional ignorada pelo corretor"
+    },
+    {
+      "ori": "ORI-000811",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000812",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000813",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000814",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000815",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000816",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000817",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000818",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000819",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000820",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000821",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000822",
+      "destino": "recurso_do_corretor",
+      "motivo": "determinante usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000823",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000824",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000825",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000826",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000827",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000828",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000829",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000830",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000831",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000832",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000833",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000834",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000835",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000836",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000837",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000838",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000839",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    },
+    {
+      "ori": "ORI-000840",
+      "destino": "recurso_do_corretor",
+      "motivo": "número por extenso usado pelo corretor"
+    }
+  ],
+  "listas": [
+    "/synonyms/groups",
+    "/errors",
+    "/stopwords",
+    "/determiners"
+  ]
+}

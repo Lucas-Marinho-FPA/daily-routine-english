@@ -1,0 +1,126 @@
+{
+  "fonte": "FON-000006",
+  "codigo": "R6",
+  "arquivo": "dev/content/enrich/review-log.json",
+  "versao": "b194cee",
+  "hash_arquivo": "sha256:8b9725e83bd4549f4e053235a9c9d014daa99c53bd47d5531232074df15a580c",
+  "originais": 24,
+  "incorporados": 24,
+  "pendentes": [],
+  "destinos": {
+    "em_unidades": 5,
+    "sem_unidade": 19,
+    "por_destino": {
+      "metadado": 1,
+      "revisao_abrangente": 10,
+      "registro_de_projeto": 8
+    }
+  },
+  "recuperavel": true,
+  "regras": [
+    "/_doc",
+    "/rev/*",
+    "/gap/*"
+  ],
+  "sem_unidade": [
+    {
+      "ori": "ORI-000918",
+      "destino": "metadado",
+      "motivo": "documentação do arquivo"
+    },
+    {
+      "ori": "ORI-000922",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “R09 vocabulário”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000923",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “R03 vocabulário”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000924",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “tabelas R03, R04, R06–R10”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000925",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “tabelas ‘Phrasal verbs e expressões verbais’”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000926",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “R08 vocabulário”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000927",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “Toolkit”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000929",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “Toolkit Simple Present”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000930",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “Padrão linguístico”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000931",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “todos os horários”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000933",
+      "destino": "revisao_abrangente",
+      "motivo": "revisão de alcance amplo (onde: “Áudio: ‘cost-allocation analyses’ (R06), ‘efficiency analyses’ (R03)”); ligar a unidades específicas exigiria inferência"
+    },
+    {
+      "ori": "ORI-000934",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000935",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000936",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000937",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000938",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000939",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000940",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    },
+    {
+      "ori": "ORI-000941",
+      "destino": "registro_de_projeto",
+      "motivo": "lacuna do documento original e a decisão de projeto tomada (não é conteúdo de uma unidade)"
+    }
+  ],
+  "listas": [
+    "/rev",
+    "/gap"
+  ]
+}

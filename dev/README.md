@@ -27,7 +27,7 @@ no pré-cache do app (o service worker só lista os arquivos do app).
 | `docs/` | notas internas antigas (backlog de publicação, relatório de integridade) |
 | `evidence/2026-10-31/` | logs da última regressão completa (Lukinhas) |
 | `setup-workdir.sh` | monta a cópia de trabalho a partir do clone |
-| `tools/base/` | **Base Pedagógica** (rodar na raiz do repositório, não na cópia de trabalho): validador, autotestes, gerador do Markdown e do manifesto, amostra ilustrativa, `conferir-app.sh` — ver `docs/base-pedagogica/arquitetura.md` §6 |
+| `tools/base/` | **Base Pedagógica** (rodar na raiz do repositório, não na cópia de trabalho): consolidação por fonte (`consolidar.mjs`, `fontes.mjs`, `adaptadores/`), extração literal, validador e autotestes, gerador do Markdown e do manifesto, `conferir-app.sh` — ver `docs/base-pedagogica/arquitetura.md` §3 |
 
 ## Fora do repositório, de propósito
 

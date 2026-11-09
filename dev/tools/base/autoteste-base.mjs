@@ -1,6 +1,6 @@
-// Base Pedagógica — autoteste das verificações que dependem do repositório (2 ids.jsonl, 5, 10, 11, 4 na fonte).
-// Monta um repositório git TEMPORÁRIO com as ferramentas e uma fonte sintética, grava uma base mínima válida,
-// confirma 0 erro e depois planta um defeito por vez. Não toca no repositório real.
+// Base Pedagógica — autoteste das verificações que dependem do git e do fluxo de consolidação (2, 4, 5, 10, 11 e a recusa
+// de regravar um ORI). Monta um repositório git TEMPORÁRIO com as ferramentas, uma fonte sintética e um adaptador de
+// teste; consolida, confirma 0 erro e depois planta um defeito por vez. Não toca no repositório real.
 // Uso: node dev/tools/base/autoteste-base.mjs
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, cpSync, writeFileSync, readFileSync, rmSync, appendFileSync } from 'node:fs';
@@ -8,50 +8,76 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const AQUI = dirname(fileURLToPath(import.meta.url));
-const REAL = join(AQUI, '../../..');
+const REAL = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const T = mkdtempSync(join(tmpdir(), 'base-autoteste-'));
-const git = (...a) => execFileSync('git', a, { cwd: T, stdio: 'pipe' }).toString();
-const sh = (args) => { try { return { code: 0, out: execFileSync('node', args, { cwd: T, stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: e.stdout.toString() }; } };
+const git = (...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: T, stdio: 'pipe' }).toString();
+const node = (...a) => { try { return { code: 0, out: execFileSync('node', a, { cwd: T, stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: e.stdout.toString() + e.stderr.toString() }; } };
+const ler = (f) => readFileSync(join(T, f), 'utf8');
+const gravar = (f, c) => writeFileSync(join(T, f), c);
 try {
   mkdirSync(join(T, 'dev/tools'), { recursive: true });
   cpSync(join(REAL, 'dev/tools/base'), join(T, 'dev/tools/base'), { recursive: true });
-  cpSync(join(REAL, 'base'), join(T, 'base'), { recursive: true });
-  for (const f of ['ids.jsonl', 'fontes/fontes.jsonl', 'conhecimento/vocabulario.jsonl']) writeFileSync(join(T, 'base', f), '');
-  // fonte sintética (texto inventado só para o teste)
-  writeFileSync(join(T, 'fonte.json'), JSON.stringify({ items: [{ en: 'synthetic word', pt: 'palavra sintética' }] }));
-  git('init', '-q'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'add', '-A'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'fonte');
-  const rev = git('rev-parse', 'HEAD').trim();
-  const { hashOf } = await import(join(T, 'dev/tools/base/lib.mjs'));
-  const conteudo = { en: 'synthetic word', pt: 'palavra sintética' };
-  const L = (o) => JSON.stringify(o) + '\n';
-  writeFileSync(join(T, 'base/fontes/fontes.jsonl'), L({ id: 'FON-000001', tipo: 'FON', camada: 'publica', natureza: 'autoria', arquivo: 'fonte.json', versao: rev }));
-  writeFileSync(join(T, 'base/origem/FON-000001.jsonl'), L({ id: 'ORI-000001', tipo: 'ORI', camada: 'publica', fonte: 'FON-000001', versao_fonte: rev, local: '/items/0', id_original: null, tipo_original: 'teste', conteudo, hash: hashOf(conteudo), extraido_em: '2026-11-09', extrator: 'autoteste' }));
-  writeFileSync(join(T, 'base/conhecimento/vocabulario.jsonl'), L({ id: 'VOC-000001', tipo: 'VOC', camada: 'publica', status: 'ativo', versao: 1, historico: [{ versao: 1, data: '2026-11-09', mudanca: 'teste' }], forma: 'synthetic word', evidencias: [{ ori: 'ORI-000001', campo: 'en' }], traducoes: [{ texto: 'palavra sintética', origem: { ori: 'ORI-000001' } }] }));
-  writeFileSync(join(T, 'base/conferencia/FON-000001.json'), JSON.stringify({ fonte: 'FON-000001', originais: 1, pendentes: [] }));
-  writeFileSync(join(T, 'base/ids.jsonl'), ['FON-000001', 'ORI-000001', 'VOC-000001'].map((id) => L({ id, tipo: id.slice(0, 3), camada: 'publica', criado_em: '2026-11-09' })).join(''));
-  sh(['dev/tools/base/gerar.mjs']);
-  git('add', '-A'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'base');
+  mkdirSync(join(T, 'base/conferencia'), { recursive: true });
+  for (const f of ['esquema.json', 'manifesto.json', 'progressao/catalogo.json']) cpSync(join(REAL, 'base', f), join(T, 'base', f));
+  // fonte e adaptador sintéticos (texto inventado só para o teste)
+  gravar('fonte.json', JSON.stringify({ items: [{ en: 'synthetic word', pt: 'palavra sintética' }, { en: 'another word', pt: 'outra palavra' }], _doc: 'teste' }));
+  gravar('dev/tools/base/fontes.mjs', `export const FONTES = [{ codigo: 'T1', titulo: 'fonte sintética', grupo: 'teste', arquivo: 'fonte.json', versao: process.env.REV_FONTE, natureza: 'autoria', distribuicao: 'integral', regras: ['/items/*', '/_doc'] }];\n`);
+  gravar('dev/tools/base/adaptadores/teste.mjs', `export default function ({ ids, conteudo, semUnidade, data, fontes }) {
+  const out = [];
+  for (const [local, o] of Object.entries(fontes.T1)) {
+    if (local === '/_doc') { semUnidade(o, 'metadado', 'documentação'); continue; }
+    const x = conteudo(o);
+    out.push({ id: ids.id('EXP', x.en), tipo: 'EXP', forma: x.en, subtipo: null, status: 'ativo', versao: 1, historico: [{ versao: 1, data, mudanca: 'teste' }], evidencias: [{ ori: o, campo: 'en' }], traducoes: [{ texto: x.pt, origem: { ori: o, campo: 'pt' } }] });
+  }
+  return out;
+}\n`);
+  git('init', '-q'); git('add', '-A'); git('commit', '-qm', 'fonte');
+  process.env.REV_FONTE = git('rev-parse', 'HEAD').trim();
+  const c1 = node('dev/tools/base/consolidar.mjs', 'teste');
+  if (c1.code) throw new Error(`consolidação falhou: ${c1.out}`);
+  node('dev/tools/base/gerar.mjs');
+  git('add', '-A'); git('commit', '-qm', 'base');
   const V = ['dev/tools/base/validar.mjs'];
   let falhas = 0;
-  const conferir = (nome, esperado, prep, desfaz) => {
-    prep(); const r = sh(V); desfaz();
+  const caso = (nome, esperado, prep, desfaz = () => {}) => {
+    prep(); const r = node(...V); desfaz();
     const ok = esperado === 0 ? r.code === 0 : r.out.includes(`ERRO ${esperado}.`);
     if (!ok) { falhas++; console.log(r.out); }
-    console.log(`${ok ? 'ok   ' : 'FALHA'} ${esperado === 0 ? 'base mínima válida passa' : `verificação ${esperado} reprova: ${nome}`}`);
+    console.log(`${ok ? 'ok   ' : 'FALHA'} ${esperado === 0 ? nome : `verificação ${esperado} reprova: ${nome}`}`);
   };
-  const salva = (f) => { const c = readFileSync(join(T, f), 'utf8'); return () => writeFileSync(join(T, f), c); };
-  let d;
-  conferir('—', 0, () => {}, () => {});
-  d = salva('base/ids.jsonl'); conferir('ID ausente de ids.jsonl', 2, () => writeFileSync(join(T, 'base/ids.jsonl'), readFileSync(join(T, 'base/ids.jsonl'), 'utf8').split('\n').slice(1).join('\n')), d);
-  d = salva('base/ids.jsonl'); conferir('ID registrado duas vezes', 2, () => appendFileSync(join(T, 'base/ids.jsonl'), readFileSync(join(T, 'base/ids.jsonl'), 'utf8').split('\n')[0] + '\n'), d);
-  d = salva('base/conferencia/FON-000001.json'); conferir('conservação (originais 2, incorporado 1, nenhum pendente)', 5, () => writeFileSync(join(T, 'base/conferencia/FON-000001.json'), JSON.stringify({ fonte: 'FON-000001', originais: 2, pendentes: [] })), d);
-  d = salva('base/conferencia/FON-000001.json'); conferir('pendente sem motivo', 5, () => writeFileSync(join(T, 'base/conferencia/FON-000001.json'), JSON.stringify({ fonte: 'FON-000001', originais: 2, pendentes: [{ local: '/items/1' }] })), d);
-  d = salva('docs/base-pedagogica/gerado/inventario.md'); conferir('Markdown editado à mão', 10, () => appendFileSync(join(T, 'docs/base-pedagogica/gerado/inventario.md'), 'edição\n'), d);
-  d = salva('base/manifesto.json'); conferir('manifesto desatualizado', 10, () => { const m = JSON.parse(readFileSync(join(T, 'base/manifesto.json'))); m.arquivos[0].sha256 = '0'.repeat(64); writeFileSync(join(T, 'base/manifesto.json'), JSON.stringify(m)); }, d);
-  d = salva('base/origem/FON-000001.jsonl'); conferir('ORI apagado do arquivo de origem', 11, () => { writeFileSync(join(T, 'base/origem/FON-000001.jsonl'), ''); sh(['dev/tools/base/gerar.mjs']); }, () => { d(); sh(['dev/tools/base/gerar.mjs']); });
-  d = salva('base/ids.jsonl'); conferir('linha de ids.jsonl alterada (ID reaproveitado)', 11, () => { writeFileSync(join(T, 'base/ids.jsonl'), readFileSync(join(T, 'base/ids.jsonl'), 'utf8').replace('"tipo":"VOC"', '"tipo":"VOC","reuso":true')); sh(['dev/tools/base/gerar.mjs']); }, () => { d(); sh(['dev/tools/base/gerar.mjs']); });
-  d = salva('fonte.json'); conferir('fonte alterada depois da extração (hash na fonte)', 4, () => { writeFileSync(join(T, 'base/origem/FON-000001.jsonl'), readFileSync(join(T, 'base/origem/FON-000001.jsonl'), 'utf8').replace(`"versao_fonte":"${rev}"`, '"versao_fonte":"HEAD~0"')); writeFileSync(join(T, 'fonte.json'), '{"items":[{"en":"synthetic  word","pt":"palavra sintética"}]}'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qam', 'muda fonte'); }, () => { git('reset', '-q', '--hard', 'HEAD~1'); });
+  const salva = (f) => { const c = ler(f); return () => gravar(f, c); };
+  const ori = 'base/registros/origem/FON-000001.jsonl';
+  caso('base mínima consolidada passa (0 erro)', 0, () => {});
+  let d = salva('base/ids.jsonl');
+  caso('ID ausente de ids.jsonl', 2, () => gravar('base/ids.jsonl', ler('base/ids.jsonl').split('\n').slice(1).join('\n')), d);
+  d = salva('base/conferencia/FON-000001.json');
+  caso('conservação (originais ≠ incorporados + pendentes)', 5, () => { const c = JSON.parse(ler('base/conferencia/FON-000001.json')); c.originais += 1; gravar('base/conferencia/FON-000001.json', JSON.stringify(c)); }, d);
+  d = salva('docs/base-pedagogica/gerado/inventario.md');
+  caso('Markdown editado à mão', 10, () => appendFileSync(join(T, 'docs/base-pedagogica/gerado/inventario.md'), 'edição\n'), d);
+  d = salva('base/manifesto.json');
+  caso('manifesto desatualizado', 10, () => { const m = JSON.parse(ler('base/manifesto.json')); m.arquivos[0].sha256 = '0'.repeat(64); gravar('base/manifesto.json', JSON.stringify(m)); }, d);
+  d = salva(ori);
+  caso('ORI apagado depois de registrado', 11, () => { gravar(ori, ler(ori).split('\n').slice(1).join('\n')); node('dev/tools/base/gerar.mjs'); }, () => { d(); node('dev/tools/base/gerar.mjs'); });
+  d = salva('base/ids.jsonl');
+  caso('linha de ids.jsonl alterada (ID reaproveitado)', 11, () => { gravar('base/ids.jsonl', ler('base/ids.jsonl').replace('EXP:synthetic word', 'EXP:outra coisa')); node('dev/tools/base/gerar.mjs'); }, () => { d(); node('dev/tools/base/gerar.mjs'); });
+  // fonte alterada no git depois da extração: hash do arquivo e reconstrução acusam; reconsolidar é recusado (ORI imutável)
+  gravar('fonte.json', JSON.stringify({ items: [{ en: 'synthetic  word', pt: 'palavra sintética' }, { en: 'another word', pt: 'outra palavra' }], _doc: 'teste' }));
+  git('commit', '-qam', 'fonte alterada');
+  const revNova = git('rev-parse', 'HEAD').trim();
+  const fon = 'base/fontes/fontes.jsonl', confs = 'base/conferencia/FON-000001.json';
+  d = (() => { const a = salva(fon), b = salva(confs), c = salva(ori); return () => { a(); b(); c(); }; })();
+  caso('arquivo-fonte trocado sem nova versão (hash do arquivo)', 4, () => {
+    for (const f of [fon, confs]) gravar(f, ler(f).replaceAll(process.env.REV_FONTE, revNova));
+    gravar(ori, ler(ori).replaceAll(process.env.REV_FONTE, revNova));
+  }, d);
+  // consolidar NUNCA regrava um ORI existente: se o registro gravado difere do que a fonte daria, a consolidação para
+  d = salva(ori);
+  gravar(ori, ler(ori).replace('"palavra sintética"', '"palavra alterada"'));
+  const rec = node('dev/tools/base/consolidar.mjs', 'teste');
+  const recusou = rec.code !== 0 && rec.out.includes('imutável');
+  d();
+  console.log(`${recusou ? 'ok   ' : 'FALHA'} consolidação recusa regravar um ORI existente diferente (imutabilidade no gravador)`);
+  if (!recusou) { falhas++; console.log(rec.out); }
   console.log(`autoteste da base: ${falhas ? 'FALHOU' : 'ok'} (${falhas} falha(s))`);
   process.exitCode = falhas ? 1 : 0;
 } finally { rmSync(T, { recursive: true, force: true }); }
