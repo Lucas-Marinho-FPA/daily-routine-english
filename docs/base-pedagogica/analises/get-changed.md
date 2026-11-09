@@ -1,8 +1,17 @@
 # Análise linguística — “get changed” (e o caso paralelo “take care of”)
 
-> **Análise, não registro.** Este documento interpreta as evidências; ele não altera nenhuma classificação. Na Base,
-> `EXP-000006` continua com `subtipo: null` e a divergência `DIV-000010` (subtipo) fica **aberta** até a sua decisão.
-> Se você aprovar uma classificação, ela entra como `DEC` aprovada e a divergência passa a `resolvida` apontando para ela.
+> **Análise, não registro.** Este documento interpreta as evidências. As classificações das fontes continuam
+> preservadas em `classificacoes_origem`; a classificação central só existe porque há decisão aprovada (`DEC`).
+
+## 0. Decisões aprovadas (2026-11-09)
+
+| Unidade | Fontes (preservadas) | Análise (este documento) | Decisão aprovada | Registro |
+|---|---|---|---|---|
+| `EXP-000006` “get changed” | R2 `collocation` · R9 `phrasal` | get + particípio; collocation | **collocation** (construção lexical get + particípio, “trocar de roupa”; não é phrasal verb em sentido estrito) | `DEC-000001`; `DIV-000010` resolvida |
+| `EXP-000365` “take care of” | R8 `phrasal` · R9 `collocation` | verbo + substantivo + preposição; propunha collocation | **phrasal-prepositional verb** (`phrasal_preposicional`: verbo + partícula + preposição) | `DEC-000002`; `DIV-000013` resolvida |
+
+Sobre “take care of”: a decisão aprovada difere da análise abaixo (§5), que tratava “care” como substantivo. A decisão
+prevalece; a divergência entre análise e decisão fica registrada na justificativa de `DEC-000002` para eventual revisão.
 
 ## 1. Ocorrências originais (todas preservadas como ORI)
 
@@ -49,17 +58,17 @@ variação de uso é sintática e compatível com o mesmo sentido: “get change
   “verbo de mais de uma palavra” para crianças.
 - `chunk` (disponível no esquema) também descreveria bem a natureza de bloco fixo, mas nenhuma fonte o usa.
 
-**Proposta (pendente da sua aprovação):** classificação central `collocation`, com nota de estrutura “get + particípio
-(como get dressed)”, preservando `phrasal` como classificação de origem do Lukinhas. Alternativa: `chunk`.
+**Decisão aprovada:** `collocation` (`DEC-000001`), com nota de estrutura “get + particípio (como get dressed)”;
+`phrasal` permanece como classificação de origem do Lukinhas.
 
 ## 5. Caso paralelo: “take care of” (`DIV` de subtipo também aberta)
 
 Karla (R8) classifica como `phrasal`; Lukinhas (R9), como `collocation` (“Igual a ‘look after’”). *Care* é substantivo:
 a estrutura é verbo + substantivo + preposição, um **idiom/collocation preposicional**, não phrasal verb em sentido
-estrito (*look after*, que a própria fonte cita como equivalente, esse sim é phrasal-preposicional). Proposta, também
-pendente: `collocation`.
+estrito (*look after*, que a própria fonte cita como equivalente, esse sim é phrasal-preposicional). A análise propunha
+`collocation`; **a decisão aprovada foi `phrasal_preposicional`** (`DEC-000002`), que prevalece.
 
 ## 6. Limitação observada
 
-A busca de exemplos é literal: formas flexionadas (*getting changed*, *gets changed*) não são reconhecidas. Reconhecê-las
-exigiria regras de flexão — um critério novo, que só deve entrar com sua aprovação (proposta registrada para depois).
+Resolvida em 2026-11-09: a identificação conservadora de formas flexionadas (`dev/tools/base/morfologia.mjs`) associa
+*getting changed* (Lucas R08) a `EXP-000006` como ocorrência confirmada (`REL aparece_em`, com forma literal e posição).

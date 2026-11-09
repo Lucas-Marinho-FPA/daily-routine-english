@@ -383,10 +383,10 @@
 | DIV-000007 | EXP-000108 | traduções de “wind down” | “desacelerar/relaxar antes de dormir” ← ORI-000306; “desacelerar/relaxar” ← ORI-000351; “desacelerar, relaxar” ← ORI-002256 | aberta |
 | DIV-000008 | EXP-000124 | nível de origem de “go for a run” | “1” ← ORI-001250; “2” ← ORI-001771 | anulada |
 | DIV-000009 | VOC-000025 | traduções de “client” | “cliente” ← ORI-001314; “aluno(a), cliente” ← ORI-001808 | aberta |
-| DIV-000010 | EXP-000006 | subtipo de “get changed” | “collocation” ← ORI-000386; “phrasal” ← ORI-002221 | aberta |
+| DIV-000010 | EXP-000006 | subtipo de “get changed” | “collocation” ← ORI-000386; “phrasal” ← ORI-002221 | resolvida |
 | DIV-000011 | VOC-000001 | traduções de “grab” | “pegar rapidamente” ← ORI-000135; “pegar (rapidinho)” ← ORI-002228 | aberta |
 | DIV-000012 | VOC-000042 | traduções de “leave” | “sair (de um lugar)” ← ORI-000586; “sair, partir” ← ORI-002238 | aberta |
-| DIV-000013 | EXP-000365 | subtipo de “take care of” | “phrasal” ← ORI-001902; “collocation” ← ORI-002251 | aberta |
+| DIV-000013 | EXP-000365 | subtipo de “take care of” | “phrasal” ← ORI-001902; “collocation” ← ORI-002251 | resolvida |
 
 ## Relações
 

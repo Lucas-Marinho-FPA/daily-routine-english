@@ -102,8 +102,8 @@
     },
     {
       "caminho": "ids.jsonl",
-      "sha256": "88a337f8e601b2b72cf6f5c0e12d10578e671adc36413dd1f74d7b567cb956ae",
-      "registros": 3709
+      "sha256": "33d0786a0f791ce6a7f92bd4219f6da3f10b89852c02b10440d9377a2efdfe14",
+      "registros": 3711
     },
     {
       "caminho": "progressao/catalogo.json",
@@ -131,8 +131,8 @@
     },
     {
       "caminho": "registros/decisoes.jsonl",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "registros": 0
+      "sha256": "33f209b63d77ce291ffbeef2f3ac035e04a362d58da5eab8894b861cdb8fc9c3",
+      "registros": 2
     },
     {
       "caminho": "registros/dialogos.jsonl",
@@ -141,7 +141,7 @@
     },
     {
       "caminho": "registros/divergencias.jsonl",
-      "sha256": "8e27fd7d0b08fee67b1936509692efc3b5fb96dc1be7f9e256ee993326fba1d4",
+      "sha256": "e4e408fba6c7d1567b9981b13b3c8e430bcddb4936d29a9c22211b35d57f63ef",
       "registros": 13
     },
     {
@@ -151,7 +151,7 @@
     },
     {
       "caminho": "registros/expressoes.jsonl",
-      "sha256": "4bf1b536df204b049ca764f613bc69412e5695579ff213ca3623e79b86745eee",
+      "sha256": "72494b66ed9d20e6e56db8f61465957a051615a26cf70d4a3c0df9979a9cb3cf",
       "registros": 431
     },
     {

@@ -3707,3 +3707,5 @@
 {"id":"REL-000077","tipo":"REL","chave":"REL:EXP-000406:aparece_em:SEG-000284@51","criado_em":"2026-11-09"}
 {"id":"REL-000078","tipo":"REL","chave":"REL:EXP-000419:aparece_em:SEG-000296@74","criado_em":"2026-11-09"}
 {"id":"REL-000079","tipo":"REL","chave":"REL:EXP-000430:aparece_em:SEG-000310@63","criado_em":"2026-11-09"}
+{"id":"DEC-000001","tipo":"DEC","chave":"DEC:subtipo:get changed","criado_em":"2026-11-09"}
+{"id":"DEC-000002","tipo":"DEC","chave":"DEC:subtipo:take care of","criado_em":"2026-11-09"}

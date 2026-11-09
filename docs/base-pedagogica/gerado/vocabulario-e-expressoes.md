@@ -169,7 +169,7 @@
 | VOC-000054 | **get** | (palavra) | chegar / pegar / ficar |  | 40 |  |
 | EXP-000029 | **get back** | phrasal | voltar | secao:phrasal, secao:toolkit.phrasalReview, phrasal | 5 |  |
 | EXP-000030 | **get back to** | phrasal | retomar · voltar a uma tarefa | secao:phrasal, secao:toolkit.phrasalReview, phrasal | 0 | sem_contexto_de_texto |
-| EXP-000006 | **get changed** | — | trocar de roupa | secao:vocab, secao:phrasal, secao:toolkit.phrasalReview, collocation, phrasal | 3 |  |
+| EXP-000006 | **get changed** | collocation | trocar de roupa | secao:vocab, secao:phrasal, secao:toolkit.phrasalReview, collocation, phrasal | 3 |  |
 | EXP-000052 | **get dressed** | collocation | vestir-se | secao:phrasal, secao:toolkit.phrasalReview, collocation | 1 |  |
 | EXP-000427 | **get everything done** | collocation | dar conta de tudo | collocation | 1 |  |
 | EXP-000042 | **get home** | phrasal | chegar em casa | secao:phrasal, phrasal | 12 |  |
@@ -467,7 +467,7 @@
 | VOC-000038 | **take** | (palavra) | tomar / pegar / levar |  | 30 |  |
 | EXP-000291 | **take a deep breath** | collocation | respirar fundo | collocation | 2 |  |
 | EXP-000002 | **take a shower** | collocation | tomar banho | secao:vocab, collocation | 12 |  |
-| EXP-000365 | **take care of** | — | cuidar de | phrasal, collocation | 2 |  |
+| EXP-000365 | **take care of** | phrasal_preposicional | cuidar de | phrasal, collocation | 2 |  |
 | EXP-000400 | **take him out for a walk** | phrasal | levar ele para passear | phrasal | 2 |  |
 | EXP-000338 | **take longer than expected** | collocation | demorar mais do que o previsto | collocation | 1 |  |
 | EXP-000330 | **take notes** | collocation | fazer anotações | collocation | 1 |  |

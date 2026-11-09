@@ -23,10 +23,10 @@ Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andament
 | `CTX` | contextos | 8 |
 | `PSG` | personagens | 6 |
 | `REL` | relações | 79 |
-| `DEC` | decisões | 0 |
+| `DEC` | decisões | 2 |
 | `DIV` | divergências | 13 |
 
-Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de texto”: 33 · “sem tradução”: 17 · divergências abertas: 12
+Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de texto”: 33 · “sem tradução”: 17 · divergências abertas: 10
 
 ## Fontes
 
@@ -71,17 +71,17 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | `base/conferencia/FON-000009.json` | — | `6c826cfbf9fa8c4b` |
 | `base/conferencia/FON-000010.json` | — | `e06e1bb3eff7be53` |
 | `base/fontes/fontes.jsonl` | 10 | `a41dd0102aef9e3c` |
-| `base/ids.jsonl` | 3709 | `88a337f8e601b2b7` |
+| `base/ids.jsonl` | 3711 | `33d0786a0f791ce6` |
 | `base/progressao/catalogo.json` | — | `3845ea5d59a62342` |
 | `base/progressao/grafo.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/progressao/percursos.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/registros/atividades.jsonl` | 50 | `7cd50edd2ce4de3e` |
 | `base/registros/contextos.jsonl` | 14 | `db96b288ce6966be` |
-| `base/registros/decisoes.jsonl` | 0 | `e3b0c44298fc1c14` |
+| `base/registros/decisoes.jsonl` | 2 | `33f209b63d77ce29` |
 | `base/registros/dialogos.jsonl` | 12 | `9f2e924b97f1f5dd` |
-| `base/registros/divergencias.jsonl` | 13 | `8e27fd7d0b08fee6` |
+| `base/registros/divergencias.jsonl` | 13 | `e4e408fba6c7d156` |
 | `base/registros/exercicios.jsonl` | 4 | `096933d06e7941a6` |
-| `base/registros/expressoes.jsonl` | 431 | `4bf1b536df204b04` |
+| `base/registros/expressoes.jsonl` | 431 | `72494b66ed9d20e6` |
 | `base/registros/gramatica.jsonl` | 18 | `5236f3dc0d27b8d2` |
 | `base/registros/origem/FON-000001.jsonl` | 373 | `405834757d0ee102` |
 | `base/registros/origem/FON-000002.jsonl` | 247 | `0df8a5b2b95136c9` |

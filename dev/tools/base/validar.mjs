@@ -262,6 +262,7 @@ export function autoteste() {
     [7, 'equivalente_a sem DEC aprovada', ({ rs, ids }) => { const a = rs.filter((r) => r.tipo === 'VOC'); const r = { tipo: 'REL', de: a[0].id, relacao: 'equivalente_a', para: a[1].id, status: 'confirmada', evidencias: [a[0].evidencias[0]] }; novoId(rs, ids, r, 'REL-999990'); rs.push(r); }],
     [7, 'duplicado_de com conteúdo diferente', ({ rs, ids }) => { const o = rs.filter((r) => r.tipo === 'ORI'); const r = { tipo: 'REL', de: o[0].id, relacao: 'duplicado_de', para: o[1].id, status: 'confirmada', evidencias: [{ ori: o[0].id }] }; novoId(rs, ids, r, 'REL-999991'); rs.push(r); }],
     [7, 'divergência anulada sem motivo', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DIV'); d.status = 'anulada'; delete d.motivo; const u = acha(rs, (r) => r.id === d.unidade); u.divergencias = u.divergencias.filter((x) => x !== d.id); }],
+    [7, 'classificação central sem DEC aprovada', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DEC'); d.status = 'proposta'; }],
     [7, 'ocorrência flexionada fora da posição registrada', ({ rs }) => { const r = acha(rs, (x) => x.relacao === 'aparece_em' && x.forma_encontrada); r.posicao = { inicio: r.posicao.inicio + 1, fim: r.posicao.fim + 1 }; }],
     [8, 'ocorrência candidata marcada como confirmada', ({ rs }) => { acha(rs, (x) => x.relacao === 'aparece_em' && x.status === 'proposta').status = 'confirmada'; }],
     [8, 'tradução sem origem', ({ rs }) => { delete acha(rs, (r) => r.traducoes?.length).traducoes[0].origem; }],
