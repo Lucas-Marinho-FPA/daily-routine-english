@@ -66,7 +66,7 @@ ferramentas de `b194cee`, `base/` entraria no pré-cache e o service worker muda
 | `node dev/tools/base/consolidar.mjs <grupo>` | consolida as fontes de um grupo (`fontes.mjs` + `adaptadores/<grupo>.mjs`); determinístico e idempotente |
 | `node dev/tools/base/gerar.mjs [--conferir]` | regenera a lista de arquivos do manifesto e `docs/base-pedagogica/gerado/*.md` |
 | `node dev/tools/base/validar.mjs` | valida a base inteira (verificações 1–11) |
-| `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez numa cópia em memória da base real e exige reprovação (29 casos) |
+| `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez numa cópia em memória da base real e exige reprovação (30 casos) |
 | `node dev/tools/base/autoteste-base.mjs` | idem para o que depende do git e do fluxo de consolidação (repositório temporário, 11 casos, inclui decisões) |
 | `node dev/tools/base/autoteste-morfologia.mjs` | formas flexionadas: casos que devem e que não devem ser associados, candidatas, determinismo e base real (23 casos) |
 | `node dev/tools/base/consolidar.mjs decisoes` | reaplica as decisões aprovadas (`decisoes.mjs`) e as derivações globais, sem consolidar fontes |
@@ -142,8 +142,8 @@ destino e sem pendência sem justificativa. Um commit por fonte (ou conjunto del
 | P5 | Divergências preservadas com todas as versões; sem classificação central forçada | em vigor (verificação 8) |
 | P6 | Conteúdo só da `remodelagem` entra como `proposto`, sem ativar e sem mudar o publicado | em vigor (aplica-se na ordem 3) |
 | D3 | “get changed”: classificação central collocation (get + particípio); origens preservadas | `DEC-000001`, em vigor |
-| D4 | “take care of”: classificação central phrasal-prepositional verb; origens preservadas | `DEC-000002`, em vigor |
-| D5 | Formas flexionadas: identificação conservadora; confirmação só com paradigma no catálogo (escopo inicial: get) | em vigor; 52 candidatas aguardam análise |
+| D4 | “take care of”: classificação central expressão verbal / construção multiword (`chunk`, *verb + noun + preposition*); origens preservadas | `DEC-000003`, em vigor; revoga `DEC-000002` (phrasal-prepositional), mantida como histórico |
+| D5 | Formas flexionadas: identificação conservadora; confirmação só com paradigma no catálogo (escopo: get) | em vigor; 5 confirmadas; 52 candidatas mantidas sem confirmação, para revisão futura; paradigmas não ampliados |
 | D2 | Materiais de terceiros sem licença compatível (Conversation Book, atividades do curso, outros) ficam fora da distribuição pública; podem ser registrados como fontes externas com identificação e licença, sem conteúdo | em vigor (verificação 9) |
 
 ## 8. Riscos e pendências

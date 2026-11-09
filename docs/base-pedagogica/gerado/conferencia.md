@@ -388,6 +388,14 @@
 | DIV-000012 | VOC-000042 | traduções de “leave” | “sair (de um lugar)” ← ORI-000586; “sair, partir” ← ORI-002238 | aberta |
 | DIV-000013 | EXP-000365 | subtipo de “take care of” | “phrasal” ← ORI-001902; “collocation” ← ORI-002251 | resolvida |
 
+## Decisões
+
+| ID | Data | Decisão | Efeito | Revoga | Situação |
+|---|---|---|---|---|---|
+| DEC-000001 | 2026-11-09 | Classificação central de “get changed”: construção lexical / collocation, formada por get + particípio, com sentido de trocar de roupa. Não é phrasal verb em sentido estrito. | EXP-000006.subtipo = collocation | — | em vigor |
+| DEC-000002 | 2026-11-09 | Classificação central de “take care of”: phrasal-prepositional verb, estrutura verbo + partícula + preposição. | EXP-000365.subtipo = phrasal_preposicional | — | revogada por DEC-000003 (mantida como histórico, sem efeito) |
+| DEC-000003 | 2026-11-09 | Revisão da classificação central de “take care of” (revoga DEC-000002): expressão verbal / construção multiword (subtipo chunk), estrutura verb + noun + preposition. | EXP-000365.subtipo = chunk | DEC-000002 | em vigor |
+
 ## Relações
 
 | ID | De | Relação | Para | Situação |

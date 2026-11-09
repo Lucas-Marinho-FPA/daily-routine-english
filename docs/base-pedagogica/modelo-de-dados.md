@@ -67,7 +67,8 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
 - **`REL`** — `{de, relacao, para, status, evidencias, decisao?, motivo}`; ocorrência flexionada (`aparece_em`) leva
   também `forma_canonica`, `forma_encontrada` (literal), `posicao {inicio, fim}` no `SEG.original` e `criterio`.
   **`DEC`** — `{data, decisao, justificativa, status (proposta · aprovada · revogada), aprovada_por, evidencias,
-  efeitos[{unidade, campo, valor, explicacao}]}`; imutável depois de registrada (rever = nova `DEC` que a revogue).
+  efeitos[{unidade, campo, valor, explicacao}], revoga[]}`; imutável depois de registrada — rever = nova `DEC` com
+  `revoga`; a revogada permanece como histórico e deixa de ter efeito (a explicação dela sai do estado atual da unidade).
   **`DIV`** — `{unidade, campo, assunto, versoes[{valor, ori}], status (aberta · resolvida · anulada), decisao?, motivo?}`.
 
 ## 4. Relações
@@ -113,7 +114,8 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
 - **“get changed”** (`EXP-000006`): 4 evidências no Word + tabela R2 (`c: collocation`) + Lukinhas R9 (`c: phrasal`) —
   as duas classificações preservadas; `DIV-000010` resolvida pela `DEC-000001` → `subtipo: collocation` (get +
   particípio). “getting changed” (Lucas R08) é ocorrência flexionada confirmada.
-- **“take care of”** (`EXP-000365`): R8 `phrasal` · R9 `collocation` preservadas; `DEC-000002` → `phrasal_preposicional`.
+- **“take care of”** (`EXP-000365`): R8 `phrasal` · R9 `collocation` preservadas; `DEC-000002` (phrasal-prepositional)
+  revogada por `DEC-000003` → `chunk` (expressão verbal multiword: *verb + noun + preposition*).
 - **“wake up”** (`EXP-000001`): três traduções “acordar” com origens distintas; IPA e nível da tabela R2; `phrasal`.
 - **“start up / boot up” → “start up”**: apelido declarado em R2 → `REL variante_de` `confirmada`.
 - **Perguntas abertas**: 17 perguntas de transferência dos episódios e 1 de R3 ficam em `perguntas_abertas`, com dica.

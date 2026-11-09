@@ -2,7 +2,7 @@
 
 > Gerado por `node dev/tools/base/gerar.mjs` a partir de `base/`. **Não editar à mão** — a validação compara.
 
-Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados, fechamento linguístico entregue — aguardando revisão**
+Esquema: `base-pedagogica/esquema/2.3.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados, fechamento linguístico entregue — aguardando revisão**
 
 ## Registros por tipo
 
@@ -23,7 +23,7 @@ Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andament
 | `CTX` | contextos | 8 |
 | `PSG` | personagens | 6 |
 | `REL` | relações | 79 |
-| `DEC` | decisões | 2 |
+| `DEC` | decisões | 3 |
 | `DIV` | divergências | 13 |
 
 Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de texto”: 33 · “sem tradução”: 17 · divergências abertas: 10
@@ -71,17 +71,17 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | `base/conferencia/FON-000009.json` | — | `6c826cfbf9fa8c4b` |
 | `base/conferencia/FON-000010.json` | — | `e06e1bb3eff7be53` |
 | `base/fontes/fontes.jsonl` | 10 | `a41dd0102aef9e3c` |
-| `base/ids.jsonl` | 3711 | `33d0786a0f791ce6` |
+| `base/ids.jsonl` | 3712 | `22dba21948b3ef20` |
 | `base/progressao/catalogo.json` | — | `3845ea5d59a62342` |
 | `base/progressao/grafo.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/progressao/percursos.jsonl` | 0 | `e3b0c44298fc1c14` |
 | `base/registros/atividades.jsonl` | 50 | `7cd50edd2ce4de3e` |
 | `base/registros/contextos.jsonl` | 14 | `db96b288ce6966be` |
-| `base/registros/decisoes.jsonl` | 2 | `33f209b63d77ce29` |
+| `base/registros/decisoes.jsonl` | 3 | `b7dfc1bf7b80d57c` |
 | `base/registros/dialogos.jsonl` | 12 | `9f2e924b97f1f5dd` |
-| `base/registros/divergencias.jsonl` | 13 | `e4e408fba6c7d156` |
+| `base/registros/divergencias.jsonl` | 13 | `39b3180866f5690d` |
 | `base/registros/exercicios.jsonl` | 4 | `096933d06e7941a6` |
-| `base/registros/expressoes.jsonl` | 431 | `72494b66ed9d20e6` |
+| `base/registros/expressoes.jsonl` | 431 | `84aa5b546fadcc96` |
 | `base/registros/gramatica.jsonl` | 18 | `5236f3dc0d27b8d2` |
 | `base/registros/origem/FON-000001.jsonl` | 373 | `405834757d0ee102` |
 | `base/registros/origem/FON-000002.jsonl` | 247 | `0df8a5b2b95136c9` |

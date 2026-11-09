@@ -64,6 +64,15 @@ export function gerar() {
   L.push('## Divergências', '');
   if (!divs.length) L.push('Nenhuma.', '');
   else { L.push('| ID | Unidade | Assunto | Versões (valor ← ORI) | Situação |', '|---|---|---|---|---|'); for (const d of divs) L.push(`| ${d.id} | ${d.unidade} | ${cel(d.assunto)} | ${d.versoes.map((x) => `“${cel(x.valor)}” ← ${x.ori}`).join('; ')} | ${d.status} |`); L.push(''); }
+  const decs = de('DEC');
+  const revogadaPor = new Map(decs.filter((d) => d.status === 'aprovada').flatMap((d) => (d.revoga || []).map((x) => [x, d.id])));
+  L.push('## Decisões', '');
+  if (!decs.length) L.push('Nenhuma.', '');
+  else {
+    L.push('| ID | Data | Decisão | Efeito | Revoga | Situação |', '|---|---|---|---|---|---|');
+    for (const d of decs) L.push(`| ${d.id} | ${d.data} | ${cel(d.decisao)} | ${(d.efeitos || []).map((e) => `${e.unidade}.${e.campo} = ${e.valor}`).join('; ')} | ${(d.revoga || []).join(', ') || '—'} | ${revogadaPor.has(d.id) ? `revogada por ${revogadaPor.get(d.id)} (mantida como histórico, sem efeito)` : d.status === 'aprovada' ? 'em vigor' : d.status} |`);
+    L.push('');
+  }
   const rels = de('REL');
   L.push('## Relações', '');
   if (!rels.length) L.push('Nenhuma relação registrada nesta etapa.', '');

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "base-pedagogica/esquema/2.2.0",
-  "title": "Base Pedagógica — esquema 2.2.0 (base única pública, 2026-11-09; DIV anulada; DEC com efeitos; subtipo phrasal_preposicional)",
+  "$id": "base-pedagogica/esquema/2.3.0",
+  "title": "Base Pedagógica — esquema 2.3.0 (base única pública, 2026-11-09; DIV anulada; DEC com efeitos e revogação; subtipo phrasal_preposicional)",
   "description": "Cada registro é validado por tipos[<tipo>]. Campos não listados são permitidos (extensão aditiva); os listados são verificados. Normativo: docs/base-pedagogica/modelo-de-dados.md.",
   "$defs": {
     "id": { "type": "string", "pattern": "^(FON|ORI|VOC|EXP|GRA|TXT|SEG|DIA|PER|RSP|ATV|EXE|CTX|PSG|REL|DEC|DIV)-[0-9]{6}$" },
@@ -116,6 +116,7 @@
     "DEC": { "type": "object", "required": ["id", "tipo", "data", "decisao", "justificativa", "status", "aprovada_por"],
       "properties": { "id": { "$ref": "#/$defs/idDec" }, "tipo": { "const": "DEC" }, "data": { "$ref": "#/$defs/data" },
         "status": { "enum": ["proposta", "aprovada", "revogada"] }, "evidencias": { "type": "array", "items": { "$ref": "#/$defs/evidencia" } },
+        "revoga": { "type": "array", "items": { "$ref": "#/$defs/idDec" } },
         "efeitos": { "type": "array", "items": { "type": "object", "required": ["unidade", "campo", "valor"], "properties": { "unidade": { "$ref": "#/$defs/id" }, "campo": { "type": "string" }, "explicacao": { "type": "string" } } } } } },
     "DIV": { "type": "object", "required": ["id", "tipo", "unidade", "campo", "assunto", "versoes", "status"],
       "properties": { "id": { "$ref": "#/$defs/id" }, "tipo": { "const": "DIV" }, "unidade": { "$ref": "#/$defs/id" }, "campo": { "type": "string" },

@@ -65,6 +65,8 @@ export function validar({ registros, ids = [], conferencias = new Map(), gitFont
   }
   for (const r of registros) { const l = reg.get(r.id); if (!l) err(r.id, 2, 'ID ausente de ids.jsonl'); else if (l.tipo !== r.tipo) err(r.id, 2, 'tipo diferente do registrado em ids.jsonl'); }
   const existe = (id, tipos) => porId.has(id) && (!tipos || tipos.includes(porId.get(id).tipo));
+  const REVOGADAS = new Set(registros.filter((r) => r.tipo === 'DEC' && r.status === 'aprovada').flatMap((d) => d.revoga || []));
+  for (const d of registros.filter((r) => r.tipo === 'DEC')) for (const x of d.revoga || []) if (!existe(x, ['DEC'])) err(d.id, 3, `revoga uma DEC inexistente: ${x}`);
 
   const citadosOri = new Set();
   for (const r of registros) {
@@ -118,6 +120,8 @@ export function validar({ registros, ids = [], conferencias = new Map(), gitFont
       }
     }
     if (r.tipo === 'DIV' && new Set((r.versoes || []).map((x) => canon(x.valor))).size < 2) err(r.id, 7, 'divergência sem valores diferentes');
+    if ((r.tipo === 'DIV' || r.subtipo_decisao) && REVOGADAS.has(r.tipo === 'DIV' ? r.decisao : r.subtipo_decisao)) err(r.id, 7, 'aponta para uma DEC revogada');
+    for (const x of r.explicacoes || []) if (REVOGADAS.has(x.origem?.decisao)) err(r.id, 7, 'explicação vinda de DEC revogada no estado atual');
     if (r.subtipo_decisao) {
       const dec = porId.get(r.subtipo_decisao);
       if (dec?.status !== 'aprovada' || !(dec.efeitos || []).some((e) => e.unidade === r.id && e.campo === 'subtipo' && e.valor === r.subtipo)) err(r.id, 7, 'classificação central sem DEC aprovada com o mesmo efeito');
@@ -263,6 +267,7 @@ export function autoteste() {
     [7, 'duplicado_de com conteúdo diferente', ({ rs, ids }) => { const o = rs.filter((r) => r.tipo === 'ORI'); const r = { tipo: 'REL', de: o[0].id, relacao: 'duplicado_de', para: o[1].id, status: 'confirmada', evidencias: [{ ori: o[0].id }] }; novoId(rs, ids, r, 'REL-999991'); rs.push(r); }],
     [7, 'divergência anulada sem motivo', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DIV'); d.status = 'anulada'; delete d.motivo; const u = acha(rs, (r) => r.id === d.unidade); u.divergencias = u.divergencias.filter((x) => x !== d.id); }],
     [7, 'classificação central sem DEC aprovada', ({ rs }) => { const d = acha(rs, (r) => r.tipo === 'DEC'); d.status = 'proposta'; }],
+    [7, 'unidade apontando para DEC revogada', ({ rs }) => { const u = acha(rs, (r) => r.forma === 'take care of'); u.subtipo_decisao = 'DEC-000002'; u.subtipo = 'phrasal_preposicional'; }],
     [7, 'ocorrência flexionada fora da posição registrada', ({ rs }) => { const r = acha(rs, (x) => x.relacao === 'aparece_em' && x.forma_encontrada); r.posicao = { inicio: r.posicao.inicio + 1, fim: r.posicao.fim + 1 }; }],
     [8, 'ocorrência candidata marcada como confirmada', ({ rs }) => { acha(rs, (x) => x.relacao === 'aparece_em' && x.status === 'proposta').status = 'confirmada'; }],
     [8, 'tradução sem origem', ({ rs }) => { delete acha(rs, (r) => r.traducoes?.length).traducoes[0].origem; }],

@@ -41,7 +41,9 @@ export function derivar({ registros, ids, ordem, catalogo = {} }) {
   const flex = []; // [unidade, seg, ocorrência]
   // decisões aprovadas com efeito sobre unidades
   const efeitos = new Map(); // `${unidade}:${campo}` → {dec, valor, explicacao}
-  for (const d of registros.filter((r) => r.tipo === 'DEC' && r.status === 'aprovada')) for (const e of d.efeitos || []) efeitos.set(`${e.unidade}:${e.campo}`, { dec: d.id, valor: e.valor, explicacao: e.explicacao });
+  const aprovadas = registros.filter((r) => r.tipo === 'DEC' && r.status === 'aprovada');
+  const revogadas = new Set(aprovadas.flatMap((d) => d.revoga || []));   // a DEC revogada fica no histórico, sem efeito
+  for (const d of aprovadas.filter((x) => !revogadas.has(x.id))) for (const e of d.efeitos || []) efeitos.set(`${e.unidade}:${e.campo}`, { dec: d.id, valor: e.valor, explicacao: e.explicacao });
 
   for (const u0 of lexicos) {
     const u = structuredClone(u0);
@@ -53,6 +55,7 @@ export function derivar({ registros, ids, ordem, catalogo = {} }) {
     let flexConfirmadas = 0;
     if (u.tipo === 'EXP') for (const sg of segs) for (const oc of ocorrencias(u.forma, sg.original, paradigmas)) { flex.push([u, sg, oc]); if (oc.status === 'confirmada') flexConfirmadas++; }
     const subt = [...new Set((u.classificacoes_origem || []).map((c) => c.subtipo).filter(Boolean))];
+    if (u.explicacoes) { u.explicacoes = u.explicacoes.filter((x) => !revogadas.has(x.origem?.decisao)); if (!u.explicacoes.length) delete u.explicacoes; }
     const efSub = efeitos.get(`${u.id}:subtipo`);
     if (u.tipo === 'EXP' && efSub) {
       u.subtipo = efSub.valor; u.subtipo_decisao = efSub.dec;

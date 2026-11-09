@@ -4,9 +4,8 @@ Escrito à mão (não é gerado). Estados: **concluído** · **em andamento** ·
 marcado como concluído só porque um documento menciona a intenção: cada um traz a evidência.
 
 Origem deste checklist: o checklist de conclusão da Fase 0 (relatório “Fase 0 — Preparação e segurança”, §H, fora do
-repositório) e as entregas da Fase 1. **As Fases 2 a 7 não estão definidas em nenhum registro disponível** (repositório,
-relatórios e mensagens desta sessão só descrevem as Fases 0 e 1); por isso aparecem como “definição pendente”, sem
-estado antecipado. Basta enviar o roteiro dessas fases para que sejam incorporadas aqui.
+repositório), as entregas da Fase 1 e o escopo planejado das Fases 2 a 7, informado pelo usuário em 2026-11-09. O escopo
+planejado **não** equivale a especificação detalhada concluída: as Fases 2 a 7 estão todas **não iniciadas**.
 
 ## 1. Checklist mestre — Fases 0 a 7
 
@@ -46,34 +45,81 @@ estado antecipado. Basta enviar o roteiro dessas fases para que sejam incorporad
 | E6 Bora de Inglês | fora do escopo | projeto independente; só referências cruzadas |
 | Mapa completo de gramática, vocabulário, habilidades e pré-requisitos | pendente | evidência ainda insuficiente; grafo de progressão vazio de propósito |
 
-### Fases 2 a 7 — **definição pendente**
+### Fase 2 — Correção contextual e inteligência linguística — **não iniciada**
 
-| Fase | Estado | Observação |
-|---|---|---|
-| Fase 2 | definição pendente | roteiro não registrado; nenhum estado antecipado |
-| Fase 3 | definição pendente | idem |
-| Fase 4 | definição pendente | idem |
-| Fase 5 | definição pendente | idem |
-| Fase 6 | definição pendente | idem |
-| Fase 7 | definição pendente | idem |
+| Item planejado | Estado |
+|---|---|
+| Equivalências e respostas contextualmente válidas | não iniciado |
+| Collocations, phrasal verbs e construções multiword | não iniciado (a Base já registra classificações de origem, decisões `DEC-000001`/`DEC-000003` e 52 ocorrências flexionadas candidatas — insumos, não a fase) |
+| Variações naturais e diferença entre erro e variação | não iniciado |
+| Conjunto de referência para validação do corretor | não iniciado |
 
-## 2. Checklist operacional — fechamento de R8/R9/R14 (2026-11-09)
+### Fase 3 — Integração das quatro atividades EAC — **não iniciada**
+
+| Item planejado | Estado |
+|---|---|
+| Inventário das atividades | não iniciado |
+| Preservação de questões, respostas, correções e critérios | não iniciado |
+| Modelagem de tentativas, feedback e relações pedagógicas | não iniciado |
+| Verificação de direitos autorais e licenças antes de qualquer distribuição | não iniciado (regra vigente: material de terceiros sem licença fica fora da distribuição — decisão D2) |
+
+### Fase 4 — Vocabulário progressivo — **não iniciada**
+
+| Item planejado | Estado |
+|---|---|
+| Organização por progressão e contexto | não iniciado |
+| Palavras, expressões e relações semânticas | não iniciado |
+| Collocations, phrasal verbs e exemplos | não iniciado |
+| Traduções, revisão espaçada e critérios de domínio | não iniciado |
+
+### Fase 5 — Atividades inteligentes — **não iniciada**
+
+| Item planejado | Estado |
+|---|---|
+| Integração das fontes de aprendizagem | não iniciado |
+| Reading, Writing, Listening e Speaking | não iniciado |
+| Construção de frases e atividades cumulativas | não iniciado |
+| Adaptação ao domínio demonstrado | não iniciado |
+
+### Fase 6 — Experiência integrada — **não iniciada**
+
+| Item planejado | Estado |
+|---|---|
+| Daily Routine e Conversation Practice como jornadas independentes e complementares | não iniciado |
+| Progresso separado e histórico | não iniciado |
+| Continuidade, revisão e persistência | não iniciado |
+| Experiência offline e UX simples | não iniciado |
+
+### Fase 7 — Validação, estabilidade e publicação — **não iniciada**
+
+| Item planejado | Estado |
+|---|---|
+| Testes unitários e E2E | não iniciado |
+| Regressão e migração de dados | não iniciado |
+| Validação do corretor, revisão espaçada e atividades | não iniciado |
+| Speaking Lab, ASR, PWA e funcionamento offline | não iniciado |
+| Testes físicos no Galaxy S25+ | não iniciado |
+| Autorização final de publicação | não iniciado |
+
+## 2. Checklist operacional — fechamento de R8/R9/R14 (2026-11-09, com os ajustes finais)
 
 | Item | Estado | Evidência |
 |---|---|---|
 | Conferir branch, commits locais e remotos, alterações pendentes | concluído | `base-pedagogica` = `origin` = `0145029`, árvore limpa |
 | Classificação central de “get changed” = collocation, com origens preservadas | concluído | `DEC-000001`; `EXP-000006` (`subtipo_decisao`); `DIV-000010` resolvida |
-| Classificação central de “take care of” = phrasal-prepositional verb, com origens preservadas | concluído | `DEC-000002`; `EXP-000365`; `DIV-000013` resolvida; a análise anterior (collocation) registrada na justificativa |
+| Classificação central de “take care of” = phrasal-prepositional verb, com origens preservadas | concluído e depois **revisto** | `DEC-000002` (mantida intacta como histórico, sem efeito) |
+| Revisão de “take care of”: expressão verbal / construção multiword (`chunk`), *verb + noun + preposition* | concluído | `DEC-000003` revoga `DEC-000002`; `EXP-000365` v4 (histórico registra a revisão); `DIV-000013` resolvida → `DEC-000003`; origens R8 `phrasal` e R9 `collocation` preservadas; nenhuma categoria nova (`chunk` já existia) |
 | Fonte × análise × decisão × data distinguíveis | concluído | `rastreabilidade.md` §5 |
 | Identificação conservadora de formas flexionadas | concluído | `morfologia.mjs`; 57 ocorrências: 5 confirmadas, 52 candidatas |
 | Casos conhecidos: get changed/getting changed, get dressed/getting dressed | concluído | `autoteste-morfologia.mjs` (base real: Lucas R08 e Lukinhas L02) |
 | Casos que não devem ser associados | concluído | 8 casos negativos no autoteste |
-| Análise das 52 ocorrências candidatas | pendente | listadas em `gerado/personagens.md`; decisão do usuário |
+| 52 ocorrências candidatas | mantidas sem confirmação (decisão do usuário) | listadas em `gerado/personagens.md`, fora das contagens confirmadas; paradigmas não ampliados; as 5 confirmadas, critérios e posições inalterados (relações idênticas a `7deef8e`) |
+| Análise futura das 52 candidatas | pendente | revisão futura |
 | Conferir indicadores de compartilhamento (catálogo × uso × conhecimento) | concluído | `gerado/personagens.md` §1–3; 78 confirmado (critério misto), **28 corrigido para 29** |
 | Conferir a contagem de commits do relatório anterior | concluído | §3 abaixo |
 | Base valida sem erros; idempotência em mais de uma ordem | concluído | §4 abaixo |
 | R1–R7 preservados; app e `gh-pages` intocados | concluído | §4 abaixo |
-| Documentos e checklists atualizados | concluído | este arquivo, `arquitetura.md`, `modelo-de-dados.md`, `rastreabilidade.md`, `analises/get-changed.md` |
+| Documentos e checklists atualizados | concluído | este arquivo (incl. Fases 2–7), `arquitetura.md`, `modelo-de-dados.md`, `rastreabilidade.md`, `analises/get-changed.md`, `gerado/conferencia.md` (tabela de decisões) |
 | Revisão e aprovação do usuário | pendente | aguardando |
 
 ## 3. Histórico de commits da Fase 1 (conferido no git)
@@ -92,7 +138,8 @@ estado antecipado. Basta enviar o roteiro dessas fases para que sejam incorporad
 | `0145029` | consolidação R9 — Lukinhas (+ R14) | 4.2 |
 | `d1c2017` | identificação conservadora de formas flexionadas (+ mecanismo de decisões) | fechamento 4.2 |
 | `a524f00` | decisões linguísticas aprovadas (get changed, take care of) | fechamento 4.2 |
-| (este commit) | indicadores de compartilhamento, documentação e checklists | fechamento 4.2 |
+| `7deef8e` | indicadores de compartilhamento, documentação e checklists | fechamento 4.2 |
+| (este commit) | revisão de “take care of” (`DEC-000003` revoga `DEC-000002`), Fases 2–7 no checklist | ajustes finais 4.2 |
 
 **Correção:** a mensagem de progresso da etapa 4.2 disse “cinco commits enviados”. O git mostra **quatro** commits
 nessa etapa (`35d60d1`, `d2e6c28`, `e165e7a`, `0145029`), todos enviados. O quinto contado era `e287651`, da etapa
@@ -115,3 +162,18 @@ anterior, que aparecia na saída de `git log -5`. A tabela do relatório (quatro
 | Escopo das alterações | executado | regra da etapa | nada fora de `base/`, `docs/base-pedagogica/`, `dev/tools/base/` desde `0145029` |
 | Comparação do build com `b194cee` e regressão E2E | reaproveitado | nenhum arquivo do app, do build ou dos testes mudou | resultado anterior: app idêntico byte a byte; E2E aprovadas |
 | Testes unitários do app | reaproveitado | idem | 215 aprovados · 0 falhas · 1 ignorado |
+
+### Ajustes finais (revisão de `DEC-000002` e checklist)
+
+| Teste | Executado / reaproveitado | Motivo | Resultado |
+|---|---|---|---|
+| Validador integral | executado | nova `DEC`, unidade e `DIV` alteradas | 3.712 registros, 0 erros |
+| Autoteste do validador | executado | validador alterado (referência a `DEC` revogada) | 30/30 (inclui o caso novo) |
+| Ajv × interpretador | executado | esquema 2.3.0 (`DEC.revoga`) | 0 discordâncias |
+| Autoteste do fluxo com git | executado | consolidação alterada (resolução de `revoga`, mensagem de revisão) | 11/11 |
+| Autoteste da morfologia | executado | derivação alterada | ok; relações (57 ocorrências) idênticas a `7deef8e` |
+| Idempotência em duas ordens | executado | consolidação e derivação alteradas | nenhuma diferença |
+| Integridade da decisão anterior | executado | regra de imutabilidade | `DEC-000002` idêntica (o diff de `decisoes.jsonl` só acrescenta uma linha) |
+| Fontes originais | executado | preservação | ORI, conferências e fontes idênticos a `7deef8e` |
+| Geração reproduzível | executado | gerador alterado (tabela de decisões) | igual |
+| App: build × `b194cee`, E2E, unitários | reaproveitado | nada fora de `base/`, `docs/base-pedagogica/`, `dev/tools/base/` mudou | resultados anteriores válidos |

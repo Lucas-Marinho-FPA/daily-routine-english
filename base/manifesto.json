@@ -1,6 +1,6 @@
 {
   "nome": "Base Pedagógica Mestra — Daily Routine English",
-  "esquema": "base-pedagogica/esquema/2.2.0",
+  "esquema": "base-pedagogica/esquema/2.3.0",
   "estado": "consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados, fechamento linguístico entregue — aguardando revisão",
   "arquitetura": "docs/base-pedagogica/arquitetura.md",
   "preservacao": {
@@ -102,8 +102,8 @@
     },
     {
       "caminho": "ids.jsonl",
-      "sha256": "33d0786a0f791ce6a7f92bd4219f6da3f10b89852c02b10440d9377a2efdfe14",
-      "registros": 3711
+      "sha256": "22dba21948b3ef209f984ea0b8ba57d091081f0d2e5da203e5d7037d18a378c4",
+      "registros": 3712
     },
     {
       "caminho": "progressao/catalogo.json",
@@ -131,8 +131,8 @@
     },
     {
       "caminho": "registros/decisoes.jsonl",
-      "sha256": "33f209b63d77ce291ffbeef2f3ac035e04a362d58da5eab8894b861cdb8fc9c3",
-      "registros": 2
+      "sha256": "b7dfc1bf7b80d57c8cb5ebb0511c816b75705ba0e3374d49cacdc6e7c6a22d8a",
+      "registros": 3
     },
     {
       "caminho": "registros/dialogos.jsonl",
@@ -141,7 +141,7 @@
     },
     {
       "caminho": "registros/divergencias.jsonl",
-      "sha256": "e4e408fba6c7d1567b9981b13b3c8e430bcddb4936d29a9c22211b35d57f63ef",
+      "sha256": "39b3180866f5690dad0ac1f74c52612689803d130228ec228f152f3c58b6e7bb",
       "registros": 13
     },
     {
@@ -151,7 +151,7 @@
     },
     {
       "caminho": "registros/expressoes.jsonl",
-      "sha256": "72494b66ed9d20e6e56db8f61465957a051615a26cf70d4a3c0df9979a9cb3cf",
+      "sha256": "84aa5b546fadcc96793240e152311ae274a652b19c7b942bc4d72a3d01c6bd02",
       "registros": 431
     },
     {

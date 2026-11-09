@@ -467,7 +467,7 @@
 | VOC-000038 | **take** | (palavra) | tomar / pegar / levar |  | 30 |  |
 | EXP-000291 | **take a deep breath** | collocation | respirar fundo | collocation | 2 |  |
 | EXP-000002 | **take a shower** | collocation | tomar banho | secao:vocab, collocation | 12 |  |
-| EXP-000365 | **take care of** | phrasal_preposicional | cuidar de | phrasal, collocation | 2 |  |
+| EXP-000365 | **take care of** | chunk | cuidar de | phrasal, collocation | 2 |  |
 | EXP-000400 | **take him out for a walk** | phrasal | levar ele para passear | phrasal | 2 |  |
 | EXP-000338 | **take longer than expected** | collocation | demorar mais do que o previsto | collocation | 1 |  |
 | EXP-000330 | **take notes** | collocation | fazer anotações | collocation | 1 |  |

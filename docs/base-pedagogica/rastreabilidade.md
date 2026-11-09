@@ -64,6 +64,10 @@ Quatro camadas, sempre distinguíveis em cada classificação:
 | 3. Qual decisão foi aprovada | `DEC` (`status: aprovada`, `efeitos`) → `subtipo` + `subtipo_decisao` na unidade | `DEC-000001` → `collocation` |
 | 4. Quando e por quê | `DEC.data`, `DEC.aprovada_por`, `DEC.justificativa`; entrada no `historico` da unidade com `decisao`; `DIV` `resolvida` com `decisao` | 2026-11-09 |
 
+Revisão de uma decisão: nova `DEC` com `revoga` (ex.: `DEC-000003` revoga `DEC-000002` em “take care of”). A anterior
+fica intacta; o histórico da unidade registra a revisão (“classificação central revista … revogada”); a `DIV` passa a
+apontar para a decisão em vigor; o validador reprova qualquer referência atual a uma `DEC` revogada.
+
 ## 6. Versões e histórico
 
 - **`ORI` é imutável.** O gravador se recusa a regravar um `ORI` existente com conteúdo diferente; o validador compara

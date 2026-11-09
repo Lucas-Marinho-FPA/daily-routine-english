@@ -8,10 +8,12 @@
 | Unidade | Fontes (preservadas) | Análise (este documento) | Decisão aprovada | Registro |
 |---|---|---|---|---|
 | `EXP-000006` “get changed” | R2 `collocation` · R9 `phrasal` | get + particípio; collocation | **collocation** (construção lexical get + particípio, “trocar de roupa”; não é phrasal verb em sentido estrito) | `DEC-000001`; `DIV-000010` resolvida |
-| `EXP-000365` “take care of” | R8 `phrasal` · R9 `collocation` | verbo + substantivo + preposição; propunha collocation | **phrasal-prepositional verb** (`phrasal_preposicional`: verbo + partícula + preposição) | `DEC-000002`; `DIV-000013` resolvida |
+| `EXP-000365` “take care of” | R8 `phrasal` · R9 `collocation` | verb + noun + preposition | **expressão verbal / construção multiword** (`chunk`), estrutura *verb + noun + preposition* | `DEC-000003` (revoga `DEC-000002`); `DIV-000013` resolvida |
 
-Sobre “take care of”: a decisão aprovada difere da análise abaixo (§5), que tratava “care” como substantivo. A decisão
-prevalece; a divergência entre análise e decisão fica registrada na justificativa de `DEC-000002` para eventual revisão.
+Histórico de “take care of”: a primeira decisão (`DEC-000002`, phrasal-prepositional verb) foi **revista** pela
+`DEC-000003`, que a revoga: “care” é substantivo, então não há a estrutura verbo + partícula + preposição. A `DEC-000002`
+continua registrada, intacta, como histórico, sem efeito. Nenhuma categoria nova foi criada: `chunk` (bloco multiword
+fixo) já existia no esquema.
 
 ## 1. Ocorrências originais (todas preservadas como ORI)
 
@@ -61,12 +63,13 @@ variação de uso é sintática e compatível com o mesmo sentido: “get change
 **Decisão aprovada:** `collocation` (`DEC-000001`), com nota de estrutura “get + particípio (como get dressed)”;
 `phrasal` permanece como classificação de origem do Lukinhas.
 
-## 5. Caso paralelo: “take care of” (`DIV` de subtipo também aberta)
+## 5. Caso paralelo: “take care of”
 
 Karla (R8) classifica como `phrasal`; Lukinhas (R9), como `collocation` (“Igual a ‘look after’”). *Care* é substantivo:
 a estrutura é verbo + substantivo + preposição, um **idiom/collocation preposicional**, não phrasal verb em sentido
 estrito (*look after*, que a própria fonte cita como equivalente, esse sim é phrasal-preposicional). A análise propunha
-`collocation`; **a decisão aprovada foi `phrasal_preposicional`** (`DEC-000002`), que prevalece.
+`collocation`. Decisões: `DEC-000002` (phrasal-prepositional verb) e, em revisão, **`DEC-000003` — expressão verbal /
+construção multiword, *verb + noun + preposition* (`chunk`)**, que revoga a anterior e está em vigor.
 
 ## 6. Limitação observada
 

@@ -91,6 +91,7 @@ export function consolidar(grupo, adaptador) {
     const { chave, forma, ...campos } = dec;
     const alvo = [...combinado.values()].find((r) => (r.tipo === 'EXP' || r.tipo === 'VOC') && r.forma === forma);
     if (!alvo) throw new Error(`decisão ${chave}: unidade “${forma}” inexistente`);
+    if (campos.revoga) campos.revoga = campos.revoga.map((k) => { const r = ids.porChave.get(`DEC:${k}`); if (!r) throw new Error(`decisão ${chave}: revoga uma decisão inexistente (${k})`); return r; });
     const reg = ordenar({ id, tipo: 'DEC', ...campos, evidencias: (alvo.classificacoes_origem || []).map((c) => ({ ori: c.ori })),
       efeitos: campos.efeitos.map((e) => ({ unidade: alvo.id, ...e })) });
     const velho = porId.get(id);
@@ -115,7 +116,9 @@ export function consolidar(grupo, adaptador) {
       u.versao = velho.versao + 1;
       const novaDec = u.subtipo_decisao && u.subtipo_decisao !== velho.subtipo_decisao;
       u.historico = [...velho.historico, novaDec
-        ? { versao: u.versao, data: DATA, mudanca: `classificação central aplicada (subtipo: ${u.subtipo}); classificações de origem preservadas`, decisao: u.subtipo_decisao }
+        ? { versao: u.versao, data: DATA, mudanca: velho.subtipo_decisao
+          ? `classificação central revista (subtipo: ${velho.subtipo} → ${u.subtipo}); ${velho.subtipo_decisao} revogada; classificações de origem preservadas`
+          : `classificação central aplicada (subtipo: ${u.subtipo}); classificações de origem preservadas`, decisao: u.subtipo_decisao }
         : { versao: u.versao, data: DATA, mudanca: `atualizada na consolidação do grupo “${grupo}”` }];
     }
     novos.set(u.id, ordenar(u));
