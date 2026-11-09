@@ -2,7 +2,7 @@
 
 > Gerado por `node dev/tools/base/gerar.mjs` a partir de `base/`. **Não editar à mão** — a validação compara.
 
-Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados — aguardando revisão**
+Esquema: `base-pedagogica/esquema/2.2.0` · estado: **consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados, fechamento linguístico entregue — aguardando revisão**
 
 ## Registros por tipo
 
@@ -48,7 +48,7 @@ Unidades `proposto` (não ativas): 0 · léxico com lacuna “sem contexto de te
 | Ordem | Fontes | Situação | Observação |
 |---|---|---|---|
 | 1 | Lucas: extração do Word e enriquecimentos (R1–R7) | **consolidada e aprovada** |  |
-| 2 | Karla e Lukinhas (R8, R9, R14, R11) | **consolidada — aguardando revisão** |  |
+| 2 | Karla e Lukinhas (R8, R9, R14, R11) | **consolidada; decisões DEC-000001/2, formas flexionadas e indicadores entregues — aguardando revisão** |  |
 | 3 | Conversation Practice: versão publicada (b194cee) e remodelagem (8d5ac0c) (R10, R18) | **pendente** | itens só da remodelagem entram como proposto |
 | 4 | Expressões de apoio e FreeDict (R12, R13) | **pendente** | FreeDict sob GPL-2.0+: licença e atribuição registradas |
 | 5 | Documentos pedagógicos (R17) | **pendente** |  |

@@ -14,6 +14,7 @@ evolução controlada.** A Base é o repositório central do conhecimento autora
 | `modelo-de-dados.md` | identificadores, campos de cada tipo, relações, critérios de consolidação |
 | `rastreabilidade.md` | registro de origem, hashes, conferência e recuperabilidade, versões, duplicados |
 | `politica-de-preservacao.md` | regras obrigatórias, divergências, lacunas, terceiros, proteção do aplicativo |
+| `checklist.md` | checklist mestre (Fases 0–7), checklist operacional da etapa, histórico de commits e testes |
 | `analises/*.md` | análises linguísticas e pedagógicas (ex.: `get-changed.md`) — interpretações, separadas dos registros; nada nelas vale como classificação sem `DEC` aprovada |
 | `gerado/*.md` | leitura gerada de `base/` (inventário, conferência por fonte, vocabulário, textos, perguntas, gramática) — **nunca editar à mão** |
 
@@ -65,12 +66,16 @@ ferramentas de `b194cee`, `base/` entraria no pré-cache e o service worker muda
 | `node dev/tools/base/consolidar.mjs <grupo>` | consolida as fontes de um grupo (`fontes.mjs` + `adaptadores/<grupo>.mjs`); determinístico e idempotente |
 | `node dev/tools/base/gerar.mjs [--conferir]` | regenera a lista de arquivos do manifesto e `docs/base-pedagogica/gerado/*.md` |
 | `node dev/tools/base/validar.mjs` | valida a base inteira (verificações 1–11) |
-| `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez numa cópia em memória da base real e exige reprovação (25 casos) |
-| `node dev/tools/base/autoteste-base.mjs` | idem para o que depende do git e do fluxo de consolidação (repositório temporário, 9 casos) |
+| `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez numa cópia em memória da base real e exige reprovação (29 casos) |
+| `node dev/tools/base/autoteste-base.mjs` | idem para o que depende do git e do fluxo de consolidação (repositório temporário, 11 casos, inclui decisões) |
+| `node dev/tools/base/autoteste-morfologia.mjs` | formas flexionadas: casos que devem e que não devem ser associados, candidatas, determinismo e base real (23 casos) |
+| `node dev/tools/base/consolidar.mjs decisoes` | reaplica as decisões aprovadas (`decisoes.mjs`) e as derivações globais, sem consolidar fontes |
 | `bash dev/tools/base/conferir-app.sh [ref]` | verificação 12: app gerado idêntico ao de `ref` (padrão `b194cee`) e `base/` fora do pré-cache |
 
 Arquivos: `lib.mjs` (forma canônica, hash, IDs, esquema), `fontes.mjs` (catálogo de fontes e regras de extração),
-`extrair.mjs` (extração com cobertura total e reconstrução), `adaptadores/<grupo>.mjs` (unidades de um grupo).
+`extrair.mjs` (extração com cobertura total e reconstrução), `adaptadores/<grupo>.mjs` (unidades de um grupo),
+`derivar.mjs` (derivações globais sobre a base inteira), `morfologia.mjs` (formas flexionadas), `decisoes.mjs`
+(decisões aprovadas).
 
 ## 4. Validação
 
@@ -84,10 +89,12 @@ O validador reprova se houver:
 5. **Conservação e recuperabilidade** — originais ≠ incorporados + pendentes; pendente sem motivo; fonte que não se
    reconstrói a partir dos `ORI`; fonte marcada como concluída com pendências.
 6. **Destino** — `ORI` que nenhuma unidade cita e que a conferência não justifica (destino + motivo).
-7. **Relações** — `equivalente_a`/`semelhante_a` sem `DEC` aprovada; `duplicado_de` sem conteúdo idêntico; divergência
+7. **Relações e decisões** — classificação central sem `DEC` aprovada com o mesmo efeito; ocorrência flexionada que não
+   está no texto na posição registrada; `equivalente_a`/`semelhante_a` sem `DEC` aprovada; `duplicado_de` sem conteúdo idêntico; divergência
    sem valores diferentes; divergência resolvida sem `DEC`.
 8. **Origem e classificação** — tradução, explicação, habilidade, nível, pronúncia, variante, critério sem origem;
-   subtipo central sem fonte que o nomeie ou com fontes divergentes; divergência de subtipo não registrada; categoria
+   ocorrência flexionada confirmada sem paradigma no catálogo; subtipo central sem fonte que o nomeie ou com fontes
+   divergentes (salvo `DEC`); divergência de subtipo não registrada; categoria
    com subtipo diferente do catálogo; nível CEFR.
 9. **Nomes privados e terceiros** — padrão de nome privado (regra permanente do projeto); `ORI` de fonte
    `somente_referencia`; material de terceiros sem licença que não seja `somente_referencia`; com `--protegidos
@@ -110,8 +117,8 @@ O validador reprova se houver:
 
 | Ordem | Fontes (inventário da Etapa 1) | Situação |
 |---|---|---|
-| 1 | Lucas: extração do Word e enriquecimentos (R1–R7) | **consolidada — aguardando revisão** |
-| 2 | Karla e Lukinhas (R8, R9 + R14) | **consolidada — aguardando revisão** (R11, personas previstas, fica para quando houver conteúdo) |
+| 1 | Lucas: extração do Word e enriquecimentos (R1–R7) | **consolidada e aprovada** |
+| 2 | Karla e Lukinhas (R8, R9 + R14) | **consolidada; fechamento (decisões, flexões, indicadores) entregue — aguardando revisão** (R11, personas previstas, fica para quando houver conteúdo) |
 | 3 | Conversation Practice: publicada `b194cee` e `remodelagem` `8d5ac0c` (R10, R18) | pendente; itens só da remodelagem como `proposto` |
 | 4 | Expressões de apoio e FreeDict (R12, R13) | pendente; FreeDict sob GPL-2.0+, licença e atribuição registradas |
 | 5 | Documentos pedagógicos (R17) | pendente |
@@ -134,6 +141,9 @@ destino e sem pendência sem justificativa. Um commit por fonte (ou conjunto del
 | P4 | `Histórico IA inglês.docx`: Daily-English não é declarado conferido antes do original; nada completado por inferência | pendente do arquivo |
 | P5 | Divergências preservadas com todas as versões; sem classificação central forçada | em vigor (verificação 8) |
 | P6 | Conteúdo só da `remodelagem` entra como `proposto`, sem ativar e sem mudar o publicado | em vigor (aplica-se na ordem 3) |
+| D3 | “get changed”: classificação central collocation (get + particípio); origens preservadas | `DEC-000001`, em vigor |
+| D4 | “take care of”: classificação central phrasal-prepositional verb; origens preservadas | `DEC-000002`, em vigor |
+| D5 | Formas flexionadas: identificação conservadora; confirmação só com paradigma no catálogo (escopo inicial: get) | em vigor; 52 candidatas aguardam análise |
 | D2 | Materiais de terceiros sem licença compatível (Conversation Book, atividades do curso, outros) ficam fora da distribuição pública; podem ser registrados como fontes externas com identificação e licença, sem conteúdo | em vigor (verificação 9) |
 
 ## 8. Riscos e pendências

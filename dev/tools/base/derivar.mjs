@@ -17,6 +17,14 @@ import { ocorrencias } from './morfologia.mjs';
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const CALCULADAS = ['sem_contexto_de_texto', 'sem_traducao'];
 
+// critério LITERAL de ocorrência (exportado para os relatórios usarem exatamente o mesmo): forma, variantes e `match`
+// da fonte, sem diferenciar maiúsculas, com limites de palavra; “…” final = modelo
+export function padraoLiteral(u) {
+  const formas = [u.forma, ...(u.variantes || []).map((x) => x.valor), ...(u.atributos_origem || []).filter((a) => a.campo === 'match').map((a) => a.valor)]
+    .filter((f) => typeof f === 'string' && f.trim()).map((f) => f.replace(/\s*(…|\.\.\.)$/u, '')).filter((f) => f.trim());
+  return new RegExp(`(?<![\\p{L}\\p{N}])(${formas.map(escRe).join('|')})(?![\\p{L}\\p{N}])`, 'iu');
+}
+
 export function derivar({ registros, ids, ordem, catalogo = {} }) {
   const paradigmas = Object.fromEntries(Object.entries(catalogo.paradigmas_verbais || {}).filter(([k]) => k !== '_doc'));
   // ordem = posição de criação (linha em ids.jsonl): define “o primeiro” de cada grupo de forma estável
@@ -37,9 +45,7 @@ export function derivar({ registros, ids, ordem, catalogo = {} }) {
 
   for (const u0 of lexicos) {
     const u = structuredClone(u0);
-    const formas = [u.forma, ...(u.variantes || []).map((x) => x.valor), ...(u.atributos_origem || []).filter((a) => a.campo === 'match').map((a) => a.valor)]
-      .filter((f) => typeof f === 'string' && f.trim()).map((f) => f.replace(/\s*(…|\.\.\.)$/u, '')).filter((f) => f.trim());
-    const re = new RegExp(`(?<![\\p{L}\\p{N}])(${formas.map(escRe).join('|')})(?![\\p{L}\\p{N}])`, 'iu');
+    const re = padraoLiteral(u);
     const dec = declarados.get(u.id) || new Set();
     const ex = segs.filter((s) => re.test(s.original) || dec.has(s.id)).map((s) => s.id);
     if (ex.length) u.exemplos = ex; else delete u.exemplos;

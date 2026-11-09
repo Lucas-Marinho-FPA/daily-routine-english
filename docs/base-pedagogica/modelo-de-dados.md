@@ -28,7 +28,7 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
 | Campo | Regra |
 |---|---|
 | `id`, `tipo`, `status` | `proposto` (registrado, não ativo) · `ativo` · `retirado` (nunca apagado) |
-| `versao`, `historico[]` | `rastreabilidade.md` §5 |
+| `versao`, `historico[]` | `rastreabilidade.md` §6 |
 | `evidencias[]` | ≥ 1 `{ori, campo?}` |
 | `jornadas[]`, `personagens[]` | `jor:*`; `PSG-*` (atribuição pelo escopo da fonte) |
 | `traducoes[]`, `explicacoes[]` | `{texto, contexto?, origem}` — separados do original |
@@ -46,14 +46,17 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
   (`integral` · `somente_referencia`), `arquivo`, `versao`, `hash_arquivo`, `licenca`, `conferencia`
   (`pendente` · `em_andamento` · `concluida`). Fonte `somente_referencia`: identificação e licença, **sem conteúdo**.
 - **`ORI`** — `fonte`, `versao_fonte`, `local` (JSON pointer), `id_original`, `regra`, `conteudo`, `hash`, `extraido_em`, `extrator`.
-- **`VOC` / `EXP`** — `forma` literal; `EXP.subtipo` (`phrasal` · `collocation` · `funcional` · `conector` · `tempo` ·
-  `chunk` · `null`); `pronuncia[]`, `variantes[]` (`aceita`, `forma_no_texto_original`), `formas_verbais[]`,
+- **`VOC` / `EXP`** — `forma` literal; `EXP.subtipo` (`phrasal` · `phrasal_preposicional` · `collocation` · `funcional` ·
+  `conector` · `tempo` · `chunk` · `null`) e `subtipo_decisao` (a `DEC` aprovada, quando a classificação central vem
+  de decisão — §5.9); `pronuncia[]`, `variantes[]` (`aceita`, `forma_no_texto_original`), `formas_verbais[]`,
   `exemplos[]` (→ `SEG`), `erros_frequentes[]` (`ORI` de regra de erro cuja correção é a própria forma).
 - **`GRA`** — `estrutura` literal, traduções, explicações, `atributos_origem.secao`.
 - **`TXT`** — `segmentos[]` (ordem da fonte), `titulo`, `titulo_pt`, `objetivo`, `tipo_de_dia`, `estagio`,
   `nota_gramatical`, `explicacoes` (notas de uso), `blocos[]` (episódios), `dialogos[]`, `personagens[]`.
 - **`SEG`** — `original` (parágrafo/frase/fala literal, sem divisão), `texto`, `traducoes`, `falante`, `contextos[]`
-  (+ `contextos_origem`), `revisoes[]`.
+  (+ `contextos_origem`), `revisoes[]`, `itens_da_fonte[]` (itens que a própria fonte marca na frase), `fatos_da_fonte[]`.
+  Sessões do Lukinhas: `TXT.sessao`, `TXT.nivel_da_fonte` (rótulo da fonte, não CEFR), `TXT.vocabulario_da_sessao[]` e
+  `TXT.texto_aprovado` (ORI de R14 + resultado da conferência caractere por caractere).
 - **`DIA`** — `falas[]` (→ `SEG`), `participantes[]`, `titulo_pt`, `texto`, `contextos[]`.
 - **`PER`** — `enunciado` literal; o mesmo enunciado em vários registros = **uma** `PER` com várias evidências.
 - **`RSP`** — `original` literal de **uma** pergunta num personagem/contexto; `criterios[]` (palavras-chave da fonte).
@@ -61,8 +64,11 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
   `dica`), `contexto`, `personagens[]`, `habilidades[]` (só com origem).
 - **`EXE`** — `itens[]` (evidências: cada item aponta para o texto literal no `ORI`), `titulo`.
 - **`CTX`** — `codigo`, `nome`, `traducoes`. **`PSG`** — `codigo`, `tracos[]`, `fatos[]`, `pendencias_da_fonte[]`.
-- **`REL`** — `{de, relacao, para, status, evidencias, decisao?, motivo}`. **`DEC`** — decisão com `status`
-  (`proposta` · `aprovada` · `revogada`). **`DIV`** — `{unidade, campo, assunto, versoes[{valor, ori}], status}`.
+- **`REL`** — `{de, relacao, para, status, evidencias, decisao?, motivo}`; ocorrência flexionada (`aparece_em`) leva
+  também `forma_canonica`, `forma_encontrada` (literal), `posicao {inicio, fim}` no `SEG.original` e `criterio`.
+  **`DEC`** — `{data, decisao, justificativa, status (proposta · aprovada · revogada), aprovada_por, evidencias,
+  efeitos[{unidade, campo, valor, explicacao}]}`; imutável depois de registrada (rever = nova `DEC` que a revogue).
+  **`DIV`** — `{unidade, campo, assunto, versoes[{valor, ori}], status (aberta · resolvida · anulada), decisao?, motivo?}`.
 
 ## 4. Relações
 
@@ -71,7 +77,8 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
 | `duplicado_de` | conteúdo literalmente igual (hash, ou o campo indicado) | automático, `confirmada` |
 | `variante_de` | mesma forma com diferença de escrita, ou apelido declarado pela fonte | apelido da fonte → `confirmada`; só maiúscula/minúscula → `proposta` |
 | `semelhante_a`, `equivalente_a` | parecido / mesmo conhecimento | **só com `DEC` aprovada** |
-| `contextualiza`, `aparece_em` | contexto / presença | da fonte |
+| `contextualiza` | contexto | da fonte |
+| `aparece_em` | ocorrência flexionada de uma expressão num segmento | `morfologia.mjs`: `confirmada` só com paradigma no catálogo; demais `proposta` (§5.8) |
 | `prerequisito_de`, `relacionada_a` | progressão | com evidência |
 
 ## 5. Critérios de consolidação (aplicados pelo adaptador, verificados pelo validador)
@@ -91,12 +98,22 @@ Códigos fixos (`progressao/catalogo.json`): habilidades `hab:*` (7) e jornadas 
    pessoais sem resposta-modelo ficam em `perguntas_abertas` com a dica — **nenhuma resposta é inventada**.
 7. **Registros sem unidade** (documentação de arquivo, rótulos, regras internas do corretor, revisões de alcance amplo)
    ficam preservados como `ORI` com destino e motivo na conferência.
+8. **Formas flexionadas** (`dev/tools/base/morfologia.mjs`, conservador): só `EXP` de duas ou mais palavras; o
+   verbo-cabeça flexionado seguido do resto **idêntico e adjacente**, com limites de palavra (“getting changed”,
+   “got dressed”). **Confirmada** só quando o verbo-cabeça tem paradigma listado em `progressao/catalogo.json`
+   (`paradigmas_verbais`; escopo aprovado: *get*); as demais flexões ficam como **candidatas** (`proposta`), para
+   análise — nunca associadas automaticamente. Nada é reescrito nem fundido; a forma literal e a posição são
+   conferidas pelo validador. Ocorrência flexionada confirmada também fecha a lacuna `sem_contexto_de_texto`.
+9. **Decisões aprovadas** (`dev/tools/base/decisoes.mjs` → `DEC`): a classificação central é aplicada à unidade com
+   `subtipo_decisao` e uma explicação de origem `{decisao}`; as `classificacoes_origem` continuam intactas e a `DIV`
+   correspondente passa a `resolvida`, apontando para a `DEC`; o histórico da unidade registra a decisão.
 
 ## 6. Exemplos reais (consolidação R1–R7)
 
-- **“get changed”** (`EXP-000006`): 4 evidências no Word (R01 vocabulário, R08 vocabulário, R08 tabela de phrasal,
-  revisão do toolkit) + tabela R2 (`c: collocation`) → `subtipo: collocation`, com as categorias de seção preservadas.
-  Quando outra fonte (Lukinhas) classificar como `phrasal`, a divergência será registrada (P5).
+- **“get changed”** (`EXP-000006`): 4 evidências no Word + tabela R2 (`c: collocation`) + Lukinhas R9 (`c: phrasal`) —
+  as duas classificações preservadas; `DIV-000010` resolvida pela `DEC-000001` → `subtipo: collocation` (get +
+  particípio). “getting changed” (Lucas R08) é ocorrência flexionada confirmada.
+- **“take care of”** (`EXP-000365`): R8 `phrasal` · R9 `collocation` preservadas; `DEC-000002` → `phrasal_preposicional`.
 - **“wake up”** (`EXP-000001`): três traduções “acordar” com origens distintas; IPA e nível da tabela R2; `phrasal`.
 - **“start up / boot up” → “start up”**: apelido declarado em R2 → `REL variante_de` `confirmada`.
 - **Perguntas abertas**: 17 perguntas de transferência dos episódios e 1 de R3 ficam em `perguntas_abertas`, com dica.

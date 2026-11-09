@@ -6,6 +6,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { REPO, BASE, hashBytes, lerJsonl, arquivosBase } from './lib.mjs';
 import { FONTES } from './fontes.mjs';
+import { padraoLiteral } from './derivar.mjs';
 
 const ROTULO = { FON: 'fontes', ORI: 'registros de origem (literais)', VOC: 'vocabulário (uma palavra)', EXP: 'expressões', GRA: 'estruturas gramaticais', TXT: 'textos', SEG: 'segmentos (parágrafos, frases, falas)', DIA: 'diálogos', PER: 'perguntas', RSP: 'respostas-modelo', ATV: 'atividades', EXE: 'exercícios', CTX: 'contextos', PSG: 'personagens', REL: 'relações', DEC: 'decisões', DIV: 'divergências' };
 const G = 'docs/base-pedagogica/gerado';
@@ -126,41 +127,72 @@ function personagens(registros, por) {
   const txtDe = new Map(registros.filter((r) => r.tipo === 'TXT').map((t) => [t.id, t]));
   const quemDoSeg = (s) => psgGrupo.get(txtDe.get(por.get(s)?.texto)?.personagens?.[0]);
   const ordemTxt = (t) => t?.id_original ?? '';
+  const gs = ['lucas', 'karla', 'lukinhas'];
+  const segsNarr = registros.filter((r) => r.tipo === 'SEG' && quemDoSeg(r.id));
+  const declarado = new Map();
+  for (const sg of segsNarr) for (const x of sg.itens_da_fonte || []) (declarado.get(x.valor) || declarado.set(x.valor, []).get(x.valor)).push(sg.id);
+  const flex = registros.filter((r) => r.tipo === 'REL' && r.relacao === 'aparece_em' && r.forma_encontrada !== undefined);
   const lex = registros.filter((r) => r.tipo === 'VOC' || r.tipo === 'EXP');
   const info = lex.map((u) => {
-    const fontes = new Set(u.evidencias.map((e) => quemDoOri(e.ori)).filter(Boolean));
-    const uso = new Set((u.exemplos || []).map(quemDoSeg).filter(Boolean));
+    const cat = new Set(u.evidencias.map((e) => quemDoOri(e.ori)).filter(Boolean));
+    const re = padraoLiteral(u);
+    const lit = segsNarr.filter((sg) => re.test(sg.original)).map((sg) => sg.id);
+    const dec = declarado.get(u.id) || [];
+    const fc = flex.filter((r) => r.de === u.id && r.status === 'confirmada').map((r) => r.para);
+    const fp = flex.filter((r) => r.de === u.id && r.status === 'proposta').map((r) => r.para);
+    const quem = (l) => new Set(l.map(quemDoSeg).filter(Boolean));
+    const uso = { lit: quem(lit), dec: quem(dec), fc: quem(fc), fp: quem(fp) };
+    uso.antigo = new Set([...uso.lit, ...uso.dec]);              // critério do relatório anterior: literal ∪ marcado
+    uso.todos = new Set([...uso.lit, ...uso.dec, ...uso.fc]);     // + flexão confirmada (candidatas nunca contam)
     const primeira = {};
-    for (const s of u.exemplos || []) { const g = quemDoSeg(s); const t = txtDe.get(por.get(s).texto); if (g && (!primeira[g] || ordemTxt(t) < primeira[g])) primeira[g] = ordemTxt(t); }
-    return { u, fontes, uso, primeira };
+    for (const sId of [...lit, ...dec, ...fc]) { const g = quemDoSeg(sId); const t = txtDe.get(por.get(sId).texto); if (g && (!primeira[g] || ordemTxt(t) < primeira[g])) primeira[g] = ordemTxt(t); }
+    return { u, cat, lit, dec, fc, fp, uso, primeira };
   });
-  const gs = ['lucas', 'karla', 'lukinhas'];
-  const L = cab('Base Pedagógica — personagens: conhecimento compartilhado e exclusivo');
-  L.push('Duas leituras, sempre separadas: **identidade lexical** (o item consta do material da personagem: a fonte o registra como item) e **uso em texto** (a forma aparece literalmente, ou marcada pela fonte, nos textos da personagem). Uma unidade compartilhada mantém as traduções, notas, exemplos e contextos de cada personagem, cada um com a sua origem.', '');
-  L.push('## Resumo', '', '| Personagem | Itens no material | Exclusivos do material | Unidades usadas nos textos | Textos | Segmentos | Perguntas (respostas-modelo + abertas) |', '|---|---|---|---|---|---|---|');
+  const L = cab('Base Pedagógica — personagens: catálogo, uso em texto e o que NÃO se pode inferir');
+  L.push('Três conceitos, nunca misturados:', '',
+    '1. **Catálogo** — o item consta do material do personagem (a fonte do personagem registra o item: R1–R7 Lucas, R8 Karla, R9 Lukinhas).',
+    '2. **Uso em texto** — o item ocorre nos textos narrativos do personagem, por um de três critérios, contados separadamente: **literal** (forma, variante ou `match` da fonte, sem diferenciar maiúsculas, com limites de palavra), **marcado pela fonte** (a frase lista o item em `items`) e **flexão confirmada** (`REL aparece_em` confirmada; candidatas são listadas à parte e não contam).',
+    '3. **Conhecimento demonstrado** — domínio comprovado pelo aluno. **Não pode ser inferido da Base**: presença de uma palavra no material ou num texto não é evidência de aprendizagem. Esse dado, se existir, vem do progresso no aplicativo, fora do escopo da Base.', '');
+  // ---------- 1. catálogo ----------
+  L.push('## 1. Catálogo', '', '| Personagem | Itens no catálogo | Exclusivos | Compartilhados com 1 outro | Compartilhados com os 2 outros |', '|---|---|---|---|---|');
   for (const g of gs) {
-    const txts = [...txtDe.values()].filter((t) => psgGrupo.get(t.personagens?.[0]) === g);
-    const nSeg = txts.reduce((n, t) => n + t.segmentos.length, 0);
-    const atvs = registros.filter((r) => r.tipo === 'ATV' && psgGrupo.get(r.personagens?.[0]) === g);
-    const nPerg = atvs.reduce((n, a) => n + (a.respostas || []).length + (a.perguntas_abertas || []).length, 0);
-    L.push(`| ${NOME[g]} | ${info.filter((x) => x.fontes.has(g)).length} | ${info.filter((x) => x.fontes.size === 1 && x.fontes.has(g)).length} | ${info.filter((x) => x.uso.has(g)).length} | ${txts.length} | ${nSeg} | ${nPerg} |`);
+    const m = info.filter((x) => x.cat.has(g));
+    L.push(`| ${NOME[g]} | ${m.length} | ${m.filter((x) => x.cat.size === 1).length} | ${m.filter((x) => x.cat.size === 2).length} | ${m.filter((x) => x.cat.size === 3).length} |`);
+  }
+  const par = (a, b) => info.filter((x) => x.cat.size === 2 && x.cat.has(a) && x.cat.has(b)).length;
+  L.push('', `Compartilhados por exatamente dois: Lucas–Karla ${par('lucas', 'karla')} · Lucas–Lukinhas ${par('lucas', 'lukinhas')} · Karla–Lukinhas ${par('karla', 'lukinhas')} · total ${info.filter((x) => x.cat.size === 2).length}. Pelos três: ${info.filter((x) => x.cat.size === 3).length}. Itens de catálogo distintos: ${info.filter((x) => x.cat.size).length}.`, '');
+  // ---------- 2. uso em texto ----------
+  L.push('## 2. Uso nos textos de cada personagem (unidades distintas)', '', '| Personagem | Literal | Marcado pela fonte | Flexão confirmada | Algum dos três | Candidatas de flexão (não contam) |', '|---|---|---|---|---|---|');
+  for (const g of gs) L.push(`| ${NOME[g]} | ${info.filter((x) => x.uso.lit.has(g)).length} | ${info.filter((x) => x.uso.dec.has(g)).length} | ${info.filter((x) => x.uso.fc.has(g)).length} | ${info.filter((x) => x.uso.todos.has(g)).length} | ${info.filter((x) => x.uso.fp.has(g)).length} |`);
+  const nLit = info.reduce((n, x) => n + x.lit.length, 0), nDec = info.reduce((n, x) => n + x.dec.length, 0);
+  L.push('', `Ocorrências (pares unidade × segmento): literais ${nLit} · marcadas pela fonte ${nDec} · flexões confirmadas ${flex.filter((r) => r.status === 'confirmada').length} · candidatas ${flex.filter((r) => r.status === 'proposta').length}. Um mesmo segmento pode contar por mais de um critério.`, '');
+  // ---------- 3. uso em textos de outro personagem ----------
+  L.push('## 3. Itens usados nos textos de um personagem que não os tem no catálogo', '', '| Critério de uso | Itens (catálogo de 1 só personagem) usados em textos de outro | … destes, usados nos textos dos três | Itens (qualquer catálogo) usados em textos de outro |', '|---|---|---|---|');
+  for (const [rot, k] of [['literal', 'lit'], ['marcado pela fonte', 'dec'], ['flexão confirmada', 'fc'], ['literal ∪ marcado (critério do relatório anterior)', 'antigo'], ['literal ∪ marcado ∪ flexão confirmada', 'todos']]) {
+    const fora = (x) => [...x.uso[k]].some((g) => !x.cat.has(g));
+    const sel = info.filter((x) => x.cat.size === 1 && fora(x));
+    L.push(`| ${rot} | ${sel.length} | ${sel.filter((x) => x.uso[k].size === 3).length} | ${info.filter((x) => x.cat.size && fora(x)).length} |`);
   }
   L.push('');
   const lista = (titulo, f) => {
     const sel = info.filter(f).sort((a, b) => a.u.forma.localeCompare(b.u.forma, 'en'));
     L.push(`## ${titulo} (${sel.length})`, '');
     if (!sel.length) { L.push('Nenhum.', ''); return; }
-    L.push('| Unidade | Forma | No material de | Usada nos textos de | Primeira ocorrência por personagem |', '|---|---|---|---|---|');
-    for (const x of sel) L.push(`| ${x.u.id} | ${cel(x.u.forma)} | ${gs.filter((g) => x.fontes.has(g)).map((g) => NOME[g]).join(', ')} | ${gs.filter((g) => x.uso.has(g)).map((g) => NOME[g]).join(', ')} | ${gs.filter((g) => x.primeira[g]).map((g) => `${NOME[g]} ${x.primeira[g]}`).join(' · ')} |`);
+    L.push('| Unidade | Forma | Catálogo de | Literal em | Marcado em | Flexão confirmada em | Primeira ocorrência por personagem |', '|---|---|---|---|---|---|---|');
+    const ns = (set) => gs.filter((g) => set.has(g)).map((g) => NOME[g]).join(', ');
+    for (const x of sel) L.push(`| ${x.u.id} | ${cel(x.u.forma)} | ${ns(x.cat)} | ${ns(x.uso.lit)} | ${ns(x.uso.dec)} | ${ns(x.uso.fc)} | ${gs.filter((g) => x.primeira[g]).map((g) => `${NOME[g]} ${x.primeira[g]}`).join(' · ')} |`);
     L.push('');
   };
-  lista('No material dos três personagens', (x) => x.fontes.size === 3);
-  lista('No material de dois personagens', (x) => x.fontes.size === 2);
-  lista('Só no material de um personagem, mas usada nos textos de outro', (x) => x.fontes.size === 1 && [...x.uso].some((g) => !x.fontes.has(g)));
+  lista('Catálogo de dois ou três personagens', (x) => x.cat.size >= 2);
+  lista('Catálogo de um só personagem e uso nos textos de outro (literal ∪ marcado ∪ flexão confirmada)', (x) => x.cat.size === 1 && [...x.uso.todos].some((g) => !x.cat.has(g)));
   for (const g of gs) {
-    const ex = info.filter((x) => x.fontes.size === 1 && x.fontes.has(g)).map((x) => x.u.forma).sort((a, b) => a.localeCompare(b, 'en'));
-    L.push(`## Exclusivos do material de ${NOME[g]} (${ex.length})`, '', ex.map(cel).join(' · ') || 'Nenhum.', '');
+    const ex = info.filter((x) => x.cat.size === 1 && x.cat.has(g)).map((x) => x.u.forma).sort((a, b) => a.localeCompare(b, 'en'));
+    L.push(`## Exclusivos do catálogo de ${NOME[g]} (${ex.length})`, '', ex.map(cel).join(' · ') || 'Nenhum.', '');
   }
+  const cands = flex.filter((r) => r.status === 'proposta').sort((a, b) => a.forma_canonica.localeCompare(b.forma_canonica, 'en') || a.id.localeCompare(b.id));
+  L.push(`## Ocorrências flexionadas (${flex.length}: ${flex.length - cands.length} confirmadas, ${cands.length} candidatas)`, '', '| REL | Forma canônica | Forma encontrada | Segmento | Personagem | Critério | Situação |', '|---|---|---|---|---|---|---|');
+  for (const r of [...flex.filter((x) => x.status === 'confirmada'), ...cands]) L.push(`| ${r.id} | ${cel(r.forma_canonica)} | ${cel(r.forma_encontrada)} | ${r.para} (${cel(por.get(r.para)?.id_original ?? txtDe.get(por.get(r.para)?.texto)?.id_original)}) | ${NOME[quemDoSeg(r.para)] ?? '—'} | ${r.criterio} | ${r.status === 'confirmada' ? 'confirmada' : 'candidata (para análise)'} |`);
+  L.push('');
   const pers = registros.filter((r) => r.tipo === 'PER');
   const quemPer = (p) => new Set(p.evidencias.map((e) => quemDoOri(e.ori)).filter(Boolean));
   const comp = pers.filter((p) => quemPer(p).size > 1);

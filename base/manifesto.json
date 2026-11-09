@@ -1,7 +1,7 @@
 {
   "nome": "Base Pedagógica Mestra — Daily Routine English",
   "esquema": "base-pedagogica/esquema/2.2.0",
-  "estado": "consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados — aguardando revisão",
+  "estado": "consolidação em andamento: Lucas R1–R7 aprovado; Karla (R8) e Lukinhas (R9 + R14) consolidados, fechamento linguístico entregue — aguardando revisão",
   "arquitetura": "docs/base-pedagogica/arquitetura.md",
   "preservacao": {
     "branch": "arquivo/publicado-2026-11-08",
@@ -16,7 +16,7 @@
     {
       "ordem": 2,
       "fontes": "Karla e Lukinhas (R8, R9, R14, R11)",
-      "situacao": "consolidada — aguardando revisão"
+      "situacao": "consolidada; decisões DEC-000001/2, formas flexionadas e indicadores entregues — aguardando revisão"
     },
     {
       "ordem": 3,

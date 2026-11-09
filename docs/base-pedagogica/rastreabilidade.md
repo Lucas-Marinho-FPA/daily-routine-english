@@ -53,7 +53,18 @@ validador recalcula o hash e relê cada `ORI` na fonte, na versão registrada (`
 
 Nenhuma duplicidade é eliminada: juntar é citar várias evidências na mesma unidade, nunca apagar um `ORI`.
 
-## 5. Versões e histórico
+## 5. Fonte × análise × decisão
+
+Quatro camadas, sempre distinguíveis em cada classificação:
+
+| Camada | Onde fica | Exemplo (“get changed”) |
+|---|---|---|
+| 1. O que a fonte informou | `classificacoes_origem[]` (categoria literal + `ORI`) | R2 `collocation`; R9 `phrasal` |
+| 2. O que a análise identificou | `docs/base-pedagogica/analises/*.md` e a `justificativa` da `DEC` | get + particípio; não é partícula |
+| 3. Qual decisão foi aprovada | `DEC` (`status: aprovada`, `efeitos`) → `subtipo` + `subtipo_decisao` na unidade | `DEC-000001` → `collocation` |
+| 4. Quando e por quê | `DEC.data`, `DEC.aprovada_por`, `DEC.justificativa`; entrada no `historico` da unidade com `decisao`; `DIV` `resolvida` com `decisao` | 2026-11-09 |
+
+## 6. Versões e histórico
 
 - **`ORI` é imutável.** O gravador se recusa a regravar um `ORI` existente com conteúdo diferente; o validador compara
   com `HEAD`. Versão nova da fonte = novos `ORI` (`versao_fonte` nova), ligados aos anteriores.
@@ -63,7 +74,7 @@ Nenhuma duplicidade é eliminada: juntar é citar várias evidências na mesma u
 - **Arquivos**: `manifesto.json` lista cada arquivo de `base/` com SHA-256 e contagem; o git guarda o histórico; o
   esquema é versionado em `$id` (2.0.0).
 
-## 6. Da Base para o app (e de volta)
+## 7. Da Base para o app (e de volta)
 
 `id_original` e `local` carregam os identificadores que o app já usa (`R01.Q1`, `R01-B7`, caminhos das fontes em
 `dev/content/`). Qualquer conteúdo do app publicado em `b194cee` é localizável na Base, e uma futura geração do app a
