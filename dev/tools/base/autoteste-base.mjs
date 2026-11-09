@@ -56,6 +56,8 @@ try {
   caso('conservação (originais ≠ incorporados + pendentes)', 5, () => { const c = JSON.parse(ler('base/conferencia/FON-000001.json')); c.originais += 1; gravar('base/conferencia/FON-000001.json', JSON.stringify(c)); }, d);
   d = salva('docs/base-pedagogica/gerado/inventario.md');
   caso('Markdown editado à mão', 10, () => appendFileSync(join(T, 'docs/base-pedagogica/gerado/inventario.md'), 'edição\n'), d);
+  d = salva('docs/base-pedagogica/gerado/inventario.md');
+  caso('nome privado num documento da Base', 9, () => appendFileSync(join(T, 'docs/base-pedagogica/gerado/inventario.md'), `${Buffer.from('RUFD', 'base64').toString()}\n`), d);
   d = salva('base/manifesto.json');
   caso('manifesto desatualizado', 10, () => { const m = JSON.parse(ler('base/manifesto.json')); m.arquivos[0].sha256 = '0'.repeat(64); gravar('base/manifesto.json', JSON.stringify(m)); }, d);
   d = salva(ori);

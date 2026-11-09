@@ -4,7 +4,7 @@
 //   node dev/tools/base/validar.mjs --autoteste     planta um defeito por vez numa cópia em memória da base e exige reprovação
 // Opções: --imutavel-desde <rev> (padrão HEAD) · --protegidos <arquivo> (texto de material de terceiros, guardado FORA do
 //         repositório: nenhuma linha dele pode aparecer na base) · --sem-git-fonte (não reler as fontes no git).
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -214,6 +214,10 @@ export function validarBase({ rev = 'HEAD', gitFonte = true, protegidos = null }
   const b = lerBase();
   const v = validar({ registros: b.registros, ids: b.ids, conferencias: b.conferencias, gitFonte, protegidos });
   const erros = [...b.erros, ...v.erros];
+  // 9. nomes privados também nos documentos da Base (escritos à mão e gerados)
+  const docs = join(REPO, 'docs/base-pedagogica');
+  const andar = (d) => (existsSync(d) ? readdirSync(d).flatMap((n) => { const q = join(d, n); return statSync(q).isDirectory() ? andar(q) : q.endsWith('.md') ? [q] : []; }) : []);
+  for (const f of andar(docs)) if (PRIVATE.test(readFileSync(f, 'utf8'))) erros.push({ id: f.slice(REPO.length + 1), verificacao: 9, msg: 'padrão de nome privado no documento' });
   // 10. gerados
   const g = gerar();
   const man = JSON.parse(readFileSync(join(BASE, 'manifesto.json'), 'utf8'));

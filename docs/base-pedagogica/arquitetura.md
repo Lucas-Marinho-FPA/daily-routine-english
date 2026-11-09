@@ -67,7 +67,7 @@ ferramentas de `b194cee`, `base/` entraria no pré-cache e o service worker muda
 | `node dev/tools/base/gerar.mjs [--conferir]` | regenera a lista de arquivos do manifesto e `docs/base-pedagogica/gerado/*.md` |
 | `node dev/tools/base/validar.mjs` | valida a base inteira (verificações 1–11) |
 | `node dev/tools/base/validar.mjs --autoteste` | planta um defeito por vez numa cópia em memória da base real e exige reprovação (30 casos) |
-| `node dev/tools/base/autoteste-base.mjs` | idem para o que depende do git e do fluxo de consolidação (repositório temporário, 11 casos, inclui decisões) |
+| `node dev/tools/base/autoteste-base.mjs` | idem para o que depende do git e do fluxo de consolidação (repositório temporário, 12 casos, inclui decisões e nome privado em documento) |
 | `node dev/tools/base/autoteste-morfologia.mjs` | formas flexionadas: casos que devem e que não devem ser associados, candidatas, determinismo e base real (23 casos) |
 | `node dev/tools/base/consolidar.mjs decisoes` | reaplica as decisões aprovadas (`decisoes.mjs`) e as derivações globais, sem consolidar fontes |
 | `bash dev/tools/base/conferir-app.sh [ref]` | verificação 12: app gerado idêntico ao de `ref` (padrão `b194cee`) e `base/` fora do pré-cache |
@@ -96,7 +96,8 @@ O validador reprova se houver:
    ocorrência flexionada confirmada sem paradigma no catálogo; subtipo central sem fonte que o nomeie ou com fontes
    divergentes (salvo `DEC`); divergência de subtipo não registrada; categoria
    com subtipo diferente do catálogo; nível CEFR.
-9. **Nomes privados e terceiros** — padrão de nome privado (regra permanente do projeto); `ORI` de fonte
+9. **Nomes privados e terceiros** — padrão de nome privado (regra permanente do projeto) nos dados **e nos documentos
+   de `docs/base-pedagogica/`**; `ORI` de fonte
    `somente_referencia`; material de terceiros sem licença que não seja `somente_referencia`; com `--protegidos
    <arquivo fora do repositório>`, qualquer linha idêntica ao material protegido.
 10. **Gerados** — manifesto ou Markdown diferente do regenerado.

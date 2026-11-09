@@ -54,7 +54,7 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | Variações naturais e diferença entre erro e variação | não iniciado |
 | Conjunto de referência para validação do corretor | não iniciado |
 
-### Fase 3 — Integração das quatro atividades EAC — **não iniciada**
+### Fase 3 — Integração das quatro atividades do curso — **não iniciada**
 
 | Item planejado | Estado |
 |---|---|
@@ -120,6 +120,7 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | Base valida sem erros; idempotência em mais de uma ordem | concluído | §4 abaixo |
 | R1–R7 preservados; app e `gh-pages` intocados | concluído | §4 abaixo |
 | Documentos e checklists atualizados | concluído | este arquivo (incl. Fases 2–7), `arquitetura.md`, `modelo-de-dados.md`, `rastreabilidade.md`, `analises/get-changed.md`, `gerado/conferencia.md` (tabela de decisões) |
+| Incidente de privacidade no commit `5c9c8f7` | corrigido no commit seguinte | o título da Fase 3 levou ao repositório público uma sigla da lista de nomes protegidos do projeto; a varredura acusou, mas a cadeia de comandos não interrompeu o envio. Correção: título trocado por “atividades do curso”; o validador passou a varrer também `docs/base-pedagogica/` (verificação 9, com autoteste). O texto continua no histórico do `5c9c8f7` — removê-lo exigiria reescrever o histórico remoto (force push), o que depende de autorização expressa |
 | Revisão e aprovação do usuário | pendente | aguardando |
 
 ## 3. Histórico de commits da Fase 1 (conferido no git)
@@ -139,7 +140,8 @@ planejado **não** equivale a especificação detalhada concluída: as Fases 2 a
 | `d1c2017` | identificação conservadora de formas flexionadas (+ mecanismo de decisões) | fechamento 4.2 |
 | `a524f00` | decisões linguísticas aprovadas (get changed, take care of) | fechamento 4.2 |
 | `7deef8e` | indicadores de compartilhamento, documentação e checklists | fechamento 4.2 |
-| (este commit) | revisão de “take care of” (`DEC-000003` revoga `DEC-000002`), Fases 2–7 no checklist | ajustes finais 4.2 |
+| `5c9c8f7` | revisão de “take care of” (`DEC-000003` revoga `DEC-000002`), Fases 2–7 no checklist | ajustes finais 4.2 |
+| (este commit) | correção de privacidade no checklist; varredura de nomes privados estendida aos documentos | ajustes finais 4.2 |
 
 **Correção:** a mensagem de progresso da etapa 4.2 disse “cinco commits enviados”. O git mostra **quatro** commits
 nessa etapa (`35d60d1`, `d2e6c28`, `e165e7a`, `0145029`), todos enviados. O quinto contado era `e287651`, da etapa
@@ -170,7 +172,7 @@ anterior, que aparecia na saída de `git log -5`. A tabela do relatório (quatro
 | Validador integral | executado | nova `DEC`, unidade e `DIV` alteradas | 3.712 registros, 0 erros |
 | Autoteste do validador | executado | validador alterado (referência a `DEC` revogada) | 30/30 (inclui o caso novo) |
 | Ajv × interpretador | executado | esquema 2.3.0 (`DEC.revoga`) | 0 discordâncias |
-| Autoteste do fluxo com git | executado | consolidação alterada (resolução de `revoga`, mensagem de revisão) | 11/11 |
+| Autoteste do fluxo com git | executado | consolidação alterada (resolução de `revoga`, mensagem de revisão); depois, validador estendido aos documentos | 11/11; depois 12/12 |
 | Autoteste da morfologia | executado | derivação alterada | ok; relações (57 ocorrências) idênticas a `7deef8e` |
 | Idempotência em duas ordens | executado | consolidação e derivação alteradas | nenhuma diferença |
 | Integridade da decisão anterior | executado | regra de imutabilidade | `DEC-000002` idêntica (o diff de `decisoes.jsonl` só acrescenta uma linha) |
