@@ -19,6 +19,7 @@ import { journeyById, journeyView, journeyRegistry } from './engine/journeys.js'
 import { renderModules, renderModule, renderWords, plannedNotice } from './ui/modules.js';
 import { initPwa, confirmBoot, updateBanner, live } from './ui/pwa.js';
 import { renderCourse, renderCourseQuestion } from './ui/course.js';
+import { renderCoursePractice } from './ui/coursepractice.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -131,7 +132,7 @@ function route() {
       '': renderHome, explore: renderExplore, routine: renderRoutine, context: renderContext, category: renderCategory,
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
       modules: renderModules, module: renderModule, words: renderWords,
-      course: renderCourse, cq: renderCourseQuestion, // Curso — Atividades (independente das jornadas)
+      course: renderCourse, cq: renderCourseQuestion, cpr: renderCoursePractice, // Curso — Atividades (independente das jornadas)
     };
     // persona prevista (sem conteúdo ainda): telas de estudo da Daily Routine mostram “em preparação”
     const needsContent = ['explore', 'routine', 'context', 'category', 'session', 'lab', 'review', 'checklist', 'module', 'words'];

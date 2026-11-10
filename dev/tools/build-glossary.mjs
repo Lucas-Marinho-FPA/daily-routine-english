@@ -35,6 +35,10 @@ walk(g);
 const phrases = JSON.parse(readFileSync(join(ROOT, 'content/glossary/phrases-en-pt.json'), 'utf8'));
 for (const [en, pts] of Object.entries(phrases)) if (!en.startsWith('_')) add(en, pts);
 
+// entradas escritas para o app (fontes 1 e 2), sem o FreeDict: as práticas do Curso só usam como significado
+// confirmado o que vem daqui ou da versão validada pelo professor (engine/coursepractice.js)
+const trusted = Object.fromEntries([...out].map(([k, v]) => [k, v.slice()]));
+
 // 3) FreeDict (TEI): <orth> → <quote>
 const tei = readFileSync(join(ROOT, 'vendor/freedict-eng-por/eng-por.tei'), 'utf8');
 let fd = 0;
@@ -45,7 +49,8 @@ for (const e of tei.split('<entry>').slice(1)) {
   if (tr.length) { add(orth, tr); fd++; }
 }
 
-const data = { v: 1, sources: ['app', 'phrases-en-pt', 'FreeDict eng-por 0.3 (GPL-2.0+)'], en: Object.fromEntries([...out].sort()) };
+const data = { v: 1, sources: ['app', 'phrases-en-pt', 'FreeDict eng-por 0.3 (GPL-2.0+)'], en: Object.fromEntries([...out].sort()),
+  trusted: Object.fromEntries(Object.entries(trusted).sort()) };
 const gz = gzipSync(JSON.stringify(data), { level: 9 });
 writeFileSync(join(APP, 'data/glossary-en-pt.json.gz'), gz);
 writeFileSync(join(APP, 'data/glossary-LICENSE.txt'), [
@@ -60,4 +65,4 @@ writeFileSync(join(APP, 'data/glossary-LICENSE.txt'), [
   'Também contém pares inglês/português dos conteúdos do próprio app e um glossário de expressões escrito para o app.',
   '',
 ].join('\n'));
-console.log(JSON.stringify({ glossary: out.size, appPairs, freedict: fd, KB: Math.round(gz.length / 1024) }));
+console.log(JSON.stringify({ glossary: out.size, appPairs, trusted: Object.keys(trusted).length, freedict: fd, KB: Math.round(gz.length / 1024) }));

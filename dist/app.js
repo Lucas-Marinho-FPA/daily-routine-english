@@ -2269,11 +2269,11 @@
       writing: sents
     };
   }
-  function moduleStatus(view, moduleId, progress) {
+  function moduleStatus(view, moduleId, progress2) {
     const r = moduleOf(view, moduleId);
     if (!r) return null;
-    const cards = progress && progress.cards || {};
-    const recs = progress && progress.recordingsMeta || {};
+    const cards = progress2 && progress2.cards || {};
+    const recs = progress2 && progress2.recordingsMeta || {};
     const K = stageKeys(view, r);
     const count = (keys, f) => keys.filter((k) => f(cards[k])).length;
     const st = {};
@@ -2301,15 +2301,15 @@
     const next = stages.find((s) => s.state === "open") || null;
     return { id: r.id, stages, complete: stages.every((s) => s.complete), next, doneCount: stages.filter((s) => s.complete).length };
   }
-  function trackStatus(view, progress) {
-    const mods = view.routines.map((r) => moduleStatus(view, r.id, progress));
+  function trackStatus(view, progress2) {
+    const mods = view.routines.map((r) => moduleStatus(view, r.id, progress2));
     const total = mods.length * STAGES.length;
     const done = mods.reduce((n, m) => n + m.doneCount, 0);
     const current2 = mods.find((m) => !m.complete) || null;
     return { modules: mods, done, total, ratio: total ? done / total : 0, current: current2, next: current2 ? current2.next : null };
   }
-  function stageOpen(view, moduleId, stageId, progress) {
-    const m = moduleStatus(view, moduleId, progress);
+  function stageOpen(view, moduleId, stageId, progress2) {
+    const m = moduleStatus(view, moduleId, progress2);
     const s = m && m.stages.find((x) => x.id === stageId);
     return !!s && s.state !== "locked";
   }
@@ -3542,6 +3542,7 @@
 
   // app/js/engine/glossary.js
   var en = null;
+  var trusted = /* @__PURE__ */ new Map();
   var inverse = null;
   var loading = null;
   var PT_STOP = new Set(`a o as os um uma uns umas de do da dos das em no na nos nas num numa por pelo pela pelos pelas para pra pro
@@ -3601,6 +3602,7 @@
   var ptContent = (text) => (fold(text).match(/[a-z0-9]+(?:-[a-z0-9]+)*/g) || []).filter((w) => !PT_STOP.has(w) && !/^\d+$/.test(w)).map((w) => ({ w, s: ptStem(w) }));
   function setGlossary(data2) {
     en = new Map(Object.entries(data2.en || data2));
+    trusted = new Map(Object.entries(data2.trusted || {}));
     inverse = /* @__PURE__ */ new Map();
     for (const [k, list] of en) {
       for (const p of list) {
@@ -3614,6 +3616,7 @@
   }
   var glossaryReady = () => !!en;
   var translationsOf = (k) => en && en.get(k) || null;
+  var trustedOf = (k) => trusted.get(k) || null;
   function meaningsOf(stem) {
     if (!inverse) return null;
     if (inverse.has(stem)) return inverse.get(stem);
@@ -3708,10 +3711,10 @@
     let pos = 0, w = 0;
     for (const s of tokenSpans(text)) {
       if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
-      const norm = wordTokens(s.text).join(" ");
+      const norm2 = wordTokens(s.text).join(" ");
       const before = text.slice(0, s.start).trimEnd();
       const proper = /^[A-Z][a-z]/.test(s.text) && before !== "" && !/[.!?:]$/.test(before);
-      segs.push({ text: s.text, w: w++, norm, weak: WEAK.has(norm), proper });
+      segs.push({ text: s.text, w: w++, norm: norm2, weak: WEAK.has(norm2), proper });
       pos = s.end;
     }
     if (pos < text.length) segs.push({ text: text.slice(pos) });
@@ -3875,6 +3878,269 @@
       partial: available.length < dims.length,
       message: `Nota estimada com ${available.map((d) => d.label.toLowerCase()).join(", ")}. ${dims.filter((d) => d.score === null).map((d) => d.label).join(", ")}: n\xE3o avaliado.`
     };
+  }
+
+  // app/js/audio/recorder.js
+  var supported = () => !!(globalThis.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && globalThis.MediaRecorder);
+  function pickMime() {
+    const opts = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+    return opts.find((m) => MediaRecorder.isTypeSupported(m)) || "";
+  }
+  async function permissionState() {
+    try {
+      return (await navigator.permissions.query({ name: "microphone" })).state;
+    } catch (e) {
+      return "unknown";
+    }
+  }
+  async function start({ maxMs = 18e4, onLevel } = {}) {
+    if (!supported()) {
+      const e = new Error("unsupported");
+      e.userMessage = "Este navegador n\xE3o oferece grava\xE7\xE3o de \xE1udio neste modo de execu\xE7\xE3o.";
+      throw e;
+    }
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (err) {
+      const e = new Error(err.name);
+      e.userMessage = err.name === "NotAllowedError" ? "O microfone foi bloqueado. No Chrome: toque no cadeado ao lado do endere\xE7o \u2192 Permiss\xF5es \u2192 Microfone \u2192 Permitir. Depois tente de novo." : err.name === "NotFoundError" ? "Nenhum microfone encontrado." : `N\xE3o foi poss\xEDvel acessar o microfone (${err.name}).`;
+      throw e;
+    }
+    const mimeType = pickMime();
+    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : void 0);
+    const chunks = [];
+    rec.ondataavailable = (ev) => {
+      if (ev.data.size) chunks.push(ev.data);
+    };
+    const t0 = performance.now();
+    let raf = null, ctx = null;
+    if (onLevel && (globalThis.AudioContext || globalThis.webkitAudioContext)) {
+      ctx = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+      const src = ctx.createMediaStreamSource(stream);
+      const an = ctx.createAnalyser();
+      an.fftSize = 512;
+      src.connect(an);
+      const buf = new Uint8Array(an.fftSize);
+      const loop = () => {
+        an.getByteTimeDomainData(buf);
+        let s = 0;
+        for (const v of buf) s += ((v - 128) / 128) ** 2;
+        onLevel(Math.min(1, Math.sqrt(s / buf.length) * 4));
+        raf = requestAnimationFrame(loop);
+      };
+      loop();
+    }
+    const cleanup2 = () => {
+      if (raf) cancelAnimationFrame(raf);
+      if (ctx) ctx.close().catch(() => {
+      });
+      stream.getTracks().forEach((t) => t.stop());
+    };
+    let timer2 = null;
+    const stopped = new Promise((resolve) => {
+      rec.onstop = () => {
+        cleanup2();
+        clearTimeout(timer2);
+        resolve({ blob: new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" }), ms: Math.round(performance.now() - t0) });
+      };
+    });
+    rec.start(250);
+    timer2 = setTimeout(() => {
+      if (rec.state !== "inactive") rec.stop();
+    }, maxMs);
+    return {
+      stop: () => {
+        if (rec.state !== "inactive") rec.stop();
+        return stopped;
+      },
+      cancel: () => {
+        if (rec.state !== "inactive") rec.stop();
+      },
+      stopped
+    };
+  }
+
+  // app/js/audio/analysis.js
+  async function analyseBlob(blob, { expectedWords = 0, referenceSec = 0 } = {}) {
+    const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    try {
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      return analyseSamples(buf.getChannelData(0), buf.sampleRate, { expectedWords, referenceSec });
+    } catch (e) {
+      return null;
+    } finally {
+      ctx.close().catch(() => {
+      });
+    }
+  }
+  function analyseSamples(data2, sampleRate, { expectedWords = 0, referenceSec = 0 } = {}) {
+    const win = Math.round(sampleRate * 0.02);
+    const rms = [];
+    for (let i = 0; i + win <= data2.length; i += win) {
+      let s = 0;
+      for (let j = i; j < i + win; j++) s += data2[j] * data2[j];
+      rms.push(Math.sqrt(s / win));
+    }
+    if (!rms.length) return null;
+    const sorted = [...rms].sort((a, b) => a - b);
+    const noise = sorted[Math.floor(sorted.length * 0.15)] || 0;
+    const peak = sorted[Math.floor(sorted.length * 0.98)] || 0;
+    const thr = Math.max(8e-3, noise * 2.5, peak * 0.12);
+    const voiced = rms.map((r) => r > thr);
+    const first = voiced.indexOf(true), last = voiced.lastIndexOf(true);
+    const totalSec = rms.length * 0.02;
+    if (first === -1) return { totalSec, speechSec: 0, voicedSec: 0, pauses: 0, longPauses: 0, wpm: 0, silent: true, envelope: downsample(rms, 120), peak };
+    let pauses = 0, longPauses = 0, run2 = 0;
+    for (let i = first; i <= last; i++) {
+      if (!voiced[i]) run2++;
+      else {
+        if (run2 >= 15) pauses++;
+        if (run2 >= 40) longPauses++;
+        run2 = 0;
+      }
+    }
+    const speechSec = (last - first + 1) * 0.02;
+    const voicedSec = voiced.filter(Boolean).length * 0.02;
+    const wpm = expectedWords && speechSec > 0.5 ? Math.round(expectedWords / speechSec * 60) : 0;
+    return {
+      totalSec: round(totalSec),
+      speechSec: round(speechSec),
+      voicedSec: round(voicedSec),
+      pauses,
+      longPauses,
+      wpm,
+      paceVsReference: referenceSec ? round(speechSec / referenceSec) : null,
+      clipped: peak > 0.98,
+      quiet: peak < 0.05,
+      silent: false,
+      envelope: downsample(rms, 120),
+      peak
+    };
+  }
+  var round = (x) => Math.round(x * 10) / 10;
+  var fmt = (x) => String(x).replace(".", ",");
+  function downsample(arr, n) {
+    if (arr.length <= n) return arr;
+    const out = [];
+    const step = arr.length / n;
+    for (let i = 0; i < n; i++) {
+      const slice = arr.slice(Math.floor(i * step), Math.floor((i + 1) * step));
+      out.push(Math.max(...slice));
+    }
+    return out;
+  }
+  function describe(a, { expectedWords = 0 } = {}) {
+    if (!a) return { verdict: "inconclusive", lines: ["N\xE3o foi poss\xEDvel analisar o \xE1udio neste aparelho."] };
+    if (a.silent || a.speechSec < 0.4) return { verdict: "inconclusive", lines: ["Quase n\xE3o captei voz. Fale mais perto do microfone e tente de novo."] };
+    const lines = [];
+    if (a.quiet) lines.push("Volume baixo: aproxime o celular da boca.");
+    if (a.clipped) lines.push("Volume muito alto (distor\xE7\xE3o): afaste um pouco o celular.");
+    lines.push(`Fala: ${fmt(a.speechSec)} s \xB7 ${a.pauses} pausa(s)${a.longPauses ? `, ${a.longPauses} longa(s)` : ""}.`);
+    const unreliable = a.wpm && (a.wpm > 260 || a.wpm < 40);
+    if (a.paceVsReference && !unreliable) {
+      const p = a.paceVsReference;
+      lines.push(p > 1.8 ? "Ritmo bem mais lento que a refer\xEAncia \u2014 normal no in\xEDcio; tente ligar as palavras." : p > 1.3 ? "Ritmo um pouco mais lento que a refer\xEAncia." : p < 0.75 ? "Mais r\xE1pido que a refer\xEAncia: confira se n\xE3o \u201Cengoliu\u201D palavras." : "Ritmo pr\xF3ximo ao da refer\xEAncia.");
+    }
+    if (a.wpm && expectedWords >= 8) {
+      if (a.wpm > 260 || a.wpm < 40) lines.push("Ritmo n\xE3o estimado: a grava\xE7\xE3o parece curta demais ou com ru\xEDdo para medir com seguran\xE7a.");
+      else lines.push(`\u2248 ${a.wpm} palavras/min (conversa natural: ~120\u2013160).`);
+    }
+    return { verdict: "ok", lines };
+  }
+
+  // app/js/ui/asrsetup.js
+  var mb = (bytes) => String(Math.round(bytes / 1048576));
+  async function runInstall(box2, { onProgressText } = {}) {
+    const fill = h("i", { style: { width: "0%" } });
+    const bar2 = h("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": 0, "aria-label": "Progresso do download" }, fill);
+    const label = h("div", { class: "small muted", text: "Preparando o download\u2026" });
+    clear(box2).append(bar2, label);
+    try {
+      await install({
+        onProgress: (f, done, total) => {
+          const pct = Math.round(f * 100);
+          fill.style.width = `${pct}%`;
+          bar2.setAttribute("aria-valuenow", String(pct));
+          label.textContent = `Baixando\u2026 ${mb(done)} de ${mb(total)} MB`;
+          onProgressText && onProgressText(pct);
+        }
+      });
+      fill.style.width = "100%";
+      label.textContent = "Conferindo os arquivos\u2026";
+      const v = await verify();
+      if (!v.ok) throw new Error("os arquivos baixados est\xE3o incompletos");
+      clear(box2).append(h("div", { class: "setup-done", role: "status" }, icon("check"), "Reconhecimento instalado. Funciona offline."));
+      return true;
+    } catch (e) {
+      clear(box2).append(h(
+        "div",
+        { class: "setup-error", role: "alert" },
+        h("b", { text: "N\xE3o foi poss\xEDvel baixar agora." }),
+        " ",
+        h("span", { text: navigator.onLine === false ? "Voc\xEA est\xE1 sem internet. Conecte-se e tente de novo." : `Verifique a conex\xE3o e tente de novo (${e.message}).` }),
+        h("div", { class: "tiny muted", text: "O que j\xE1 foi baixado \xE9 aproveitado na pr\xF3xima tentativa." })
+      ));
+      return false;
+    }
+  }
+  function asrSetupCard(App2, { onInstalled, onLater } = {}) {
+    const progress2 = h("div", { class: "setup-progress" });
+    const primary = h("button", { class: "btn primary", type: "button" }, icon("download"), "Baixar reconhecimento");
+    const later = h("button", { class: "btn ghost", type: "button" }, "Agora n\xE3o");
+    const card = h(
+      "section",
+      { class: "card setup-card", "data-role": "asr-setup", "aria-labelledby": "asr-setup-title" },
+      h("div", { class: "setup-head" }, h("span", { class: "setup-icon", "aria-hidden": "true" }, icon("mic")), h("h3", { id: "asr-setup-title", text: "Avalie sua pron\xFAncia" })),
+      h("p", { text: "Baixe o reconhecimento de fala para analisar suas grava\xE7\xF5es no pr\xF3prio aparelho, sem enviar seu \xE1udio para a nuvem." }),
+      h(
+        "ul",
+        { class: "setup-facts" },
+        h("li", {}, h("b", { text: `${sizeLabel()}` }), " de download, uma \xFAnica vez"),
+        h("li", { text: "Precisa de internet s\xF3 para baixar" }),
+        h("li", { text: "Depois funciona offline" }),
+        h("li", { text: "Tudo \xE9 processado no aparelho" })
+      ),
+      progress2,
+      h("div", { class: "row setup-actions" }, primary, later)
+    );
+    primary.onclick = async () => {
+      primary.disabled = true;
+      later.disabled = true;
+      const ok = await runInstall(progress2);
+      if (ok) {
+        App2.state.settings.asrPrompt = "installed";
+        App2.flush().catch(() => {
+        });
+        toast("Reconhecimento instalado. Suas grava\xE7\xF5es ser\xE3o analisadas automaticamente.", 4e3);
+        onInstalled && onInstalled();
+        return;
+      }
+      clear(primary).append(icon("refresh"), "Tentar de novo");
+      primary.disabled = false;
+      later.disabled = false;
+    };
+    later.onclick = () => {
+      App2.state.settings.asrPrompt = "later";
+      App2.flush().catch(() => {
+      });
+      onLater && onLater();
+    };
+    return card;
+  }
+  function asrOffNotice(App2, { onInstalled } = {}) {
+    const box2 = h("div", { class: "asr-off", "data-role": "asr-off" });
+    const open = () => clear(box2).append(asrSetupCard(App2, { onInstalled, onLater: () => {
+      clear(box2).append(...line());
+    } }));
+    const line = () => [
+      h("span", { class: "small muted", text: "An\xE1lise autom\xE1tica desligada at\xE9 instalar o reconhecimento." }),
+      h("button", { class: "link-btn", type: "button", onclick: open }, "Instalar")
+    ];
+    box2.append(...line());
+    return box2;
   }
 
   // app/js/engine/coherence.js
@@ -4440,14 +4706,15 @@
         }
       }
       if (found) {
-        out.push(found);
+        out.push({ ...found, i });
         i += found.n;
         continue;
       }
+      const at = i;
       const w = toks[i++];
       const base = w.replace(/'s$/, "");
       if (isFunctionWord(base) || WEAK2.has(w) || WEAK2.has(base) || /^\d+$/.test(base) || skip.has(base) || base.length < 2) continue;
-      out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, "")) || null, n: 1 });
+      out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, "")) || null, n: 1, i: at });
     }
     return { toks, units: out };
   }
@@ -4533,6 +4800,697 @@
   }
   var CHECK_LABEL = { ok: "Adequada", incompatible: "Incompat\xEDvel", inconclusive: "Inconclusiva", review: "Revisar", attention: "Aten\xE7\xE3o", empty: "Sem tradu\xE7\xE3o" };
   var CHECK_CLASS = { ok: "ok", incompatible: "bad", inconclusive: "warn", review: "warn", attention: "bad", empty: "" };
+
+  // app/js/engine/coursepractice.js
+  var PRACTICE_KEY = "course-practice";
+  var MAX_WORDS = 30;
+  var SKILL_LABEL = {
+    mean: "Significado",
+    recall: "Lembrar a express\xE3o",
+    cloze: "Completar a frase",
+    write: "Escrever o significado",
+    lisItem: "Ouvir e identificar",
+    lisBlock: "Ouvir a frase",
+    spkItem: "Falar a express\xE3o",
+    spkBlock: "Falar a frase",
+    rev: "Tradu\xE7\xE3o reversa"
+  };
+  var MODES = {
+    vocab: { label: "Vocabul\xE1rio e express\xF5es", skills: ["mean", "recall", "cloze", "write"] },
+    listen: { label: "Escuta", skills: ["lisItem", "lisBlock"] },
+    speak: { label: "Fala", skills: ["spkItem", "spkBlock"] },
+    rev: { label: "Tradu\xE7\xE3o reversa", skills: ["rev"] },
+    errors: { label: "Repetir erros", skills: null }
+  };
+  var norm = (s) => fold(s).replace(/[^a-z0-9']+/g, " ").trim();
+  var enTokens = (s) => fold(s).match(/[a-z0-9']+/g) || [];
+  var keyOf = (skill, target) => `${skill}|${target}`;
+  var splitKey = (k) => {
+    const i = k.indexOf("|");
+    return [k.slice(0, i), k.slice(i + 1)];
+  };
+  var blockId = (q, b) => `b:${q}.${b}`;
+  function variantIn2(v, pt) {
+    const vc = ptContent(v);
+    if (!vc.length) return ` ${norm(pt)} `.includes(` ${norm(v)} `);
+    const ans = ptContent(pt);
+    const need = vc.length <= 2 ? vc.length : Math.ceil(vc.length * 2 / 3);
+    return vc.filter((c) => ans.some((a) => stemEq(a.s, c.s))).length >= need;
+  }
+  function teacherConfirmed(activities) {
+    const out = /* @__PURE__ */ new Map();
+    for (const act of activities) for (const q of act.questions) {
+      if (!isValidated(act, q.n)) continue;
+      q.blocks.forEach((en2, b) => {
+        const pt = (act.teacher[q.n].blocks || [])[b] || "";
+        if (!pt.trim()) return;
+        for (const u of unitsOf(en2, namesIn(en2)).units) {
+          if (!u.pts) continue;
+          const ok = u.pts.filter((v) => variantIn2(v, pt));
+          if (ok.length) out.set(u.en, [.../* @__PURE__ */ new Set([...out.get(u.en) || [], ...ok])]);
+        }
+      });
+    }
+    return out;
+  }
+  function extractItems(act, confirmed = /* @__PURE__ */ new Map()) {
+    const map = /* @__PURE__ */ new Map();
+    for (const q of act.questions) q.blocks.forEach((en2, b) => {
+      const { toks, units } = unitsOf(en2, namesIn(en2));
+      for (const u of units) {
+        if (!u.pts || !u.pts.length || u.n === 1 && u.en.length < 3 || typeof u.i !== "number") continue;
+        const id = `u:${u.en}`;
+        let it = map.get(id);
+        if (!it) {
+          it = { id, en: u.en, pts: u.pts.slice(), kind: u.n > 1 ? "expr" : "word", src: [] };
+          map.set(id, it);
+        }
+        if (!it.src.some((s) => s.q === q.n && s.b === b)) it.src.push({ q: q.n, b, surface: toks.slice(u.i, u.i + u.n) });
+      }
+    });
+    return [...map.values()].map((it) => {
+      const byTeacher = confirmed.get(it.en) || [];
+      const byApp = trustedOf(it.en) || [];
+      const meanings = [.../* @__PURE__ */ new Set([...byTeacher, ...byApp])];
+      return { ...it, meanings, via: byTeacher.length ? "professor" : byApp.length ? "app" : null, reliable: meanings.length > 0 };
+    });
+  }
+  var meaningLabel = (it) => (it.meanings && it.meanings.length ? it.meanings : it.pts).slice(0, 2).join(" / ");
+  var VIA_LABEL = { professor: "sentido confirmado na vers\xE3o validada pelo professor", app: "gloss\xE1rio do app" };
+  function locateIn(text, surface2) {
+    if (!surface2 || !surface2.length) return null;
+    const esc = surface2.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/'/g, "['\u2019]"));
+    const W = "A-Za-z0-9'\u2019";
+    const re = new RegExp(`(^|[^${W}])(${esc.join(`[^${W}]+`)})(?=$|[^${W}])`, "i");
+    const m = re.exec(String(text));
+    if (!m) return null;
+    const start2 = m.index + m[1].length, end = start2 + m[2].length;
+    return { before: text.slice(0, start2), target: text.slice(start2, end), after: text.slice(end) };
+  }
+  var stemsOf = (it) => it.pts.flatMap((p) => ptContent(p).map((c) => c.s));
+  var relatedEn = (a, b) => a.en === b.en || lemma(a.en) === lemma(b.en) || a.en.split(" ").some((w) => b.en.split(" ").some((x) => !isFunctionWord(w) && (w === x || lemma(w) === lemma(x))));
+  function disjoint(a, b) {
+    if (relatedEn(a, b)) return false;
+    const sa = stemsOf(a), sb = stemsOf(b);
+    if (sa.some((x) => sb.some((y) => stemEq(x, y)))) return false;
+    if (a.pts.some((p) => b.pts.some((q) => norm(p) === norm(q)))) return false;
+    const back = (x, y) => stemsOf(x).some((s) => {
+      const m = meaningsOf(s);
+      return m && [...m].some((e) => e === y.en || lemma(e) === lemma(y.en));
+    });
+    return !back(a, b) && !back(b, a);
+  }
+  function distractorsFor(it, pool, rand = Math.random) {
+    const out = [];
+    for (const x of shuffle(pool, rand)) {
+      if (x === it || !x.reliable || !disjoint(it, x) || out.some((y) => !disjoint(x, y))) continue;
+      if (meaningLabel(x) === meaningLabel(it)) continue;
+      out.push(x);
+      if (out.length === 3) break;
+    }
+    return out;
+  }
+  function blocksOf(act) {
+    return act.questions.flatMap((q) => q.blocks.map((en2, b) => ({ id: blockId(q.n, b), q: q.n, b, en: en2, words: enTokens(en2).length })));
+  }
+  function candidates(act, items = extractItems(act)) {
+    const keys = [];
+    const rel = items.filter((i) => i.reliable);
+    const blocks = blocksOf(act);
+    const fixed = () => 0.5;
+    for (const it of rel) {
+      if (distractorsFor(it, rel, fixed).length >= 2) keys.push(keyOf("mean", it.id), keyOf("recall", it.id));
+      keys.push(keyOf("write", it.id));
+    }
+    for (const it of items) if (clozeAllowed(it) && clozeSource(act, it)) keys.push(keyOf("cloze", it.id));
+    const listenItems = items.filter((i) => i.kind === "expr" || i.en.length >= 4);
+    if (distinctTexts(listenItems.map((i) => surfaceText(act, i))) >= 3) for (const it of listenItems) keys.push(keyOf("lisItem", it.id));
+    const sayable = blocks.filter((b) => b.words >= 2 && b.words <= MAX_WORDS);
+    if (distinctTexts(sayable.map((b) => b.en)) >= 3) for (const b of sayable) keys.push(keyOf("lisBlock", b.id));
+    for (const it of items.filter((i) => i.kind === "expr")) keys.push(keyOf("spkItem", it.id));
+    for (const b of sayable) keys.push(keyOf("spkBlock", b.id));
+    for (const b of blocks) if (reverseSource(act, b)) keys.push(keyOf("rev", b.id));
+    const counts = {};
+    for (const k of keys) {
+      const s = splitKey(k)[0];
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return { keys, items, blocks, counts };
+  }
+  var distinctTexts = (list) => new Set(list.map(norm)).size;
+  function surfaceText(act, it) {
+    for (const s of it.src) {
+      const q = act.questions.find((x) => x.n === s.q);
+      const loc = q && locateIn(q.blocks[s.b], s.surface);
+      if (loc) return loc.target;
+    }
+    return it.en;
+  }
+  var clozeAllowed = (it) => it.reliable || it.kind === "expr" && it.src.some((s) => s.surface.join(" ") === it.en);
+  function clozeSource(act, it) {
+    for (const s of it.src) {
+      const q = act.questions.find((x) => x.n === s.q);
+      const text = q && q.blocks[s.b];
+      const loc = text && locateIn(text, s.surface);
+      if (loc && enTokens(loc.before + " " + loc.after).length >= 2) return { ...s, text, loc };
+    }
+    return null;
+  }
+  function reverseSource(act, blk) {
+    if (!isValidated(act, blk.q) || blk.words > MAX_WORDS || blk.words < 1) return null;
+    const pt = ((act.teacher[blk.q].blocks || [])[blk.b] || "").trim();
+    return pt ? { pt, en: blk.en } : null;
+  }
+  function makeExercise2(act, cand, key, rand = Math.random) {
+    const [skill, target] = splitKey(key);
+    const it = cand.items.find((x) => x.id === target);
+    const blk = cand.blocks.find((x) => x.id === target);
+    const base = { key, skill, label: SKILL_LABEL[skill] };
+    const srcOf2 = (s) => s ? { q: s.q, b: s.b } : null;
+    const rel = cand.items.filter((x) => x.reliable);
+    const choice = (correctText, others) => shuffle([{ text: correctText, correct: true }, ...others.map((t) => ({ text: t, correct: false }))], rand);
+    switch (skill) {
+      case "mean":
+      case "recall": {
+        if (!it || !it.reliable) return null;
+        const ds = distractorsFor(it, rel, rand);
+        if (ds.length < 2) return null;
+        const ctx = clozeSource(act, it) || it.src[0];
+        const context = ctx.text || blockText(act, ctx);
+        return skill === "mean" ? { ...base, item: it, en: it.en, context, options: choice(meaningLabel(it), ds.map(meaningLabel)), src: srcOf2(it.src[0]) } : { ...base, item: it, pt: meaningLabel(it), context: null, options: choice(it.en, ds.map((d) => d.en)), src: srcOf2(it.src[0]) };
+      }
+      case "cloze": {
+        const c = it && clozeAllowed(it) && clozeSource(act, it);
+        if (!c) return null;
+        return { ...base, item: it, before: c.loc.before, after: c.loc.after, answer: c.loc.target, hint: it.reliable ? meaningLabel(it) : null, first: c.loc.target[0], letters: c.loc.target.replace(/[^A-Za-z]/g, "").length, src: srcOf2(c) };
+      }
+      case "write":
+        if (!it || !it.reliable) return null;
+        return { ...base, item: it, en: it.en, context: blockText(act, it.src[0]), src: srcOf2(it.src[0]) };
+      case "lisItem": {
+        if (!it) return null;
+        const text = surfaceText(act, it);
+        const others = shuffle(cand.items.filter((x) => x !== it && (x.kind === "expr" || x.en.length >= 4)), rand).map((x) => surfaceText(act, x)).filter((t, i, a) => norm(t) !== norm(text) && a.findIndex((y) => norm(y) === norm(t)) === i).slice(0, 3);
+        if (others.length < 2) return null;
+        return { ...base, item: it, text, options: choice(text, others), src: srcOf2(it.src[0]) };
+      }
+      case "lisBlock": {
+        if (!blk) return null;
+        const others = shuffle(cand.blocks.filter((x) => x !== blk && x.words >= 2 && x.words <= MAX_WORDS), rand).map((x) => x.en).filter((t, i, a) => norm(t) !== norm(blk.en) && a.findIndex((y) => norm(y) === norm(t)) === i).slice(0, 2);
+        if (others.length < 2) return null;
+        return { ...base, text: blk.en, options: choice(blk.en, others), src: { q: blk.q, b: blk.b } };
+      }
+      case "spkItem":
+        return it ? { ...base, item: it, text: surfaceText(act, it), meaning: it.reliable ? meaningLabel(it) : null, src: srcOf2(it.src[0]) } : null;
+      case "spkBlock":
+        return blk ? { ...base, text: blk.en, src: { q: blk.q, b: blk.b } } : null;
+      case "rev": {
+        const r = blk && reverseSource(act, blk);
+        return r ? { ...base, pt: r.pt, answer: r.en, src: { q: blk.q, b: blk.b } } : null;
+      }
+      default:
+        return null;
+    }
+  }
+  function blockText(act, s) {
+    const q = s && act.questions.find((x) => x.n === s.q);
+    return q ? q.blocks[s.b] : "";
+  }
+  function checkMeaning(it, pt) {
+    if (!String(pt || "").trim()) return { result: "empty" };
+    const ans = ptContent(pt);
+    const hit = (it.meanings || []).find((v) => variantIn2(v, pt));
+    if (hit) return { result: "good", via: hit };
+    const other = it.pts.find((v) => variantIn2(v, pt));
+    if (other) return { result: "unverified", other };
+    for (const a of ans) {
+      const m = meaningsOf(a.s);
+      if (m && [...m].some((e) => e === it.en || lemma(e) === lemma(it.en))) return { result: "unverified", other: a.w };
+    }
+    if (ans.length && ans.every((a) => meaningsOf(a.s))) return { result: "bad" };
+    return { result: "unverified" };
+  }
+  function checkCloze(answer, typed) {
+    const t = enTokens(typed), a = enTokens(answer);
+    if (!t.length) return { result: "empty" };
+    if (t.join(" ") === a.join(" ")) return { result: "good" };
+    if (t.length === a.length && t.every((w, i) => lemma(w) === lemma(a[i]))) return { result: "ok", note: `No texto: \u201C${answer}\u201D.` };
+    return { result: "bad" };
+  }
+  function checkReverse(original, typed) {
+    const t = enTokens(typed), o = enTokens(original);
+    if (!t.length) return { result: "empty" };
+    if (t.join(" ") === o.join(" ")) return { result: "good", missing: [], extra: [] };
+    const content = (list) => list.filter((w) => !isFunctionWord(w) && !isFunctionWord(lemma(w)));
+    const oc = content(o), tc = content(t);
+    const has = (list, w) => list.some((x) => x === w || lemma(x) === lemma(w));
+    const missing = oc.filter((w) => !has(tc, w));
+    const extra = tc.filter((w) => !has(oc, w));
+    const cov = oc.length ? (oc.length - missing.length) / oc.length : t.length ? 1 : 0;
+    if (cov >= 0.8 && extra.length <= 1) return { result: "ok", missing, extra };
+    if (cov < 0.4) return { result: "bad", missing, extra };
+    return { result: "unverified", missing, extra };
+  }
+  var emptyProgress2 = () => ({ v: 1, acts: {} });
+  function validProgress(p) {
+    return p && p.v === 1 && p.acts && typeof p.acts === "object" ? p : emptyProgress2();
+  }
+  function actProgress(p, actId) {
+    return p.acts[actId] || (p.acts[actId] = { cards: {}, stats: { attempts: 0, good: 0, ok: 0, bad: 0, unverified: 0 }, session: null });
+  }
+  var GRADED = { good: "good", ok: "ok", bad: "bad" };
+  function record(p, actId, key, result, { today = dayNumber(), now = Date.now() } = {}) {
+    if (!["good", "ok", "bad", "unverified"].includes(result)) return null;
+    const ap = actProgress(p, actId);
+    ap.stats.attempts++;
+    ap.stats[result]++;
+    const card = ap.cards[key] || { ...newCard(key, today), unverified: 0 };
+    ap.cards[key] = GRADED[result] ? { ...grade(card, GRADED[result], today), unverified: card.unverified || 0, at: now } : { ...card, unverified: (card.unverified || 0) + 1, at: now };
+    return ap.cards[key];
+  }
+  function buildQueue(cand, ap, mode, { today = dayNumber(), size = 10, rand = Math.random } = {}) {
+    const m = MODES[mode];
+    if (!m) return [];
+    const pool = mode === "errors" ? cand.keys.filter((k) => ap.cards[k] && ap.cards[k].lastResult === "bad") : cand.keys.filter((k) => m.skills.includes(splitKey(k)[0]));
+    const due = shuffle(pool.filter((k) => ap.cards[k] && ap.cards[k].due <= today), rand);
+    const fresh = shuffle(pool.filter((k) => !ap.cards[k]), rand);
+    const rest = pool.filter((k) => ap.cards[k] && ap.cards[k].due > today).sort((a, b) => ap.cards[a].due - ap.cards[b].due);
+    return [...due, ...fresh, ...rest].slice(0, size);
+  }
+  function startSession(ap, mode, keys, now = Date.now()) {
+    ap.session = { mode, keys: keys.slice(), i: 0, results: {}, startedAt: now };
+    return ap.session;
+  }
+  var sessionOpen = (ap) => !!(ap && ap.session && ap.session.i < ap.session.keys.length);
+  var sessionErrors = (s) => s ? s.keys.filter((k) => s.results[k] === "bad") : [];
+  function practiceSummary(ap, cand, today = dayNumber()) {
+    const keys = new Set(cand.keys);
+    const cards = Object.values(ap ? ap.cards : {}).filter((c) => keys.has(c.k));
+    return {
+      available: cand.keys.length,
+      practised: cards.length,
+      due: cards.filter((c) => c.due <= today).length,
+      errors: cards.filter((c) => c.lastResult === "bad").length,
+      stats: ap ? ap.stats : { attempts: 0, good: 0, ok: 0, bad: 0, unverified: 0 }
+    };
+  }
+
+  // app/js/ui/coursepractice.js
+  var href = (id, q = "") => `#/cpr/${encodeURIComponent(id)}${q}`;
+  var RESULT = {
+    good: { cls: "ok", text: "Certo" },
+    ok: { cls: "ok", text: "Aceito, com ressalva" },
+    bad: { cls: "bad", text: "N\xE3o confere" },
+    unverified: { cls: "warn", text: "Sem evid\xEAncia para corrigir (n\xE3o conta como erro)" }
+  };
+  var srcText = (s) => s ? `Origem: quest\xE3o ${s.q}, ${s.b === 0 ? "t\xEDtulo da quest\xE3o" : `bloco ${s.b + 1}`}` : "";
+  var progress = null;
+  async function loadProgress() {
+    if (!progress) progress = validProgress(await getKv(PRACTICE_KEY).catch(() => null));
+    return progress;
+  }
+  function saveProgress() {
+    return putKv(PRACTICE_KEY, progress).catch((e) => {
+      console.error("Falha ao salvar a pr\xE1tica", e);
+      toast("N\xE3o foi poss\xEDvel salvar a pr\xE1tica.");
+    });
+  }
+  function renderCoursePractice(App2, r) {
+    const view = App2.layout("Praticar", { back: "#/course" });
+    let alive = true;
+    let cleanupEx = null;
+    view.append(h("p", { class: "muted small", text: "Carregando\u2026" }));
+    Promise.all([loadCourse(), loadProgress(), loadGlossary(), loadLexicon()]).then(([d]) => {
+      if (!alive) return;
+      clear(view);
+      const act = d.activities[r.arg];
+      if (!act) {
+        view.append(h("div", { class: "notice bad" }, "Atividade n\xE3o encontrada neste aparelho. ", h("a", { href: "#/course", text: "Voltar" })));
+        return;
+      }
+      const acts = Object.values(d.activities);
+      const items = extractItems(act, teacherConfirmed(acts));
+      const cand = candidates(act, items);
+      const ap = actProgress(progress, act.id);
+      if (r.params.s && sessionOpen(ap)) runSession(act, cand, ap);
+      else if (r.params.s && ap.session) endOfSession(act, cand, ap);
+      else home(act, cand, ap);
+    });
+    function home(act, cand, ap) {
+      const s = practiceSummary(ap, cand);
+      const n = (skills) => skills.reduce((t, k) => t + (cand.counts[k] || 0), 0);
+      const start2 = (mode) => {
+        const keys = buildQueue(cand, ap, mode);
+        if (!keys.length) return;
+        startSession(ap, mode, keys);
+        saveProgress().then(() => App2.go(href(act.id, "?s=1")));
+      };
+      const modeBtn = (mode, count, why) => h(
+        "div",
+        { style: { marginTop: "10px" } },
+        h(
+          "button",
+          { class: "btn block", "data-role": `mode-${mode}`, disabled: !count, onclick: () => start2(mode) },
+          h("span", { class: "grow", style: { textAlign: "left" }, text: MODES[mode].label }),
+          h("span", { class: "small muted", text: count ? `${count}` : "\u2014" })
+        ),
+        !count && why ? h("p", { class: "tiny muted", style: { margin: "4px 2px 0" }, text: why }) : null
+      );
+      const validated = act.questions.filter((q) => act.teacher[q.n] && act.teacher[q.n].validatedAt).length;
+      view.append(...[
+        h(
+          "section",
+          { class: "card", "data-role": "practice-head" },
+          h("div", { class: "small muted", text: act.title }),
+          h("p", { class: "small", style: { margin: "6px 0" }, text: "Pr\xE1ticas para fixar o vocabul\xE1rio, as express\xF5es e as frases desta atividade. A tradu\xE7\xE3o continua sendo a atividade principal: nada aqui muda as suas respostas, as corre\xE7\xF5es do professor ou a exporta\xE7\xE3o." }),
+          h(
+            "div",
+            { class: "small", "data-role": "practice-summary" },
+            `Praticados: ${s.practised} de ${s.available} exerc\xEDcios poss\xEDveis \xB7 para revisar hoje: ${s.due} \xB7 com erro: ${s.errors}`
+          ),
+          h("div", { class: "small muted", text: `Tentativas: ${s.stats.attempts} \xB7 certas: ${s.stats.good + s.stats.ok} \xB7 erros: ${s.stats.bad} \xB7 sem evid\xEAncia: ${s.stats.unverified}` }),
+          h("a", { class: "btn block", href: `#/cq/${encodeURIComponent(act.id)}`, style: { marginTop: "10px" }, "data-role": "back-to-activity" }, icon("back"), "Voltar \xE0 tradu\xE7\xE3o")
+        ),
+        sessionOpen(ap) ? h(
+          "button",
+          { class: "btn primary block", style: { marginTop: "12px" }, "data-role": "resume-practice", onclick: () => App2.go(href(act.id, "?s=1")) },
+          icon("play"),
+          `Continuar a pr\xE1tica (${MODES[ap.session.mode].label}, ${ap.session.i + 1} de ${ap.session.keys.length})`
+        ) : null,
+        h(
+          "section",
+          { class: "card", style: { marginTop: "12px" }, "data-role": "practice-modes" },
+          h("h3", { style: { margin: 0 }, text: "Escolha a pr\xE1tica" }),
+          modeBtn("vocab", n(MODES.vocab.skills), "Nenhum vocabul\xE1rio com sentido confirmado nesta atividade ainda."),
+          modeBtn("listen", n(MODES.listen.skills), "Poucas frases ou express\xF5es distintas para montar as alternativas."),
+          modeBtn("speak", n(MODES.speak.skills), "Nenhuma frase curta o bastante para a fala."),
+          modeBtn("rev", n(MODES.rev.skills), validated ? "Sem blocos validados pelo professor curtos o bastante." : "Dispon\xEDvel s\xF3 nas quest\xF5es validadas pelo professor (nenhuma nesta atividade ainda)."),
+          modeBtn("errors", s.errors, "Nenhum erro para repetir.")
+        ),
+        h("p", {
+          class: "tiny muted",
+          style: { marginTop: "10px" },
+          "data-role": "practice-sources",
+          text: `Gerado neste aparelho a partir do texto importado. Significados: s\xF3 os confirmados na vers\xE3o validada pelo professor ou no gloss\xE1rio do app (orienta\xE7\xE3o de estudo, n\xE3o \xE9 resposta oficial). Escuta e fala usam a voz do sistema do aparelho, n\xE3o grava\xE7\xF5es do curso. Frases com at\xE9 ${MAX_WORDS} palavras.`
+        })
+      ].filter(Boolean));
+    }
+    function runSession(act, cand, ap) {
+      const sess = ap.session;
+      const key = sess.keys[sess.i];
+      const ex = makeExercise2(act, cand, key);
+      if (!ex) {
+        sess.i++;
+        saveProgress().then(() => alive ? sessionOpen(ap) ? runSession(act, cand, ap) : endOfSession(act, cand, ap) : null);
+        return;
+      }
+      clear(view);
+      let moved = false;
+      const next = () => {
+        if (moved) return;
+        moved = true;
+        sess.i++;
+        saveProgress().then(() => {
+          if (!alive) return;
+          if (cleanupEx) {
+            cleanupEx();
+            cleanupEx = null;
+          }
+          clear(view);
+          if (sessionOpen(ap)) runSession(act, cand, ap);
+          else endOfSession(act, cand, ap);
+        });
+      };
+      const fb = h("div", { "data-role": "feedback", "aria-live": "polite" });
+      const nextBtn = h("button", { class: "btn primary block hidden", style: { marginTop: "12px" }, "data-role": "next", onclick: next }, sess.i + 1 < sess.keys.length ? "Pr\xF3xima" : "Ver resultado");
+      let answered2 = false;
+      const done = (result, ...extra) => {
+        if (answered2) return;
+        answered2 = true;
+        if (result && result !== "empty") {
+          record(progress, act.id, key, result);
+          sess.results[key] = result;
+        }
+        const R = RESULT[result];
+        fb.replaceChildren(R ? h("div", { class: `notice ${R.cls}`, "data-role": "result", "data-result": result }, h("b", { text: R.text }), ...extra) : h("div", { class: "notice" }, ...extra));
+        nextBtn.classList.remove("hidden");
+        saveProgress();
+      };
+      view.append(
+        h("div", { class: "row nowrap small" }, h("span", { class: "chip accent", "data-role": "skill", text: ex.label }), h("span", { class: "grow" }), h("b", { "data-role": "step", text: `${sess.i + 1} de ${sess.keys.length}` })),
+        bar(sess.i / sess.keys.length),
+        h("section", { class: "card", style: { marginTop: "10px" }, "data-role": "exercise", "data-skill": ex.skill }, ...body(ex, done)),
+        fb,
+        nextBtn,
+        h(
+          "div",
+          { class: "row", style: { marginTop: "12px" } },
+          h("a", { class: "btn small ghost", href: href(act.id), "data-role": "pause" }, "Pausar (continua depois)"),
+          nextBtn.classList.contains("hidden") ? h("button", { class: "btn small ghost", "data-role": "skip", onclick: next }, "Pular") : null
+        ),
+        h("p", { class: "tiny muted", text: srcText(ex.src) })
+      );
+    }
+    function body(ex, done) {
+      const listenBtn = (text, label = "Ouvir") => h("button", { class: "btn small", type: "button", "data-role": "play", onclick: () => say(text) }, icon("speaker"), label);
+      const options = (opts, onPick) => {
+        const box2 = h("div", { class: "options", "data-role": "options" });
+        opts.forEach((o) => box2.append(h("button", { class: "option", "data-correct": o.correct ? "1" : "0", text: o.text, onclick: (e) => {
+          if (box2.dataset.done) return;
+          box2.dataset.done = "1";
+          box2.querySelectorAll("button").forEach((b) => {
+            b.disabled = true;
+            if (b.dataset.correct === "1") b.classList.add("right");
+          });
+          if (!o.correct) e.currentTarget.classList.add("wrong");
+          onPick(o);
+        } })));
+        return box2;
+      };
+      const field = (lang, placeholder, role) => h("input", { class: "field", lang, placeholder, autocomplete: "off", autocapitalize: "off", spellcheck: "false", "data-role": role });
+      const meaningNote = (it) => it.reliable ? h("div", { class: "small", style: { marginTop: "4px" } }, `Sentido: ${it.meanings.slice(0, 4).join(" / ")} `, h("span", { class: "muted", text: `(${VIA_LABEL[it.via]})` })) : null;
+      switch (ex.skill) {
+        case "mean":
+          return [
+            h("p", { class: "small muted", text: "O que significa no texto?" }),
+            h("div", { class: "row nowrap" }, h("h2", { lang: "en", class: "grow", style: { margin: 0 }, text: ex.en }), listenBtn(ex.en)),
+            h("p", { lang: "en", class: "small", style: { margin: "6px 0 10px" }, text: ex.context }),
+            options(ex.options, (o) => done(o.correct ? "good" : "bad", meaningNote(ex.item)))
+          ];
+        case "recall":
+          return [
+            h("p", { class: "small muted", text: "Qual express\xE3o do texto tem este sentido?" }),
+            h("h2", { style: { margin: "0 0 10px" }, text: ex.pt }),
+            options(ex.options, (o) => done(o.correct ? "good" : "bad", h("div", { lang: "en", text: `Resposta: ${ex.item.en}` })))
+          ];
+        case "cloze": {
+          const inp = field("en", ex.first ? `Come\xE7a com \u201C${ex.first}\u201D (${ex.letters} letras)` : "Escreva em ingl\xEAs", "cloze-input");
+          const check = () => {
+            const c = checkCloze(ex.answer, inp.value);
+            if (c.result === "empty") return;
+            inp.disabled = true;
+            done(c.result, h("div", { lang: "en", text: `No texto: \u201C${ex.answer}\u201D.` }), meaningNote(ex.item));
+          };
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") check();
+          });
+          return [
+            h("p", { class: "small muted", text: "Complete a frase com o trecho do texto original." }),
+            h("p", { lang: "en", style: { fontSize: "1.05rem" } }, ex.before, h("b", { text: " ____ " }), ex.after),
+            ex.hint ? h("p", { class: "small", text: `Dica (sentido): ${ex.hint}` }) : null,
+            inp,
+            h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "check", onclick: check }, icon("check"), "Conferir")
+          ].filter(Boolean);
+        }
+        case "write": {
+          const inp = field("pt-BR", "Significado em portugu\xEAs", "write-input");
+          const check = () => {
+            const c = checkMeaning(ex.item, inp.value);
+            if (c.result === "empty") return;
+            inp.disabled = true;
+            done(c.result, c.result === "unverified" && c.other ? h("div", { text: `\u201C${c.other}\u201D \xE9 um sentido que o gloss\xE1rio admite, mas ele n\xE3o foi confirmado neste texto.` }) : null, meaningNote(ex.item));
+          };
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") check();
+          });
+          return [
+            h("p", { class: "small muted", text: "Escreva o significado em portugu\xEAs." }),
+            h("div", { class: "row nowrap" }, h("h2", { lang: "en", class: "grow", style: { margin: 0 }, text: ex.en }), listenBtn(ex.en)),
+            h("p", { lang: "en", class: "small", style: { margin: "6px 0 10px" }, text: ex.context }),
+            inp,
+            h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "check", onclick: check }, icon("check"), "Conferir")
+          ];
+        }
+        case "lisItem":
+        case "lisBlock": {
+          setTimeout(() => say(ex.text), 300);
+          return [
+            h("p", { class: "small muted", text: ex.skill === "lisItem" ? "Ou\xE7a e escolha a express\xE3o que voc\xEA ouviu." : "Ou\xE7a e escolha a frase que voc\xEA ouviu." }),
+            h("div", { class: "row" }, listenBtn(ex.text, "Ouvir de novo"), h("button", { class: "btn small", type: "button", onclick: () => say(ex.text, 0.7) }, icon("slow"), "Mais devagar")),
+            h("div", { style: { marginTop: "10px" } }, options(ex.options.map((o) => ({ ...o })), (o) => done(o.correct ? "good" : "bad", h("div", { lang: "en", text: `Voc\xEA ouviu: \u201C${ex.text}\u201D.` }))))
+          ];
+        }
+        case "spkItem":
+        case "spkBlock":
+          return speakBody(ex, done, listenBtn);
+        case "rev": {
+          const inp = h("textarea", { class: "field", rows: 2, lang: "en", placeholder: "Escreva em ingl\xEAs", autocapitalize: "sentences", spellcheck: "false", "data-role": "rev-input" });
+          const check = () => {
+            const c = checkReverse(ex.answer, inp.value);
+            if (c.result === "empty") return;
+            inp.disabled = true;
+            done(
+              c.result,
+              h("div", { lang: "en", style: { marginTop: "4px" } }, h("span", { class: "muted", text: "Original: " }), ex.answer),
+              c.missing && c.missing.length ? h("div", { class: "small", text: `Do original, faltou: ${c.missing.join(", ")}.` }) : null,
+              c.extra && c.extra.length ? h("div", { class: "small", text: `N\xE3o est\xE1 no original: ${c.extra.join(", ")}.` }) : null,
+              c.result === "unverified" ? h("div", { class: "small muted", text: "Pode ser uma forma diferente e correta de dizer: compare com o original." }) : null
+            );
+          };
+          return [
+            h("p", { class: "small muted", text: "Traduza para o ingl\xEAs. O texto em portugu\xEAs \xE9 a vers\xE3o validada pelo professor; o gabarito \xE9 o ingl\xEAs original da atividade." }),
+            h("p", { style: { fontSize: "1.05rem", margin: "0 0 10px" }, "data-role": "rev-pt", text: ex.pt }),
+            inp,
+            h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "check", onclick: check }, icon("check"), "Conferir")
+          ];
+        }
+        default:
+          return [h("p", { text: "Exerc\xEDcio indispon\xEDvel." })];
+      }
+    }
+    function speakBody(ex, done, listenBtn) {
+      const textEl = h("p", { lang: "en", style: { fontSize: "1.1rem", fontWeight: 600, margin: "6px 0" }, "data-role": "speak-text", text: ex.text });
+      const hideBtn = h("button", { class: "btn small", type: "button", "data-role": "hide-text", onclick: () => {
+        const hid = textEl.classList.toggle("hidden");
+        hideBtn.textContent = hid ? "Mostrar o texto" : "Falar sem olhar";
+      } }, "Falar sem olhar");
+      const out = h("div", { "data-role": "speak-out" });
+      const recBtn = h("button", { class: "rec-btn", type: "button", "aria-label": "Gravar", "data-role": "rec" }, icon("mic"));
+      const status3 = h("div", { class: "small muted", text: "Toque no microfone, fale e toque de novo para terminar." });
+      let rec = null, url = null;
+      const stopRec = () => {
+        if (rec) {
+          rec.cancel();
+          rec = null;
+        }
+      };
+      cleanupEx = () => {
+        stopRec();
+        if (busy()) release2();
+        if (url) URL.revokeObjectURL(url);
+      };
+      recBtn.onclick = async () => {
+        if (rec) {
+          const r0 = rec;
+          rec = null;
+          recBtn.classList.remove("on");
+          status3.textContent = "Analisando\u2026";
+          const { blob } = await r0.stop();
+          analyse(blob);
+          return;
+        }
+        stopAll();
+        try {
+          rec = await start({ maxMs: MAX_SECONDS * 1e3 });
+        } catch (e) {
+          status3.textContent = e.userMessage || "N\xE3o foi poss\xEDvel gravar.";
+          return;
+        }
+        recBtn.classList.add("on");
+        status3.textContent = "Gravando\u2026 toque para terminar.";
+        clear(out);
+      };
+      async function analyse(blob) {
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(blob);
+        const mine = h("audio", { src: url, preload: "auto" });
+        const mineBtn = h("button", { class: "btn small", type: "button", onclick: () => playElement(mine, { restart: true }) }, icon("play"), "Minha voz");
+        const analysis = await analyseBlob(blob).catch(() => null);
+        const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
+        const st = await status().catch(() => "unsupported");
+        status3.textContent = "Toque no microfone para gravar de novo.";
+        if (st !== "installed") {
+          out.replaceChildren(
+            h("div", { class: "notice warn" }, "Sem reconhecimento de fala instalado: ou\xE7a a sua voz e compare com o modelo. Esta tentativa n\xE3o \xE9 corrigida."),
+            asrOffNotice(App2, { onInstalled: () => analyse(blob) }),
+            h("div", { class: "row", style: { marginTop: "8px" } }, mineBtn)
+          );
+          return;
+        }
+        let res = null;
+        if (!insufficient) {
+          try {
+            res = await transcribe(blob);
+          } catch (e) {
+            if (e.code === "cancelled") return;
+            out.replaceChildren(h("div", { class: "notice warn" }, `A an\xE1lise falhou nesta grava\xE7\xE3o (${e.message}). Grave de novo; n\xE3o conta como erro.`), mineBtn);
+            return;
+          }
+        }
+        const ev = evaluateWords(ex.text, res, { insufficient });
+        const judged = ev.words.filter((w) => w.state === "good" || w.state === "needs_practice");
+        const pending3 = ev.words.filter((w) => w.state === "needs_practice");
+        const chips = h("div", { class: "chips", "data-role": "speak-words" }, ev.words.map((w) => h("span", {
+          class: `chip ${w.state === "good" ? "ok" : w.state === "needs_practice" ? "warn" : ""}`,
+          title: w.reason,
+          lang: "en",
+          text: w.text
+        })));
+        out.replaceChildren(
+          res ? h("p", { class: "small", "data-role": "heard" }, h("span", { class: "muted", text: "O reconhecimento ouviu: " }), h("span", { lang: "en", text: res.text || "(nada)" })) : null,
+          chips,
+          h("p", { class: "tiny muted", text: "Verde = reconhecida; \xE2mbar = n\xE3o reconhecida (pode ser falha do reconhecimento ou da fala: ou\xE7a a sua voz); cinza = n\xE3o avaliada. N\xE3o \xE9 uma avalia\xE7\xE3o de pron\xFAncia." }),
+          h("div", { class: "row" }, mineBtn)
+        );
+        if (!ev.evaluated || !judged.length) done("unverified", h("div", { text: ev.note || "Poucas palavras avali\xE1veis nesta grava\xE7\xE3o." }));
+        else done(pending3.length ? "ok" : "good", h("div", { text: pending3.length ? `N\xE3o reconhecidas: ${pending3.map((w) => w.text).join(", ")}. Repita depois de ouvir o modelo.` : "Todas as palavras avaliadas foram reconhecidas." }));
+      }
+      return [
+        h("p", { class: "small muted", text: ex.skill === "spkItem" ? "Ou\xE7a e fale a express\xE3o." : "Ou\xE7a e fale a frase." }),
+        textEl,
+        ex.meaning ? h("p", { class: "small muted", text: `Sentido: ${ex.meaning}` }) : null,
+        h("div", { class: "row" }, listenBtn(ex.text), hideBtn),
+        h("div", { class: "rec-main", style: { marginTop: "12px" } }, recBtn, h("div", { class: "rec-info" }, status3)),
+        out
+      ].filter(Boolean);
+    }
+    function endOfSession(act, cand, ap) {
+      clear(view);
+      const s = ap.session;
+      const res = Object.values(s.results);
+      const count = (k) => res.filter((x) => x === k).length;
+      const errs = sessionErrors(s);
+      const again = (mode, keys) => {
+        startSession(ap, mode, keys);
+        saveProgress().then(() => alive && (clear(view), runSession(act, cand, ap)));
+      };
+      view.append(h(
+        "section",
+        { class: "card", "data-role": "session-end" },
+        h("h3", { style: { margin: 0 }, text: `${MODES[s.mode].label}: rodada conclu\xEDda` }),
+        h("p", { "data-role": "session-score", text: `Certas: ${count("good") + count("ok")} \xB7 erros: ${count("bad")} \xB7 sem evid\xEAncia: ${count("unverified")} \xB7 puladas: ${s.keys.length - res.length}` }),
+        errs.length ? h("button", { class: "btn primary block", "data-role": "repeat-errors", onclick: () => again(s.mode, errs) }, icon("refresh"), `Repetir os erros (${errs.length})`) : null,
+        h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "new-round", onclick: () => {
+          const keys = buildQueue(cand, ap, s.mode);
+          if (keys.length) again(s.mode, keys);
+        } }, "Nova rodada"),
+        h("a", { class: "btn block", style: { marginTop: "8px" }, href: href(act.id), "data-role": "practice-home" }, "Outras pr\xE1ticas"),
+        h("a", { class: "btn block ghost", style: { marginTop: "8px" }, href: `#/cq/${encodeURIComponent(act.id)}` }, icon("back"), "Voltar \xE0 tradu\xE7\xE3o")
+      ));
+    }
+    return () => {
+      alive = false;
+      if (cleanupEx) cleanupEx();
+      stopAll();
+    };
+  }
+  function say(text, rate) {
+    return play({ key: null, text }, rate ? { rate } : void 0).then((res) => {
+      if (!res.ok && res.reason !== "cancel") toast("Voz do sistema indispon\xEDvel neste aparelho.");
+      return res;
+    });
+  }
+  var practiceButton = (act) => h("a", { class: "btn small", href: href(act.id), "data-role": "open-practice" }, icon("target"), "Praticar");
 
   // app/js/ui/course.js
   var AREA_NAME = "Curso \u2014 Atividades";
@@ -4651,6 +5609,7 @@
               download(`${slug(act.title)}-transferencia.json`, JSON.stringify(transferData(act)), "application/json");
               toast("Arquivo de transfer\xEAncia gerado: importe-o no outro aparelho em \u201CImportar respostas de outro aparelho\u201D.", 6e3);
             } }, icon("download"), "Exportar para outro aparelho"),
+            practiceButton(act),
             h("button", { class: "btn small ghost", "data-role": "remove-activity", onclick: async () => {
               if (!await confirmSheet(`Remover \u201C${act.title}\u201D?`, "A atividade e as respostas dela saem deste aparelho. Se quiser guardar, exporte antes para outro aparelho.", { ok: "Remover", danger: true })) return;
               delete d.activities[act.id];
@@ -4880,7 +5839,7 @@
       const head = h(
         "section",
         { class: "card", "data-role": "course-head" },
-        h("div", { class: "small muted", text: act.title }),
+        h("div", { class: "row nowrap" }, h("div", { class: "small muted grow", text: act.title }), practiceButton(act)),
         h("div", { class: "row nowrap small", style: { marginTop: "4px" } }, h("span", { class: "grow", "data-role": "course-progress", text: `${s.done} de ${total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / total * 100)}%` })),
         bar(s.done / total),
         h("div", { class: "chips", style: { marginTop: "8px" }, "data-role": "q-status" })
@@ -5293,7 +6252,7 @@
     if (!r.ok) toast("\xC1udio indispon\xEDvel neste aparelho.");
   };
   function openExpression(it, { sentence = null } = {}) {
-    const say = it.en.replace(/\.\.\.$|…$/, "");
+    const say2 = it.en.replace(/\.\.\.$|…$/, "");
     return sheet(
       h(
         "div",
@@ -5302,7 +6261,7 @@
           "div",
           { class: "row nowrap" },
           h("div", { class: "grow" }, h("div", { class: "word-en en", text: it.en }), h("div", { class: "small muted", text: categoryLabel(it.c) })),
-          h("button", { class: "icon-btn accent", "aria-label": `Ouvir \u201C${say}\u201D`, "data-role": "expr-audio", onclick: () => play2({ key: it.au, text: say }) }, icon("speaker"))
+          h("button", { class: "icon-btn accent", "aria-label": `Ouvir \u201C${say2}\u201D`, "data-role": "expr-audio", onclick: () => play2({ key: it.au, text: say2 }) }, icon("speaker"))
         ),
         h("p", { style: { margin: "10px 0 4px" } }, h("b", { text: "Significado: " }), it.pt),
         h("p", { class: "small", style: { margin: "4px 0 10px" }, text: it.explain }),
@@ -5629,177 +6588,6 @@
     );
   }
 
-  // app/js/audio/recorder.js
-  var supported = () => !!(globalThis.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && globalThis.MediaRecorder);
-  function pickMime() {
-    const opts = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
-    return opts.find((m) => MediaRecorder.isTypeSupported(m)) || "";
-  }
-  async function permissionState() {
-    try {
-      return (await navigator.permissions.query({ name: "microphone" })).state;
-    } catch (e) {
-      return "unknown";
-    }
-  }
-  async function start({ maxMs = 18e4, onLevel } = {}) {
-    if (!supported()) {
-      const e = new Error("unsupported");
-      e.userMessage = "Este navegador n\xE3o oferece grava\xE7\xE3o de \xE1udio neste modo de execu\xE7\xE3o.";
-      throw e;
-    }
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-    } catch (err) {
-      const e = new Error(err.name);
-      e.userMessage = err.name === "NotAllowedError" ? "O microfone foi bloqueado. No Chrome: toque no cadeado ao lado do endere\xE7o \u2192 Permiss\xF5es \u2192 Microfone \u2192 Permitir. Depois tente de novo." : err.name === "NotFoundError" ? "Nenhum microfone encontrado." : `N\xE3o foi poss\xEDvel acessar o microfone (${err.name}).`;
-      throw e;
-    }
-    const mimeType = pickMime();
-    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : void 0);
-    const chunks = [];
-    rec.ondataavailable = (ev) => {
-      if (ev.data.size) chunks.push(ev.data);
-    };
-    const t0 = performance.now();
-    let raf = null, ctx = null;
-    if (onLevel && (globalThis.AudioContext || globalThis.webkitAudioContext)) {
-      ctx = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
-      const src = ctx.createMediaStreamSource(stream);
-      const an = ctx.createAnalyser();
-      an.fftSize = 512;
-      src.connect(an);
-      const buf = new Uint8Array(an.fftSize);
-      const loop = () => {
-        an.getByteTimeDomainData(buf);
-        let s = 0;
-        for (const v of buf) s += ((v - 128) / 128) ** 2;
-        onLevel(Math.min(1, Math.sqrt(s / buf.length) * 4));
-        raf = requestAnimationFrame(loop);
-      };
-      loop();
-    }
-    const cleanup2 = () => {
-      if (raf) cancelAnimationFrame(raf);
-      if (ctx) ctx.close().catch(() => {
-      });
-      stream.getTracks().forEach((t) => t.stop());
-    };
-    let timer2 = null;
-    const stopped = new Promise((resolve) => {
-      rec.onstop = () => {
-        cleanup2();
-        clearTimeout(timer2);
-        resolve({ blob: new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" }), ms: Math.round(performance.now() - t0) });
-      };
-    });
-    rec.start(250);
-    timer2 = setTimeout(() => {
-      if (rec.state !== "inactive") rec.stop();
-    }, maxMs);
-    return {
-      stop: () => {
-        if (rec.state !== "inactive") rec.stop();
-        return stopped;
-      },
-      cancel: () => {
-        if (rec.state !== "inactive") rec.stop();
-      },
-      stopped
-    };
-  }
-
-  // app/js/audio/analysis.js
-  async function analyseBlob(blob, { expectedWords = 0, referenceSec = 0 } = {}) {
-    const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext;
-    if (!Ctx) return null;
-    const ctx = new Ctx();
-    try {
-      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
-      return analyseSamples(buf.getChannelData(0), buf.sampleRate, { expectedWords, referenceSec });
-    } catch (e) {
-      return null;
-    } finally {
-      ctx.close().catch(() => {
-      });
-    }
-  }
-  function analyseSamples(data2, sampleRate, { expectedWords = 0, referenceSec = 0 } = {}) {
-    const win = Math.round(sampleRate * 0.02);
-    const rms = [];
-    for (let i = 0; i + win <= data2.length; i += win) {
-      let s = 0;
-      for (let j = i; j < i + win; j++) s += data2[j] * data2[j];
-      rms.push(Math.sqrt(s / win));
-    }
-    if (!rms.length) return null;
-    const sorted = [...rms].sort((a, b) => a - b);
-    const noise = sorted[Math.floor(sorted.length * 0.15)] || 0;
-    const peak = sorted[Math.floor(sorted.length * 0.98)] || 0;
-    const thr = Math.max(8e-3, noise * 2.5, peak * 0.12);
-    const voiced = rms.map((r) => r > thr);
-    const first = voiced.indexOf(true), last = voiced.lastIndexOf(true);
-    const totalSec = rms.length * 0.02;
-    if (first === -1) return { totalSec, speechSec: 0, voicedSec: 0, pauses: 0, longPauses: 0, wpm: 0, silent: true, envelope: downsample(rms, 120), peak };
-    let pauses = 0, longPauses = 0, run2 = 0;
-    for (let i = first; i <= last; i++) {
-      if (!voiced[i]) run2++;
-      else {
-        if (run2 >= 15) pauses++;
-        if (run2 >= 40) longPauses++;
-        run2 = 0;
-      }
-    }
-    const speechSec = (last - first + 1) * 0.02;
-    const voicedSec = voiced.filter(Boolean).length * 0.02;
-    const wpm = expectedWords && speechSec > 0.5 ? Math.round(expectedWords / speechSec * 60) : 0;
-    return {
-      totalSec: round(totalSec),
-      speechSec: round(speechSec),
-      voicedSec: round(voicedSec),
-      pauses,
-      longPauses,
-      wpm,
-      paceVsReference: referenceSec ? round(speechSec / referenceSec) : null,
-      clipped: peak > 0.98,
-      quiet: peak < 0.05,
-      silent: false,
-      envelope: downsample(rms, 120),
-      peak
-    };
-  }
-  var round = (x) => Math.round(x * 10) / 10;
-  var fmt = (x) => String(x).replace(".", ",");
-  function downsample(arr, n) {
-    if (arr.length <= n) return arr;
-    const out = [];
-    const step = arr.length / n;
-    for (let i = 0; i < n; i++) {
-      const slice = arr.slice(Math.floor(i * step), Math.floor((i + 1) * step));
-      out.push(Math.max(...slice));
-    }
-    return out;
-  }
-  function describe(a, { expectedWords = 0 } = {}) {
-    if (!a) return { verdict: "inconclusive", lines: ["N\xE3o foi poss\xEDvel analisar o \xE1udio neste aparelho."] };
-    if (a.silent || a.speechSec < 0.4) return { verdict: "inconclusive", lines: ["Quase n\xE3o captei voz. Fale mais perto do microfone e tente de novo."] };
-    const lines = [];
-    if (a.quiet) lines.push("Volume baixo: aproxime o celular da boca.");
-    if (a.clipped) lines.push("Volume muito alto (distor\xE7\xE3o): afaste um pouco o celular.");
-    lines.push(`Fala: ${fmt(a.speechSec)} s \xB7 ${a.pauses} pausa(s)${a.longPauses ? `, ${a.longPauses} longa(s)` : ""}.`);
-    const unreliable = a.wpm && (a.wpm > 260 || a.wpm < 40);
-    if (a.paceVsReference && !unreliable) {
-      const p = a.paceVsReference;
-      lines.push(p > 1.8 ? "Ritmo bem mais lento que a refer\xEAncia \u2014 normal no in\xEDcio; tente ligar as palavras." : p > 1.3 ? "Ritmo um pouco mais lento que a refer\xEAncia." : p < 0.75 ? "Mais r\xE1pido que a refer\xEAncia: confira se n\xE3o \u201Cengoliu\u201D palavras." : "Ritmo pr\xF3ximo ao da refer\xEAncia.");
-    }
-    if (a.wpm && expectedWords >= 8) {
-      if (a.wpm > 260 || a.wpm < 40) lines.push("Ritmo n\xE3o estimado: a grava\xE7\xE3o parece curta demais ou com ru\xEDdo para medir com seguran\xE7a.");
-      else lines.push(`\u2248 ${a.wpm} palavras/min (conversa natural: ~120\u2013160).`);
-    }
-    return { verdict: "ok", lines };
-  }
-
   // app/js/ui/recwidget.js
   var fmtSec = (ms) => String(Math.round(ms / 100) / 10).replace(".", ",");
   var clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -6057,7 +6845,7 @@
     for (const x of list) goodKeys.delete(x.key);
     return { list, goodKeys: [...goodKeys], conclusive: true };
   }
-  function practiceSummary(list) {
+  function practiceSummary2(list) {
     if (!list.length) return "Nenhuma palavra pendente nesta tentativa.";
     return list.length === 1 ? "Vamos praticar 1 palavra." : `Vamos praticar ${list.length} palavras.`;
   }
@@ -6283,11 +7071,11 @@
   var contentLemmas = (text) => wordTokens(text).map(lemma).filter((l) => l.length > 1 && !STOP.has(l) && !/^\d/.test(l));
   var skeleton = (w) => w.replace(/(?!^)[aeiouy]/g, "").replace(/(.)\1+/g, "$1");
   var soundSkeleton = (w) => skeleton(phoneKey(w).norm);
-  function contextualHypothesis(heard, candidates) {
+  function contextualHypothesis(heard, candidates2) {
     const h2 = soundSkeleton(heard);
     if (h2.length < 2) return null;
     let best = null, bestD = 2, tie = false;
-    for (const c of candidates) {
+    for (const c of candidates2) {
       const k = soundSkeleton(c);
       if (k.length < 3 || k[0] !== h2[0] || Math.abs(k.length - h2.length) > 1) continue;
       const d = levenshtein(h2, k);
@@ -6330,7 +7118,7 @@
     const missingExpected = expected.filter((l) => !answerLemmas.has(l));
     const exampleWord = /* @__PURE__ */ new Map();
     for (const w of [...wordTokens(model), ...wordTokens(question), ...alts.flatMap(wordTokens)]) if (!exampleWord.has(lemma(w))) exampleWord.set(lemma(w), w);
-    const candidates = missingExpected.map((l) => exampleWord.get(l) || l);
+    const candidates2 = missingExpected.map((l) => exampleWord.get(l) || l);
     const words3 = [];
     const practice = [];
     const seen = /* @__PURE__ */ new Set();
@@ -6355,7 +7143,7 @@
       if (a.w === void 0 || b.w === void 0 || g.text !== "-" || flags.has(a.w) || flags.has(b.w)) continue;
       const whole = a.norm + b.norm;
       if (/\d/.test(whole) || isKnownWord(whole, vocab.known) !== false) continue;
-      const ref = contextualHypothesis(whole, candidates);
+      const ref = contextualHypothesis(whole, candidates2);
       if (ref) {
         const j = { ws: [a.w, b.w], heard: `${a.text}-${b.text}`, ref };
         joined.set(a.w, j);
@@ -6413,7 +7201,7 @@
         const known = isKnownWord(t, vocab.known) ?? null;
         const compound = known === false && splitsInTwo(t, vocab.known);
         if (known === false && !compound) {
-          const ref = contextualHypothesis(t, candidates);
+          const ref = contextualHypothesis(t, candidates2);
           if (ref) hypotheses.push({ heard: seg.text.replace(/[.,!?;:]+$/, ""), ref });
           Object.assign(r, {
             state: "needs_practice",
@@ -6607,8 +7395,8 @@
   var VERB_LIKE = new Set("sit stand lie put open check use close take have get set drive park brush eat make go do watch play listen read write send start switch turn shut log pick call accept leave arrive see look buy cook wash clean run walk".split(" "));
   for (const k of Object.keys(OBJ_VERBS)) OBJ_VERBS[k] = new Set(OBJ_VERBS[k].split(" "));
   function soundsLike(a, b) {
-    const norm = (x2) => x2.toLowerCase().replace(/[^a-z]/g, "").replace(/th/g, "t").replace(/ph/g, "f").replace(/c(?=[aou])/g, "k").replace(/ck/g, "k");
-    const x = norm(a), y = norm(b);
+    const norm2 = (x2) => x2.toLowerCase().replace(/[^a-z]/g, "").replace(/th/g, "t").replace(/ph/g, "f").replace(/c(?=[aou])/g, "k").replace(/ck/g, "k");
+    const x = norm2(a), y = norm2(b);
     if (!x || !y || x === y) return false;
     let suf = 0;
     while (suf < Math.min(x.length, y.length) && x[x.length - 1 - suf] === y[y.length - 1 - suf]) suf++;
@@ -6861,98 +7649,6 @@
       ))) : null,
       h("p", { class: "tiny muted", text: `${engine === "model" ? "Reconhecimento local (Moonshine), no aparelho." : engine === "webspeech" ? "Reconhecimento do Chrome, no aparelho." : ""} As cores indicam se cada palavra foi reconhecida, n\xE3o qual som foi dito; sotaque n\xE3o \xE9 erro. Pesos da nota: hip\xF3teses iniciais, n\xE3o validadas.` })
     );
-  }
-
-  // app/js/ui/asrsetup.js
-  var mb = (bytes) => String(Math.round(bytes / 1048576));
-  async function runInstall(box2, { onProgressText } = {}) {
-    const fill = h("i", { style: { width: "0%" } });
-    const bar2 = h("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": 0, "aria-label": "Progresso do download" }, fill);
-    const label = h("div", { class: "small muted", text: "Preparando o download\u2026" });
-    clear(box2).append(bar2, label);
-    try {
-      await install({
-        onProgress: (f, done, total) => {
-          const pct = Math.round(f * 100);
-          fill.style.width = `${pct}%`;
-          bar2.setAttribute("aria-valuenow", String(pct));
-          label.textContent = `Baixando\u2026 ${mb(done)} de ${mb(total)} MB`;
-          onProgressText && onProgressText(pct);
-        }
-      });
-      fill.style.width = "100%";
-      label.textContent = "Conferindo os arquivos\u2026";
-      const v = await verify();
-      if (!v.ok) throw new Error("os arquivos baixados est\xE3o incompletos");
-      clear(box2).append(h("div", { class: "setup-done", role: "status" }, icon("check"), "Reconhecimento instalado. Funciona offline."));
-      return true;
-    } catch (e) {
-      clear(box2).append(h(
-        "div",
-        { class: "setup-error", role: "alert" },
-        h("b", { text: "N\xE3o foi poss\xEDvel baixar agora." }),
-        " ",
-        h("span", { text: navigator.onLine === false ? "Voc\xEA est\xE1 sem internet. Conecte-se e tente de novo." : `Verifique a conex\xE3o e tente de novo (${e.message}).` }),
-        h("div", { class: "tiny muted", text: "O que j\xE1 foi baixado \xE9 aproveitado na pr\xF3xima tentativa." })
-      ));
-      return false;
-    }
-  }
-  function asrSetupCard(App2, { onInstalled, onLater } = {}) {
-    const progress = h("div", { class: "setup-progress" });
-    const primary = h("button", { class: "btn primary", type: "button" }, icon("download"), "Baixar reconhecimento");
-    const later = h("button", { class: "btn ghost", type: "button" }, "Agora n\xE3o");
-    const card = h(
-      "section",
-      { class: "card setup-card", "data-role": "asr-setup", "aria-labelledby": "asr-setup-title" },
-      h("div", { class: "setup-head" }, h("span", { class: "setup-icon", "aria-hidden": "true" }, icon("mic")), h("h3", { id: "asr-setup-title", text: "Avalie sua pron\xFAncia" })),
-      h("p", { text: "Baixe o reconhecimento de fala para analisar suas grava\xE7\xF5es no pr\xF3prio aparelho, sem enviar seu \xE1udio para a nuvem." }),
-      h(
-        "ul",
-        { class: "setup-facts" },
-        h("li", {}, h("b", { text: `${sizeLabel()}` }), " de download, uma \xFAnica vez"),
-        h("li", { text: "Precisa de internet s\xF3 para baixar" }),
-        h("li", { text: "Depois funciona offline" }),
-        h("li", { text: "Tudo \xE9 processado no aparelho" })
-      ),
-      progress,
-      h("div", { class: "row setup-actions" }, primary, later)
-    );
-    primary.onclick = async () => {
-      primary.disabled = true;
-      later.disabled = true;
-      const ok = await runInstall(progress);
-      if (ok) {
-        App2.state.settings.asrPrompt = "installed";
-        App2.flush().catch(() => {
-        });
-        toast("Reconhecimento instalado. Suas grava\xE7\xF5es ser\xE3o analisadas automaticamente.", 4e3);
-        onInstalled && onInstalled();
-        return;
-      }
-      clear(primary).append(icon("refresh"), "Tentar de novo");
-      primary.disabled = false;
-      later.disabled = false;
-    };
-    later.onclick = () => {
-      App2.state.settings.asrPrompt = "later";
-      App2.flush().catch(() => {
-      });
-      onLater && onLater();
-    };
-    return card;
-  }
-  function asrOffNotice(App2, { onInstalled } = {}) {
-    const box2 = h("div", { class: "asr-off", "data-role": "asr-off" });
-    const open = () => clear(box2).append(asrSetupCard(App2, { onInstalled, onLater: () => {
-      clear(box2).append(...line());
-    } }));
-    const line = () => [
-      h("span", { class: "small muted", text: "An\xE1lise autom\xE1tica desligada at\xE9 instalar o reconhecimento." }),
-      h("button", { class: "link-btn", type: "button", onclick: open }, "Instalar")
-    ];
-    box2.append(...line());
-    return box2;
   }
 
   // app/js/ui/freeanswer.js
@@ -7354,9 +8050,9 @@
     if (focus.mode !== "present") queue = maybePairs(queue, content);
     const view = App2.layout(focusTitle(App2, focus), { nav: false, back: null, actions: [] });
     const top = view.previousElementSibling;
-    const progress = h("div", { class: "bar" }, h("i", { style: { width: "0%" } }));
+    const progress2 = h("div", { class: "bar" }, h("i", { style: { width: "0%" } }));
     const closeBtn = h("button", { class: "icon-btn ghost", "aria-label": "Sair da sess\xE3o", onclick: () => leave() }, icon("close"));
-    clear(top).append(h("div", { class: "session-top", style: { width: "100%" } }, closeBtn, progress, h("span", { class: "small muted", id: "count" })));
+    clear(top).append(h("div", { class: "session-top", style: { width: "100%" } }, closeBtn, progress2, h("span", { class: "small muted", id: "count" })));
     const area = h("div", { class: "ex-area" });
     const actionbar = h("div", { class: "actionbar" }, h("div", { class: "inner" }));
     view.append(area);
@@ -7392,7 +8088,7 @@
       App2.go("#/");
     }
     function updateTop() {
-      progress.firstChild.style.width = `${Math.round(idx / queue.length * 100)}%`;
+      progress2.firstChild.style.width = `${Math.round(idx / queue.length * 100)}%`;
       document.getElementById("count").textContent = `${Math.min(idx + 1, queue.length)}/${queue.length}`;
     }
     function next() {
@@ -7516,8 +8212,8 @@
       if (!missing.size) return document.createTextNode(model || "");
       const frag = document.createDocumentFragment();
       model.split(/(\s+)/).forEach((w) => {
-        const norm = w.toLowerCase().replace(/[^a-z0-9'à-ÿ:]/g, "");
-        frag.append(missing.has(norm) ? h("span", { class: "miss", text: w }) : document.createTextNode(w));
+        const norm2 = w.toLowerCase().replace(/[^a-z0-9'à-ÿ:]/g, "");
+        frag.append(missing.has(norm2) ? h("span", { class: "miss", text: w }) : document.createTextNode(w));
       });
       return h("span", { class: "diff" }, frag);
     }
@@ -8034,7 +8730,7 @@
       actions(reveal);
     }
     function renderPairs(ex) {
-      const keyOf = (it) => cardKey("item", it.id, "rec");
+      const keyOf2 = (it) => cardKey("item", it.id, "rec");
       const errors = /* @__PURE__ */ new Set();
       const done = /* @__PURE__ */ new Set();
       let sel = null;
@@ -8064,7 +8760,7 @@
       draw();
       function complete() {
         let gained = 0;
-        for (const it of ex.items) gained += finish({ k: keyOf(it), unit: "item", id: it.id, skill: "rec" }, errors.has(it.id) ? "bad" : "good", { cls: errors.has(it.id) ? "meaning" : "correct" }).xp;
+        for (const it of ex.items) gained += finish({ k: keyOf2(it), unit: "item", id: it.id, skill: "rec" }, errors.has(it.id) ? "bad" : "good", { cls: errors.has(it.id) ? "meaning" : "correct" }).xp;
         area.append(feedback({ cls: errors.size ? "inconclusive" : "correct", xp: gained, notes: errors.size ? [`Revise: ${[...errors].map((id) => content.items[id].en).join(", ")}`] : [] }, {}));
         actions(continueBtn());
       }
@@ -8077,7 +8773,7 @@
       xpGained += sr.xp;
       events.push(...sr.events);
       App2.flush();
-      progress.firstChild.style.width = "100%";
+      progress2.firstChild.style.width = "100%";
       const wrongUnits = [...new Map(bad.map((r) => [r.entry.k, r.entry])).values()];
       const leveled = levelForXp(state.xp).level > startLevel;
       const face = characterImage(App2.character, leveled ? "levelup" : "celebrate", { size: 96 });
@@ -8119,13 +8815,13 @@
     };
   }
   function dedupeCues(items, keywords) {
-    const norm = (t) => t.toLowerCase().replace(/[…."]/g, "").replace(/^i /, "").trim();
-    const kw = keywords.flat().map((k) => norm(String(k)));
+    const norm2 = (t) => t.toLowerCase().replace(/[…."]/g, "").replace(/^i /, "").trim();
+    const kw = keywords.flat().map((k) => norm2(String(k)));
     const kept = [];
     for (const it of [...items].sort((a, b) => b.en.length - a.en.length)) {
-      const n = norm(it.en);
+      const n = norm2(it.en);
       if (kw.some((k) => k.includes(n) || n.includes(k) && k.length > 3)) continue;
-      if (kept.some((x) => norm(x.en).includes(n))) continue;
+      if (kept.some((x) => norm2(x.en).includes(n))) continue;
       kept.push(it);
     }
     return kept;
@@ -8235,7 +8931,7 @@
 
   // app/js/ui/wordpractice.js
   var WORD_MAX_MS = 6e3;
-  var RESULT = {
+  var RESULT2 = {
     match: { cls: "ok", mark: "check", label: "Reconhecida", text: (w) => `O app reconheceu \u201C${w}\u201D.` },
     mismatch: { cls: "bad", mark: "x", label: "N\xE3o reconhecida corretamente", text: () => "Ou\xE7a de novo e tente outra vez." },
     extra: { cls: "warn", mark: "refresh", label: "Inconclusivo", text: (w) => `O app ouviu outras palavras junto. Diga s\xF3 \u201C${w}\u201D.` },
@@ -8245,10 +8941,10 @@
   function wordPractice({ list, session, engine, clips, getRate, focusWord, onFullSentence }) {
     let sel = null, rec = null, token = 0, error = "";
     const chips = h("div", { class: "practice-chips", role: "list" });
-    const progress = h("div", { class: "tiny muted practice-hint", "data-role": "wp-progress" });
+    const progress2 = h("div", { class: "tiny muted practice-hint", "data-role": "wp-progress" });
     const panel = h("div", { class: "practice-panel hidden", "data-role": "word-practice" });
     const footer = h("div", { "data-role": "wp-footer" });
-    const el = h("div", { class: "practice", "data-role": "practice", "aria-label": "Vamos praticar" }, chips, progress, panel, footer);
+    const el = h("div", { class: "practice", "data-role": "practice", "aria-label": "Vamos praticar" }, chips, progress2, panel, footer);
     const drawChips = () => {
       clear(chips).append(...list.map((x) => {
         const st = session.get(x.key).status;
@@ -8265,7 +8961,7 @@
         return b;
       }));
       const n = session.doneCount(list);
-      progress.textContent = n ? `Palavras reconhecidas: ${n} de ${list.length}.` : "Toque numa palavra para ouvir e praticar.";
+      progress2.textContent = n ? `Palavras reconhecidas: ${n} de ${list.length}.` : "Toque numa palavra para ouvir e praticar.";
     };
     const drawFooter = () => {
       const practised = list.some((x) => session.get(x.key).tries > 0);
@@ -8324,7 +9020,7 @@
       panel.classList.remove("hidden");
     }
     function resultBox(x, m) {
-      const r = RESULT[m.status];
+      const r = RESULT2[m.status];
       return h(
         "div",
         { class: `wp-result ${r.cls}`, "data-role": "wp-result", "data-result": m.status },
@@ -8415,7 +9111,7 @@
     }
     drawChips();
     drawFooter();
-    el.prepend(h("span", { class: "sr-only", text: practiceSummary(list) }));
+    el.prepend(h("span", { class: "sr-only", text: practiceSummary2(list) }));
     return { el, cancel };
   }
 
@@ -8693,7 +9389,7 @@
       wp = list.length ? wordPractice({ list, session: wordSession, engine, clips, getRate: () => rate, focusWord: (i) => iw.focus(i), onFullSentence: () => rerecord() }) : null;
       showFb(
         "result",
-        scoreLine(score, practiceSummary(list)),
+        scoreLine(score, practiceSummary2(list)),
         wp ? wp.el : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
         list.length ? null : h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
         scoreDetails(score, { heard: res ? res.text : null, engine, note })
@@ -9503,7 +10199,8 @@
         module: renderModule,
         words: renderWords,
         course: renderCourse,
-        cq: renderCourseQuestion
+        cq: renderCourseQuestion,
+        cpr: renderCoursePractice
         // Curso — Atividades (independente das jornadas)
       };
       const needsContent = ["explore", "routine", "context", "category", "session", "lab", "review", "checklist", "module", "words"];

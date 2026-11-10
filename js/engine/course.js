@@ -345,7 +345,7 @@ export function setMemoryFrom(activities) {
   });
 }
 
-function namesIn(en) {
+export function namesIn(en) {
   const names = [];
   const caps = (String(en).match(/[A-Za-z][A-Za-z']*/g) || []);
   const titleCase = caps.filter((w) => /^[A-Z]/.test(w)).length >= caps.length / 2; // títulos: maiúsculas não indicam nomes
@@ -355,8 +355,9 @@ function namesIn(en) {
   return [...new Set(names)];
 }
 
-/** Unidades de sentido do original: expressões (mais longas primeiro) e palavras de conteúdo. */
-function unitsOf(en, names) {
+/** Unidades de sentido do original: expressões (mais longas primeiro) e palavras de conteúdo.
+ *  Cada unidade traz `i` (posição do 1º token) — usado pelas práticas (engine/coursepractice.js). */
+export function unitsOf(en, names) {
   const toks = words(en);
   const skip = new Set(names.map((n) => fold(n)));
   const out = [];
@@ -366,11 +367,12 @@ function unitsOf(en, names) {
       const seq = toks.slice(i, i + n);
       for (const k of [seq.join(' '), seq.map(lemma).join(' ')]) { const tr = translationsOf(k); if (tr) { found = { en: k, pts: tr, n }; break; } }
     }
-    if (found) { out.push(found); i += found.n; continue; }
+    if (found) { out.push({ ...found, i }); i += found.n; continue; }
+    const at = i;
     const w = toks[i++];
     const base = w.replace(/'s$/, '');
     if (isFunctionWord(base) || WEAK.has(w) || WEAK.has(base) || /^\d+$/.test(base) || skip.has(base) || base.length < 2) continue;
-    out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, '')) || null, n: 1 });
+    out.push({ en: base, pts: translationsOf(base) || translationsOf(lemma(base)) || translationsOf(base.replace(/es$/, '')) || null, n: 1, i: at });
   }
   return { toks, units: out };
 }

@@ -5,6 +5,7 @@
 import { levenshtein } from './text.js';
 
 let en = null; // Map chave inglês → [traduções]
+let trusted = new Map(); // chave → [traduções] só das entradas escritas para o app (sem FreeDict)
 let inverse = null; // Map raiz pt → Set(chaves inglês)
 let loading = null;
 
@@ -32,6 +33,7 @@ export const ptContent = (text) => (fold(text).match(/[a-z0-9]+(?:-[a-z0-9]+)*/g
 /** Define o glossário diretamente (testes / dados já carregados). */
 export function setGlossary(data) {
   en = new Map(Object.entries(data.en || data));
+  trusted = new Map(Object.entries(data.trusted || {}));
   inverse = new Map();
   for (const [k, list] of en) {
     for (const p of list) {
@@ -45,6 +47,8 @@ export function setGlossary(data) {
 }
 export const glossaryReady = () => !!en;
 export const translationsOf = (k) => (en && en.get(k)) || null;
+/** Traduções da chave vindas só das entradas escritas para o app (pares dos conteúdos e expressões de apoio), ou null. */
+export const trustedOf = (k) => trusted.get(k) || null;
 /** Significados em inglês de uma raiz em português (índice inverso), ou null. */
 export function meaningsOf(stem) {
   if (!inverse) return null;

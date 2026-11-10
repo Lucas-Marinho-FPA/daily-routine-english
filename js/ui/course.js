@@ -5,6 +5,7 @@ import { h, icon, toast, bar, confirmSheet } from './dom.js';
 import { getKv, putKv } from '../store/db.js';
 import { readImportFile } from '../engine/docread.js';
 import { loadGlossary } from '../engine/glossary.js';
+import { practiceButton } from './coursepractice.js';
 import {
   parseActivity, newActivity, answersOf, isDone, summary, canOpen, finishQuestion,
   isValidated, matchAnswers, applyOwnAnswers, applyTeacherAnswers, setMemoryFrom,
@@ -97,6 +98,7 @@ export function renderCourse(App) {
             download(`${slug(act.title)}-transferencia.json`, JSON.stringify(transferData(act)), 'application/json');
             toast('Arquivo de transferência gerado: importe-o no outro aparelho em “Importar respostas de outro aparelho”.', 6000);
           } }, icon('download'), 'Exportar para outro aparelho'),
+          practiceButton(act),
           h('button', { class: 'btn small ghost', 'data-role': 'remove-activity', onclick: async () => {
             if (!(await confirmSheet(`Remover “${act.title}”?`, 'A atividade e as respostas dela saem deste aparelho. Se quiser guardar, exporte antes para outro aparelho.', { ok: 'Remover', danger: true }))) return;
             delete d.activities[act.id];
@@ -252,7 +254,7 @@ export function renderCourseQuestion(App, r) {
 
     const s = summary(act);
     const head = h('section', { class: 'card', 'data-role': 'course-head' },
-      h('div', { class: 'small muted', text: act.title }),
+      h('div', { class: 'row nowrap' }, h('div', { class: 'small muted grow', text: act.title }), practiceButton(act)),
       h('div', { class: 'row nowrap small', style: { marginTop: '4px' } }, h('span', { class: 'grow', 'data-role': 'course-progress', text: `${s.done} de ${total} questões concluídas` }), h('b', { text: `${Math.round((s.done / total) * 100)}%` })),
       bar(s.done / total),
       h('div', { class: 'chips', style: { marginTop: '8px' }, 'data-role': 'q-status' }));

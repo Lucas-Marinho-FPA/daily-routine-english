@@ -67,6 +67,37 @@ Agora compara o **sentido**, em `checkTranslation` (`js/engine/course.js`), reap
 - Limites: paráfrases com palavras fora do glossário ficam “Inconclusivas”; polissemia pode marcar uma palavra como
   acréscimo (por isso um único acréscimo não reprova); não avalia naturalidade, registro nem gramática do português.
 
+## Praticar — práticas complementares (2026-11-10)
+
+Botão **Praticar** no cartão de cada atividade e no topo da questão (rota `#/cpr/<id>`). A tradução continua sendo a
+atividade principal: a prática **só lê** a atividade — não muda respostas, correções/validações do professor, avaliação
+automática nem exportação. Tudo é gerado no aparelho a partir do texto importado (nada do curso é versionado ou enviado).
+
+- **Vocabulário e expressões:** significado (múltipla escolha), lembrar a expressão a partir do sentido, completar a
+  frase (o gabarito é o trecho do original) e escrever o significado. Itens = unidades de sentido do original
+  (`unitsOf`, as mesmas da avaliação automática) que o glossário traduz; cada item guarda a origem (questão e bloco).
+- **Significado só confirmado:** o glossário mistura entradas escritas para o app com o FreeDict, que traz sentidos fora
+  de contexto. Um significado só vira questão quando (a) aparece na versão **validada pelo professor** de um bloco onde o
+  item ocorre (nesta ou em outra atividade do aparelho) ou (b) vem das entradas escritas para o app (`trusted` no
+  glossário: pares dos conteúdos e expressões de apoio). Múltipla escolha só com alternativas de sentido disjunto.
+  Ao escrever o significado: sentido confirmado = certo; outro sentido que o glossário admite = “sem evidência” (não conta
+  como erro); errado só quando todas as palavras são conhecidas e nenhuma tem o sentido do item.
+- **Escuta:** ouvir uma expressão ou frase do original (voz do sistema do aparelho — não é áudio do curso) e escolher
+  entre alternativas da própria atividade; o texto aparece depois da resposta.
+- **Fala:** ouvir, falar (com opção de ocultar o texto) e, com o reconhecimento local instalado (o mesmo do Speaking
+  Lab), ver o que foi reconhecido palavra a palavra. Não é avaliação de pronúncia; palavra não reconhecida pode ser falha
+  do reconhecimento. Sem reconhecimento instalado, a tentativa não é corrigida e nada é bloqueado. Nenhuma gravação é
+  guardada.
+- **Tradução reversa (português → inglês):** só blocos de questões **validadas pelo professor**; o enunciado é a versão
+  do professor e o gabarito é o inglês original. Resposta do aluno, correção não validada e avaliação automática nunca
+  são gabarito. Paráfrase possível fica “sem evidência”, não erro.
+- **Progresso:** registro próprio `kv` → `course-practice`, por atividade (id de conteúdo): tentativas, acertos, erros,
+  “sem evidência”, repetição espaçada por exercício (a mesma de `scheduler.js`, em registro separado) e a sessão em
+  andamento (retomada ao reabrir). “Repetir os erros” ao fim da rodada e como modo próprio. Não entra no backup de
+  Ajustes (como as atividades).
+- **Código e testes:** `js/engine/coursepractice.js` (regras), `js/ui/coursepractice.js` (telas);
+  `dev/tests/unit/coursepractice.test.js` e `dev/tests/e2e/coursepractice.mjs` (conteúdo sintético).
+
 ## Caderno em vários aparelhos (2026-11-09)
 
 - **Adicionar atividade:** arquivo **.txt, .docx (Word) ou .md**, ou texto colado (`js/engine/docread.js`: o .docx é
