@@ -69,7 +69,9 @@
     slow: "M12 8v4l2 2M12 21a9 9 0 100-18 9 9 0 000 18z",
     lock: "M6 11h12v10H6zM8 11V7a4 4 0 018 0v4",
     star: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z",
-    chat: "M4 5h16v11H9l-5 4z"
+    chat: "M4 5h16v11H9l-5 4z",
+    filePlus: "M14 3H6v18h12V7zM14 3v4h4M12 10v7M8.5 13.5h7",
+    export: "M12 15V4M8 8l4-4 4 4M5 13v7h14v-7"
   };
   function icon(name, extra = "") {
     const ns = "http://www.w3.org/2000/svg";
@@ -2336,14 +2338,19 @@
 
   // app/js/ui/character.js
   var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
-  function characterImage(ch, state, { size = 56 } = {}) {
+  function characterImage(ch, state, { size = 56, illus = null } = {}) {
     if (!ch || !STATES.includes(state)) return null;
     const src = assetFor(ch, state);
     if (!src) return null;
+    const v = ch.visual && ch.visual.states && ch.visual.states[state];
+    if (v && v.kind === "illustration" && v.w && v.h) {
+      const ht = illus || size;
+      return h("img", { class: `char-img char-illus char-${state}`, src, width: Math.round(ht * v.w / v.h), height: ht, alt: ch.name, "data-character": ch.id, "data-state": state, decoding: "async" });
+    }
     return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
   }
-  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
-    const img = characterImage(ch, state, { size });
+  function characterBadge(ch, state = "idle", { size = 44, illus = null } = {}) {
+    const img = characterImage(ch, state, { size, illus });
     if (img) return img;
     return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
   }
@@ -2356,11 +2363,12 @@
     const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
     const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
       const on = c.id === sel;
+      const pic = characterImage(c, "idle", { illus: 64 });
       return h(
         "button",
         {
           type: "button",
-          class: "char-choice",
+          class: `char-choice${pic ? " with-illus" : ""}`,
           role: "radio",
           "aria-checked": String(on),
           "data-character": c.id,
@@ -2371,6 +2379,7 @@
         },
         h("span", { class: "char-name", text: c.name }),
         c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
+        pic ? Object.assign(pic, { className: `${pic.className} char-choice-img`, alt: "" }) : null,
         h("span", { class: "char-sub small muted", text: choiceSub(c) })
       );
     }));
@@ -4443,26 +4452,7 @@
     }
     return { ok: true };
   }
-  function exportProblems(act) {
-    const out = [];
-    for (const q of act.questions) {
-      const miss = missingBlocks(act, q.n);
-      if (miss.length) out.push(`Quest\xE3o ${q.n}: ${miss.length === 1 ? "bloco" : "blocos"} ${miss.join(", ")} sem tradu\xE7\xE3o`);
-      else if (!act.done[q.n]) out.push(`Quest\xE3o ${q.n}: n\xE3o foi finalizada`);
-    }
-    return out;
-  }
-  function exportText(act) {
-    if (exportProblems(act).length) return null;
-    const parts = act.questions.map((q) => {
-      const a = officialAnswers(act, q.n);
-      return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en2, i) => [en2, a[i].trim()])].join("\n");
-    });
-    return `${parts.join("\n\n")}
-`;
-  }
   var isValidated = (act, n) => !!(act.teacher[n] && act.teacher[n].validatedAt);
-  var officialAnswers = (act, n) => isValidated(act, n) ? act.teacher[n].blocks.slice() : answersOf(act, n);
   var same = (s) => String(s || "").normalize("NFC").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").replace(/\s+/g, " ").trim().toLowerCase();
   function readAnswers(text, act) {
     const lines = String(text || "").replace(/^﻿/, "").split(/\r\n|\r|\n/).map((l) => l.replace(/\s+$/, ""));
@@ -4543,21 +4533,6 @@
       updated.push(n);
     }
     return { updated, keptValidated };
-  }
-  function applyTeacherAnswers(act, read, now = Date.now()) {
-    const validated = [], incomplete = [];
-    for (const { n, answers } of read.questions) {
-      if (answers.some((a) => !a)) {
-        incomplete.push(n);
-        continue;
-      }
-      act.answers[n] = answers.slice();
-      act.teacher[n] = { blocks: answers.slice(), validatedAt: now, imported: true };
-      (act.edited || (act.edited = {}))[n] = now;
-      act.done[n] = act.done[n] || now;
-      validated.push(n);
-    }
-    return { validated, incomplete };
   }
   var GENERIC_TITLE = "Atividade";
   var isGenericTitle = (t) => !t || same(t) === same(GENERIC_TITLE);
@@ -4800,6 +4775,219 @@
   }
   var CHECK_LABEL = { ok: "Adequada", incompatible: "Incompat\xEDvel", inconclusive: "Inconclusiva", review: "Revisar", attention: "Aten\xE7\xE3o", empty: "Sem tradu\xE7\xE3o" };
   var CHECK_CLASS = { ok: "ok", incompatible: "bad", inconclusive: "warn", review: "warn", attention: "bad", empty: "" };
+  var PACKAGE_KIND = "daily-routine-english/atividade";
+  var SET_ID = /^[A-Z][A-Z0-9]{1,7}-\d{3}$/;
+  var partCode = (set2, n) => `${set2}-P${String(n).padStart(2, "0")}`;
+  function readPackage(text) {
+    let d;
+    try {
+      d = JSON.parse(String(text || "").replace(/^﻿/, ""));
+    } catch (e) {
+      return null;
+    }
+    if (!d || d.kind !== PACKAGE_KIND) return null;
+    const errors = [];
+    if (d.formato !== 1) errors.push(`Formato ${d.formato === void 0 ? "n\xE3o informado" : d.formato} n\xE3o suportado (esperado: 1).`);
+    const c = d.conjunto || {};
+    const set2 = typeof c.id === "string" ? c.id.trim() : "";
+    if (!SET_ID.test(set2)) errors.push("Identificador do conjunto ausente ou inv\xE1lido (ex.: ACT-001).");
+    const setTitle = typeof c.titulo === "string" && c.titulo.trim() ? c.titulo.trim() : "Atividades";
+    const parts = [];
+    if (!Array.isArray(d.partes) || !d.partes.length) errors.push("O arquivo n\xE3o traz nenhuma parte.");
+    const seen = /* @__PURE__ */ new Set();
+    (Array.isArray(d.partes) ? d.partes : []).forEach((p, k) => {
+      const where = `Parte ${k + 1} do arquivo`;
+      const part = Number(p && p.parte);
+      if (!Number.isInteger(part) || part < 1) {
+        errors.push(`${where}: n\xFAmero da parte inv\xE1lido.`);
+        return;
+      }
+      const code = typeof p.id === "string" ? p.id.trim() : "";
+      if (set2 && code !== partCode(set2, part)) errors.push(`Parte ${part}: identificador \u201C${code || "(vazio)"}\u201D n\xE3o confere com o conjunto (esperado: ${partCode(set2, part)}).`);
+      if (seen.has(part)) errors.push(`Parte ${part}: aparece mais de uma vez no arquivo.`);
+      seen.add(part);
+      const qs = Array.isArray(p.questoes) ? p.questoes : [];
+      if (!qs.length) errors.push(`Parte ${part}: nenhuma quest\xE3o.`);
+      const questions = qs.map((q, i) => {
+        const n = Number(q && q.n);
+        if (n !== i + 1) errors.push(`Parte ${part}: a quest\xE3o ${q && q.n} est\xE1 fora de ordem (esperada a ${i + 1}).`);
+        const blocks = Array.isArray(q && q.blocos) ? q.blocos.map((b) => typeof b === "string" ? b.trim() : "") : [];
+        if (!blocks.length || blocks.some((b) => !b)) errors.push(`Parte ${part}, quest\xE3o ${i + 1}: blocos vazios ou ausentes.`);
+        return { n: i + 1, blocks };
+      });
+      parts.push({
+        code,
+        set: set2,
+        setTitle,
+        part,
+        title: typeof p.titulo === "string" && p.titulo.trim() ? p.titulo.trim() : `Parte ${part}`,
+        version: p.versao === void 0 || p.versao === null ? "1" : String(p.versao),
+        questions
+      });
+    });
+    parts.sort((a, b) => a.part - b.part);
+    return { set: set2, setTitle, parts, errors };
+  }
+  function similarity(a, b) {
+    const pool = new Set(a.questions.flatMap((q) => q.blocks.map(same)));
+    const all = b.questions.flatMap((q) => q.blocks.map(same));
+    return all.length ? all.filter((x) => pool.has(x)).length / all.length : 0;
+  }
+  function planPackage(data2, pkg) {
+    const acts = Object.values(data2.activities);
+    return pkg.parts.map((p) => {
+      const byCode = acts.find((a) => a.code === p.code);
+      if (byCode) {
+        if (contentKey(byCode) === contentKey(p)) return { p, kind: "same", act: byCode, metaOnly: byCode.version !== p.version || byCode.title !== p.title };
+        return { p, kind: "update", act: byCode, sim: similarity(byCode, p) };
+      }
+      const twin = findSame(acts, p);
+      if (twin) return twin.code ? { p, kind: "conflict", act: twin } : { p, kind: "adopt", act: twin };
+      let best = null;
+      for (const a of acts) {
+        if (a.code) continue;
+        const s = similarity(a, p);
+        if (s >= 0.5 && (!best || s > best.sim)) best = { act: a, sim: s };
+      }
+      return best ? { p, kind: "update", act: best.act, sim: best.sim, adopt: true } : { p, kind: "new" };
+    });
+  }
+  var META = (a, p) => {
+    a.code = p.code;
+    a.set = p.set;
+    a.setTitle = p.setTitle;
+    a.part = p.part;
+    a.title = p.title;
+    a.version = p.version;
+  };
+  function updateActivity(act, p, now = Date.now()) {
+    const snap = JSON.parse(JSON.stringify({
+      at: now,
+      version: act.version || null,
+      title: act.title,
+      questions: act.questions,
+      answers: act.answers,
+      edited: act.edited || {},
+      done: act.done,
+      submitted: act.submitted,
+      teacher: act.teacher,
+      pos: act.pos
+    }));
+    const old = { questions: act.questions, answers: act.answers, edited: act.edited || {}, done: act.done, submitted: act.submitted, teacher: act.teacher };
+    const r = { kept: 0, changed: 0, added: 0, removed: Math.max(0, old.questions.length - p.questions.length), carried: 0 };
+    const nu = { answers: {}, edited: {}, done: {}, submitted: {}, teacher: {} };
+    for (const q of p.questions) {
+      const oq = old.questions.find((x) => x.n === q.n);
+      if (!oq) {
+        r.added++;
+        continue;
+      }
+      const identical = oq.blocks.length === q.blocks.length && oq.blocks.every((b, i) => same(b) === same(q.blocks[i]));
+      const oa = old.answers[q.n] || [];
+      const ans = q.blocks.map((b) => {
+        const j = oq.blocks.findIndex((x) => same(x) === same(b));
+        return j >= 0 ? oa[j] || "" : "";
+      });
+      r.carried += ans.filter((x) => x.trim()).length;
+      if (ans.some((x) => x.trim())) {
+        nu.answers[q.n] = ans;
+        if (old.edited[q.n]) nu.edited[q.n] = old.edited[q.n];
+      }
+      if (identical) {
+        r.kept++;
+        if (old.done[q.n]) nu.done[q.n] = old.done[q.n];
+        if (old.submitted[q.n]) nu.submitted[q.n] = old.submitted[q.n];
+        if (old.teacher[q.n]) nu.teacher[q.n] = old.teacher[q.n];
+      } else r.changed++;
+    }
+    act.archive = [...act.archive || [], snap];
+    act.questions = p.questions.map((q) => ({ n: q.n, blocks: q.blocks.slice() }));
+    Object.assign(act, nu);
+    META(act, p);
+    act.updatedAt = now;
+    const last = act.questions.length;
+    if (!act.pos || act.pos.q > last) act.pos = { q: 1, b: 0 };
+    return r;
+  }
+  function applyPackage(data2, plan, now = Date.now()) {
+    const out = { added: [], adopted: [], updated: [], unchanged: [], skipped: [] };
+    for (const step of plan) {
+      const { p } = step;
+      if (step.kind === "new") {
+        const act = newActivity({ title: p.title, questions: p.questions }, now);
+        act.id = p.code;
+        META(act, p);
+        data2.activities[act.id] = act;
+        out.added.push(p.code);
+      } else if (step.kind === "adopt") {
+        META(step.act, p);
+        out.adopted.push(p.code);
+      } else if (step.kind === "update") {
+        out.updated.push({ code: p.code, ...updateActivity(step.act, p, now) });
+      } else if (step.kind === "same") {
+        if (step.metaOnly) META(step.act, p);
+        out.unchanged.push(p.code);
+      } else out.skipped.push(p.code);
+    }
+    return out;
+  }
+  function partLock(act, activities) {
+    if (!act || !act.set || !(act.part > 1)) return null;
+    const prev = activities.find((a) => a.set === act.set && a.part === act.part - 1);
+    if (!prev) return { reason: `Adicione a Parte ${act.part - 1} para liberar esta parte.` };
+    return summary(prev).complete ? null : { reason: `Conclua todas as quest\xF5es da Parte ${act.part - 1} para liberar esta parte.` };
+  }
+  function catalogOrder(activities) {
+    return activities.slice().sort((a, b) => !!b.set - !!a.set || (a.set || "").localeCompare(b.set || "") || (a.part || 0) - (b.part || 0) || a.importedAt - b.importedAt);
+  }
+  function missingAnswers(act) {
+    return act.questions.map((q) => ({ n: q.n, blocks: missingBlocks(act, q.n), done: !!act.done[q.n] })).filter((x) => x.blocks.length).map((x) => ({ n: x.n, blocks: x.blocks, empty: x.blocks.length === act.questions.find((q) => q.n === x.n).blocks.length }));
+  }
+  function exportReport(act, now = Date.now()) {
+    const miss = missingAnswers(act);
+    const total = act.questions.length;
+    const full = total - miss.length;
+    const complete = !miss.length;
+    const id = act.code || act.id;
+    const when = new Date(now);
+    const fmt3 = (() => {
+      try {
+        return when.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+      } catch (e) {
+        return when.toISOString();
+      }
+    })();
+    const label = act.part ? `${id} \xB7 Parte ${act.part}` : `${id} \xB7 ${act.title}`;
+    const head = [
+      "Curso \u2014 Atividades",
+      `Atividade: ${label}${act.version ? ` \xB7 vers\xE3o ${act.version}` : ""}`,
+      `Exportado em: ${fmt3}`,
+      complete ? `Situa\xE7\xE3o: completa (${total} de ${total} quest\xF5es respondidas)` : `Situa\xE7\xE3o: CONT\xC9M RESPOSTAS INCOMPLETAS (${full} de ${total} quest\xF5es completas)`
+    ];
+    if (!complete) head.push(`Faltam: ${miss.map((m) => m.empty ? `Quest\xE3o ${m.n} (sem resposta)` : `Quest\xE3o ${m.n} (${m.blocks.length === 1 ? "bloco" : "blocos"} ${m.blocks.join(", ")})`).join("; ")}`);
+    const body = act.questions.map((q) => {
+      const a = answersOf(act, q.n);
+      return [`QUEST\xC3O ${q.n}`, ...q.blocks.flatMap((en2, i) => [en2, (a[i] || "").trim()])].join("\n");
+    });
+    const text = `${head.join("\n")}
+
+${body.join("\n\n")}
+`;
+    const json = {
+      kind: "daily-routine-english/respostas",
+      formato: 1,
+      atividade: { id, parte: act.part || null, titulo: act.part ? `Parte ${act.part}` : act.title, versao: act.version || null },
+      exportadoEm: when.toISOString(),
+      completa: complete,
+      questoesCompletas: full,
+      totalQuestoes: total,
+      questoes: act.questions.map((q) => {
+        const a = answersOf(act, q.n);
+        return { n: q.n, completa: !missingBlocks(act, q.n).length, blocos: q.blocks.map((en2, i) => ({ en: en2, resposta: (a[i] || "").trim(), preenchido: !!(a[i] || "").trim() })) };
+      })
+    };
+    return { text, json, complete, missing: miss };
+  }
 
   // app/js/engine/coursepractice.js
   var PRACTICE_KEY = "course-practice";
@@ -4876,7 +5064,7 @@
     });
   }
   var meaningLabel = (it) => (it.meanings && it.meanings.length ? it.meanings : it.pts).slice(0, 2).join(" / ");
-  var VIA_LABEL = { professor: "sentido confirmado na vers\xE3o validada pelo professor", app: "gloss\xE1rio do app" };
+  var VIA_LABEL = { professor: "sentido confirmado na resposta de refer\xEAncia", app: "gloss\xE1rio do app" };
   function locateIn(text, surface2) {
     if (!surface2 || !surface2.length) return null;
     const esc = surface2.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/'/g, "['\u2019]"));
@@ -5162,7 +5350,7 @@
           "section",
           { class: "card", "data-role": "practice-head" },
           h("div", { class: "small muted", text: act.title }),
-          h("p", { class: "small", style: { margin: "6px 0" }, text: "Pr\xE1ticas para fixar o vocabul\xE1rio, as express\xF5es e as frases desta atividade. A tradu\xE7\xE3o continua sendo a atividade principal: nada aqui muda as suas respostas, as corre\xE7\xF5es do professor ou a exporta\xE7\xE3o." }),
+          h("p", { class: "small", style: { margin: "6px 0" }, text: "Pr\xE1ticas para fixar o vocabul\xE1rio, as express\xF5es e as frases desta atividade. A tradu\xE7\xE3o continua sendo a atividade principal: nada aqui muda as suas respostas ou a exporta\xE7\xE3o." }),
           h(
             "div",
             { class: "small", "data-role": "practice-summary" },
@@ -5184,14 +5372,14 @@
           modeBtn("vocab", n(MODES.vocab.skills), "Nenhum vocabul\xE1rio com sentido confirmado nesta atividade ainda."),
           modeBtn("listen", n(MODES.listen.skills), "Poucas frases ou express\xF5es distintas para montar as alternativas."),
           modeBtn("speak", n(MODES.speak.skills), "Nenhuma frase curta o bastante para a fala."),
-          modeBtn("rev", n(MODES.rev.skills), validated ? "Sem blocos validados pelo professor curtos o bastante." : "Dispon\xEDvel s\xF3 nas quest\xF5es validadas pelo professor (nenhuma nesta atividade ainda)."),
+          modeBtn("rev", n(MODES.rev.skills), validated ? "Sem blocos com resposta de refer\xEAncia curtos o bastante." : "Dispon\xEDvel s\xF3 nas quest\xF5es que t\xEAm resposta de refer\xEAncia registrada (nenhuma nesta atividade)."),
           modeBtn("errors", s.errors, "Nenhum erro para repetir.")
         ),
         h("p", {
           class: "tiny muted",
           style: { marginTop: "10px" },
           "data-role": "practice-sources",
-          text: `Gerado neste aparelho a partir do texto importado. Significados: s\xF3 os confirmados na vers\xE3o validada pelo professor ou no gloss\xE1rio do app (orienta\xE7\xE3o de estudo, n\xE3o \xE9 resposta oficial). Escuta e fala usam a voz do sistema do aparelho, n\xE3o grava\xE7\xF5es do curso. Frases com at\xE9 ${MAX_WORDS} palavras.`
+          text: `Gerado neste aparelho a partir do texto importado. Significados: s\xF3 os confirmados na resposta de refer\xEAncia registrada ou no gloss\xE1rio do app (orienta\xE7\xE3o de estudo, n\xE3o \xE9 resposta oficial). Escuta e fala usam a voz do sistema do aparelho, n\xE3o grava\xE7\xF5es do curso. Frases com at\xE9 ${MAX_WORDS} palavras.`
         })
       ].filter(Boolean));
     }
@@ -5348,7 +5536,7 @@
             );
           };
           return [
-            h("p", { class: "small muted", text: "Traduza para o ingl\xEAs. O texto em portugu\xEAs \xE9 a vers\xE3o validada pelo professor; o gabarito \xE9 o ingl\xEAs original da atividade." }),
+            h("p", { class: "small muted", text: "Traduza para o ingl\xEAs. O texto em portugu\xEAs \xE9 a resposta de refer\xEAncia registrada; o gabarito \xE9 o ingl\xEAs original da atividade." }),
             h("p", { style: { fontSize: "1.05rem", margin: "0 0 10px" }, "data-role": "rev-pt", text: ex.pt }),
             inp,
             h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "check", onclick: check }, icon("check"), "Conferir")
@@ -5507,6 +5695,7 @@
     }, 1e3);
   }
   var MIRROR = "drg.course.mirror";
+  var SAFETY = "course.copia-antes-catalogo";
   var data = null;
   var timer = null;
   var saving2 = Promise.resolve();
@@ -5520,9 +5709,16 @@
       }
       const ok = (x) => x && x.v === 1 && x.activities;
       data = ok(mirror) && (!ok(raw) || (mirror.savedAt || 0) > (raw.savedAt || 0)) ? mirror : ok(raw) ? raw : { v: 1, activities: {}, last: null };
+      await ensureSafetyCopy(data);
       if (dedupe(data)) await saveNow();
     }
     return data;
+  }
+  async function ensureSafetyCopy(d) {
+    if (!Object.keys(d.activities).length) return;
+    if (await getKv(SAFETY).catch(() => true)) return;
+    await putKv(SAFETY, { at: Date.now(), data: JSON.parse(JSON.stringify(d)) }).catch(() => {
+    });
   }
   function saveNow() {
     clearTimeout(timer);
@@ -5557,69 +5753,35 @@
     });
     window.addEventListener("pagehide", onLeave);
   }
-  var fmtDay = (ts) => {
-    try {
-      return new Date(ts).toLocaleDateString("pt-BR");
-    } catch (e) {
-      return "";
-    }
-  };
   var qHref = (id, n) => `#/cq/${encodeURIComponent(id)}?q=${n}`;
   var resumeOf = (act) => {
     const n = act.pos && canOpen(act, act.pos.q) ? act.pos.q : 1;
     return Math.min(Math.max(1, n), act.questions.length);
   };
   function renderCourse(App2) {
-    const view = App2.layout(AREA_NAME, { back: "#/" });
+    const toolBtn = (name, label, role, onclick) => h("button", { class: "icon-btn ghost", type: "button", title: label, "aria-label": label, "data-role": role, onclick }, icon(name));
+    const view = App2.layout(AREA_NAME, { back: "#/", actions: [
+      toolBtn("filePlus", "Adicionar atividade (importar arquivo de estudo)", "open-import", () => importSheet(() => drawList())),
+      toolBtn("export", "Exportar respostas", "open-export", () => exportSheet())
+    ] });
     const list = h("div", { "data-role": "activities" }, h("p", { class: "muted small", text: "Carregando\u2026" }));
-    view.append(
-      h("p", { class: "small muted", text: "Atividades de tradu\xE7\xE3o do curso (ingl\xEAs \u2192 portugu\xEAs). O texto de cada atividade \xE9 importado por voc\xEA e fica s\xF3 neste aparelho, junto com as suas respostas." }),
-      list,
-      transferCard(() => drawList()),
-      importCard(App2, () => drawList())
-    );
+    view.append(list);
     async function drawList() {
       const d = await loadCourse();
       list.replaceChildren();
-      const acts = Object.values(d.activities).sort((a, b) => (b.id === d.last) - (a.id === d.last) || a.importedAt - b.importedAt);
-      if (!acts.length) list.append(h("div", { class: "notice", "data-role": "no-activity" }, "Nenhuma atividade ainda. Importe o arquivo da atividade abaixo."));
-      for (const act of acts) {
-        const s = summary(act);
-        list.append(h(
-          "section",
-          { class: "card", style: { marginTop: "12px" }, "data-role": "activity", "data-id": act.id },
-          h("h3", { style: { margin: 0 }, text: act.title }),
-          h("div", { class: "row nowrap small" }, h("span", { class: "grow", "data-role": "activity-progress", text: `${s.done} de ${s.total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / s.total * 100)}%` })),
-          bar(s.done / s.total),
-          h("div", { class: "small muted", style: { marginTop: "4px" }, "data-role": "activity-validated", text: `Validadas pelo professor: ${s.validated} de ${s.total}` }),
-          h(
-            "button",
-            { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "open-activity", onclick: () => {
-              d.last = act.id;
-              saveSoon2();
-              App2.go(qHref(act.id, resumeOf(act)));
-            } },
-            icon("play"),
-            s.done ? s.complete ? "Abrir" : `Continuar (quest\xE3o ${resumeOf(act)})` : "Come\xE7ar"
-          ),
-          h(
-            "div",
-            { class: "row", style: { marginTop: "8px", gap: "8px" } },
-            h("button", { class: "btn small", "data-role": "export-transfer", onclick: () => {
-              download(`${slug(act.title)}-transferencia.json`, JSON.stringify(transferData(act)), "application/json");
-              toast("Arquivo de transfer\xEAncia gerado: importe-o no outro aparelho em \u201CImportar respostas de outro aparelho\u201D.", 6e3);
-            } }, icon("download"), "Exportar para outro aparelho"),
-            practiceButton(act),
-            h("button", { class: "btn small ghost", "data-role": "remove-activity", onclick: async () => {
-              if (!await confirmSheet(`Remover \u201C${act.title}\u201D?`, "A atividade e as respostas dela saem deste aparelho. Se quiser guardar, exporte antes para outro aparelho.", { ok: "Remover", danger: true })) return;
-              delete d.activities[act.id];
-              if (d.last === act.id) d.last = null;
-              await saveNow();
-              drawList();
-            } }, "Remover")
-          ),
-          s.complete ? exportBox(act) : null
-        ));
+      const all = Object.values(d.activities);
+      if (!all.length) {
+        list.append(h("div", { class: "notice", "data-role": "no-activity" }, "Nenhuma atividade ainda. Toque em ", icon("filePlus"), " (no alto da tela) para adicionar um arquivo de estudo."));
+        return;
+      }
+      let group = null;
+      for (const act of catalogOrder(all)) {
+        const g = act.set ? `${act.set}` : "_";
+        if (g !== group) {
+          group = g;
+          list.append(h("h2", { "data-role": "activity-group", text: act.set ? act.setTitle || "Atividades" : "Outras atividades" }));
+        }
+        list.append(activityCard(App2, d, act, all, drawList));
       }
     }
     drawList();
@@ -5627,13 +5789,65 @@
       flushCourse();
     };
   }
-  function transferCard(onDone) {
-    const out = h("div", { "data-role": "transfer-status" });
-    const pick = (kind) => h("input", {
+  function activityCard(App2, d, act, all, redraw) {
+    const s = summary(act);
+    const lock = partLock(act, all);
+    const name = act.part ? `Parte ${act.part}` : act.title;
+    const open = () => {
+      d.last = act.id;
+      saveSoon2();
+      App2.go(qHref(act.id, resumeOf(act)));
+    };
+    const status3 = lock ? h("div", { class: "small muted", "data-role": "activity-lock" }, icon("lock"), ` ${lock.reason}`) : h(
+      "div",
+      { class: "row nowrap small", style: { gap: "6px" } },
+      h("span", { class: "grow", "data-role": "activity-progress", text: `${s.done} de ${s.total} quest\xF5es conclu\xEDdas` }),
+      h("span", { class: "chip ok", "data-role": "offline", title: "O conte\xFAdo est\xE1 salvo neste aparelho e funciona sem internet." }, icon("check"), "Offline")
+    );
+    const more = h(
+      "details",
+      { class: "more", "data-role": "activity-more" },
+      h("summary", { text: "Op\xE7\xF5es" }),
+      h(
+        "div",
+        { class: "row", style: { gap: "8px", margin: "4px 0 2px" } },
+        h("button", { class: "btn small", "data-role": "export-transfer", onclick: () => {
+          download(`${slug(act.code || act.title)}-transferencia.json`, JSON.stringify(transferData(act)), "application/json");
+          toast("C\xF3pia de seguran\xE7a gerada: para restaurar ou continuar em outro aparelho, adicione este arquivo pelo \xEDcone de adicionar.", 6e3);
+        } }, icon("download"), "C\xF3pia de seguran\xE7a"),
+        h("button", { class: "btn small ghost", "data-role": "remove-activity", onclick: async () => {
+          if (!await confirmSheet(`Remover \u201C${name}\u201D?`, "A atividade e as respostas dela saem deste aparelho. Se quiser guardar, gere antes a c\xF3pia de seguran\xE7a.", { ok: "Remover", danger: true })) return;
+          delete d.activities[act.id];
+          if (d.last === act.id) d.last = null;
+          await saveNow();
+          redraw();
+        } }, "Remover")
+      )
+    );
+    return h(
+      "section",
+      { class: `card${lock ? " locked" : ""}`, style: { marginTop: "12px" }, "data-role": "activity", "data-id": act.id, "data-code": act.code || "" },
+      h("div", { class: "row nowrap" }, h("h3", { class: "grow", style: { margin: 0 }, text: name }), lock ? null : practiceButton(act)),
+      status3,
+      lock ? null : bar(s.total ? s.done / s.total : 0),
+      lock ? null : h(
+        "button",
+        { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "open-activity", onclick: open },
+        icon("play"),
+        s.done ? s.complete ? "Revisar" : `Continuar (quest\xE3o ${resumeOf(act)})` : "Come\xE7ar"
+      ),
+      more
+    );
+  }
+  var ACCEPT = `.json,application/json,${ACCEPT_TEXT}`;
+  function importSheet(onDone) {
+    const out = h("div", { "data-role": "import-status", style: { marginTop: "10px" } });
+    const paste = h("textarea", { class: "field", rows: 4, placeholder: "Cole aqui o texto da atividade", "aria-label": "Texto da atividade", "data-role": "import-text" });
+    const file = h("input", {
       type: "file",
-      accept: kind === "own" ? `.json,application/json,${ACCEPT_TEXT}` : ACCEPT_TEXT,
+      accept: ACCEPT,
       class: "hidden",
-      "data-role": `import-${kind}`,
+      "data-role": "import-file",
       onchange: async (e) => {
         const f = e.target.files[0];
         e.target.value = "";
@@ -5642,172 +5856,189 @@
         try {
           text = await readImportFile(f);
         } catch (err) {
-          out.replaceChildren(h("div", { class: "notice bad", "data-role": "transfer-error" }, `N\xE3o foi poss\xEDvel ler o arquivo: ${err.message}.`));
-          return;
+          return fail(`N\xE3o foi poss\xEDvel ler o arquivo: ${err.message}.`);
         }
-        await preview(kind, text);
+        analyse(text);
       }
     });
-    async function preview(kind, text) {
-      const d = await loadCourse();
+    const sh = sheet(h(
+      "div",
+      { "data-role": "import-sheet" },
+      h("h2", { style: { marginTop: "4px" }, text: "Adicionar atividade" }),
+      h("p", { class: "small muted", text: "Escolha o arquivo de estudo (.json no formato do app). Tamb\xE9m aceita o arquivo de texto da atividade (.txt, .docx, .md com \u201CQUESTION 1\u201D\u2026) e a c\xF3pia de seguran\xE7a de uma atividade. Nada \xE9 enviado: tudo fica neste aparelho." }),
+      h("label", { class: "btn primary block" }, icon("filePlus"), "Escolher arquivo", file),
+      h(
+        "details",
+        { class: "more", style: { marginTop: "8px" } },
+        h("summary", { text: "Ou colar o texto da atividade" }),
+        paste,
+        h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "import-paste", onclick: () => analyse(paste.value) }, "Usar texto colado")
+      ),
+      out
+    ), { label: "Adicionar atividade" });
+    const list = (items) => h("ul", { style: { margin: "6px 0 0", paddingLeft: "18px" } }, items.map((x) => h("li", { text: x })));
+    function fail(msg, items) {
+      out.replaceChildren(h("div", { class: "notice bad", "data-role": "import-error" }, h("b", { text: "Nada foi alterado. " }), msg, items ? list(items) : null));
+    }
+    function ok(msg) {
+      out.replaceChildren(h("div", { class: "notice ok", "data-role": "import-ok" }, msg));
+      onDone();
+    }
+    function confirm(summaryEl, apply, label = "Confirmar") {
+      out.replaceChildren(h(
+        "div",
+        { class: "notice", "data-role": "import-preview" },
+        summaryEl,
+        h(
+          "div",
+          { class: "row", style: { marginTop: "10px" } },
+          h("button", { class: "btn primary", "data-role": "import-apply", onclick: apply }, icon("check"), label),
+          h("button", { class: "btn", "data-role": "import-cancel", onclick: () => out.replaceChildren() }, "Cancelar")
+        )
+      ));
+    }
+    async function analyse(text) {
       out.replaceChildren();
+      const d = await loadCourse();
       const acts = Object.values(d.activities);
+      const pkg = readPackage(text);
+      if (pkg) {
+        if (pkg.errors.length) return fail("O arquivo de estudo n\xE3o est\xE1 no formato esperado:", pkg.errors);
+        const plan = planPackage(d, pkg);
+        const nq = (p2) => `${p2.questions.length} ${p2.questions.length === 1 ? "quest\xE3o" : "quest\xF5es"}`;
+        const line = (st) => {
+          const t = `Parte ${st.p.part} (${nq(st.p)})`;
+          if (st.kind === "new") return `${t}: nova.`;
+          if (st.kind === "same") return `${t}: j\xE1 est\xE1 neste aparelho, igual \u2014 nada muda.`;
+          if (st.kind === "adopt") return `${t}: j\xE1 est\xE1 neste aparelho \u2014 passa a fazer parte do cat\xE1logo; respostas mantidas.`;
+          if (st.kind === "update") return `${t}: vers\xE3o ${st.p.version} diferente da que est\xE1 aqui (${Math.round(st.sim * 100)}% dos trechos iguais) \u2014 atualiza\xE7\xE3o: as respostas dos trechos que n\xE3o mudaram s\xE3o mantidas e a vers\xE3o anterior inteira fica guardada.`;
+          return `${t}: o conte\xFAdo j\xE1 pertence a outra parte do cat\xE1logo \u2014 n\xE3o ser\xE1 alterada.`;
+        };
+        const changes = plan.filter((x) => x.kind !== "same" && x.kind !== "conflict");
+        const head = h("div", {}, h("b", { text: `${pkg.setTitle} \u2014 ${pkg.parts.length} ${pkg.parts.length === 1 ? "parte" : "partes"}, ${pkg.parts.reduce((n, p2) => n + p2.questions.length, 0)} quest\xF5es` }), list(plan.map(line)));
+        if (!changes.length) {
+          out.replaceChildren(h("div", { class: "notice", "data-role": "import-same" }, head));
+          return;
+        }
+        return confirm(head, async () => {
+          await ensureSafetyCopy(d);
+          const r = applyPackage(d, plan);
+          const code = r.added[0] || r.adopted[0] || r.updated[0] && r.updated[0].code;
+          const first = Object.values(d.activities).find((a) => a.code === code);
+          if (first) d.last = first.id;
+          await saveNow();
+          ok(`Pronto: ${[r.added.length && `${r.added.length} nova(s)`, r.adopted.length && `${r.adopted.length} reconhecida(s)`, r.updated.length && `${r.updated.length} atualizada(s)`].filter(Boolean).join(", ")}.`);
+        }, changes.some((x) => x.kind === "update") ? "Atualizar" : "Adicionar");
+      }
       let moved = null;
       try {
         moved = readTransfer(text);
       } catch (err) {
-        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, `Nada foi alterado: ${err.message}.`));
-        return;
+        return fail(`${err.message}.`);
       }
-      if (moved && kind === "teacher") {
-        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, "Este \xE9 um arquivo de transfer\xEAncia entre aparelhos; use \u201CImportar respostas de outro aparelho\u201D."));
-        return;
-      }
-      if (moved) return previewTransfer(d, moved);
-      if (!acts.length) {
-        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, "Importe primeiro o texto da atividade (abaixo); depois, as respostas."));
-        return;
-      }
-      const r = matchAnswers(text, acts);
-      const teacher = kind === "teacher";
-      const errs = r.errors.slice();
-      if (teacher) for (const q of r.questions) {
-        const miss = q.answers.map((a, i) => a ? null : i + 1).filter(Boolean);
-        if (miss.length) errs.push(`Quest\xE3o ${q.n}: corre\xE7\xE3o sem resposta no${miss.length === 1 ? " bloco" : "s blocos"} ${miss.join(", ")}.`);
-      }
-      const list = (items) => h("ul", { style: { margin: "6px 0 0", paddingLeft: "18px" } }, items.map((x) => h("li", { text: x })));
-      if (errs.length || !r.questions.length) {
-        out.append(h("div", { class: "notice bad", "data-role": "transfer-error" }, h("b", { text: "Nada foi alterado. O arquivo n\xE3o confere com a atividade:" }), list(errs.length ? errs : ["nenhuma quest\xE3o identificada"])));
-        return;
-      }
-      const act = r.act;
-      const nums = r.questions.map((q) => q.n);
-      const blocks = r.questions.reduce((n, q) => n + q.answers.length, 0);
-      const kept = teacher ? [] : nums.filter((n) => isValidated(act, n));
-      const what = teacher ? `${nums.length} ${nums.length === 1 ? "quest\xE3o ser\xE1 marcada" : "quest\xF5es ser\xE3o marcadas"} como validada${nums.length === 1 ? "" : "s"} pelo professor; a vers\xE3o corrigida passa a ser a resposta oficial.` : `${nums.length - kept.length} ${nums.length - kept.length === 1 ? "quest\xE3o ser\xE1 atualizada" : "quest\xF5es ser\xE3o atualizadas"} com as suas respostas${kept.length ? `; ${kept.length} j\xE1 validada${kept.length === 1 ? "" : "s"} pelo professor (${kept.join(", ")}) n\xE3o muda${kept.length === 1 ? "" : "m"}` : ""}.`;
-      const apply = h("button", { class: "btn primary", "data-role": "transfer-apply", onclick: async () => {
-        const res = teacher ? applyTeacherAnswers(act, r) : applyOwnAnswers(act, r);
-        d.last = act.id;
-        await saveNow();
-        out.replaceChildren(h("div", { class: "notice ok", "data-role": "transfer-ok" }, teacher ? `Corre\xE7\xF5es importadas: ${res.validated.length} ${res.validated.length === 1 ? "quest\xE3o validada" : "quest\xF5es validadas"} pelo professor (${res.validated.join(", ")}).` : `Respostas importadas: ${res.updated.length} ${res.updated.length === 1 ? "quest\xE3o atualizada" : "quest\xF5es atualizadas"}${res.keptValidated.length ? `; ${res.keptValidated.length} validadas mantidas` : ""}.`));
-        onDone();
-      } }, icon("check"), "Aplicar");
-      out.append(h(
-        "div",
-        { class: "notice", "data-role": "transfer-preview" },
-        h("b", { text: `${act.title}: ${nums.length} de ${act.questions.length} quest\xF5es identificadas no arquivo (${blocks} blocos).` }),
-        h("p", { style: { margin: "6px 0" }, text: what }),
-        r.warnings.length ? h("div", { class: "small" }, "Avisos (a resposta atual desses blocos \xE9 mantida):", list(r.warnings)) : null,
-        h("div", { class: "row", style: { marginTop: "8px" } }, apply, h("button", { class: "btn", "data-role": "transfer-cancel", onclick: () => out.replaceChildren() }, "Cancelar"))
-      ));
-    }
-    function previewTransfer(d, moved) {
-      const here = d.activities[moved.id] || findSame(Object.values(d.activities), moved);
-      const s = summary(moved);
-      let what;
-      if (here) {
-        const trial = mergeActivity(JSON.parse(JSON.stringify(here)), moved);
-        what = `\u201C${here.title}\u201D j\xE1 est\xE1 neste aparelho: ${trial.fromFile.length} ${trial.fromFile.length === 1 ? "quest\xE3o ser\xE1 atualizada" : "quest\xF5es ser\xE3o atualizadas"} com a vers\xE3o mais nova do arquivo${trial.validated.length ? `, ${trial.validated.length} com corre\xE7\xE3o do professor` : ""}; ${trial.keptHere.length} ${trial.keptHere.length === 1 ? "fica" : "ficam"} como ${trial.keptHere.length === 1 ? "est\xE1" : "est\xE3o"} aqui (mais nova${trial.keptHere.length === 1 ? "" : "s"} ou validada${trial.keptHere.length === 1 ? "" : "s"}).`;
-      } else what = `\u201C${moved.title}\u201D ser\xE1 adicionada a este aparelho com ${s.done} de ${s.total} quest\xF5es conclu\xEDdas e ${s.validated} validadas pelo professor.`;
-      out.append(h(
-        "div",
-        { class: "notice", "data-role": "transfer-preview" },
-        h("b", { text: "Arquivo de transfer\xEAncia de outro aparelho." }),
-        h("p", { style: { margin: "6px 0" }, text: what }),
-        h(
-          "div",
-          { class: "row", style: { marginTop: "8px" } },
-          h("button", { class: "btn primary", "data-role": "transfer-apply", onclick: async () => {
-            let act = here;
-            if (here) mergeActivity(here, moved);
-            else {
-              act = moved;
-              d.activities[act.id] = act;
-            }
-            d.last = act.id;
-            await saveNow();
-            const t = summary(act);
-            out.replaceChildren(h("div", { class: "notice ok", "data-role": "transfer-ok" }, `\u201C${act.title}\u201D atualizada neste aparelho: ${t.done} de ${t.total} quest\xF5es conclu\xEDdas, ${t.validated} validadas pelo professor.`));
-            onDone();
-          } }, icon("check"), "Aplicar"),
-          h("button", { class: "btn", "data-role": "transfer-cancel", onclick: () => out.replaceChildren() }, "Cancelar")
-        )
-      ));
-    }
-    return h(
-      "details",
-      { class: "more card", "data-role": "transfer" },
-      h("summary", { text: "Transferir respostas e corre\xE7\xF5es" }),
-      h("p", { class: "small muted", text: "Para continuar em outro aparelho: no cart\xE3o da atividade, \u201CExportar para outro aparelho\u201D gera um arquivo .json; no outro aparelho, importe-o abaixo (a atividade \xE9 reconhecida e atualizada, sem cart\xE3o repetido; em cada quest\xE3o fica a vers\xE3o mais nova). Tamb\xE9m aceita o .txt exportado para a plataforma. Tudo fica s\xF3 no aparelho." }),
-      h("label", { class: "btn block" }, icon("upload"), "Importar respostas de outro aparelho", pick("own")),
-      h("label", { class: "btn block", style: { marginTop: "8px" } }, icon("check"), "Importar corre\xE7\xF5es do professor", pick("teacher")),
-      h("p", { class: "tiny muted", style: { margin: "6px 0 0" }, text: "Corre\xE7\xF5es do professor (.txt, .docx ou .md): o formato do arquivo exportado para a plataforma, com as tradu\xE7\xF5es corrigidas. Cada quest\xE3o do arquivo passa a ter a vers\xE3o corrigida como resposta oficial (validada). Pode importar de novo quando houver novas corre\xE7\xF5es." }),
-      h("div", { style: { marginTop: "10px" } }, out)
-    );
-  }
-  function importCard(App2, onDone) {
-    const status3 = h("div", { "data-role": "import-status" });
-    const paste = h("textarea", { class: "field", rows: 4, placeholder: "Ou cole aqui o texto da atividade", "aria-label": "Texto da atividade", "data-role": "import-text" });
-    const fail = (msg) => status3.replaceChildren(h("div", { class: "notice bad", "data-role": "import-error" }, h("b", { text: "N\xE3o foi poss\xEDvel importar. " }), msg));
-    async function importText(text) {
-      status3.replaceChildren();
-      const d = await loadCourse();
-      const acts = Object.values(d.activities);
-      try {
-        if (readTransfer(text)) return fail("Este \xE9 um arquivo de transfer\xEAncia. Use \u201CImportar respostas de outro aparelho\u201D, em \u201CTransferir respostas e corre\xE7\xF5es\u201D.");
-      } catch (e) {
-        return fail(e.message);
+      if (moved) {
+        const here = d.activities[moved.id] || findSame(acts, moved);
+        const what = here ? `\u201C${here.part ? `Parte ${here.part}` : here.title}\u201D j\xE1 est\xE1 neste aparelho: em cada quest\xE3o fica a vers\xE3o editada por \xFAltimo.` : `A atividade ser\xE1 adicionada com ${summary(moved).done} de ${summary(moved).total} quest\xF5es conclu\xEDdas.`;
+        return confirm(h("div", {}, h("b", { text: "C\xF3pia de seguran\xE7a de uma atividade." }), h("p", { style: { margin: "6px 0 0" }, text: what })), async () => {
+          let act = here;
+          if (here) mergeActivity(here, moved);
+          else {
+            act = moved;
+            d.activities[act.id] = act;
+          }
+          d.last = act.id;
+          await saveNow();
+          ok("C\xF3pia de seguran\xE7a aplicada.");
+        });
       }
       const p = parseActivity(text);
-      if (p.errors.length) return fail(p.errors.join(" "));
-      const same2 = findSame(acts, p);
-      if (!same2 && acts.length) {
-        const m = matchAnswers(text, acts);
-        if (m && !m.errors.length && m.matched) return fail(`Este arquivo traz respostas da atividade \u201C${m.act.title}\u201D. Use \u201CImportar respostas de outro aparelho\u201D ou \u201CImportar corre\xE7\xF5es do professor\u201D, em \u201CTransferir respostas e corre\xE7\xF5es\u201D.`);
-      }
-      let act = same2;
-      if (same2) {
-        if (isGenericTitle(same2.title) && !isGenericTitle(p.title)) same2.title = p.title;
-      } else {
-        act = newActivity(p);
-        d.activities[act.id] = act;
-      }
-      d.last = act.id;
-      await saveNow();
-      paste.value = "";
-      status3.append(h(
-        "div",
-        { class: "notice ok", "data-role": "import-ok" },
-        same2 ? `\u201C${act.title}\u201D j\xE1 est\xE1 neste aparelho: as respostas foram mantidas.` : `\u201C${act.title}\u201D importada: ${act.questions.length} quest\xF5es, ${act.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos para traduzir.`
-      ));
-      onDone();
-    }
-    const file = h("input", {
-      type: "file",
-      accept: ACCEPT_TEXT,
-      class: "hidden",
-      "data-role": "import-file",
-      onchange: async (e) => {
-        const f = e.target.files[0];
-        e.target.value = "";
-        if (!f) return;
-        try {
-          await importText(await readImportFile(f));
-        } catch (err) {
-          fail(err.message);
+      if (!p.errors.length) {
+        const twin = findSame(acts, p);
+        if (twin) {
+          out.replaceChildren(h("div", { class: "notice", "data-role": "import-same" }, `\u201C${twin.part ? `Parte ${twin.part}` : twin.title}\u201D j\xE1 est\xE1 neste aparelho: nada muda e as respostas continuam as mesmas.`));
+          return;
         }
+        const m2 = acts.length ? matchAnswers(text, acts) : null;
+        if (m2 && !m2.errors.length && m2.matched) return answersPreview(m2);
+        const near = acts.reduce((best, a) => Math.max(best, similarity(a, p)), 0);
+        if (near >= 0.3 && m2 && m2.errors.length) return fail("Este arquivo parece trazer respostas de uma atividade deste aparelho, mas n\xE3o confere com ela:", m2.errors);
+        return confirm(h("div", {}, h("b", { text: `${p.title}: ${p.questions.length} quest\xF5es, ${p.questions.reduce((n, q) => n + q.blocks.length, 0)} blocos.` })), async () => {
+          const act = newActivity(p);
+          d.activities[act.id] = act;
+          d.last = act.id;
+          await saveNow();
+          ok(`\u201C${act.title}\u201D adicionada.`);
+        }, "Adicionar");
       }
-    });
-    return h(
-      "details",
-      { class: "more card", "data-role": "import" },
-      h("summary", { text: "Importar atividade" }),
-      h("p", { class: "small muted", text: "Arquivo .txt, .docx (Word) ou .md com o t\xEDtulo da atividade e as quest\xF5es (\u201CQUESTION 1\u201D, \u201CQUESTION 2\u201D\u2026), ou o texto colado abaixo. Cada linha em ingl\xEAs vira um bloco para traduzir, sem alterar o texto. Importar de novo a mesma atividade (em qualquer formato) n\xE3o cria outro cart\xE3o e mant\xE9m as respostas." }),
-      h("label", { class: "btn block" }, icon("upload"), "Escolher arquivo", file),
-      h("div", { style: { marginTop: "10px" } }, paste),
-      h("button", { class: "btn block", style: { margin: "8px 0 12px" }, "data-role": "import-paste", onclick: () => importText(paste.value) }, "Importar texto colado"),
-      status3
-    );
+      const m = acts.length ? matchAnswers(text, acts) : null;
+      if (m && !m.errors.length && m.matched) return answersPreview(m);
+      return fail(m && m.errors.length && m.matched === 0 && /QUEST/i.test(text) ? "O arquivo n\xE3o confere com nenhuma atividade deste aparelho." : p.errors.join(" "), m && m.errors.length ? m.errors : null);
+      function answersPreview(r) {
+        const nums = r.questions.map((q) => q.n);
+        confirm(h(
+          "div",
+          {},
+          h("b", { text: `Respostas da atividade \u201C${r.act.part ? `Parte ${r.act.part}` : r.act.title}\u201D: ${nums.length} de ${r.act.questions.length} quest\xF5es identificadas.` }),
+          r.warnings.length ? h("div", { class: "small" }, "Blocos sem resposta no arquivo (a resposta atual \xE9 mantida):", list(r.warnings)) : null
+        ), async () => {
+          const res = applyOwnAnswers(r.act, r);
+          d.last = r.act.id;
+          await saveNow();
+          ok(`Respostas importadas: ${res.updated.length} ${res.updated.length === 1 ? "quest\xE3o atualizada" : "quest\xF5es atualizadas"}.`);
+        }, "Importar respostas");
+      }
+    }
+    return sh;
+  }
+  async function exportSheet(preselect = null) {
+    const d = await loadCourse();
+    const acts = catalogOrder(Object.values(d.activities));
+    const body = h("div", { "data-role": "export-sheet" }, h("h2", { style: { marginTop: "4px" }, text: "Exportar respostas" }));
+    const sh = sheet(body, { label: "Exportar respostas" });
+    if (!acts.length) {
+      body.append(h("p", { class: "small muted", "data-role": "export-empty", text: "Nenhuma atividade neste aparelho ainda." }));
+      return sh;
+    }
+    let act = d.activities[preselect] || d.activities[d.last] || acts[0];
+    const detail = h("div", { "data-role": "export-detail" });
+    const pick = acts.length > 1 ? h(
+      "select",
+      { class: "field", "aria-label": "Atividade", "data-role": "export-pick", onchange: (e) => {
+        act = d.activities[e.target.value];
+        draw();
+      } },
+      acts.map((a) => h("option", { value: a.id, selected: a === act ? "selected" : null, text: a.part ? `${a.setTitle || "Atividades"} \u2014 Parte ${a.part}` : a.title }))
+    ) : null;
+    body.append(h("p", { class: "small muted", text: "Gera uma c\xF3pia das suas respostas para enviar ao professor. Nada \xE9 apagado: voc\xEA pode exportar de novo quando quiser." }), pick, detail);
+    function draw() {
+      const r = exportReport(act);
+      const base = slug(act.code || act.title);
+      detail.replaceChildren(
+        r.complete ? h("div", { class: "notice ok", style: { marginTop: "10px" }, "data-role": "export-complete" }, "Todas as quest\xF5es est\xE3o respondidas.") : h("div", { class: "notice warn", style: { marginTop: "10px" }, "data-role": "export-partial" }, h("b", { text: "Cont\xE9m respostas incompletas. " }), `Faltam: ${r.missing.map((m) => `quest\xE3o ${m.n}`).join(", ")}. A exporta\xE7\xE3o traz o que j\xE1 foi respondido e avisa o que falta.`),
+        h("button", { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "export-txt", onclick: () => {
+          download(`${base}-respostas.txt`, exportReport(act).text, "text/plain");
+          toast("Arquivo de texto gerado.");
+        } }, icon("download"), "Baixar texto (.txt)"),
+        h(
+          "div",
+          { class: "row", style: { marginTop: "8px", gap: "8px" } },
+          h("button", { class: "btn grow", "data-role": "export-copy", onclick: async () => {
+            try {
+              await navigator.clipboard.writeText(exportReport(act).text);
+              toast("Texto copiado.");
+            } catch (e) {
+              toast("N\xE3o foi poss\xEDvel copiar; use o arquivo.");
+            }
+          } }, "Copiar texto"),
+          h("button", { class: "btn grow", "data-role": "export-json", onclick: () => {
+            download(`${base}-respostas.json`, JSON.stringify(exportReport(act).json, null, 1), "application/json");
+            toast("Arquivo JSON gerado.");
+          } }, "Baixar JSON")
+        )
+      );
+    }
+    draw();
+    return sh;
   }
   function renderCourseQuestion(App2, r) {
     const view = App2.layout("Quest\xE3o", { back: "#/course" });
@@ -5826,6 +6057,11 @@
       const total = act.questions.length;
       let n = Number(r.params.q) || resumeOf(act);
       n = Math.min(Math.max(1, n), total);
+      const lock = partLock(act, Object.values(d.activities));
+      if (lock) {
+        view.append(h("div", { class: "notice warn", "data-role": "q-locked" }, lock.reason, " ", h("a", { href: "#/course", text: "Voltar" })));
+        return;
+      }
       if (!canOpen(act, n)) {
         App2.go(qHref(act.id, resumeOf(act)));
         return;
@@ -5839,7 +6075,7 @@
       const head = h(
         "section",
         { class: "card", "data-role": "course-head" },
-        h("div", { class: "row nowrap" }, h("div", { class: "small muted grow", text: act.title }), practiceButton(act)),
+        h("div", { class: "row nowrap" }, h("div", { class: "small muted grow", text: act.part ? `${act.setTitle || "Atividades"} \u2014 Parte ${act.part}` : act.title }), practiceButton(act)),
         h("div", { class: "row nowrap small", style: { marginTop: "4px" } }, h("span", { class: "grow", "data-role": "course-progress", text: `${s.done} de ${total} quest\xF5es conclu\xEDdas` }), h("b", { text: `${Math.round(s.done / total * 100)}%` })),
         bar(s.done / total),
         h("div", { class: "chips", style: { marginTop: "8px" }, "data-role": "q-status" })
@@ -5849,22 +6085,19 @@
         { class: "chips scroll", style: { margin: "10px 0" }, "aria-label": "Quest\xF5es", "data-role": "q-nav" },
         act.questions.map((x) => {
           const ok = canOpen(act, x.n);
-          const val = act.teacher[x.n] && act.teacher[x.n].validatedAt;
           return h("button", {
             class: `chip${isDone(act, x.n) ? " ok" : ""}`,
             "aria-pressed": x.n === n ? "true" : "false",
             disabled: !ok,
-            "aria-label": `Quest\xE3o ${x.n}${isDone(act, x.n) ? ", conclu\xEDda" : ""}${val ? ", validada pelo professor" : ""}`,
+            "aria-label": `Quest\xE3o ${x.n}${isDone(act, x.n) ? ", conclu\xEDda" : ""}`,
             onclick: () => App2.go(qHref(act.id, x.n))
-          }, `${x.n}${val ? " \u2713" : ""}`);
+          }, `${x.n}`);
         })
       );
       const statusChips = () => {
         const box2 = head.querySelector('[data-role="q-status"]');
-        const t = act.teacher[n];
         box2.replaceChildren(
-          h("span", { class: `chip ${isDone(act, n) ? "ok" : answersOf(act, n).some((x) => x.trim()) ? "warn" : ""}`, "data-role": "q-done", text: isDone(act, n) ? "Conclu\xEDda" : answersOf(act, n).some((x) => x.trim()) ? "Em andamento" : "N\xE3o iniciada" }),
-          h("span", { class: `chip ${t && t.validatedAt ? "accent" : ""}`, "data-role": "q-validated", text: t && t.validatedAt ? `Validada pelo professor em ${fmtDay(t.validatedAt)}` : "Aguardando valida\xE7\xE3o do professor" })
+          h("span", { class: `chip ${isDone(act, n) ? "ok" : answersOf(act, n).some((x) => x.trim()) ? "warn" : ""}`, "data-role": "q-done", text: isDone(act, n) ? "Conclu\xEDda" : answersOf(act, n).some((x) => x.trim()) ? "Em andamento" : "N\xE3o iniciada" })
         );
       };
       statusChips();
@@ -5895,7 +6128,6 @@
           }
         });
         ta.value = answersOf(act, n)[i];
-        if (isValidated(act, n)) ta.disabled = true;
         return { ta, el: h(
           "div",
           { class: "card flat", style: { marginTop: "10px" }, "data-role": "block", "data-pos": i },
@@ -5939,13 +6171,18 @@
       view.append(...[
         head,
         nav,
-        isValidated(act, n) ? h("div", { class: "notice ok", "data-role": "official-answer" }, `Resposta oficial: validada pelo professor em ${fmtDay(act.teacher[n].validatedAt)}. \xC9 ela que vale para revis\xF5es e exporta\xE7\xE3o.`) : h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
+        h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
         ...areas.map((x) => x.el),
         msg,
         h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save),
-        act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A avalia\xE7\xE3o autom\xE1tica compara o SENTIDO de cada bloco com o original (gloss\xE1rio ingl\xEAs\u2013portugu\xEAs e vers\xF5es j\xE1 validadas pelo professor): Adequada = sentido identificado; Incompat\xEDvel = a resposta muda o sentido; Inconclusiva = n\xE3o h\xE1 evid\xEAncia suficiente (n\xE3o \xE9 erro). \xC9 s\xF3 uma orienta\xE7\xE3o de estudo: n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
-        act.done[n] ? teacherBox(act, n, () => App2.go(qHref(act.id, n))) : null,
-        last && isDone(act, n) ? exportBox(act) : null
+        act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A avalia\xE7\xE3o autom\xE1tica compara o SENTIDO de cada bloco com o original (gloss\xE1rio ingl\xEAs\u2013portugu\xEAs e respostas de refer\xEAncia j\xE1 registradas): Adequada = sentido identificado; Incompat\xEDvel = a resposta muda o sentido; Inconclusiva = n\xE3o h\xE1 evid\xEAncia suficiente (n\xE3o \xE9 erro). \xC9 s\xF3 uma orienta\xE7\xE3o de estudo: n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
+        last && isDone(act, n) ? h(
+          "section",
+          { class: "card", style: { marginTop: "14px" }, "data-role": "export" },
+          h("h3", { text: "Atividade conclu\xEDda" }),
+          h("p", { class: "small muted", text: "Exporte as respostas para enviar ao professor (tamb\xE9m pelo \xEDcone de exportar, no alto da tela Curso \u2014 Atividades)." }),
+          h("button", { class: "btn primary block", "data-role": "open-export-final", onclick: () => exportSheet(act.id) }, icon("export"), "Exportar respostas")
+        ) : null
       ].filter(Boolean));
       areas.forEach((x) => autosize(x.ta));
       const at = view.querySelector(`[data-pos="${act.pos.b}"]`);
@@ -5960,134 +6197,19 @@
     ta.style.height = "auto";
     ta.style.height = `${Math.max(56, ta.scrollHeight + 2)}px`;
   }
-  function teacherBox(act, n, redraw) {
-    const q = act.questions.find((x) => x.n === n);
-    const sub = act.submitted[n];
-    const body = h("div");
-    const box2 = h(
-      "details",
-      { class: "more card", "data-role": "teacher", open: !!act.teacher[n] },
-      h("summary", { text: "Corre\xE7\xE3o do professor" }),
-      body
-    );
-    function draw() {
-      const t = act.teacher[n];
-      const validated = !!(t && t.validatedAt);
-      body.replaceChildren(h("p", { class: "small muted", text: "Depois da aula, registre aqui a vers\xE3o corrigida conforme o professor e marque a quest\xE3o como validada. Sua tradu\xE7\xE3o enviada e a checagem b\xE1sica ficam guardadas como estavam." }));
-      if (!t) {
-        body.append(h("button", { class: "btn block", "data-role": "teacher-start", onclick: () => {
-          act.teacher[n] = { blocks: answersOf(act, n), validatedAt: null, startedAt: Date.now() };
-          saveSoon2();
-          draw();
-        } }, "Registrar a corre\xE7\xE3o do professor"));
-        return;
-      }
-      if (!validated) q.blocks.forEach((en2, i) => {
-        const ta = h("textarea", {
-          class: "field",
-          rows: 2,
-          lang: "pt-BR",
-          "aria-label": `Vers\xE3o corrigida do bloco ${i + 1}`,
-          "data-role": "teacher-pt",
-          oninput: () => {
-            t.blocks[i] = ta.value;
-            autosize(ta);
-            saveSoon2();
-          }
-        });
-        ta.value = t.blocks[i] || "";
-        const c = sub && sub.check && sub.check[i];
-        body.append(h(
-          "div",
-          { class: "card flat", style: { marginTop: "8px" } },
-          h("p", { lang: "en", style: { margin: "0 0 4px", fontWeight: 600 }, text: en2 }),
-          sub ? h("div", { class: "small", "data-role": "teacher-submitted" }, h("span", { class: "muted", text: "Enviada: " }), sub.blocks[i]) : null,
-          c ? h("div", { class: "small muted", text: `Avalia\xE7\xE3o autom\xE1tica ao enviar: ${CHECK_LABEL[c.level]}` }) : null,
-          h("div", { class: "small muted", style: { marginTop: "6px" }, text: "Vers\xE3o corrigida (professor):" }),
-          ta
-        ));
-        requestAnimationFrame(() => autosize(ta));
-      });
-      if (validated) {
-        body.append(
-          h("div", { class: "notice ok", style: { marginTop: "10px" }, "data-role": "teacher-validated" }, `Validada pelo professor em ${fmtDay(t.validatedAt)}. Esta \xE9 a refer\xEAncia oficial desta quest\xE3o.`),
-          h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "teacher-edit", onclick: async () => {
-            if (!await confirmSheet("Editar a corre\xE7\xE3o?", "A quest\xE3o deixa de estar validada at\xE9 voc\xEA validar de novo.", { ok: "Editar" })) return;
-            t.validatedAt = null;
-            await saveNow();
-            redraw();
-          } }, "Editar a corre\xE7\xE3o")
-        );
-      } else {
-        const err = h("div");
-        body.append(err, h("button", { class: "btn primary block", style: { marginTop: "10px" }, "data-role": "teacher-validate", onclick: async () => {
-          const miss = t.blocks.map((x, i) => (x || "").trim() ? null : i + 1).filter(Boolean);
-          if (miss.length) {
-            err.replaceChildren(h("div", { class: "notice warn" }, `Preencha a vers\xE3o corrigida dos blocos ${miss.join(", ")}.`));
-            return;
-          }
-          t.validatedAt = Date.now();
-          act.answers[n] = t.blocks.slice();
-          (act.edited || (act.edited = {}))[n] = t.validatedAt;
-          await saveNow();
-          toast("Quest\xE3o validada pelo professor.");
-          redraw();
-        } }, icon("check"), "Marcar como validada pelo professor"));
-      }
-    }
-    draw();
-    return box2;
-  }
-  function exportBox(act) {
-    const probs = exportProblems(act);
-    if (probs.length) {
-      return h(
-        "div",
-        { class: "notice bad", style: { marginTop: "14px" }, "data-role": "export-blocked" },
-        h("b", { text: "Ainda n\xE3o d\xE1 para exportar. Falta:" }),
-        h("ul", { style: { margin: "6px 0 0", paddingLeft: "18px" } }, probs.map((p) => h("li", { text: p })))
-      );
-    }
-    const name = `${act.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "atividade"}-respostas.txt`;
-    return h(
-      "section",
-      { class: "card", style: { marginTop: "14px" }, "data-role": "export" },
-      h("h3", { text: "Atividade conclu\xEDda" }),
-      h("p", { class: "small muted", text: "O arquivo traz cada quest\xE3o com os blocos em ingl\xEAs e as suas tradu\xE7\xF5es, pronto para copiar e colar na plataforma do curso." }),
-      h("button", { class: "btn primary block", "data-role": "export-txt", onclick: () => {
-        const text = exportText(act);
-        const a = h("a", { href: URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" })), download: name });
-        document.body.append(a);
-        a.click();
-        setTimeout(() => {
-          URL.revokeObjectURL(a.href);
-          a.remove();
-        }, 1e3);
-        toast("Arquivo gerado.");
-      } }, icon("download"), "Exportar todas as respostas"),
-      h("button", { class: "btn block", style: { marginTop: "8px" }, "data-role": "export-copy", onclick: async () => {
-        try {
-          await navigator.clipboard.writeText(exportText(act));
-          toast("Texto copiado.");
-        } catch (e) {
-          toast("N\xE3o foi poss\xEDvel copiar; use o arquivo.");
-        }
-      } }, "Copiar o texto")
-    );
-  }
   function courseHomeCard(App2) {
     const info = h("div", { class: "small", style: { marginTop: "6px" }, "data-role": "course-next" });
     loadCourse().then((d) => {
       const act = d.last && d.activities[d.last];
       if (!act) return;
       const s = summary(act);
-      info.append(h("span", { class: "muted", text: `${act.title}: ` }), `${s.done} de ${s.total} quest\xF5es \xB7 ${s.validated} validadas`);
+      info.append(h("span", { class: "muted", text: `${act.part ? `Parte ${act.part}` : act.title}: ` }), `${s.done} de ${s.total} quest\xF5es conclu\xEDdas`);
     });
     return h(
       "section",
       { class: "card", style: { marginTop: "12px" }, "data-role": "course-entry" },
       h("h3", { style: { margin: 0 }, text: AREA_NAME }),
-      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: "Tradu\xE7\xF5es das atividades do curso, revis\xE3o do professor e exporta\xE7\xE3o das respostas." }),
+      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: "Tradu\xE7\xF5es das atividades do curso e exporta\xE7\xE3o das respostas." }),
       info,
       h("a", { class: "btn block primary", href: "#/course", style: { marginTop: "10px" }, "data-role": "open-course" }, icon("book"), "Abrir")
     );
@@ -6132,7 +6254,8 @@
       h(
         "div",
         { class: "row nowrap" },
-        characterBadge(ch, "idle", { size: 56 }),
+        characterBadge(ch, "idle", { size: 56, illus: 96 }),
+        // ilustração (Heitor) com 96 px de altura; os demais como antes
         h(
           "div",
           { class: "grow", style: { minWidth: 0 } },

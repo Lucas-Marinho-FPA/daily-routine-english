@@ -594,3 +594,9 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .sdot.open { color: var(--accent); }
 .stage-mark.open { color: var(--on-brand); }
 
+/* ---- personagem com ilustração aprovada (ex.: avatar oficial do Heitor): proporção natural, fundo transparente, sem recorte ---- */
+.char-img.char-illus, .persona .char-img.char-illus { border-radius: 0; object-fit: contain; height: auto; max-width: 34%; filter: drop-shadow(0 6px 12px rgba(2, 10, 22, .28)); }
+.persona .char-img.char-illus { margin: -6px 0 -10px -4px; } /* a ilustração ocupa o canto do bloco sem aumentar a altura dele */
+.char-choice.with-illus { grid-template-columns: 1fr auto auto; }
+.char-choice .char-choice-img { grid-column: 3; grid-row: 1 / span 2; align-self: end; max-width: 80px; filter: none; }
+.char-choice.with-illus .char-sub { grid-column: 1 / 3; }

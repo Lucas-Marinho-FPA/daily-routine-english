@@ -67,11 +67,15 @@ let courseBefore = null, stateBefore = null, actId = null;
 await check('P01', 'Atividade importada mostra “Praticar” no cartão e na questão', async () => {
   await go('#/');
   await app(async () => { await window.DRG_APP.chooseCharacter('lucas'); window.DRG_APP.go('#/course'); });
-  await page.waitForSelector('[data-role=import]');
-  await page.click('[data-role=import] summary');
+  await page.waitForSelector('[data-role=open-import]');
+  await page.click('[data-role=open-import]');
+  await page.waitForSelector('[data-role=import-sheet]');
+  await page.click('[data-role=import-sheet] details summary');
   await page.fill('[data-role=import-text]', SRC);
   await page.click('[data-role=import-paste]');
+  await page.click('[data-role=import-apply]');
   await page.waitForSelector('[data-role=import-ok]');
+  await page.keyboard.press('Escape');
   await page.waitForSelector('[data-role=activity] [data-role=open-practice]');
   actId = await page.getAttribute('[data-role=activity]', 'data-id');
   await page.click('[data-role=open-activity]');
@@ -89,7 +93,7 @@ await check('P02', 'Início da prática: tipos com contagem; tradução reversa 
   assert(st['mode-vocab'] && st['mode-listen'] && st['mode-speak'], JSON.stringify(st));
   assert(!st['mode-rev'], 'tradução reversa liberada sem validação');
   const body = await page.locator('body').innerText();
-  assert(/validadas pelo professor/.test(body), 'motivo da indisponibilidade');
+  assert(/resposta de referência/.test(body) && !/professor|validad/i.test(body), 'motivo da indisponibilidade (sem falar em validação)');
   assert(/voz do sistema/.test(body), 'aviso: voz do sistema, não gravação do curso');
   assert(await noHScroll(), 'rolagem horizontal');
   await shot('p02-inicio');
@@ -193,13 +197,14 @@ await check('P08', 'Fala sem reconhecimento instalado: grava, avisa e não corri
   return 'aviso exibido';
 });
 
-await check('P09', 'Tradução reversa só depois da validação do professor: enunciado = versão do professor', async () => {
-  await go('#/course');
-  await page.click('[data-role=transfer] summary');
-  await page.setInputFiles('[data-role=import-teacher]', { name: 'correcao.txt', mimeType: 'text/plain', buffer: Buffer.from(TEACHER) });
-  await page.waitForSelector('[data-role=transfer-apply]');
-  await page.click('[data-role=transfer-apply]');
-  await page.waitForSelector('[data-role=transfer-ok]');
+await check('P09', 'Tradução reversa só com resposta de referência já registrada (dados do professor gravados no aparelho): enunciado = essa versão', async () => {
+  // a importação de correções saiu da interface; os dados que já existem no aparelho continuam valendo (como na versão anterior)
+  const ref = TEACHER.split('\n').slice(1).filter((_, i) => i % 2 === 1);
+  await go('#/');
+  await app((x) => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const st = r.result.transaction('kv', 'readwrite').objectStore('kv'); const g = st.get('course'); g.onsuccess = () => {
+    const d = g.result; const a = d.activities[x.id]; a.teacher[2] = { blocks: x.ref, validatedAt: Date.now(), imported: true }; a.answers[2] = x.ref.slice(); a.done[2] = a.done[2] || Date.now(); d.savedAt = Date.now() + 60000;
+    st.put(d, 'course').onsuccess = () => { localStorage.removeItem('drg.course.mirror'); res(); }; }; }; }), { id: actId, ref });
+  await page.reload(); await page.waitForTimeout(600);
   await go(`#/cpr/${encodeURIComponent(actId)}`);
   await page.waitForSelector('[data-role=mode-rev]:not([disabled])');
   await page.click('[data-role=mode-rev]');

@@ -474,3 +474,197 @@ export function questionCheck(act, n) {
   const rank = { empty: 3, incompatible: 2, attention: 2, inconclusive: 1, review: 1, ok: 0 };
   return q.blocks.map((en, i) => checkTranslation(en, a[i])).reduce((w, c) => (rank[c.level] > rank[w] ? c.level : w), 'ok');
 }
+
+// ==========================================================================================================
+// Catálogo de atividades (arquivos de estudo estruturados), progressão entre partes e exportação para o professor.
+// O conteúdo continua só no aparelho (importado pelo aluno); nada aqui é publicado. Os dados de validação do professor
+// (teacher, officialAnswers, memória) continuam guardados e usados internamente, mas não fazem parte deste fluxo.
+// ==========================================================================================================
+
+export const PACKAGE_KIND = 'daily-routine-english/atividade';
+const SET_ID = /^[A-Z][A-Z0-9]{1,7}-\d{3}$/; // ex.: ACT-001
+const partCode = (set, n) => `${set}-P${String(n).padStart(2, '0')}`; // ex.: ACT-001-P01
+
+/**
+ * Formato oficial do arquivo de estudo (formato 1). Só os campos abaixo são lidos; qualquer outro é ignorado
+ * (não é guardado nem exportado).
+ *   { "kind": "daily-routine-english/atividade", "formato": 1,
+ *     "conjunto": { "id": "ACT-001", "titulo": "Curso — Atividades" },
+ *     "partes": [ { "id": "ACT-001-P01", "parte": 1, "titulo": "Parte 1", "versao": "1",
+ *                   "questoes": [ { "n": 1, "blocos": ["<título da questão>", "<linha>", …] } ] } ] }
+ * → null (não é um arquivo de estudo) | { set, setTitle, parts: [{ code, part, title, version, questions }], errors }
+ */
+export function readPackage(text) {
+  let d;
+  try { d = JSON.parse(String(text || '').replace(/^﻿/, '')); } catch (e) { return null; }
+  if (!d || d.kind !== PACKAGE_KIND) return null;
+  const errors = [];
+  if (d.formato !== 1) errors.push(`Formato ${d.formato === undefined ? 'não informado' : d.formato} não suportado (esperado: 1).`);
+  const c = d.conjunto || {};
+  const set = typeof c.id === 'string' ? c.id.trim() : '';
+  if (!SET_ID.test(set)) errors.push('Identificador do conjunto ausente ou inválido (ex.: ACT-001).');
+  const setTitle = typeof c.titulo === 'string' && c.titulo.trim() ? c.titulo.trim() : 'Atividades';
+  const parts = [];
+  if (!Array.isArray(d.partes) || !d.partes.length) errors.push('O arquivo não traz nenhuma parte.');
+  const seen = new Set();
+  (Array.isArray(d.partes) ? d.partes : []).forEach((p, k) => {
+    const where = `Parte ${k + 1} do arquivo`;
+    const part = Number(p && p.parte);
+    if (!Number.isInteger(part) || part < 1) { errors.push(`${where}: número da parte inválido.`); return; }
+    const code = typeof p.id === 'string' ? p.id.trim() : '';
+    if (set && code !== partCode(set, part)) errors.push(`Parte ${part}: identificador “${code || '(vazio)'}” não confere com o conjunto (esperado: ${partCode(set, part)}).`);
+    if (seen.has(part)) errors.push(`Parte ${part}: aparece mais de uma vez no arquivo.`);
+    seen.add(part);
+    const qs = Array.isArray(p.questoes) ? p.questoes : [];
+    if (!qs.length) errors.push(`Parte ${part}: nenhuma questão.`);
+    const questions = qs.map((q, i) => {
+      const n = Number(q && q.n);
+      if (n !== i + 1) errors.push(`Parte ${part}: a questão ${q && q.n} está fora de ordem (esperada a ${i + 1}).`);
+      const blocks = Array.isArray(q && q.blocos) ? q.blocos.map((b) => (typeof b === 'string' ? b.trim() : '')) : [];
+      if (!blocks.length || blocks.some((b) => !b)) errors.push(`Parte ${part}, questão ${i + 1}: blocos vazios ou ausentes.`);
+      return { n: i + 1, blocks };
+    });
+    parts.push({ code, set, setTitle, part, title: typeof p.titulo === 'string' && p.titulo.trim() ? p.titulo.trim() : `Parte ${part}`,
+      version: p.versao === undefined || p.versao === null ? '1' : String(p.versao), questions });
+  });
+  parts.sort((a, b) => a.part - b.part);
+  return { set, setTitle, parts, errors };
+}
+
+/** Fração dos blocos em inglês de `b` que existem em `a` (para reconhecer a mesma atividade com pequenas diferenças). */
+export function similarity(a, b) {
+  const pool = new Set(a.questions.flatMap((q) => q.blocks.map(same)));
+  const all = b.questions.flatMap((q) => q.blocks.map(same));
+  return all.length ? all.filter((x) => pool.has(x)).length / all.length : 0;
+}
+
+/**
+ * O que a importação de um arquivo de estudo fará em cada parte (não altera nada).
+ * kind: 'new' (nova) · 'same' (já está igual — nada muda) · 'adopt' (a mesma atividade já está no aparelho sem código:
+ * recebe o código, respostas intactas) · 'update' (versão diferente da mesma parte: atualização controlada, o histórico
+ * fica guardado) · 'conflict' (o conteúdo pertence a outra parte já catalogada: nada é feito).
+ */
+export function planPackage(data, pkg) {
+  const acts = Object.values(data.activities);
+  return pkg.parts.map((p) => {
+    const byCode = acts.find((a) => a.code === p.code);
+    if (byCode) {
+      if (contentKey(byCode) === contentKey(p)) return { p, kind: 'same', act: byCode, metaOnly: byCode.version !== p.version || byCode.title !== p.title };
+      return { p, kind: 'update', act: byCode, sim: similarity(byCode, p) };
+    }
+    const twin = findSame(acts, p);
+    if (twin) return twin.code ? { p, kind: 'conflict', act: twin } : { p, kind: 'adopt', act: twin };
+    let best = null;
+    for (const a of acts) {
+      if (a.code) continue;
+      const s = similarity(a, p);
+      if (s >= 0.5 && (!best || s > best.sim)) best = { act: a, sim: s };
+    }
+    return best ? { p, kind: 'update', act: best.act, sim: best.sim, adopt: true } : { p, kind: 'new' };
+  });
+}
+
+const META = (a, p) => { a.code = p.code; a.set = p.set; a.setTitle = p.setTitle; a.part = p.part; a.title = p.title; a.version = p.version; };
+
+/**
+ * Atualização controlada: guarda a versão anterior inteira em `archive` e leva para a nova versão as respostas dos blocos
+ * cujo texto em inglês não mudou. Questão idêntica mantém conclusão, primeira versão enviada e dados do professor.
+ * → { kept, changed, added, removed, carried }
+ */
+export function updateActivity(act, p, now = Date.now()) {
+  const snap = JSON.parse(JSON.stringify({ at: now, version: act.version || null, title: act.title, questions: act.questions,
+    answers: act.answers, edited: act.edited || {}, done: act.done, submitted: act.submitted, teacher: act.teacher, pos: act.pos }));
+  const old = { questions: act.questions, answers: act.answers, edited: act.edited || {}, done: act.done, submitted: act.submitted, teacher: act.teacher };
+  const r = { kept: 0, changed: 0, added: 0, removed: Math.max(0, old.questions.length - p.questions.length), carried: 0 };
+  const nu = { answers: {}, edited: {}, done: {}, submitted: {}, teacher: {} };
+  for (const q of p.questions) {
+    const oq = old.questions.find((x) => x.n === q.n);
+    if (!oq) { r.added++; continue; }
+    const identical = oq.blocks.length === q.blocks.length && oq.blocks.every((b, i) => same(b) === same(q.blocks[i]));
+    const oa = old.answers[q.n] || [];
+    const ans = q.blocks.map((b) => { const j = oq.blocks.findIndex((x) => same(x) === same(b)); return j >= 0 ? oa[j] || '' : ''; });
+    r.carried += ans.filter((x) => x.trim()).length;
+    if (ans.some((x) => x.trim())) { nu.answers[q.n] = ans; if (old.edited[q.n]) nu.edited[q.n] = old.edited[q.n]; }
+    if (identical) {
+      r.kept++;
+      if (old.done[q.n]) nu.done[q.n] = old.done[q.n];
+      if (old.submitted[q.n]) nu.submitted[q.n] = old.submitted[q.n];
+      if (old.teacher[q.n]) nu.teacher[q.n] = old.teacher[q.n];
+    } else r.changed++;
+  }
+  act.archive = [...(act.archive || []), snap];
+  act.questions = p.questions.map((q) => ({ n: q.n, blocks: q.blocks.slice() }));
+  Object.assign(act, nu);
+  META(act, p);
+  act.updatedAt = now;
+  const last = act.questions.length;
+  if (!act.pos || act.pos.q > last) act.pos = { q: 1, b: 0 };
+  return r;
+}
+
+/** Aplica o plano de importação. Nunca apaga respostas: atualização guarda o histórico; 'same'/'conflict' não mudam nada. */
+export function applyPackage(data, plan, now = Date.now()) {
+  const out = { added: [], adopted: [], updated: [], unchanged: [], skipped: [] };
+  for (const step of plan) {
+    const { p } = step;
+    if (step.kind === 'new') {
+      const act = newActivity({ title: p.title, questions: p.questions }, now);
+      act.id = p.code;
+      META(act, p);
+      data.activities[act.id] = act;
+      out.added.push(p.code);
+    } else if (step.kind === 'adopt') { META(step.act, p); out.adopted.push(p.code); }
+    else if (step.kind === 'update') { out.updated.push({ code: p.code, ...updateActivity(step.act, p, now) }); }
+    else if (step.kind === 'same') { if (step.metaOnly) META(step.act, p); out.unchanged.push(p.code); }
+    else out.skipped.push(p.code);
+  }
+  return out;
+}
+
+/** Bloqueio pedagógico entre partes: a Parte N abre quando todas as questões da Parte N−1 (mesmo conjunto) estão concluídas. */
+export function partLock(act, activities) {
+  if (!act || !act.set || !(act.part > 1)) return null;
+  const prev = activities.find((a) => a.set === act.set && a.part === act.part - 1);
+  if (!prev) return { reason: `Adicione a Parte ${act.part - 1} para liberar esta parte.` };
+  return summary(prev).complete ? null : { reason: `Conclua todas as questões da Parte ${act.part - 1} para liberar esta parte.` };
+}
+
+/** Ordem do catálogo: conjuntos (pelo código) e partes; depois as atividades sem conjunto, na ordem de importação. */
+export function catalogOrder(activities) {
+  return activities.slice().sort((a, b) => (!!b.set - !!a.set) || (a.set || '').localeCompare(b.set || '') || (a.part || 0) - (b.part || 0) || a.importedAt - b.importedAt);
+}
+
+/** Questões com resposta faltando: [{ n, blocks: [i…] (1 = primeiro), empty: bool, unfinished: bool }]. */
+export function missingAnswers(act) {
+  return act.questions.map((q) => ({ n: q.n, blocks: missingBlocks(act, q.n), done: !!act.done[q.n] }))
+    .filter((x) => x.blocks.length).map((x) => ({ n: x.n, blocks: x.blocks, empty: x.blocks.length === act.questions.find((q) => q.n === x.n).blocks.length }));
+}
+
+/**
+ * Exportação das respostas do aluno (cópia: não altera nada). Aceita atividade incompleta e avisa.
+ * Texto: cabeçalho (atividade, parte, versão, data, situação) e, por questão, “QUESTÃO n”, cada bloco em inglês e a
+ * resposta (linha vazia quando falta) — o mesmo corpo que a plataforma do professor recebe. JSON complementar.
+ * Não inclui dados do professor, histórico, aparelho nem de-para.
+ */
+export function exportReport(act, now = Date.now()) {
+  const miss = missingAnswers(act);
+  const total = act.questions.length;
+  const full = total - miss.length;
+  const complete = !miss.length;
+  const id = act.code || act.id;
+  const when = new Date(now);
+  const fmt = (() => { try { return when.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return when.toISOString(); } })();
+  const label = act.part ? `${id} · Parte ${act.part}` : `${id} · ${act.title}`;
+  const head = ['Curso — Atividades', `Atividade: ${label}${act.version ? ` · versão ${act.version}` : ''}`, `Exportado em: ${fmt}`,
+    complete ? `Situação: completa (${total} de ${total} questões respondidas)` : `Situação: CONTÉM RESPOSTAS INCOMPLETAS (${full} de ${total} questões completas)`];
+  if (!complete) head.push(`Faltam: ${miss.map((m) => (m.empty ? `Questão ${m.n} (sem resposta)` : `Questão ${m.n} (${m.blocks.length === 1 ? 'bloco' : 'blocos'} ${m.blocks.join(', ')})`)).join('; ')}`);
+  const body = act.questions.map((q) => { const a = answersOf(act, q.n); return [`QUESTÃO ${q.n}`, ...q.blocks.flatMap((en, i) => [en, (a[i] || '').trim()])].join('\n'); });
+  const text = `${head.join('\n')}\n\n${body.join('\n\n')}\n`;
+  const json = {
+    kind: 'daily-routine-english/respostas', formato: 1,
+    atividade: { id, parte: act.part || null, titulo: act.part ? `Parte ${act.part}` : act.title, versao: act.version || null },
+    exportadoEm: when.toISOString(), completa: complete, questoesCompletas: full, totalQuestoes: total,
+    questoes: act.questions.map((q) => { const a = answersOf(act, q.n); return { n: q.n, completa: !missingBlocks(act, q.n).length, blocos: q.blocks.map((en, i) => ({ en, resposta: (a[i] || '').trim(), preenchido: !!(a[i] || '').trim() })) }; }),
+  };
+  return { text, json, complete, missing: miss };
+}

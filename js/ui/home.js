@@ -49,7 +49,7 @@ export function renderHome(App) {
 
   view.append(h('section', { class: 'hero persona', 'data-role': 'persona', 'data-character': ch.id },
     h('div', { class: 'row nowrap' },
-      characterBadge(ch, 'idle', { size: 56 }),
+      characterBadge(ch, 'idle', { size: 56, illus: 96 }), // ilustração (Heitor) com 96 px de altura; os demais como antes
       h('div', { class: 'grow', style: { minWidth: 0 } },
         h('div', { class: 'small muted', text: greeting() }),
         h('div', { class: 'persona-name', text: name }),

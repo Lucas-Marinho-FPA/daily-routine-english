@@ -1,6 +1,7 @@
-// Curso — Atividades no app (Chromium, 412 px): importação no aparelho, 21 questões em sequência, salvamento automático,
-// fechar e reabrir, edição de respostas anteriores, validação do professor por questão, exportação TXT só no fim,
-// offline e funcionalidades existentes intactas.
+// Curso — Atividades no app (Chromium, 412 px): importação no aparelho (ícone “Adicionar atividade”), 21 questões em
+// sequência, salvamento automático, fechar e reabrir, edição de respostas anteriores, dados de validação já gravados
+// preservados (e fora da interface), exportação (ícone “Exportar respostas”; parcial permitida, nada é apagado),
+// transferência entre aparelhos, offline e funcionalidades existentes intactas.
 // Uso: node tests/e2e/course.mjs <pasta-do-site> <caminho-base> [evidências]
 // Conteúdo: DRG_COURSE_FILE=<arquivo da atividade> (fica fora do repositório); sem ele, gera uma atividade sintética
 // de 21 questões. Os logs não imprimem o texto da atividade.
@@ -50,6 +51,15 @@ const noHScroll = () => app(() => document.documentElement.scrollWidth <= window
 const title = () => page.locator('.topbar h1').textContent();
 const kvCourse = () => app(() => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('course'); g.onsuccess = () => res(g.result); }; }));
 const act = async () => { const d = await kvCourse(); return d && d.activities[d.last]; };
+/** Abre “Adicionar atividade” (ícone), escolhe o arquivo e devolve o texto do resultado (prévia, erro ou ok). */
+async function addFile(pg, name, text, mime = 'text/plain') {
+  if (!(await pg.locator('[data-role=import-sheet]').count())) { await pg.click('[data-role=open-import]'); await pg.waitForSelector('[data-role=import-sheet]'); }
+  await pg.setInputFiles('[data-role=import-file]', { name, mimeType: mime, buffer: Buffer.isBuffer(text) ? text : Buffer.from(text, 'utf8') });
+  await pg.waitForSelector('[data-role=import-preview], [data-role=import-error], [data-role=import-same], [data-role=import-ok]');
+  return (await pg.locator('[data-role=import-status]').innerText()).replace(/\s+/g, ' ');
+}
+async function applyAndClose(pg) { await pg.click('[data-role=import-apply]'); await pg.waitForSelector('[data-role=import-ok]'); const t = await pg.locator('[data-role=import-ok]').textContent(); await pg.keyboard.press('Escape'); await pg.waitForTimeout(300); return t; }
+const kvRaw = (pg) => pg.evaluate(() => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('course'); g.onsuccess = () => res(g.result); }; }));
 async function fillQuestion(n) {
   const areas = page.locator('[data-role=block-pt]');
   const k = await areas.count();
@@ -72,7 +82,10 @@ await check('C01', 'Início mostra a área (nome neutro); a área abre vazia, co
   await page.waitForSelector('[data-role=no-activity]');
   const t = await title();
   assert(t === 'Curso — Atividades', `título ${t}`);
+  const tools = await app(() => ['open-import', 'open-export'].map((r) => { const b = document.querySelector(`.topbar [data-role=${r}]`); const q = b && b.getBoundingClientRect(); return b ? { r, label: b.getAttribute('aria-label'), title: b.title, w: Math.round(q.width), h: Math.round(q.height) } : null; }));
+  assert(tools.every((x) => x && x.label && x.title && x.w >= 44 && x.h >= 44), `ícones discretos e tocáveis: ${JSON.stringify(tools)}`);
   const body = await page.locator('body').innerText();
+  assert(!/professor|validad/i.test(body), 'texto de validação na área');
   const priv = new RegExp(Buffer.from('XGIoPzppdGFbdcO6XXxFQUN8cGVyc29ubmFsaXRcdyp8bGFzdHJvKVxi', 'base64').toString('utf8'), 'i');
   assert(!priv.test(body), 'nome privado na tela');
   await shot('c01-area');
@@ -80,18 +93,16 @@ await check('C01', 'Início mostra a área (nome neutro); a área abre vazia, co
 });
 
 await check('C02', `Importa o arquivo no aparelho: ${TOTAL} questões; “Começar” abre a Questão 1 sem nenhuma tradução pronta`, async () => {
-  await page.click('[data-role=import] summary');
   const sent = [];
   const spy = (r) => sent.push({ method: r.method(), url: r.url(), body: r.postData() || '' });
   page.on('request', spy);
-  await page.setInputFiles('[data-role=import-file]', { name: 'atividade.txt', mimeType: 'text/plain', buffer: Buffer.from(SRC, 'utf8') });
-  await page.waitForSelector('[data-role=import-ok]');
+  const msg = await addFile(page, 'atividade.txt', SRC);
+  assert(msg.includes(`${TOTAL} questões`), msg);
+  await applyAndClose(page);
   await page.waitForTimeout(500);
   page.off('request', spy);
   const sample = P.questions[0].blocks[1];
   assert(!sent.some((r) => r.method !== 'GET' || r.body.includes(sample) || decodeURIComponent(r.url).includes(sample)), `o arquivo importado gerou envio: ${JSON.stringify(sent.map((r) => r.method + ' ' + r.url))}`);
-  const msg = await page.locator('[data-role=import-ok]').textContent();
-  assert(msg.includes(`${TOTAL} questões`), msg);
   await page.click('[data-role=open-activity]');
   await page.waitForSelector('[data-role=block-pt]');
   assert(await title() === `Questão 1 de ${TOTAL}`, await title());
@@ -151,7 +162,7 @@ await check('C05', `Percorre as ${TOTAL} questões uma a uma (Questão n de ${TO
     assert(JSON.stringify(ens) === JSON.stringify(P.questions[n - 1].blocks), `blocos da questão ${n}`);
     const prog = await page.locator('[data-role=course-progress]').textContent();
     assert(prog.startsWith(`${n - 1} de ${TOTAL}`), `progresso na ${n}: ${prog}`);
-    if (await page.locator('[data-role=export-txt], [data-role=export-blocked]').count()) exportSeen.push(n);
+    if (await page.locator('[data-role=open-export-final]').count()) exportSeen.push(n);
     await fillQuestion(n);
     await page.click('[data-role=q-save]');
     await page.waitForTimeout(n === TOTAL ? 700 : 500);
@@ -171,14 +182,19 @@ await check('C06', 'Checagem básica aparece só depois de salvar, como orienta�
   return { niveis: [...new Set(levels)] };
 });
 
-await check('C07', `Na Questão ${TOTAL} concluída: “Exportar todas as respostas” gera o TXT completo (${TOTAL} questões, inglês + tradução, acentos)`, async () => {
-  await page.waitForSelector('[data-role=export-txt]');
+await check('C07', `Na Questão ${TOTAL} concluída: “Exportar respostas” gera o TXT completo (cabeçalho + ${TOTAL} questões, inglês + tradução, acentos)`, async () => {
+  await page.waitForSelector('[data-role=open-export-final]');
+  await page.click('[data-role=open-export-final]');
+  await page.waitForSelector('[data-role=export-complete]');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-role=export-txt]')]);
   const txt = readFileSync(await dl.path(), 'utf8');
+  await page.keyboard.press('Escape');
   exported = txt;
   writeFileSync(join(OUT, 'export-shape.json'), JSON.stringify({ file: dl.suggestedFilename(), bytes: Buffer.byteLength(txt), lines: txt.split('\n').length }, null, 1));
   const expected = P.questions.map((q) => [`QUESTÃO ${q.n}`, ...q.blocks.flatMap((en, i) => [en, pt(q.n, i)])].join('\n')).join('\n\n') + '\n';
-  assert(txt === expected, 'conteúdo exportado diferente do esperado');
+  const [head, ...rest] = txt.split('\n\nQUESTÃO 1\n');
+  assert(`QUESTÃO 1\n${rest.join('')}` === expected, 'corpo exportado diferente do esperado');
+  assert(/^Curso — Atividades\nAtividade: .+\nExportado em: .+\nSituação: completa \(\d+ de \d+/.test(head), `cabeçalho: ${head}`);
   assert((txt.match(/^QUESTÃO \d+$/gm) || []).length === TOTAL, 'número de questões no TXT');
   await shot('c07-export');
   return { arquivo: dl.suggestedFilename(), questoes: TOTAL, bytes: Buffer.byteLength(txt) };
@@ -199,51 +215,59 @@ await check('C08', 'Editar resposta anterior (Questão 3): muda a versão atual;
   return { atual: a.answers[3][1], enviada: a.submitted[3].blocks[1] };
 });
 
-await check('C09', 'Validação do professor só na Questão 2: versão corrigida registrada, data, enviada e checagem preservadas', async () => {
-  await page.locator('[data-role=q-nav] button', { hasText: /^2/ }).first().click();
+await check('C09', 'Dados de validação do professor já gravados (aparelho antigo): preservados e usados internamente, sem nada na interface; o campo continua editável', async () => {
+  // simula o registro de um aparelho que já tinha a correção do professor na Questão 2 (como gravava a versão anterior)
   await page.waitForTimeout(500);
-  await page.click('[data-role=teacher] summary').catch(() => {});
-  if (await page.locator('[data-role=teacher-start]').count()) await page.click('[data-role=teacher-start]');
-  await page.locator('[data-role=teacher-pt]').first().fill('Correção do professor — título');
-  await page.click('[data-role=teacher-validate]');
-  await page.waitForSelector('[data-role=official-answer]');
-  await page.waitForTimeout(300);
-  const chip = await page.locator('[data-role=q-validated]').textContent();
-  assert(/Validada pelo professor em/.test(chip), chip);
-  // uma só versão visível: a do professor, como resposta oficial (campo travado; sem a lista paralela de correção)
+  await app(() => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const s = r.result.transaction('kv', 'readwrite').objectStore('kv'); const g = s.get('course'); g.onsuccess = () => {
+    const d = g.result; const a = d.activities[d.last]; const n = a.questions[1].blocks.length;
+    a.teacher[2] = { blocks: Array.from({ length: n }, (_, i) => (i === 0 ? 'Correção do professor — título' : a.answers[2][i])), validatedAt: Date.now(), imported: true };
+    a.answers[2] = a.teacher[2].blocks.slice(); d.savedAt = Date.now() + 60000; s.put(d, 'course').onsuccess = () => { localStorage.removeItem('drg.course.mirror'); res(); }; }; }; }));
+  await page.goto(`${BASE}#/cq/${(await act()).id}?q=2`); await page.reload(); await page.waitForTimeout(700);
+  const ui = await page.locator('#view').innerText();
+  assert(!/professor|validad/i.test(ui), 'texto de validação na questão');
+  assert(!(await page.locator('[data-role=teacher], [data-role=q-validated], [data-role=official-answer]').count()), 'elementos de validação na questão');
   const first = page.locator('[data-role=block-pt]').first();
-  assert(await first.isDisabled() && (await first.inputValue()) === 'Correção do professor — título' && (await page.locator('[data-role=teacher-pt]').count()) === 0, 'resposta oficial');
-  await shot('c09-teacher');
-  await page.locator('[data-role=q-nav] button', { hasText: /^4/ }).first().click();
-  await page.waitForTimeout(500);
-  const other = await page.locator('[data-role=q-validated]').textContent();
-  assert(/Aguardando/.test(other), `a Questão 4 não deveria estar validada: ${other}`);
+  assert(!(await first.isDisabled()) && (await first.inputValue()) === 'Correção do professor — título', 'campo travado ou resposta diferente');
+  await shot('c09-sem-validacao');
+  // usados internamente: Praticar oferece a tradução reversa da Questão 2 (resposta de referência)
+  await page.click('[data-role=course-head] [data-role=open-practice]');
+  await page.waitForSelector('[data-role=mode-rev]');
+  const rev = await page.locator('[data-role=mode-rev]').isDisabled();
+  const pui = await page.locator('#view').innerText();
+  assert(!rev && !/professor|validad/i.test(pui), `tradução reversa ${rev ? 'indisponível' : 'ok'}; texto: ${/professor|validad/i.test(pui)}`);
   const a = await act();
-  const t = a.teacher[2];
-  assert(t.validatedAt && t.blocks[0] === 'Correção do professor — título', 'correção');
-  assert(a.answers[2][0] === 'Correção do professor — título' && a.submitted[2].blocks[0] === pt(2, 0) && a.submitted[2].check.length === P.questions[1].blocks.length, 'versão enviada/checagem');
-  const validated = Object.values(a.teacher).filter((x) => x.validatedAt).length;
-  assert(validated === 1, `validadas: ${validated}`);
-  return { validadas: validated, questao4: other };
+  assert(a.teacher[2].validatedAt && a.teacher[2].blocks[0] === 'Correção do professor — título' && a.submitted[2].blocks[0] === pt(2, 0), 'dados');
+  await page.goto(`${BASE}#/cq/${a.id}?q=2`); await page.waitForTimeout(600);
+  return { campo: 'editável', traducaoReversa: 'disponível', dadosDoProfessor: 'preservados' };
 });
 
-await check('C10', 'Exportação incompleta é recusada e diz o que falta (bloco apagado na Questão 5)', async () => {
+await check('C10', 'Exportação parcial (bloco apagado na Questão 5) pelo ícone: avisa o que falta, exporta e não altera nada', async () => {
   await page.locator('[data-role=q-nav] button', { hasText: /^5/ }).first().click();
   await page.waitForTimeout(500);
   await page.locator('[data-role=block-pt]').nth(1).fill('');
   await page.waitForTimeout(500);
   await go('#/course');
-  const blocked = await page.locator('[data-role=export-blocked]').count();
-  const exp = await page.locator('[data-role=export-txt]').count();
-  await page.goto(`${BASE}#/cq/${(await act()).id}?q=${TOTAL}`); await page.waitForTimeout(600);
-  const msg = await page.locator('[data-role=export-blocked]').textContent().catch(() => '');
-  assert(!exp && /Questão 5: bloco 2 sem tradução/.test(msg), `bloqueio: ${msg}`);
-  await page.locator('[data-role=q-nav] button', { hasText: /^5/ }).first().click();
-  await page.waitForTimeout(500);
+  const before = JSON.stringify((await kvRaw(page)).activities);
+  await page.click('[data-role=open-export]');
+  await page.waitForSelector('[data-role=export-partial]');
+  const msg = (await page.locator('[data-role=export-partial]').textContent()).replace(/\s+/g, ' ');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-role=export-txt]')]);
+  const txt = readFileSync(await dl.path(), 'utf8');
+  const [dj] = await Promise.all([page.waitForEvent('download'), page.click('[data-role=export-json]')]);
+  const js = JSON.parse(readFileSync(await dj.path(), 'utf8'));
+  await shot('c10-parcial');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  const after = JSON.stringify((await kvRaw(page)).activities);
+  assert(/questão 5/.test(msg) && /CONTÉM RESPOSTAS INCOMPLETAS/.test(txt) && /Questão 5 \(bloco 2\)/.test(txt), `${msg} / ${txt.slice(0, 300)}`);
+  assert(js.completa === false && js.questoes[4].blocos[1].preenchido === false && js.questoes.length === TOTAL, 'JSON');
+  assert(!/validad|teacher/i.test(txt) && !/"(teacher|validatedAt|submitted|archive)"/.test(JSON.stringify(js)), 'dados de validação na exportação');
+  assert(before === after, 'a exportação alterou a atividade');
+  await page.goto(`${BASE}#/cq/${(await act()).id}?q=5`); await page.waitForTimeout(600);
   await page.locator('[data-role=block-pt]').nth(1).fill(pt(5, 1));
   await page.click('[data-role=q-save]');
   await page.waitForTimeout(500);
-  return { areaBloqueada: blocked === 0 ? 'sem caixa na área (atividade incompleta não mostra exportação)' : 'caixa de bloqueio', mensagem: msg.replace(/\s+/g, ' ').slice(0, 80) };
+  return { aviso: msg.slice(0, 90), txt: 'CONTÉM RESPOSTAS INCOMPLETAS', json: 'completa=false', alterou: 'nada' };
 });
 
 await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do ponto em que parou', async () => {
@@ -257,51 +281,34 @@ await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do p
   const home = await page.locator('[data-role=course-next]').textContent();
   await go('#/course');
   const prog = await page.locator('[data-role=activity-progress]').textContent();
-  const val = await page.locator('[data-role=activity-validated]').textContent();
   await page.click('[data-role=open-activity]');
   await page.waitForTimeout(600);
   assert(await title() === `Questão 7 de ${TOTAL}`, `retomou em ${await title()}`);
   const a = await act();
   assert(a.answers[3][1] === 'Versão revisada pelo aluno' && a.teacher[2].validatedAt, 'dados perdidos');
-  assert(prog.startsWith(`${TOTAL} de ${TOTAL}`) && /1 de/.test(val), `${prog} / ${val}`);
-  return { inicio: home.replace(/^[^:]*:/, '…:'), area: prog, validadas: val };
+  assert(prog.startsWith(`${TOTAL} de ${TOTAL}`), prog);
+  return { inicio: home.replace(/^[^:]*:/, '…:'), area: prog };
 });
 
-// ---------- transferência para outro aparelho (“celular”) e correções do professor ----------
+// ---------- outro aparelho (“celular”): importar a atividade e as respostas exportadas; sem importação de correção ----------
 {
   const PHONE = join(OUT, '.profile-celular');
   rmSync(PHONE, { recursive: true, force: true });
   let c2, p2;
   const openPhone = async () => { c2 = await chromium.launchPersistentContext(PHONE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true }); p2 = c2.pages()[0] || await c2.newPage(); p2.on('pageerror', (e) => errors.push(e.message)); };
-  const kv2 = () => p2.evaluate(() => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('course'); g.onsuccess = () => res(g.result); }; }));
-  const act2 = async () => { const d = await kv2(); return d && d.activities[d.last]; };
-  const importFile = async (role, name, text) => {
-    await p2.goto(BASE + '#/course'); await p2.waitForTimeout(700);
-    await p2.$eval('[data-role=transfer]', (d) => { d.open = true; }); // abre a seção (sem fechá-la se já estiver aberta)
-    await p2.setInputFiles(`[data-role=${role}]`, { name, mimeType: 'text/plain', buffer: Buffer.from(text, 'utf8') });
-    await p2.waitForSelector('[data-role=transfer-preview], [data-role=transfer-error]');
-    return (await p2.locator('[data-role=transfer-status]').innerText()).replace(/\s+/g, ' ');
-  };
-  // arquivo de correções do professor (exemplo): só as questões 2 e 7, com as traduções corrigidas
-  const teacherFile = (nums, tag, alter = null) => nums.map((n) => {
-    const q = P.questions[n - 1];
-    return [`QUESTÃO ${n}`, ...q.blocks.flatMap((en, i) => [alter && alter.n === n && i === 1 ? alter.en : en, `${tag} ${n}.${i + 1} — correção`])].join('\n');
-  }).join('\n\n') + '\n';
+  const act2 = async () => { const d = await kvRaw(p2); return d && d.activities[d.last]; };
+  const area = async () => { await p2.goto(BASE + '#/course'); await p2.waitForTimeout(700); };
 
-  await check('C14', `Celular: “Importar minhas respostas” com o TXT exportado → ${TOTAL} questões associadas às questões certas (inglês conferido); respostas visíveis e editáveis`, async () => {
+  await check('C14', `Celular: “Adicionar atividade” com o TXT exportado → ${TOTAL} questões associadas às questões certas (inglês conferido); respostas visíveis e editáveis`, async () => {
     await openPhone();
     await p2.goto(BASE); await p2.waitForTimeout(800);
     await p2.evaluate(async () => { await window.DRG_APP.chooseCharacter('lucas'); window.DRG_APP.go('#/'); });
-    await p2.goto(BASE + '#/course'); await p2.waitForTimeout(700);
-    await p2.click('[data-role=import] summary');
-    await p2.setInputFiles('[data-role=import-file]', { name: 'atividade.txt', mimeType: 'text/plain', buffer: Buffer.from(SRC, 'utf8') });
-    await p2.waitForSelector('[data-role=import-ok]');
-    const prev = await importFile('import-own', 'respostas.txt', exported.replace(/\n/g, '\r\n'));
+    await area();
+    await addFile(p2, 'atividade.txt', SRC); await applyAndClose(p2);
+    const prev = await addFile(p2, 'respostas.txt', exported.replace(/\n/g, '\r\n'));
     assert(prev.includes(`${TOTAL} de ${TOTAL} questões identificadas`), prev);
-    await p2.click('[data-role=transfer-apply]');
-    await p2.waitForSelector('[data-role=transfer-ok]');
+    await applyAndClose(p2);
     const a = await act2();
-    // o que o computador exportou (C07): todas as respostas pt(n, i); cada uma na sua questão e bloco
     const wrong = [];
     for (const q of P.questions) q.blocks.forEach((_, i) => { if ((a.answers[q.n] || [])[i] !== pt(q.n, i)) wrong.push(`${q.n}.${i + 1}`); });
     assert(!wrong.length, `respostas fora do lugar: ${wrong.slice(0, 5)}`);
@@ -314,50 +321,41 @@ await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do p
     return { previa: prev.slice(0, 160), questoes: TOTAL, blocosConferidos: P.questions.reduce((n, q) => n + q.blocks.length, 0) };
   });
 
-  await check('C15', 'Correções do professor (exemplo com as questões 2 e 7): viram a resposta oficial, validadas; únicas exibidas; reimportar minhas respostas não as altera', async () => {
-    const prev = await importFile('import-teacher', 'correcoes.txt', teacherFile([2, 7], 'Corrigido'));
-    assert(/2 de \d+ questões identificadas/.test(prev) && /validadas pelo professor/.test(prev), prev);
-    await p2.click('[data-role=transfer-apply]');
-    await p2.waitForSelector('[data-role=transfer-ok]');
-    let a = await act2();
-    assert(a.teacher[2].validatedAt && a.teacher[7].validatedAt && a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[7][3] === 'Corrigido 7.4 — correção', 'validação/substituição');
-    assert(a.answers[5][1] === 'Editada no celular' && a.answers[3][0] === pt(3, 0), 'outras questões mudaram');
-    await p2.goto(`${BASE}#/cq/${a.id}?q=2`); await p2.waitForTimeout(700);
-    const official = await p2.locator('[data-role=official-answer]').count();
-    const first = p2.locator('[data-role=block-pt]').first();
-    assert(official === 1 && await first.isDisabled() && (await first.inputValue()) === 'Corrigido 2.1 — correção' && (await p2.locator('[data-role=teacher-pt]').count()) === 0, 'Q2 oficial');
-    await p2.screenshot({ path: join(OUT, 'c15-oficial.png'), fullPage: true });
-    // reimportar as respostas pessoais: as validadas não mudam
-    const prev2 = await importFile('import-own', 'respostas.txt', exported);
-    assert(/não mudam/.test(prev2), prev2);
-    await p2.click('[data-role=transfer-apply]'); await p2.waitForSelector('[data-role=transfer-ok]');
-    a = await act2();
-    assert(a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[7][3] === 'Corrigido 7.4 — correção', 'validadas foram sobrescritas');
-    return { previa: prev.slice(0, 160), reimportacao: prev2.match(/\d+ questões serão atualizadas[^.]*/)[0] };
+  await check('C15', 'Sem importação de correção/validação do professor na interface; reimportar as respostas é seguro (mesmo resultado)', async () => {
+    await area();
+    await p2.click('[data-role=open-import]'); await p2.waitForSelector('[data-role=import-sheet]');
+    const sheetText = await p2.locator('[data-role=import-sheet]').innerText();
+    const roles = await p2.locator('[data-role=import-teacher], [data-role=transfer]').count();
+    assert(!roles && !/professor|correç|validad/i.test(sheetText), `importação de correção visível: ${sheetText.slice(0, 120)}`);
+    await p2.keyboard.press('Escape');
+    const prev = await addFile(p2, 'respostas.txt', exported);
+    await applyAndClose(p2);
+    const a = await act2();
+    assert(a.answers[5][1] === pt(5, 1) && a.answers[3][0] === pt(3, 0), 'reimportação');
+    return { importacaoDeCorrecao: 'ausente', reimportacao: prev.slice(0, 120) };
   });
 
-  await check('C16', 'Arquivo que não confere (inglês alterado na questão 3): mostra o problema e não altera nada', async () => {
-    const before = JSON.stringify(await kv2());
-    const prev = await importFile('import-teacher', 'errado.txt', teacherFile([3], 'X', { n: 3, en: 'This line is not in the activity.' }));
-    const apply = await p2.locator('[data-role=transfer-apply]').count();
-    const after = JSON.stringify(await kv2());
+  await check('C16', 'Arquivo de respostas que não confere (inglês alterado na questão 3): mostra o problema e não altera nada', async () => {
+    await area();
+    const before = JSON.stringify(await kvRaw(p2));
+    const bad = P.questions.slice(0, 3).map((q) => [`QUESTÃO ${q.n}`, ...q.blocks.flatMap((en, i) => [q.n === 3 && i === 1 ? 'This line is not in the activity.' : en, `X ${q.n}.${i + 1}`])].join('\n')).join('\n\n') + '\n';
+    const prev = await addFile(p2, 'errado.txt', bad);
+    const apply = await p2.locator('[data-role=import-apply]').count();
+    await p2.keyboard.press('Escape');
+    const after = JSON.stringify(await kvRaw(p2));
     assert(/Nada foi alterado/.test(prev) && /Questão 3: o bloco 2 em inglês não foi encontrado/.test(prev) && apply === 0 && before === after, prev);
     return prev.slice(0, 170);
   });
 
-  await check('C17', 'Fechar e reabrir no celular: respostas importadas, edição e validações preservadas; nova correção posterior atualiza a questão', async () => {
+  await check('C17', 'Fechar e reabrir no celular: respostas importadas e edição preservadas; a área retoma', async () => {
     await c2.close();
     await openPhone();
-    let a = await (async () => { await p2.goto(BASE + '#/course'); await p2.waitForTimeout(800); return act2(); })();
-    // (a reimportação das respostas pessoais em C15 devolveu à Q5 a resposta do arquivo; as validadas ficaram)
-    assert(a.answers[5][1] === pt(5, 1) && a.teacher[2].validatedAt && a.teacher[7].validatedAt && a.answers[2][0] === 'Corrigido 2.1 — correção' && a.answers[10][0] === pt(10, 0), 'persistência: ' + JSON.stringify({ q5: a.answers[5][1], q2: a.answers[2][0] }));
-    const prev = await importFile('import-teacher', 'correcoes-2.txt', teacherFile([2], 'Corrigido de novo'));
-    await p2.click('[data-role=transfer-apply]'); await p2.waitForSelector('[data-role=transfer-ok]');
-    a = await act2();
-    const nQ = Object.keys(a.answers).length;
-    assert(a.answers[2][0] === 'Corrigido de novo 2.1 — correção' && a.teacher[2].blocks[0] === 'Corrigido de novo 2.1 — correção' && a.teacher[7].validatedAt && nQ === TOTAL, JSON.stringify({ q2: a.answers[2][0], nQ }));
+    await area();
+    const a = await act2();
+    assert(a.answers[5][1] === pt(5, 1) && a.answers[10][0] === pt(10, 0) && Object.keys(a.answers).length === TOTAL, 'persistência');
+    const prog = (await p2.locator('[data-role=activity-progress]').textContent()).trim();
     await c2.close();
-    return { aposReabrir: 'preservado', novaCorrecaoQ2: a.answers[2][0], questoes: nQ, validadas: Object.values(a.teacher).filter((t) => t.validatedAt).length };
+    return { aposReabrir: 'preservado', progresso: prog };
   });
 }
 
@@ -365,6 +363,7 @@ await check('C11', 'Fechar e reabrir o app: tudo preservado; a área retoma do p
 await check('C18', 'Outro aparelho: atividade em .docx; TXT de respostas recusado como atividade; arquivo de transferência do “computador” → um só cartão com o mesmo progresso; remover cartão', async () => {
   const was = page.url(); // C12 continua da tela em que estava
   await go('#/course');
+  await page.locator('[data-role=activity-more] summary').first().click();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-role=export-transfer]').first().click()]);
   const transfer = readFileSync(await dl.path(), 'utf8');
   const pcDone = (await page.locator('[data-role=activity-progress]').first().textContent()).trim();
@@ -378,7 +377,6 @@ await check('C18', 'Outro aparelho: atividade em .docx; TXT de respostas recusad
     await p3.goto(BASE); await p3.waitForTimeout(800);
     await p3.evaluate(async () => { await window.DRG_APP.chooseCharacter('lucas'); });
     await p3.goto(BASE + '#/course'); await p3.waitForTimeout(700);
-    await p3.$eval('[data-role=import]', (d) => { d.open = true; });
     // .docx como o Word grava (ZIP + word/document.xml, um parágrafo por linha)
     const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     const xml = `<w:document><w:body>${SRC.split(/\r?\n/).map((l) => `<w:p><w:r><w:t xml:space="preserve">${esc(l)}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;
@@ -386,32 +384,26 @@ await check('C18', 'Outro aparelho: atividade em .docx; TXT de respostas recusad
     const L = Buffer.alloc(30); L.writeUInt32LE(0x04034b50, 0); L.writeUInt16LE(8, 8); L.writeUInt32LE(dat.length, 18); L.writeUInt16LE(nm.length, 26);
     const CD = Buffer.alloc(46); CD.writeUInt32LE(0x02014b50, 0); CD.writeUInt16LE(8, 10); CD.writeUInt32LE(dat.length, 20); CD.writeUInt16LE(nm.length, 28);
     const E = Buffer.alloc(22); E.writeUInt32LE(0x06054b50, 0); E.writeUInt16LE(1, 10); E.writeUInt32LE(30 + nm.length + dat.length, 16);
-    await p3.setInputFiles('[data-role=import-file]', { name: 'atividade.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: Buffer.concat([L, nm, dat, CD, nm, E]) });
-    await p3.waitForSelector('[data-role=import-ok]');
-    const docxMsg = await p3.locator('[data-role=import-ok]').textContent();
+    const docxMsg = await addFile(p3, 'atividade.docx', Buffer.concat([L, nm, dat, CD, nm, E]), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     assert(docxMsg.includes(`${TOTAL} questões`), docxMsg);
-    // o TXT exportado para a plataforma não vira um cartão “Atividade”
-    await p3.setInputFiles('[data-role=import-file]', { name: 'respostas.txt', mimeType: 'text/plain', buffer: Buffer.from(exported, 'utf8') });
-    await p3.waitForSelector('[data-role=import-error]');
-    const refused = await p3.locator('[data-role=import-error]').textContent();
-    assert(/traz respostas da atividade/.test(refused), refused);
-    // arquivo de transferência do “computador”
-    await p3.$eval('[data-role=transfer]', (d) => { d.open = true; });
-    await p3.setInputFiles('[data-role=import-own]', { name: 'transferencia.json', mimeType: 'application/json', buffer: Buffer.from(transfer, 'utf8') });
-    await p3.waitForSelector('[data-role=transfer-preview]');
-    const prev = (await p3.locator('[data-role=transfer-preview]').innerText()).replace(/\s+/g, ' ');
-    await p3.click('[data-role=transfer-apply]');
-    await p3.waitForSelector('[data-role=transfer-ok]');
+    await applyAndClose(p3);
+    // o TXT exportado (respostas) não vira um cartão novo: é reconhecido como respostas da atividade
+    const asAnswers = await addFile(p3, 'respostas.txt', exported);
+    assert(/Respostas da atividade/.test(asAnswers) && !/adicionada/.test(asAnswers), asAnswers);
+    await p3.click('[data-role=import-cancel]');
+    // cópia de segurança (transferência) do “computador”
+    const prev = await addFile(p3, 'transferencia.json', transfer, 'application/json');
+    await applyAndClose(p3);
     await p3.waitForTimeout(500);
     const cards = await p3.locator('[data-role=activity]').count();
     const done = (await p3.locator('[data-role=activity-progress]').first().textContent()).trim();
-    const val = (await p3.locator('[data-role=activity-validated]').first().textContent()).trim();
     assert(cards === 1 && done === pcDone && /já está neste aparelho/.test(prev), JSON.stringify({ cards, done, pcDone, prev }));
-    // remover o cartão (com confirmação)
+    // remover o cartão (com confirmação), em “Opções”
+    await p3.locator('[data-role=activity-more] summary').first().click();
     await p3.locator('[data-role=remove-activity]').click();
     await p3.getByRole('button', { name: 'Remover', exact: true }).last().click();
     await p3.waitForSelector('[data-role=no-activity]');
-    return { docx: docxMsg.slice(0, 80), txtComoAtividade: 'recusado', transferencia: prev.slice(0, 150), cartoes: cards, progresso: done, validadas: val, remover: 'ok' };
+    return { docx: docxMsg.slice(0, 80), txtComoAtividade: 'reconhecido como respostas', transferencia: prev.slice(0, 150), cartoes: cards, progresso: done, remover: 'ok' };
   } finally { await c3.close(); }
 });
 
@@ -421,7 +413,10 @@ await check('C12', 'Funciona offline (servidor desligado): área, questão e exp
   await page.reload(); await page.waitForTimeout(800);
   const ok = await page.locator('[data-role=block-pt]').count();
   await go('#/course').catch(() => {});
+  await page.click('[data-role=open-export]').catch(() => {});
+  await page.waitForTimeout(400);
   const area = await page.locator('[data-role=export-txt]').count();
+  await page.keyboard.press('Escape').catch(() => {});
   await ctx.setOffline(false);
   assert(ok > 0 && area === 1, `offline: blocos ${ok}, exportação ${area}`);
   return { blocos: ok, exportacao: area };

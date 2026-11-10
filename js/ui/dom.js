@@ -61,6 +61,8 @@ const PATHS = {
   lock: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',
   star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z',
   chat: 'M4 5h16v11H9l-5 4z',
+  filePlus: 'M14 3H6v18h12V7zM14 3v4h4M12 10v7M8.5 13.5h7',
+  export: 'M12 15V4M8 8l4-4 4 4M5 13v7h14v-7',
 };
 
 export function icon(name, extra = '') {

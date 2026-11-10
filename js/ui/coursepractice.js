@@ -73,7 +73,7 @@ export function renderCoursePractice(App, r) {
     view.append(...[
       h('section', { class: 'card', 'data-role': 'practice-head' },
         h('div', { class: 'small muted', text: act.title }),
-        h('p', { class: 'small', style: { margin: '6px 0' }, text: 'Práticas para fixar o vocabulário, as expressões e as frases desta atividade. A tradução continua sendo a atividade principal: nada aqui muda as suas respostas, as correções do professor ou a exportação.' }),
+        h('p', { class: 'small', style: { margin: '6px 0' }, text: 'Práticas para fixar o vocabulário, as expressões e as frases desta atividade. A tradução continua sendo a atividade principal: nada aqui muda as suas respostas ou a exportação.' }),
         h('div', { class: 'small', 'data-role': 'practice-summary' },
           `Praticados: ${s.practised} de ${s.available} exercícios possíveis · para revisar hoje: ${s.due} · com erro: ${s.errors}`),
         h('div', { class: 'small muted', text: `Tentativas: ${s.stats.attempts} · certas: ${s.stats.good + s.stats.ok} · erros: ${s.stats.bad} · sem evidência: ${s.stats.unverified}` }),
@@ -85,10 +85,10 @@ export function renderCoursePractice(App, r) {
         modeBtn('vocab', n(MODES.vocab.skills), 'Nenhum vocabulário com sentido confirmado nesta atividade ainda.'),
         modeBtn('listen', n(MODES.listen.skills), 'Poucas frases ou expressões distintas para montar as alternativas.'),
         modeBtn('speak', n(MODES.speak.skills), 'Nenhuma frase curta o bastante para a fala.'),
-        modeBtn('rev', n(MODES.rev.skills), validated ? 'Sem blocos validados pelo professor curtos o bastante.' : 'Disponível só nas questões validadas pelo professor (nenhuma nesta atividade ainda).'),
+        modeBtn('rev', n(MODES.rev.skills), validated ? 'Sem blocos com resposta de referência curtos o bastante.' : 'Disponível só nas questões que têm resposta de referência registrada (nenhuma nesta atividade).'),
         modeBtn('errors', s.errors, 'Nenhum erro para repetir.')),
       h('p', { class: 'tiny muted', style: { marginTop: '10px' }, 'data-role': 'practice-sources',
-        text: `Gerado neste aparelho a partir do texto importado. Significados: só os confirmados na versão validada pelo professor ou no glossário do app (orientação de estudo, não é resposta oficial). Escuta e fala usam a voz do sistema do aparelho, não gravações do curso. Frases com até ${MAX_WORDS} palavras.` })].filter(Boolean)); // append nativo escreveria “null”
+        text: `Gerado neste aparelho a partir do texto importado. Significados: só os confirmados na resposta de referência registrada ou no glossário do app (orientação de estudo, não é resposta oficial). Escuta e fala usam a voz do sistema do aparelho, não gravações do curso. Frases com até ${MAX_WORDS} palavras.` })].filter(Boolean)); // append nativo escreveria “null”
   }
 
   // ---------- sessão: um exercício por vez ----------
@@ -189,7 +189,7 @@ export function renderCoursePractice(App, r) {
             c.extra && c.extra.length ? h('div', { class: 'small', text: `Não está no original: ${c.extra.join(', ')}.` }) : null,
             c.result === 'unverified' ? h('div', { class: 'small muted', text: 'Pode ser uma forma diferente e correta de dizer: compare com o original.' }) : null);
         };
-        return [h('p', { class: 'small muted', text: 'Traduza para o inglês. O texto em português é a versão validada pelo professor; o gabarito é o inglês original da atividade.' }),
+        return [h('p', { class: 'small muted', text: 'Traduza para o inglês. O texto em português é a resposta de referência registrada; o gabarito é o inglês original da atividade.' }),
           h('p', { style: { fontSize: '1.05rem', margin: '0 0 10px' }, 'data-role': 'rev-pt', text: ex.pt }), inp,
           h('button', { class: 'btn block', style: { marginTop: '8px' }, 'data-role': 'check', onclick: check }, icon('check'), 'Conferir')];
       }

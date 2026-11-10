@@ -3,6 +3,73 @@
 Área independente das jornadas para fazer as atividades de tradução (inglês → português) do curso do usuário,
 registrar a correção do professor e exportar as respostas para a plataforma do curso.
 
+## Catálogo, arquivo de estudo e exportação (2026-11-10) — vigente
+
+Decisões do responsável (2026-11-10): o conteúdo do curso continua **só no aparelho** (importado pelo aluno; nunca
+versionado nem publicado); a área vira um **catálogo** limpo; **importar** e **exportar** ficam em dois ícones discretos
+no alto da tela; a **validação do professor sai da interface** (é controle editorial externo, registrado na Base de
+Conhecimento), mas os dados já gravados continuam guardados e usados internamente; a **exportação parcial** é permitida
+(substitui a regra anterior de exportar só com a atividade completa); entre partes vale a **regra sequencial**: a Parte N
+abre quando todas as questões da Parte N−1 estão concluídas.
+
+### Tela
+- Título **Curso — Atividades**; no alto, à direita: ícone **Adicionar atividade (importar arquivo de estudo)** e ícone
+  **Exportar respostas** (rótulo acessível e dica; área de toque de 48 px).
+- Catálogo agrupado por conjunto (título neutro do arquivo) e partes (“Parte 1”…), na ordem; cada parte mostra o
+  progresso, o selo **Offline** (o conteúdo está no aparelho), **Começar / Continuar (questão n) / Revisar**, **Praticar**
+  e, recolhido em **Opções**, **Cópia de segurança** (arquivo de transferência) e **Remover**. Parte bloqueada mostra o
+  motivo (“Conclua todas as questões da Parte 1…”, ou “Adicione a Parte 1…”); a rota direta também é recusada.
+- Atividades antigas sem conjunto aparecem em “Outras atividades”, como antes (nunca bloqueadas).
+- Na questão: sem chip, aviso, ✓ ou caixa de correção do professor; os campos ficam editáveis (a resposta de referência,
+  se existir, fica guardada à parte). Na última questão concluída, atalho **Exportar respostas**.
+
+### Formato oficial do arquivo de estudo (formato 1)
+```json
+{ "kind": "daily-routine-english/atividade", "formato": 1,
+  "conjunto": { "id": "ACT-001", "titulo": "Curso — Atividades" },
+  "partes": [
+    { "id": "ACT-001-P01", "parte": 1, "titulo": "Parte 1", "versao": "1",
+      "questoes": [ { "n": 1, "blocos": ["<título da questão>", "<linha em inglês>", "…"] } ] } ] }
+```
+- `conjunto.id`: letras maiúsculas + `-` + 3 dígitos (ex.: `ACT-001`); permanente; nunca reutilizar o código de outro
+  conjunto. `partes[].id` = `<conjunto>-P<NN>` (ex.: `ACT-001-P02`), conferido com `parte`.
+- `questoes`: em ordem a partir de 1; `blocos`: cada linha em inglês, sem alterar texto, pontuação ou ordem (o 1º bloco é
+  o título da questão). Um arquivo pode trazer todas as partes ou só algumas.
+- Só esses campos são lidos; **qualquer outro (fonte, autor, instituição, de-para…) é ignorado**: não é guardado nem
+  exportado. Títulos devem ser neutros. O de-para e os nomes de origem ficam só na Base de Conhecimento.
+- Continuam aceitos (mecanismo anterior): arquivo de texto da atividade (`.txt`, `.docx`, `.md` com “QUESTION 1”…, ou
+  texto colado), a cópia de segurança (`.json` de transferência) e o TXT de respostas exportado (restaura respostas).
+
+### Importação (`readPackage`, `planPackage`, `applyPackage` em `js/engine/course.js`)
+Antes de alterar qualquer coisa, a folha mostra a prévia por parte e pede confirmação:
+- **nova** → entra no catálogo com o código como identificador;
+- **já está igual** → nada muda (sem duplicar);
+- **já está no aparelho sem código** (mesmo conteúdo em inglês) → **adoção**: recebe código/parte; respostas,
+  correções, progresso e retomada intactos (é o caminho das quatro partes atuais);
+- **versão diferente da mesma parte** (ou a mesma atividade antiga com ≥ 50% dos trechos iguais) → **atualização
+  controlada**: a versão anterior inteira vai para `archive`; respostas dos trechos que não mudaram são mantidas;
+  questão alterada volta a ficar em aberto (isso pode bloquear de novo a parte seguinte, pela regra sequencial);
+- conteúdo que já pertence a **outra parte** catalogada → recusado (nada muda);
+- arquivo inválido, de respostas que não confere ou desconhecido → mensagem e **nada muda**.
+Antes do catálogo, o app grava uma única cópia do registro (`kv` → `course.copia-antes-catalogo`).
+
+### Exportação (`exportReport`)
+Cópia (nunca altera nada; pode repetir). Texto: cabeçalho — `Curso — Atividades`, `Atividade: ACT-001-P01 · Parte 1 ·
+versão 1`, `Exportado em: …`, `Situação: completa (n de n…)` ou `CONTÉM RESPOSTAS INCOMPLETAS (x de n…)` e `Faltam: …`
+— seguido de, por questão, `QUESTÃO n`, cada bloco em inglês e a resposta (linha vazia quando falta), o mesmo corpo que
+a plataforma recebe. JSON complementar (`daily-routine-english/respostas`, formato 1). Sem dados do professor, histórico,
+aparelho ou de-para.
+
+### Incorporar a próxima atividade
+1. Na Base de Conhecimento: atribuir o próximo código livre (`ACT-002`…; conferir o registro interno antes) e registrar
+   o de-para e a origem **só** ali.
+2. Gerar o arquivo no formato 1 (títulos neutros, blocos literais) e guardá-lo **fora do repositório**.
+3. No aparelho: Curso — Atividades → ícone de adicionar → escolher o arquivo → conferir a prévia → Adicionar.
+4. Estudar, exportar as respostas pelo ícone e levar ao professor. A validação, quando houver, é registrada na Base;
+   o app não precisa dela para disponibilizar ou estudar a atividade.
+
+As seções abaixo descrevem versões anteriores; onde divergirem desta, vale esta.
+
 ## Decisões do responsável (2026-11-08)
 
 - **Nome neutro no app publicado:** a área se chama “Curso — Atividades”. O nome do curso/unidade é dado privado
@@ -115,7 +182,7 @@ automática nem exportação. Tudo é gerado no aparelho a partir do texto impor
   prevalece) e, como antes, o TXT/DOCX/MD no formato da plataforma.
 - **Importar correções do professor:** igual, agora também em .docx e .md.
 
-## Transferir respostas e correções do professor (2026-11-08)
+## Transferir respostas e correções do professor (2026-11-08) — histórico: a importação de correções saiu da interface em 2026-11-10
 
 Área **Curso — Atividades → Transferir respostas e correções** (a atividade precisa estar importada no aparelho):
 
@@ -134,7 +201,7 @@ automática nem exportação. Tudo é gerado no aparelho a partir do texto impor
   usar, deve ler `officialAnswers`.
 - Tudo é lido e gravado só no aparelho (IndexedDB), offline; nada é enviado.
 
-## Formato exportado
+## Formato exportado — histórico (o corpo continua o mesmo; ver “Exportação” acima)
 
 ```
 QUESTÃO 1
@@ -165,7 +232,7 @@ heurística local (sem IA, sem serviço externo): texto ainda em inglês, tradu�
 aparece, nome próprio ausente, pergunta sem “?”, negação ausente. **Não avalia o sentido**, não bloqueia o avanço e
 não muda a resposta. “Adequada” = nenhum alerta. O resultado do momento do envio fica guardado.
 
-## Correção do professor
+## Correção do professor — histórico: saiu da interface em 2026-11-10 (dados preservados)
 
 Em cada questão concluída: **Correção do professor** → **Registrar a correção do professor** (começa com a sua
 tradução) → editar bloco a bloco → **Marcar como validada pelo professor** (data registrada; campos travados;
@@ -178,6 +245,7 @@ checagem automática nunca vira a versão oficial.
 - `js/engine/course.js` (regras puras: importação, sequência, envio, exportação, checagem básica),
   `js/ui/course.js` (telas e salvamento), rotas `#/course` e `#/cq/<id>?q=<n>` em `js/main.js`, cartão no Início
   (`js/ui/home.js`), `getKv`/`putKv` em `js/store/db.js`.
-- Unitários: `dev/tests/unit/course.test.js` (conteúdo sintético).
-- E2E: `dev/tests/e2e/course.mjs` (13 verificações). Com o arquivo real fora do repositório:
+- Unitários: `dev/tests/unit/course.test.js` e `dev/tests/unit/coursecatalog.test.js` (catálogo, formato, adoção,
+  atualização, progressão, exportação; conteúdo sintético).
+- E2E: `dev/tests/e2e/course.mjs` (18 verificações) e `dev/tests/e2e/coursecatalog.mjs` (8). Com o arquivo real fora do repositório:
   `DRG_COURSE_FILE=<arquivo> node tests/e2e/course.mjs <site> /daily-routine-english/ <evidências>`.

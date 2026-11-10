@@ -108,7 +108,7 @@ export function extractItems(act, confirmed = new Map()) {
 
 /** Rótulo do significado (glossário): até duas traduções. */
 export const meaningLabel = (it) => (it.meanings && it.meanings.length ? it.meanings : it.pts).slice(0, 2).join(' / ');
-export const VIA_LABEL = { professor: 'sentido confirmado na versão validada pelo professor', app: 'glossário do app' };
+export const VIA_LABEL = { professor: 'sentido confirmado na resposta de referência', app: 'glossário do app' };
 
 /** O trecho `surface` (tokens) dentro do texto original → { before, target, after } ou null. */
 export function locateIn(text, surface) {
