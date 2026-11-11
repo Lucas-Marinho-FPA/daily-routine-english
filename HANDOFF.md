@@ -10,7 +10,7 @@ de agir.
 | Branch | Commit | O que é | Situação |
 |---|---|---|---|
 | `gh-pages` | `12accf2` | **Publicada.** Avatar oficial do Heitor sobre `a5051d4` (13 arquivos; *não* inclui `curso-simplificado`). Workflow “pages build and deployment” nº 26: *success* em 2026-11-11 03:59 UTC. | Concluído (publicação feita fora desta sessão) |
-| `claude/daily-routine-governance-y9rr0b` | `399c1b2` + alterações não commitadas desta rodada | **Branch de trabalho de produto** (o nome contém “governance”, mas o conteúdo é o MVP de diálogo). `399c1b2` = MVP de diálogo em cinco fases, sobre `c9005fa`. `399c1b2` **não** está em `governanca`. | Em andamento (sem merge, não publicada) |
+| `claude/daily-routine-governance-y9rr0b` | ver “Entrega final” | **Branch de trabalho de produto** (o nome contém “governance”, mas o conteúdo é o MVP de diálogo). `399c1b2` = MVP de diálogo em cinco fases, sobre `c9005fa`. `399c1b2` **não** está em `governanca`. | Em andamento (sem merge, não publicada) |
 | `governanca` | `c9005fa` | Governança documental (sobre `curso-simplificado` `90b54b6`). Só documentação. | Concluído; integração aguarda PO |
 | `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Não publicado** (não está contido em `gh-pages`). | Aguarda autorização de publicação |
 | `base-conhecimento` | `01c59b4` | **Nova (2026-11-11 02:59 UTC):** governança da Base de Conhecimento (11 arquivos). Base Mestra, acervos Ian e de-para **não** publicados (motivos em `base-conhecimento/PUBLICACAO.md`). Área da Base: o produto não altera. | Fora do escopo do produto |
@@ -25,7 +25,42 @@ de agir.
   `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
   validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
 
-## Rodada de correção (2026-11-11, depois de `399c1b2`) — alterações NÃO commitadas
+## Entrega final — decisões do PO, integração e publicação (2026-11-11)
+
+Autorização expressa do PO (2026-11-11): ativar as questões, rodada proporcional, fase 5 independente, corrigir o
+conteúdo, commit, push, integração e publicação. Fora da autorização: provedor de IA, serviços pagos e infraestrutura.
+
+**Concluído:**
+- Questões de compreensão **ativas**: 403 (30 diálogos com 10; 16 com rodada reduzida de 3 a 9), sem aviso de
+  validação ao aluno; origem registrada em cada questão (rastreabilidade interna). DEC-016.
+- Rodada reduzida com aprovação em ⌈0,8 n⌉; só as erradas voltam; resposta só depois de acertar. DEC-015/016.
+- Fase 5 independente da fase 4 (abre com a fase 3; tradução só aguardando avaliação online também abre 4 e 5). DEC-017.
+- Inconsistências corrigidas com rastreabilidade (`dev/content/dialogues/john-corrections.json`; fonte intacta): trem
+  8.20 e ~2h30, encontro com Peter, abertura de Rick, mesa para seis pessoas, contexto da ligação de Mary; áudio novo
+  das 6 falas; questões ajustadas. DEC-018.
+- Documentação: `docs/dialogos.md` (regras vigentes e correções), `docs/produto/04` e `11` (DEC-014 a DEC-019).
+- Integração: merge de `gh-pages` (`12accf2`) na branch de trabalho (`2923008`): conflitos só em `css/app.css` (bloco
+  acrescentado ao fim pelos dois lados; mantido o nosso, que já tem as regras do avatar) e `sw.js` (gerado); imagem e
+  dados do Heitor idênticos. Assim `gh-pages` avança por fast-forward (fluxo oficial, sem force).
+- **Build `b7dbb3b76936`**, 2.222 arquivos, 20,68 MB offline; rebuild a partir do repositório idêntico byte a byte.
+
+**Testes (2026-11-11, árvore integrada, Chromium, em sequência):** `npm test` 254 testes — 253 aprovados, 1 ignorado
+(pré-existente); `dialogue` 14/14 (D07 questões reais e recuperação; D14 rodada reduzida 3/3 e leitura antes da
+compreensão); `run-pages` 37/37; `mvp` 14/14; `journey` 10/10; `characters` 14/14; `lukinhas` 12/12; `course` 18/18;
+`coursepractice` 10/10; `storage` 10/10; `wordpractice` 15/15; `asr-local` 22/22; `pwa` 14/14; `update-transition`
+(publicado `12accf2` → novo) 25/25. `live-check` (app publicado) contra cópia local: 5/5.
+
+**Publicação:** ver “Resultado da publicação” abaixo.
+
+**Pendências (não resolvidas por estarem fora da autorização ou dependerem de terceiros):**
+- Avaliação semântica online da tradução: provedor, conta, chave, custo e hospedagem (decisão do PO). Sem isso,
+  traduções diferentes da referência ficam pendentes (as fases 4 e 5 abrem mesmo assim; a atividade só conclui com as
+  avaliações).
+- D-004: vocabulário de 15 diálogos e 89 itens de tabelas sem fala correspondente.
+- Validação no Galaxy S25+ (roteiro em `docs/dialogos.md`); calibração do corte de 80% da IA.
+- Bloqueio sequencial entre diálogos: hoje todos abertos (sem decisão; não bloqueia nada).
+
+## Registro — rodada de correção (2026-11-11, depois de `399c1b2`; decisões resolvidas na entrega final acima)
 
 **Concluído nesta rodada (no ambiente de trabalho, sem commit):**
 - Este `HANDOFF.md`: estado de `gh-pages` (`12accf2`, com evidência do workflow), identificação de `399c1b2`
