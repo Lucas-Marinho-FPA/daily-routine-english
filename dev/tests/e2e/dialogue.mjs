@@ -4,8 +4,7 @@
 // REAL: app construído, Chromium (viewport de celular), áudio Kokoro gravado, contagem de audições pelo fim real da
 // reprodução, gravação (MediaRecorder) com microfone falso (arquivo WAV), IndexedDB, retomada, service worker/offline
 // (D12) e o reconhecimento Moonshine no aparelho (D11).
-// SIMULADO (só aqui, nunca no app): (1) as 10 questões de compreensão da atividade john-p1-e01 — o conteúdo real ainda
-// não tem questões curadas; (2) o AI Gateway (https://gw.test), que aprova/reprova por regra fixa — não é avaliação
+// SIMULADO (só aqui, nunca no app): (1) — (desde 2026-11-11 a fase 4 usa as 10 questões reais de john-p1-e01); (2) o AI Gateway (https://gw.test), que aprova/reprova por regra fixa — não é avaliação
 // semântica; (3) nas fases 1 e 5, exceto D11, a transcrição vem de window.__DRG_TEST_ASR (texto controlado pelo teste).
 // Nada disto valida a qualidade de um modelo de IA real, o reconhecimento com voz humana ou o Galaxy S25+.
 import { chromium } from 'playwright';
@@ -34,11 +33,8 @@ const assert = (cond, msg) => { if (!cond) throw new Error(msg); };
 const PACK = JSON.parse(readFileSync(join(APPDIR, 'data/dialogues.js'), 'utf8').replace(/^[\s\S]*?window\.DRG_DIALOGUES = /, '').replace(/;\s*$/, ''));
 const A = PACK.activities.find((a) => a.id === ACT);
 const ITEMS = A.itemIds.map((id) => PACK.items.find((x) => x.id === id));
-const SYN_Q = Array.from({ length: 10 }, (_, i) => ({ id: `${ACT}-test-q${i + 1}`, activityId: ACT, prompt: `[TESTE] Questão sintética ${i + 1}`, options: [{ id: 'c', text: 'Certa' }, { id: 'w1', text: 'Errada 1' }, { id: 'w2', text: 'Errada 2' }], correctOptionId: 'c', explanation: 'Explicação sintética.', skill: 'explicit_fact', sourceLineIds: [A.lines[0].id] }));
 const patchedPack = (endpoint) => {
   const p = JSON.parse(JSON.stringify(PACK));
-  p.questions = SYN_Q;
-  p.activities.find((a) => a.id === ACT).questionIds = SYN_Q.map((q) => q.id);
   p.evaluation = { endpoint, timeoutMs: 5000 };
   return `window.DRG_DIALOGUES = ${JSON.stringify(p)};`;
 };
@@ -284,7 +280,7 @@ await check('D06', 'Fase 3: autorização; offline fica pendente e sobrevive ao 
   return `${gwCalls.length} avaliações online, 1 local`;
 });
 
-await check('D07', 'Fase 4: 3 audições completas liberam 10 questões; 7/10 → recuperação → nova rodada; 8/10 aprova; correção só após envio', async () => {
+await check('D07', 'Fase 4 (questões reais): 3 audições liberam 10 questões; correção só após envio; 7/10 → só as 3 erradas voltam, sem a resposta antes; ao acertá-las a fase é aprovada sem nova rodada completa', async () => {
   await go(`#/dphase/${ACT}?p=listening`);
   await page.waitForSelector('[data-role=listening-card]');
   assert(await page.locator('[data-role=questions]').count() === 0, 'questões antes das audições');
@@ -294,28 +290,44 @@ await check('D07', 'Fase 4: 3 audições completas liberam 10 questões; 7/10 �
     await page.waitForFunction((n) => document.querySelector('[data-role=listen-count]')?.textContent.includes(`${n}/3`), k, { timeout: 90000 });
   }
   await page.waitForSelector('[data-role=questions][data-kind=full]');
-  assert(await page.locator('[data-role=questions] [data-question]').count() === 10, '10 questões');
-  assert(await page.locator('.option.right, .option.wrong').count() === 0, 'correção antes do envio');
+  const realQ = PACK.questions.filter((q) => q.activityId === ACT);
+  assert(realQ.length === 10 && await page.locator('[data-role=questions] [data-question]').count() === 10, '10 questões reais');
+  assert(await page.locator('[data-role=questions-status]').count() === 1, 'aviso de validação pendente das questões');
+  const shownText = await page.locator('[data-role=questions]').textContent();
+  assert(realQ.every((q) => !shownText.includes(q.explanation.slice(0, 30))), 'explicação antes do envio');
   const answerAll = async (nRight) => {
     const qs = await page.$$eval('[data-role=questions] [data-question]', (els) => els.map((e) => e.dataset.question));
-    for (let i = 0; i < qs.length; i++) await page.click(`[data-role=questions] [data-question="${qs[i]}"] [data-option="${i < nRight ? 'c' : 'w1'}"]`);
+    for (let i = 0; i < qs.length; i++) await page.click(`[data-role=questions] [data-question="${qs[i]}"] [data-option="${i < nRight ? 'a' : 'b'}"]`);
     await page.click('[data-role=submit-round]');
     await page.waitForSelector('[data-role=round-result]');
+    return qs;
   };
-  await answerAll(7);
+  const order = await answerAll(7);
   assert(await page.getAttribute('[data-role=round-result]', 'data-passed') === 'false', '7/10 aprovou');
+  const wrong = order.slice(7);
+  for (const id of wrong) {
+    assert(await page.getAttribute(`[data-role=round-result] [data-question="${id}"]`, 'data-revealed') === 'false', `resposta revelada antes da recuperação (${id})`);
+    const right = realQ.find((q) => q.id === id).options[0].text;
+    assert(!(await textOf(`[data-role=round-result] [data-question="${id}"]`)).includes(right), 'texto da resposta certa exibido');
+  }
+  assert(await page.getAttribute(`[data-role=round-result] [data-question="${order[0]}"]`, 'data-revealed') === 'true', 'explicação da acertada');
   await page.click('[data-role=round-result] [data-role=continue]');
   await page.waitForSelector('[data-role=questions][data-kind=recovery]');
-  assert(await page.locator('[data-role=questions] [data-question]').count() === 3, 'recuperação só com as 3 erradas');
-  await answerAll(3);
-  await page.click('[data-role=round-result] [data-role=continue]');
-  await page.waitForSelector('[data-role=questions][data-kind=full]');
-  await answerAll(8);
-  assert(await page.getAttribute('[data-role=round-result]', 'data-passed') === 'true', '8/10 não aprovou');
-  const s = await store();
-  assert(s.acts[ACT].notes.includes('Manchester'), 'anotações salvas');
+  const rec = await page.$$eval('[data-role=questions] [data-question]', (els) => els.map((e) => e.dataset.question));
+  assert(rec.length === 3 && rec.every((id) => wrong.includes(id)), `recuperação só com as erradas: ${rec}`);
+  await answerAll(1); // acerta 1 de 3 → 8/10
+  assert(await page.getAttribute('[data-role=round-result]', 'data-tally') === '8', 'contagem 8/10');
+  assert(await page.getAttribute('[data-role=round-result]', 'data-passed') === 'true', '8/10 com a recuperação não aprovou');
   await page.click('[data-role=round-result] [data-role=continue]');
   assert(await page.getAttribute('[data-role=phase-footer]', 'data-state') === 'completed', 'fase 4 não concluiu');
+  assert(await page.locator('[data-role=questions][data-kind=full]').count() === 0, 'pediu nova rodada completa');
+  // erradas restantes: recuperação opcional e “Ver as respostas”
+  await page.waitForSelector('[data-role=optional-recovery]');
+  await page.click('[data-role=reveal-answers]');
+  assert(await page.locator('[data-revealed=true]').count() === 2, 'respostas das 2 restantes ao pedir');
+  const s = await store();
+  assert(s.acts[ACT].notes.includes('Manchester'), 'anotações salvas');
+  assert(s.acts[ACT].rounds.filter((r) => r.kind === 'full').length === 1, 'mais de uma rodada completa');
   await shot('D07-compreensao');
   return `rodadas: ${s.acts[ACT].rounds.map((r) => `${r.kind}:${r.correct}/${r.total}`).join(', ')}`;
 });

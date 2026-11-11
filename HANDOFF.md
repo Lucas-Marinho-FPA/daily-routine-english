@@ -5,7 +5,86 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
-## Entrega — MVP de diálogo em cinco fases (2026-11-11) — commit e push da branch de trabalho autorizados pelo PO
+## Estado verificado (Git e GitHub, 2026-11-11, rodada de correção posterior a `399c1b2`)
+
+| Branch | Commit | O que é | Situação |
+|---|---|---|---|
+| `gh-pages` | `12accf2` | **Publicada.** Avatar oficial do Heitor sobre `a5051d4` (13 arquivos; *não* inclui `curso-simplificado`). Workflow “pages build and deployment” nº 26: *success* em 2026-11-11 03:59 UTC. | Concluído (publicação feita fora desta sessão) |
+| `claude/daily-routine-governance-y9rr0b` | `399c1b2` + alterações não commitadas desta rodada | **Branch de trabalho de produto** (o nome contém “governance”, mas o conteúdo é o MVP de diálogo). `399c1b2` = MVP de diálogo em cinco fases, sobre `c9005fa`. `399c1b2` **não** está em `governanca`. | Em andamento (sem merge, não publicada) |
+| `governanca` | `c9005fa` | Governança documental (sobre `curso-simplificado` `90b54b6`). Só documentação. | Concluído; integração aguarda PO |
+| `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Não publicado** (não está contido em `gh-pages`). | Aguarda autorização de publicação |
+| `base-conhecimento` | `01c59b4` | **Nova (2026-11-11 02:59 UTC):** governança da Base de Conhecimento (11 arquivos). Base Mestra, acervos Ian e de-para **não** publicados (motivos em `base-conhecimento/PUBLICACAO.md`). Área da Base: o produto não altera. | Fora do escopo do produto |
+| `base-pedagogica` | `6aee572` | Base Pedagógica (camada pública distinta). | Inalterada |
+| `main` | `13de9d2` | Branch padrão, desatualizada (out/2026). | Inalterada |
+| `identidade-bora` · `mvp-jornadas` | `4cbb34e` · `cf78f87` | Referência de recuperação · linha anterior. | Históricas |
+| `remodelagem` · `cp-publicacao` · `arquivo/publicado-2026-11-08` | `8d5ac0c` · `b582c29` · `b194cee` | Históricas/preservação. | Não integrar sem plano |
+
+- **Autorizações permanentes registradas:** nenhuma. Commit e push de `399c1b2` foram autorizados pelo PO para aquela
+  entrega; **esta rodada de correção não tem autorização de commit/push** (aguarda nova autorização expressa).
+- **Base de Conhecimento:** o registro anterior “não está em nenhuma branch” era verdadeiro quando escrito (governança
+  `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
+  validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
+
+## Rodada de correção (2026-11-11, depois de `399c1b2`) — alterações NÃO commitadas
+
+**Concluído nesta rodada (no ambiente de trabalho, sem commit):**
+- Este `HANDOFF.md`: estado de `gh-pages` (`12accf2`, com evidência do workflow), identificação de `399c1b2`
+  (branch de trabalho, não `governanca`), `governanca` com SHA, nova branch `base-conhecimento`, seções separadas.
+- **Questões de compreensão (fase 4):** 401 questões de múltipla escolha em
+  `dev/content/dialogues/john-questions.src.txt` → `john-questions.json` (por `dev/tools/dialogues-questions.mjs`).
+  **30 de 46 diálogos com 10 questões**; 16 diálogos curtos com menos (o texto não sustenta 10 sem inventar).
+  Habilidades: fato explícito 179, intenção 57, inferência simples 57, ação 43, relação 38, contexto 27. Cada questão
+  cita as falas (ou o contexto/título) que a sustentam; gabarito e justificativa na explicação.
+  **Fonte:** só o texto de cada diálogo de *The Story of John*. **Não** é conteúdo validado pelo professor (é
+  complemento didático da IA, regra 4 da Base); a Base Mestra/acervos validados não estão acessíveis aqui. Cada
+  questão e a tela da fase 4 dizem isso.
+- **Fase 4 alinhada à regra do PO** (“reapresentar os itens não dominados, sem obrigar a repetir os já dominados”):
+  antes, abaixo de 8/10, a recuperação era seguida de **nova rodada completa** (proposta minha); agora só as questões
+  erradas voltam, e cada uma passa a contar ao ser acertada; a fase é aprovada quando chega a 8 de 10. A resposta certa
+  e a explicação de uma questão errada só aparecem depois de ela ser acertada (ou, com a fase já aprovada, se o aluno
+  pedir “Ver as respostas”); antes disso, só a pista da fala a reouvir. Rubrica `dre-comprehension-2`.
+- `docs/dialogos.md` auditado e corrigido (ver lá a seção “Auditoria de 2026-11-11”). Código: o resumo final da
+  atividade lia um campo da regra antiga da fase 4 (corrigido).
+- `CLAUDE.md`, `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md` e `docs/produto/00`: a frase “a Base não está em nenhuma
+  branch” foi precisada (governança da Base publicada em `base-conhecimento`; acervo validado continua fora),
+  preservando o registro anterior. `docs/produto/11` (DEC-013) não foi alterado: é registro histórico de decisão.
+- **Build:** `518ca2361d94`, 2.222 arquivos, 20,67 MB offline, bundle 602 KB.
+- **Testes desta rodada** (cópia de trabalho `bash dev/setup-workdir.sh`; Chromium; 2026-11-11):
+  `node tools/build-app.mjs` ok; `npm test` → 252 testes, 251 aprovados, 0 falhas, 1 ignorado (pré-existente);
+  `node tests/e2e/dialogue.mjs <site> /daily-routine-english/` → 13/13 (D07 agora com as questões REAIS de
+  `john-p1-e01`; o gateway continua simulado só no teste); regressão pertinente (bundle, `sw.js` e dados mudaram;
+  código das jornadas não): `run-pages` 37/37, `pwa` 14/14. Demais suítes não reexecutadas (sem mudança no código
+  delas; última execução completa: entrega `399c1b2`).
+
+**Pendências (técnicas/documentais):**
+- Validação no Galaxy S25+ (roteiro em `docs/dialogos.md`).
+- Calibração do corte de 80% da avaliação online com amostras revisadas por pessoa (quando houver provedor).
+- Divergências de conteúdo encontradas (registradas, **não alteradas**): ver “Observações de conteúdo” em
+  `docs/dialogos.md` (ex.: horário do trem 8.40 × 8.20; “at the university” × “at a conference”).
+
+**Decisões que dependem do Product Owner:**
+1. **Validação das 401 questões:** manter ativas como complemento da IA até a validação, ou desativar até a Base/professor
+   validar. Hoje estão ativas só nesta branch (não publicada).
+2. **16 diálogos curtos** (menos de 10 questões sustentadas): (a) manter a fase 4 indisponível neles; (b) permitir
+   rodada menor com corte proporcional (ex.: 80% de N); (c) a Base/autor ampliar esses diálogos; (d) tratá-los como
+   material complementar fora do fluxo de cinco fases. Sem decisão, continuam indisponíveis.
+3. Provedor de IA, conta, chave, custo, hospedagem do gateway e retenção dos textos enviados (nada foi contratado).
+4. Bloqueio sequencial entre diálogos (hoje todos abertos).
+5. Publicar no repositório público os documentos autorais de John e as questões (hoje só nesta branch, em `dev/`).
+
+**Bloqueado por dependência externa:**
+- Avaliação semântica online da tradução (fase 3): depende da decisão 3; sem ela, traduções diferentes da referência
+  ficam pendentes (não simuladas).
+- Fase 4 dos 16 diálogos curtos: depende da decisão 2 ou de conteúdo novo.
+- Demanda D-004: vocabulário de 15 diálogos e 89 itens de tabelas sem fala correspondente (Base/autor).
+
+## Registro — entrega `399c1b2` (MVP de diálogo, 2026-11-11), preservado como foi escrito
+
+> Correções posteriores: a fase 4 deixou de exigir nova rodada completa (regra do PO; ver “Rodada de correção”); a
+> demanda D-003 foi atendida em parte pelas questões desta rodada (30 de 46 diálogos); `gh-pages` publicada é `12accf2`
+> (o teste `update-transition` daquela entrega já rodou contra `12accf2`).
+
+### Entrega — MVP de diálogo em cinco fases (2026-11-11) — commit e push da branch de trabalho autorizados pelo PO
 
 Pedido do PO: pacote `DRE_MVP_Arquitetura_Implementacao` (cópia em `docs/produto/mvp-dialogo/`). Implementação
 autorizada só no ambiente/branch de trabalho; **push, merge, deploy, publicação e contratação de serviços NÃO
@@ -32,7 +111,7 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
 - **Achados corrigidos durante os testes:** pista da fase 2 revelava a tradução completa quando o item era a fala
   inteira; tela da fase não se atualizava após “Enviar agora”; questões quebravam o layout móvel (`fieldset`).
 
-### Pendências desta entrega
+#### Pendências desta entrega
 
 - **Demanda D-003 (Base de Conhecimento / PO):** 10 questões de compreensão curadas por diálogo (46 diálogos). Sem elas,
   a fase 4 fica “conteúdo pendente” e a fase 5 não abre. O app não cria questões. Formato: `ComprehensionQuestion`
@@ -45,7 +124,10 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
   não enviados).
 - Validação no Galaxy S25+ (roteiro em `docs/dialogos.md`); calibração do corte de 80% da IA com amostras revisadas.
 
-## Fatos verificados (Git, 2026-11-11)
+
+### Fatos verificados antes da rodada de correção (Git, 2026-11-11, cedo) — preservado
+
+> Superado pela tabela “Estado verificado” acima: `gh-pages` estava aqui como `a5051d4` (publicação posterior: `12accf2`).
 
 | Branch | Commit | O que é |
 |---|---|---|
@@ -63,6 +145,7 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
 - Todos os repositórios acessíveis à sessão são públicos; não há repositório privado para a Base de Conhecimento.
 - O de-para interno define a convenção de códigos (SRC, MAT, ACT, EX, VOC); **nenhum código ACT foi atribuído**.
 - **Autorizações permanentes registradas:** nenhuma. Commit, push e publicação seguem autorização explícita por entrega.
+
 
 ## Registros históricos (execuções anteriores; não reverificados nesta sessão)
 
@@ -96,14 +179,17 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
 |---|---|---|---|
 | D-001 | Gerar os arquivos de estudo das quatro partes do conjunto atual de atividades do curso, com títulos neutros e blocos literais. **Os códigos do conjunto e das partes são atribuídos pela governança da Base** (nenhum foi atribuído até 2026-11-11); de-para e origem só na Base; arquivos fora do repositório | `docs/curso-atividades.md` (seção vigente, formato 1), commit `90b54b6` | Contrato entregue em 2026-11-11; aguardando atribuição de códigos e os arquivos |
 | D-002 | Registrar na governança da Base que o de-para, a origem e a validação do professor das atividades do curso ficam só na Base (controle editorial externo; o app não exige validação) | `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md`, seção 6 | Aberta |
+| D-003 | Validar (ou substituir) as questões de compreensão da fase 4 de *The Story of John*: 401 questões elaboradas pela IA só a partir do texto dos diálogos, **não validadas pelo professor** | `ComprehensionQuestion` (`docs/produto/mvp-dialogo/05`); `dev/content/dialogues/john-questions.src.txt` | Aberta (2026-11-11): 30 de 46 diálogos com 10 questões; 16 diálogos curtos aguardam decisão do PO |
+| D-004 | Vocabulário: 15 diálogos sem itens próprios nos documentos; 89 itens de tabelas sem fala correspondente | `dev/content/dialogues/john-report.json` | Aberta |
 
 O trabalho técnico que não depende dessas demandas segue normalmente.
 
 ## Próxima sessão
 
 1. Ler `CLAUDE.md` e este topo; conferir branch, `HEAD` e remoto.
-2. Partir da branch indicada no pedido (trabalho de produto: hoje `curso-simplificado`, ou `governanca` se a tarefa for
-   documental). Não usar `main` como origem.
+2. Partir da branch indicada no pedido. Hoje: MVP de diálogo em `claude/daily-routine-governance-y9rr0b`
+   (`399c1b2` + rodada de correção, se autorizada); Curso em `curso-simplificado`; documental em `governanca`.
+   Não usar `main` como origem. (Texto anterior desta linha: “hoje `curso-simplificado`, ou `governanca`”.)
 3. Atualizar este topo ao fechar: fatos verificados, registros, pendências e demandas — sem apagar o histórico.
 
 ---

@@ -30,8 +30,11 @@ commits, documentos).
   `docs/aplicativo-referencia.md` e os `docs/*.md` temáticos (ex.: `docs/curso-atividades.md`).
 
 **Base de Conhecimento** — acervo pessoal e privado (atividades, respostas, correções, Base Mestra, de-para) com
-governança própria. **Não está neste repositório nem em nenhuma das suas branches** (verificado em 2026-11-11) e não
-deve vir para cá: o repositório é público. É mantida pelo projeto Base de Conhecimento, nas fontes desse projeto.
+governança própria. O **acervo validado** (Base Mestra, acervos das atividades, de-para) **não está neste repositório**
+e não deve vir para cá: o repositório é público. É mantido pelo projeto Base de Conhecimento, nas fontes desse projeto.
+Desde 2026-11-11 a **governança** da Base (documentos `00`–`09`, sem o de-para) está publicada na branch
+`base-conhecimento`, que é área da Base: o produto não a altera. (Registro anterior, verdadeiro quando escrito:
+“não está em nenhuma das branches”.)
 
 **Base Pedagógica (branch `base-pedagogica`)** — camada **diferente**: dados estruturados públicos derivados do
 conteúdo próprio do app, com instruções próprias nessa branch (`CLAUDE.md`, `docs/direcionamento/`,

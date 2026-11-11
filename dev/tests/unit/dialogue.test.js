@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { createChecker } from '../../app/js/engine/checker.js';
 import {
   THRESHOLD, LISTENS_REQUIRED, PHASES, meetsThreshold, emptyStore, validStore, actProgress, addAttempt, applyEvaluation, markRetry,
-  pendingAttempts, mastery, recordListen, canSpeakItem, canAnswerQuestions, gradeRound, addRound, listeningNext, wrongOf,
+  pendingAttempts, mastery, recordListen, canSpeakItem, canAnswerQuestions, gradeRound, addRound, listeningNext, wrongOf, comprehension, questionMastered,
   phaseStatuses, activityStatus, nextItem, phaseOrder, activityReport, spokenItem, requiredOf, contentProblems, newAttemptId, settleCompletion,
 } from '../../app/js/engine/dialogue.js';
 import { scoreWriting, evaluateSpeech, localTranslation, validateTranslationResult, translationRequest, nearToken } from '../../app/js/engine/dialogueeval.js';
@@ -98,24 +98,37 @@ test('três audições concluídas liberam a produção oral (fase 1) e as quest
   assert.equal(canAnswerQuestions(p), true);
 });
 
-test('compreensão: 8/10 aprova a rodada; 7/10 exige recuperação das erradas e depois nova rodada completa', () => {
+test('compreensão: 8/10 aprova; abaixo disso só as erradas voltam (as acertadas não se repetem) e contam ao serem acertadas', () => {
   const p = fresh();
   for (let i = 0; i < 3; i++) recordListen(p, 'listening');
   const answers = (nRight) => Object.fromEntries(Q.map((q, i) => [q.id, i < nRight ? 'a' : 'b']));
-  const r7 = gradeRound(Q, answers(7), { now: 1 });
-  assert.equal(r7.correct, 7); assert.equal(r7.passed, false);
-  addRound(p, r7);
+  const r6 = gradeRound(Q, answers(6), { now: 1 });
+  assert.equal(r6.correct, 6); assert.equal(r6.passed, false);
+  addRound(p, r6);
   assert.equal(listeningNext(p), 'recovery');
-  assert.deepEqual(wrongOf(r7), ['t-q8', 't-q9', 't-q10']);
-  addRound(p, gradeRound(Q.slice(7), { 't-q8': 'a', 't-q9': 'a', 't-q10': 'a' }, { kind: 'recovery', now: 2 }));
-  assert.equal(listeningNext(p), 'full', 'recuperação não aprova a fase sozinha');
-  assert.equal(addRound(p, r7), false, 'mesma rodada não entra duas vezes');
-  const r8 = gradeRound(Q, answers(8), { now: 3 });
-  assert.equal(r8.passed, true);
-  addRound(p, r8);
+  assert.deepEqual(comprehension(p).wrong, ['t-q7', 't-q8', 't-q9', 't-q10'], 'só as 4 erradas voltam');
+  assert.equal(questionMastered(p, 't-q7'), false, 'resposta de questão ainda errada não é considerada dominada');
+  // recuperação com 1 acerto: 7/10 → continua só com as 3 que faltam
+  addRound(p, gradeRound(Q.slice(6), { 't-q7': 'a', 't-q8': 'b', 't-q9': 'b', 't-q10': 'b' }, { kind: 'recovery', now: 2 }));
+  assert.equal(comprehension(p).tally, 7);
+  assert.equal(listeningNext(p), 'recovery');
+  assert.deepEqual(comprehension(p).wrong, ['t-q8', 't-q9', 't-q10']);
+  assert.equal(addRound(p, r6), false, 'mesma rodada não entra duas vezes');
+  // mais um acerto: 8/10 → aprovada, sem refazer as já acertadas; as 2 restantes ficam como recuperação opcional
+  addRound(p, gradeRound(Q.slice(7), { 't-q8': 'a', 't-q9': 'b', 't-q10': 'b' }, { kind: 'recovery', now: 3 }));
   assert.equal(listeningNext(p), 'done');
-  // sem as 10 questões curadas → bloqueada por conteúdo (nada é inventado)
-  assert.equal(listeningNext(fresh(), 4), 'blocked');
+  assert.deepEqual(comprehension(p).wrong, ['t-q9', 't-q10']);
+  assert.equal(p.rounds.filter((r) => r.kind === 'full').length, 1, 'nenhuma rodada completa repetida');
+  // 8/10 de primeira aprova direto
+  const q = fresh(); for (let i = 0; i < 3; i++) recordListen(q, 'listening');
+  addRound(q, gradeRound(Q, answers(8), { now: 4 }));
+  assert.equal(listeningNext(q), 'done');
+  const r7 = fresh(); for (let i = 0; i < 3; i++) recordListen(r7, 'listening');
+  addRound(r7, gradeRound(Q, answers(7), { now: 5 }));
+  assert.equal(listeningNext(r7), 'recovery', '7/10 não aprova');
+  // sem 10 questões no conteúdo → fase indisponível (nada é inventado)
+  assert.equal(listeningNext(fresh(), 9), 'blocked');
+  assert.deepEqual(wrongOf(r6), ['t-q7', 't-q8', 't-q9', 't-q10']);
 });
 
 test('atividade completa só com todas as fases; resultado por item, sem XP/pontos/recompensas', () => {
@@ -291,10 +304,37 @@ test('The Story of John: sete partes, IDs únicos e estáveis, texto literal, tr
   assert.equal(spokenItem('sister / uncle'), 'sister, uncle');
   assert.equal(spokenItem('What do you think of...?'), 'What do you think of?');
   assert.ok(JOHN.items.every((i) => ['word', 'phrasal_verb', 'collocation', 'chunk', 'expression', 'pattern'].includes(i.type)));
-  // sem questões curadas: a fase 4 aparece bloqueada por conteúdo, com diagnóstico
+  // fase 4: diálogo com 10 questões não tem problema de conteúdo; diálogo curto aparece com diagnóstico
   const a1 = JOHN.activities[0];
-  assert.equal(requiredOf(JOHN, a1, 'listening').length, 0);
-  assert.equal(contentProblems(JOHN, a1)[0].code, 'questions');
-  const st = phaseStatuses(JOHN, a1, actProgress(emptyStore(), a1));
-  assert.equal(st[3].state, 'locked');
+  assert.equal(requiredOf(JOHN, a1, 'listening').length, 10);
+  assert.ok(!contentProblems(JOHN, a1).some((x) => x.code === 'questions'));
+  const short = JOHN.activities.find((a) => a.id === 'john-p2-x02');
+  assert.equal(contentProblems(JOHN, short).find((x) => x.code === 'questions').code, 'questions');
+});
+
+test('questões de compreensão: estrutura, evidência citada, sem resposta repetida nas alternativas, status de validação explícito', () => {
+  const byId = new Map(JOHN.activities.map((a) => [a.id, a]));
+  const ids = JOHN.questions.map((q) => q.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(JOHN.questions.length >= 400);
+  for (const q of JOHN.questions) {
+    const a = byId.get(q.activityId);
+    assert.ok(a, q.id);
+    assert.ok(a.questionIds.includes(q.id));
+    assert.equal(q.options.length, 3, q.id);
+    assert.ok(q.options.some((o) => o.id === q.correctOptionId), q.id);
+    assert.equal(new Set(q.options.map((o) => o.text.toLowerCase())).size, 3, `${q.id}: alternativas distintas`);
+    assert.ok(['explicit_fact', 'action', 'intention', 'context', 'relation', 'inference'].includes(q.skill), q.id);
+    assert.ok(q.sourceLineIds.length || q.sourceRefs.some((r) => r === 'ctx' || r === 'title'), `${q.id}: evidência`);
+    for (const lid of q.sourceLineIds) assert.ok(a.lines.some((l) => l.id === lid), `${q.id}: fala ${lid}`);
+    assert.match(q.explanation, /No diálogo — /, `${q.id}: explicação com a evidência`);
+    assert.match(q.status, /não validado pelo professor/);
+  }
+  // equilíbrio: nenhum diálogo completo só com fatos explícitos
+  for (const a of JOHN.activities.filter((x) => x.questionIds.length >= 10)) {
+    const qs = JOHN.questions.filter((q) => q.activityId === a.id);
+    assert.ok(qs.filter((q) => q.skill !== 'explicit_fact').length >= 3, `${a.id}: pelo menos 3 questões além de fatos explícitos`);
+  }
+  const full = JOHN.activities.filter((a) => a.questionIds.length >= 10).length;
+  assert.equal(full, 30);
 });

@@ -6268,7 +6268,8 @@ ${body.join("\n\n")}
     vocab: "dre-speech-lexical-1",
     dictation: "dre-writing-1",
     translation: "dre-translation-semantic-1",
-    listening: "dre-comprehension-1",
+    listening: "dre-comprehension-2",
+    // 2: recuperação só das erradas conta para a rodada (sem nova rodada completa)
     reading: "dre-speech-lexical-1"
   };
   var EVALUATORS = {
@@ -6297,7 +6298,7 @@ ${body.join("\n\n")}
   function contentProblems(pack, act, { hasAudio: hasAudio2 = () => true } = {}) {
     const out = [];
     const qs = questionsOf(pack, act);
-    if (qs.length < QUESTIONS_TOTAL) out.push({ phase: "listening", code: "questions", text: `Faltam quest\xF5es de compreens\xE3o curadas (${qs.length} de ${QUESTIONS_TOTAL}). Nada \xE9 inventado pelo app.` });
+    if (qs.length < QUESTIONS_TOTAL) out.push({ phase: "listening", code: "questions", text: `Quest\xF5es de compreens\xE3o: ${qs.length} de ${QUESTIONS_TOTAL} \u2014 o texto do di\xE1logo n\xE3o sustenta mais quest\xF5es sem inventar conte\xFAdo (fase 4 indispon\xEDvel; decis\xE3o do Product Owner pendente).` });
     for (const q of qs) if (!q.options || q.options.length < 2 || !q.options.some((o) => o.id === q.correctOptionId)) out.push({ phase: "listening", code: "question-invalid", text: `Quest\xE3o ${q.id} inv\xE1lida (alternativas/gabarito).` });
     const noAudio = act.lines.filter((l) => !hasAudio2(l.audio));
     if (noAudio.length) out.push({ phase: "audio", code: "audio", text: `${noAudio.length} fala(s) sem \xE1udio gravado.`, ids: noAudio.map((l) => l.id) });
@@ -6427,15 +6428,32 @@ ${body.join("\n\n")}
     if (!p.startedAt) p.startedAt = round2.submittedAt;
     return true;
   }
+  function comprehension(p) {
+    let full = -1;
+    p.rounds.forEach((r, i) => {
+      if (r.kind === "full") full = i;
+    });
+    if (full < 0) return null;
+    const round2 = p.rounds[full];
+    const mastered = new Set(round2.results.filter((r) => r.correct).map((r) => r.questionId));
+    for (const r of p.rounds.slice(full + 1)) if (r.kind === "recovery") r.results.forEach((x) => {
+      if (x.correct) mastered.add(x.questionId);
+    });
+    const wrong = round2.results.map((r) => r.questionId).filter((id) => !mastered.has(id));
+    return { round: round2, mastered, wrong, tally: mastered.size, total: round2.total };
+  }
+  var questionMastered = (p, id) => {
+    const c = comprehension(p);
+    return !!c && c.mastered.has(id);
+  };
   function listeningNext(p, questionsCount = QUESTIONS_TOTAL) {
     if (questionsCount < QUESTIONS_TOTAL) return "blocked";
-    if (p.rounds.some((r) => r.kind === "full" && r.passed)) return "done";
+    const c = comprehension(p);
+    if (c && c.total === QUESTIONS_TOTAL && c.tally >= QUESTIONS_PASS) return "done";
     if (!canAnswerQuestions(p)) return "listen";
-    const last = p.rounds[p.rounds.length - 1];
-    if (last && last.kind === "full" && !last.passed && last.correct < last.total) return "recovery";
+    if (c && c.wrong.length) return "recovery";
     return "full";
   }
-  var wrongOf = (round2) => round2 ? round2.results.filter((r) => !r.correct).map((r) => r.questionId) : [];
   function phaseStatuses(pack, act, p) {
     const out = [];
     let prevDone = true;
@@ -6506,7 +6524,6 @@ ${body.join("\n\n")}
       const m = mastery2(p, phase, id);
       return { id, status: m.status, best: m.bestValidScore, attempts: m.attemptCount, repeated: m.attemptCount > 1 };
     });
-    const full = p.rounds.filter((r) => r.kind === "full");
     return {
       state: st.state,
       phases: st.phases,
@@ -6514,7 +6531,10 @@ ${body.join("\n\n")}
       dictation: items("dictation"),
       translation: items("translation"),
       reading: items("reading"),
-      comprehension: full.length ? { rounds: full.length, best: Math.max(...full.map((r) => r.correct)), passed: full.some((r) => r.passed) } : null,
+      comprehension: (() => {
+        const c = comprehension(p);
+        return c ? { firstRound: c.round.correct, tally: c.tally, total: c.total, recovered: c.tally - c.round.correct, stillWrong: c.wrong.length, passed: c.tally >= QUESTIONS_PASS } : null;
+      })(),
       pending: Object.values(p.attempts).filter((a) => a.status === "pending").length,
       inconclusive: Object.values(p.attempts).filter((a) => a.status === "inconclusive").length
     };
@@ -7043,7 +7063,7 @@ ${body.join("\n\n")}
   }
   function phaseRow(act, s) {
     const locked = s.state === "locked";
-    const counter = s.id === "listening" ? s.total ? `${QUESTIONS_TOTAL} quest\xF5es \xB7 aprova\xE7\xE3o com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}` : "quest\xF5es ainda n\xE3o curadas" : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` \xB7 ${s.pending} pendentes` : ""}` : "sem itens";
+    const counter = s.id === "listening" ? s.state === "blocked_by_content" ? "di\xE1logo curto: menos de 10 quest\xF5es sustentadas pelo texto" : `${QUESTIONS_TOTAL} quest\xF5es \xB7 aprova\xE7\xE3o com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}` : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` \xB7 ${s.pending} pendentes` : ""}` : "sem itens";
     const cls = s.state === "completed" ? "done" : locked ? "locked" : "open";
     const mark = h("span", { class: `stage-mark ${cls}`, "aria-hidden": "true" }, locked ? icon("lock") : s.state === "completed" ? icon("check") : String(s.n));
     const text = h(
@@ -7145,7 +7165,7 @@ ${body.join("\n\n")}
       row("Vocabul\xE1rio", rep.vocab),
       row("Escrita por escuta", rep.dictation),
       row("Tradu\xE7\xE3o", rep.translation),
-      rep.comprehension ? h("div", { class: "small" }, h("b", { text: "Compreens\xE3o: " }), `melhor rodada ${rep.comprehension.best}/${QUESTIONS_TOTAL}`) : null,
+      rep.comprehension ? h("div", { class: "small", "data-role": "result-comprehension" }, h("b", { text: "Compreens\xE3o: " }), `${rep.comprehension.tally}/${rep.comprehension.total} (${rep.comprehension.firstRound} na rodada${rep.comprehension.recovered ? `, ${rep.comprehension.recovered} na recupera\xE7\xE3o` : ""})`) : null,
       row("Leitura em voz alta", rep.reading),
       h("p", { class: "tiny muted", text: "Os itens continuam voltando na revis\xE3o. O resultado \xE9 por item; n\xE3o h\xE1 pontos nem recompensas." })
     );
@@ -7554,6 +7574,8 @@ ${body.join("\n\n")}
     const qs = questionsOf(pack, act);
     let answers = {};
     let shown = null;
+    let optional = false;
+    let revealed = false;
     const draw = () => {
       const next = listeningNext(p, qs.length);
       const n = listensOf(p, "listening");
@@ -7593,18 +7615,35 @@ ${body.join("\n\n")}
         area.append(h(
           "div",
           { class: "notice warn", "data-role": "questions-missing" },
-          h("b", { text: "Quest\xF5es ainda n\xE3o curadas. " }),
-          `Esta atividade precisa de ${QUESTIONS_TOTAL} quest\xF5es de compreens\xE3o validadas; o app n\xE3o cria quest\xF5es por conta pr\xF3pria. As audi\xE7\xF5es e anota\xE7\xF5es ficam salvas.`
+          h("b", { text: "Fase indispon\xEDvel neste di\xE1logo. " }),
+          `A fase exige ${QUESTIONS_TOTAL} quest\xF5es de compreens\xE3o e este di\xE1logo tem ${qs.length}: o texto n\xE3o sustenta mais quest\xF5es sem inventar conte\xFAdo. Pend\xEAncia registrada para o Product Owner. As audi\xE7\xF5es e anota\xE7\xF5es ficam salvas.`
         ));
       } else if (shown) {
         area.append(roundFeedback(shown, qs));
       } else if (next === "listen") {
         area.append(h("div", { class: "small muted", "data-role": "questions-locked", text: `As quest\xF5es aparecem depois da ${LISTENS_REQUIRED}\xAA audi\xE7\xE3o completa.` }));
-      } else if (next === "full" || next === "recovery") {
-        const last = p.rounds[p.rounds.length - 1];
-        const list = next === "recovery" ? qs.filter((q) => wrongOf(last).includes(q.id)) : qs;
-        area.append(questionForm(list, next));
+      } else if (next === "full" || next === "recovery" || optional) {
+        const c = comprehension(p);
+        const list = next === "full" ? qs : qs.filter((q) => c.wrong.includes(q.id));
+        area.append(questionForm(list, next === "full" ? "full" : "recovery"));
+      } else if (next === "done") {
+        const c = comprehension(p);
+        area.append(h("div", { class: "notice ok small", "data-role": "comprehension-done", text: `Compreens\xE3o: ${c.tally}/${c.total} quest\xF5es acertadas${c.tally > c.round.correct ? ` (${c.round.correct} na rodada e ${c.tally - c.round.correct} na recupera\xE7\xE3o)` : ""}.` }));
+        if (c.wrong.length) area.append(h(
+          "div",
+          { class: "row", style: { marginTop: "8px" } },
+          h("button", { class: "btn", type: "button", "data-role": "optional-recovery", onclick: () => {
+            optional = true;
+            draw();
+          } }, icon("refresh"), `Refazer ${c.wrong.length === 1 ? "a errada" : `as ${c.wrong.length} erradas`}`),
+          h("button", { class: "btn ghost", type: "button", "data-role": "reveal-answers", onclick: () => {
+            revealed = true;
+            draw();
+          } }, "Ver as respostas")
+        ));
+        if (revealed) area.append(...qs.filter((q) => c.wrong.includes(q.id)).map((q) => answerCard(q, { correct: false, reveal: true })));
       }
+      if (qs.length) area.append(h("p", { class: "tiny muted", "data-role": "questions-status", text: "Quest\xF5es elaboradas a partir do texto do di\xE1logo (complemento did\xE1tico); valida\xE7\xE3o pelo professor pendente." }));
       area.append(phaseFooter(pack, act, p, "listening"));
     };
     function notesField() {
@@ -7618,7 +7657,7 @@ ${body.join("\n\n")}
     }
     const questionForm = (list, kind) => {
       const form = h("section", { class: "stack", "data-role": "questions", "data-kind": kind });
-      if (kind === "recovery") form.append(h("div", { class: "notice small", text: "Recupera\xE7\xE3o: refa\xE7a as quest\xF5es que voc\xEA errou. Depois, uma nova rodada completa decide a fase." }));
+      if (kind === "recovery") form.append(h("div", { class: "notice small", text: "Recupera\xE7\xE3o: s\xF3 as quest\xF5es que voc\xEA ainda n\xE3o acertou. As que voc\xEA j\xE1 acertou continuam valendo." }));
       list.forEach((q, i) => {
         const opts = orderedOptions(q, kind);
         form.append(h(
@@ -7649,34 +7688,41 @@ ${body.join("\n\n")}
         await save();
         shown = round2;
         answers = {};
+        optional = false;
         if (ctx.alive) draw();
       } }, "Enviar respostas"));
       return form;
     };
-    const roundFeedback = (round2, all) => h(
-      "section",
-      { class: "stack", "data-role": "round-result", "data-passed": String(round2.passed), "data-correct": String(round2.correct) },
-      h(
+    const answerCard = (q, { correct, reveal }) => {
+      const right = q.options.find((o) => o.id === q.correctOptionId);
+      const showAnswer = correct || reveal || questionMastered(p, q.id);
+      const where = (q.sourceLineIds || []).map((id) => {
+        const i = act.lines.findIndex((l) => l.id === id);
+        return i >= 0 ? `fala ${i + 1} (${act.lines[i].speaker})` : null;
+      }).filter(Boolean);
+      return h(
         "div",
-        { class: `feedback ${round2.kind === "full" ? round2.passed ? "good" : "bad" : "mid"}` },
-        h("div", { class: "head", text: round2.kind === "full" ? `${round2.correct}/${round2.total} \u2014 ${round2.passed ? "rodada aprovada" : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}`}` : `Recupera\xE7\xE3o: ${round2.correct}/${round2.total}` })
-      ),
-      ...round2.results.map((r) => {
-        const q = all.find((x) => x.id === r.questionId);
-        const right = q.options.find((o) => o.id === q.correctOptionId);
-        return h(
-          "div",
-          { class: `card flat small`, "data-question": q.id, "data-correct": String(r.correct) },
-          h("b", { text: `${r.correct ? "\u2713" : "\u2717"} ${q.prompt}` }),
-          r.correct ? null : h("div", { text: `Resposta: ${right.text}` }),
-          q.explanation ? h("div", { class: "muted", text: q.explanation }) : null
-        );
-      }),
-      h("button", { class: "btn block", type: "button", "data-role": "continue", onclick: () => {
-        shown = null;
-        draw();
-      } }, "Continuar")
-    );
+        { class: "card flat small", "data-question": q.id, "data-correct": String(correct), "data-revealed": String(showAnswer) },
+        h("b", { text: `${correct ? "\u2713" : "\u2717"} ${q.prompt}` }),
+        showAnswer ? h("div", { text: `Resposta: ${right.text}` }) : null,
+        showAnswer && q.explanation ? h("div", { class: "muted", text: q.explanation }) : null,
+        showAnswer ? null : h("div", { class: "muted", "data-role": "hint", text: `Incorreta. Pista: ou\xE7a de novo ${where.length ? where.join(" e ") : "o di\xE1logo"} e tente na recupera\xE7\xE3o.` })
+      );
+    };
+    const roundFeedback = (round2, all) => {
+      const c = comprehension(p);
+      const head = round2.kind === "full" ? `${round2.correct}/${round2.total} \u2014 ${round2.passed ? "rodada aprovada" : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}: refa\xE7a s\xF3 as erradas`}` : `Recupera\xE7\xE3o: ${round2.correct}/${round2.total} \xB7 compreens\xE3o ${c.tally}/${c.total}${c.tally >= QUESTIONS_PASS ? " \u2014 aprovada" : ""}`;
+      return h(
+        "section",
+        { class: "stack", "data-role": "round-result", "data-kind": round2.kind, "data-passed": String(c.tally >= QUESTIONS_PASS), "data-correct": String(round2.correct), "data-tally": String(c.tally) },
+        h("div", { class: `feedback ${c.tally >= QUESTIONS_PASS ? "good" : round2.kind === "full" ? "bad" : "mid"}` }, h("div", { class: "head", text: head })),
+        ...round2.results.map((r) => answerCard(all.find((x) => x.id === r.questionId), { correct: r.correct, reveal: false })),
+        h("button", { class: "btn block", type: "button", "data-role": "continue", onclick: () => {
+          shown = null;
+          draw();
+        } }, "Continuar")
+      );
+    };
     const orderedOptions = (q, kind) => {
       const key = `opts:${q.id}:${p.rounds.length}`;
       if (!p.order[key]) {

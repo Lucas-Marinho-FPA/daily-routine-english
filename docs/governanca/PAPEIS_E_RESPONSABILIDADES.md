@@ -46,9 +46,11 @@ audita**, vale este arquivo; sobre o conteúdo das decisões, vale a hierarquia 
 - Responsável por: conteúdo de aprendizagem, curadoria, decisões e validações pedagógicas (inclusive com o professor),
   Base Mestra e códigos/de-para de fontes e materiais (SRC, MAT, ACT, EX, VOC).
 - **Onde está:** acervo pessoal e privado, com governança própria, mantido nas fontes do projeto Base de Conhecimento.
-  **Não está neste repositório** nem em nenhuma das suas branches (verificado em 2026-11-11) e não deve vir para cá —
-  o repositório é público. O de-para interno, a Base Mestra e os acervos das atividades nunca entram em repositório
-  público, build ou artefato publicado.
+  O acervo validado **não está neste repositório** e não deve vir para cá — o repositório é público. O de-para
+  interno, a Base Mestra e os acervos das atividades nunca entram em repositório público, build ou artefato
+  publicado. Desde 2026-11-11 só a **governança** da Base está publicada, na branch `base-conhecimento` (área da Base;
+  o produto não a altera). Registro anterior (verdadeiro quando escrito, antes dessa publicação): “nem em nenhuma das
+  suas branches”.
 - **Base Pedagógica (branch `base-pedagogica`)** é outra camada: dados estruturados públicos derivados do conteúdo
   próprio do app, com instruções próprias nessa branch (`CLAUDE.md`, `docs/direcionamento/`, checklist). Não é a Base
   de Conhecimento. A quem ela responde e como se relaciona com a Base de Conhecimento aguarda decisão do Product Owner;
@@ -137,4 +139,5 @@ contexto circula pelo repositório:
 | Referência técnica e pedagógica do aplicativo | `docs/aplicativo-referencia.md` e os `docs/*.md` temáticos |
 | Estado atual, entregas, evidências, pendências e demandas | `HANDOFF.md` |
 | Base de Conhecimento (acervo, Base Mestra, de-para, validações) | fora deste repositório: fontes do projeto Base de Conhecimento |
+| Governança da Base de Conhecimento (documentos públicos) | branch `base-conhecimento`, pasta `base-conhecimento/` |
 | Base Pedagógica (camada pública distinta) | branch `base-pedagogica`: `CLAUDE.md`, `docs/direcionamento/`, `docs/base-pedagogica/` |

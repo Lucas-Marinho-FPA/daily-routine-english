@@ -1,0 +1,507 @@
+# Questões de compreensão — The Story of John (fase 4)
+#
+# ORIGEM: complemento didático elaborado pela IA (executor técnico) EXCLUSIVAMENTE a partir do texto de cada diálogo
+# (dev/content/dialogues/source/the-story-of-john, documentos autorais do PO). NÃO validadas pelo professor
+# (regra 4 da Base de Conhecimento: separar complemento da IA de conteúdo validado). A Base Mestra e os acervos
+# validados não estão publicados neste repositório e não foram usados.
+# Regras: cada questão cita as falas que a sustentam; a resposta certa está no texto (ou decorre dele por inferência
+# simples, indicada na nota); as alternativas erradas são falsas no diálogo; nada de conhecimento externo; nenhuma
+# questão só de gramática. Diálogos que não sustentam 10 questões distintas ficam com menos (pendência registrada).
+#
+# Formato: "@ <id da atividade>" e, por questão:
+#   habilidade | falas | pergunta | resposta certa | errada 1 | errada 2 | nota (opcional)
+# habilidade: F fato explícito · A ação · I intenção · C contexto · R relação · N inferência simples
+# falas: l01,l02… · ctx (contexto da cena) · title (título do episódio)
+
+@ john-p1-e01
+R | l02 | Where did John and Rick meet for the first time? | At university | At a café near John's work | At the sales department
+F | l04 | Who does John work for now? | A technology company | A local newspaper | A university
+F | l04 | Where is the company that John works for? | In Manchester | In Edinburgh | In London
+F | l06 | What is John's job? | Project analyst | Software engineer | Photographer
+A | l06 | What is John doing this week? | Helping the sales department | Taking a week off | Starting a new course
+F | l06 | Who does John usually work with? | Different teams | Only the sales team | Nobody — he always works alone
+F | l07 | How does Rick react to John's job? | He says it sounds interesting | He says it sounds boring | He says he doesn't believe it
+I | l03 | What does Rick want to know when he asks "What are you doing these days?" | What John does at the moment | What John did yesterday | What John's plans for the weekend are | Nota: "these days" = atualmente.
+A | l05 | What does Rick ask after John says where he works? | What John does there | How long John has worked there | Where the company is
+C | ctx | Where are John and Rick talking? | In a small café near John's work | At the university | In John's office
+
+@ john-p1-e02
+A | l01 | Who introduces Mary and Rick? | John | Mary | Peter
+F | l03 | What is Rick's job? | Photographer | Software engineer | Project analyst
+F | l03 | Who does Rick work for? | A local newspaper | John's company | A football club
+F | l05 | What does Rick often cover? | Football matches | Weddings | Company events
+R | l06 | What is the relationship between John and Mary? | They work in the same company | They are cousins | They met at university
+F | l06 | What is Mary's job? | Software engineer | Photographer | Teacher
+F | l07 | According to Mary, what is John very good at? | Solving problems | Taking photographs | Playing football
+N | l07 | What does Mary mean when she says "John is being modest"? | John doesn't talk much about his own qualities | John is being rude | John is telling a joke | Nota: ela completa a apresentação que John fez com um elogio que ele não fez a si mesmo.
+I | l02 | Why does Mary ask Rick "What do you do?" | To find out about his job | To ask what he is doing right now | To invite him to lunch
+F | l04,l05 | Does Rick take photographs of sport? | Yes, he is the sports photographer | No, he only photographs people | No, he doesn't take photographs any more
+
+@ john-p1-e03
+F | l02 | Where does John live now? | In a suburb outside Manchester | Near the city centre | In Edinburgh
+N | l01 | What does Rick's question "Do you still live near the city centre?" suggest? | John used to live near the city centre | John has never lived in Manchester | Rick wants to move to the city centre | Nota: "still" indica que antes era assim.
+F | l04 | How long has John lived there? | For three years | Since last week | For ten years
+F | l04 | How does John describe the place where he lives? | Quiet | Noisy | Expensive
+F | l04 | What are John's neighbours like? | Friendly | Unfriendly | Very noisy
+F | l06 | When does John usually take pictures? | At weekends | Every morning before work | Only on holiday
+A | l06 | What is John working on at the moment? | A small photography project | A football team | A new house
+N | l05,l06 | What do we learn about John's interest in photography? | He took photographs before and still does | He has just started taking photographs | He has stopped taking photographs | Nota: Rick pergunta se ele "still" tira fotos; John confirma.
+I | l03 | What does Rick want to know when he asks "How long have you lived there?" | For how much time John has lived in the suburb | How far the suburb is from the city | How big John's house is
+C | ctx | When does this conversation happen? | Later, after Rick and John meet again | Many years before they met | At John's wedding
+
+@ john-p1-e04
+A | l01 | What does John show Rick? | A photograph of his family | A photograph of a football match | A map of Manchester
+F | l03 | What is the name of John's sister? | Ana Mitchell | Mary Collins | Joana Fletcher
+F | l03 | What does Ana do? | She's a teacher | She's an engineer | She's a photographer
+R | l04,l05 | Who is the man next to Ana in the photograph? | John's uncle | John's brother | John's neighbour
+F | l05 | What is Stuart Hughes's job? | Engineer | Teacher | Electrician
+R | l07 | Who does John play football with? | Peter | Rick | Stuart
+F | l07 | What does John sometimes do in his free time? | He goes swimming | He plays golf | He goes fishing
+F | l08 | When does Rick play squash? | Every Saturday morning | Every Sunday afternoon | On weekday evenings
+I | l08 | What does Rick suggest? | That John comes along to play squash sometime | That John lends him a camera | That they go swimming tomorrow
+N | l09 | How does John respond to Rick's suggestion? | He likes the idea | He refuses | He says he is too busy | Nota: "I'd like that" = eu gostaria.
+
+@ john-p1-e05
+F | l01 | Who is waiting outside? | Peter | Mary's sister | A taxi driver
+R | l01 | Who is Peter waiting for? | John and Mary | Only Rick | His family
+F | l02,l03 | Where is Peter standing? | By the main entrance | In the car park | At the bus stop
+A | l03 | What is Rick doing? | Talking to Peter | Waiting inside the office | Taking photographs
+I | l04 | What does John suggest? | Going to say hello | Waiting inside the office | Calling Peter on the phone
+A | l05 | What are Peter and Rick doing at the end? | Waving at John and Mary | Walking away | Talking on the phone
+C | ctx | When does this happen? | At the end of the day | Early in the morning | At lunchtime
+N | l01 | Who notices Peter first? | Mary | John | Rick | Nota: Mary chama a atenção ("Look!").
+C | ctx | Where are John and Mary? | Passing by the office | At the sports centre | In a café
+
+@ john-p1-e06
+A | l01 | Who introduces Ruan to John? | Rick | Jessy | Ketlyn
+F | l01 | What does Ruan do? | He organises events around the city | He teaches French | He works for a newspaper
+N | l02 | What does Ruan's comment "Rick has told me a lot about you" show? | Rick had already talked to Ruan about John | Ruan and John were colleagues | Ruan doesn't know Rick well
+R | l04 | Who is Ketlyn Brooks? | Jessy's colleague | Rick's sister | John's cousin
+F | l05 | Which event does Ketlyn ask about? | A family lunch on Sunday | A football match on Saturday | A wedding next week
+F | l06 | Who else is coming to the lunch? | John's cousin, Joana Fletcher | Ruan's parents | Ketlyn's family
+R | l06 | What is Joana Fletcher to John? | His cousin | His sister | His niece
+N | l07 | What does Rick think the lunch will be like? | A big gathering | A quiet meal for two | A business meeting
+F | l08 | When does John's family usually get together? | At weekends | Every evening | Only once a year
+C | ctx | Where does this conversation take place? | At the sports centre | In a restaurant | In John's office
+
+@ john-p1-e07
+F | l02 | What is the student studying? | Business and Commerce | Project management | Photography
+F | l02 | Where is she studying? | At the University of Manchester | Online, from home | At a school in Edinburgh
+F | l03,l04 | Is she studying full-time? | No, she isn't | Yes, she is | She has stopped studying
+A | l04 | What does she do during the day? | She works | She studies | She plays sport
+F | l04 | When does she study? | In the evenings | In the mornings | Only at weekends
+N | l04 | Why isn't she a full-time student? | Because she works during the day | Because the course is online | Because she lives far away
+I | l05 | What does John suggest? | Meeting at the university sometime | Working in the same company | Taking the same course
+N | l06 | How does the student feel about John's suggestion? | She likes it | She refuses | She isn't sure | Nota: "I'd like that" = eu gostaria.
+I | l01 | What does John want to know first? | What she is studying now | Where she lives | How old she is
+C | ctx | Where do John and the student meet? | At a company training event | At a café | At the sports centre
+
+@ john-p1-e08
+F | l02 | What does the greengrocer do? | He sells vegetables | He fixes lights | He sings
+A | l02 | What is the electrician doing? | Fixing a light | Selling vegetables | Performing
+A | l03 | What is the singer doing now? | Performing | Fixing a light | Selling vegetables
+F | l03 | Where does the singer usually work? | In a theatre | At the community fair | In a shop
+N | l03 | Is the singer at her usual workplace now? | No — she usually works in a theatre | Yes, she always works there | The dialogue says she has no job | Nota: contraste "now" × "usually".
+C | ctx | Where are John and his friends? | At a community fair | In a theatre | At the office
+R | l01 | Who asks what the greengrocer does? | Rick | Mary | John
+
+@ john-p1-e09
+F | l02 | When did John meet Peter, according to John? | Last week | Last year | Ten years ago
+F | l03,l04 | Does John know if Peter was going out with anyone at the time? | No, he doesn't know | Yes, he was going out with Mary | Yes, he was going out with Jessy
+F | l04 | What is Peter's situation now? | He's married | He's single | He's engaged
+R | l01,l03 | Who asks the questions about Peter? | Rick | John | Mary
+
+@ john-p2-e01
+R | l01 | Who asks John about his working day? | Mary | Rick | Peter
+F | l02 | What time does John usually get to the office? | At half past eight | At nine o'clock | At half past nine
+A | l04 | What does John check first? | His emails | The figures | The timetable
+A | l04 | Who does John speak to in the morning? | His team | The sales manager | Peter
+F | l04 | What does John read? | The project notes | The newspaper | The report
+F | l05,l06 | What is John working on today? | The new system | A presentation | A photography project
+A | l06 | What is John checking at the moment? | The figures | His emails | The presentation
+I | l06 | Why is John checking the figures? | The sales team needs the report this afternoon | Mary asked him to check them | The system is broken
+F | l06 | When does the sales team need the report? | This afternoon | Tomorrow morning | Next week
+A | l07 | What is Mary doing at the moment? | Preparing the presentation | Checking the figures | Reading her emails
+
+@ john-p2-e02
+A | l01 | Who does John introduce to the new colleague? | Mary Collins | Peter | Rick
+F | l01 | What is Mary's job? | Software engineer | Electrician | Project analyst
+F | l03 | What does Mary do exactly? | She designs and tests computer programmes | She repairs electrical appliances | She organises events
+F | l04 | According to Mary, what does John do? | He analyses the projects and helps the teams organise their work | He designs computer programmes | He looks after the office equipment
+F | l05,l06 | Who looks after the office equipment? | Peter | Mary | John
+F | l06 | What is Peter's job? | Electrician | Software engineer | Photographer
+A | l06 | What does Peter repair? | Electrical appliances | Cars | Computer programmes
+C | ctx | Who is John talking to? | A new colleague | A student | A customer on the phone
+I | l02 | What does the new colleague want to know about Mary? | What she does exactly | How old she is | Where she lives
+R | l04 | Who explains John's work? | Mary | John himself | The new colleague
+
+@ john-p2-e03
+F | l02 | What course is John taking? | Project management | Business and Commerce | Photography
+F | l02 | How is John taking the course? | Online | At the University of Manchester | At the office
+F | l03,l04 | How often does John have classes? | Twice a week | Every day | Once a month
+F | l04 | On which days does John usually study? | Tuesdays and Thursdays | Mondays and Wednesdays | Saturdays and Sundays
+F | l05,l06 | Does the course take a lot of time? | Yes, it does | No, it doesn't | John doesn't know yet
+N | l06 | How does John feel about his progress? | He has learnt a lot so far | He hasn't learnt anything yet | He wants to stop the course
+I | l07 | What does Rick mean by "Keep going!"? | He encourages John to continue | He tells John to leave | He asks John to walk faster
+C | ctx | What has John decided to do? | Take a course in project management | Change jobs | Move house
+N | l01 | What does Rick's question "Are you still studying in the evenings?" show? | John was already studying in the evenings before | John has never studied | Rick wants to start a course | Nota: "still" indica continuidade.
+R | l01,l03,l05 | Who asks John about the course? | Rick | Mary | Peter
+
+@ john-p2-e04
+I | l01 | What does Mary want to know at the beginning? | If John is free for a moment | If John wants to leave early | If John can book a meeting room
+F | l01,l02 | Is John free? | No, he isn't | Yes, he is | Only after lunch
+A | l02 | What is John dealing with? | A problem in the new system | A customer complaint | A broken light
+F | l03,l04 | Has the team found the cause of the problem? | Not yet | Yes, they have | They haven't looked for it
+A | l04 | What have they already checked? | The files | The figures | The emails
+F | l04 | What haven't they found yet? | The error | The files | The report
+I | l05 | What does Mary offer? | To help John | To call Peter | To come back later
+N | l05 | Why can Mary help? | She knows this part of the system | She is John's manager | She has already found the error
+N | l06 | How does John react to Mary's offer? | He accepts and thanks her | He refuses her help | He doesn't answer
+C | title | What kind of day is John having? | A busy day | A relaxing day | A day off
+
+@ john-p2-e05
+I | l01 | What does Peter want to know? | If John is going straight home | If John wants to have dinner | If John likes swimming
+F | l02 | Is John going straight home? | No, not today | Yes, he is | He doesn't know yet
+F | l02 | Who is John meeting? | Rick and Jessy | Mary and Peter | His family
+F | l02 | Where is John meeting them? | At the sports centre | At a café | At the station
+F | l03,l04 | Does John play football there? | Sometimes | Never | Every day
+A | l04 | What are John and his friends doing today? | Going swimming | Playing football | Playing squash
+F | l05 | When did Peter last go swimming? | A long time ago | Yesterday | Last week
+I | l06 | What does John suggest? | That Peter comes with them | That Peter goes home | That Peter plays football with them
+N | l05,l06 | Why does John invite Peter? | Peter hasn't been swimming for ages | Peter is a swimming teacher | Peter asked to come
+C | title | When does this conversation happen? | After work | Before work | At lunchtime
+
+@ john-p2-x01
+F | l01 | How does John usually travel? | By train | By car | By bus
+F | l01 | What does John sometimes do? | Drive to work | Walk to work | Work from home
+A | l02 | What is Mary going to do this weekend? | Visit her aunt | Visit her uncle | Travel by train
+
+@ john-p2-x02
+R | l01 | Who is Rodri? | John's nephew | John's brother | Penelope's father
+F | l01 | Who is younger, Rodri or Penelope? | Rodri | Penelope | They are the same age
+F | l01 | Is Rodri the youngest person in the family? | No, he isn't | Yes, he is | John doesn't know
+
+@ john-p3-e01
+R | l01 | Who is Ana Mitchell? | John's sister | John's colleague | John's cousin
+A | l01 | Who introduces Ana to Mary? | John | Stuart | Ana herself
+I | l03 | What does Ana want to know about Mary? | If she is John's colleague | Where she lives | If she is married
+F | l04 | Do Mary and John work together? | Yes, they do | No, they don't | Only sometimes
+R | l05 | Who is Stuart Hughes? | John's uncle | John's father | John's neighbour
+R | l05 | Whose brother is Stuart? | John's mother's | John's father's | Mary's
+A | l06 | What does Stuart ask Mary to do? | Sit down | Help in the kitchen | Take a photograph
+N | l07 | What does Mary think of John's family? | It's lovely | It's too big | It's very noisy
+C | ctx | What is the occasion? | A lunch with family and friends | A business meeting | A birthday party
+N | l02,l03 | Is this the first time Mary and Ana meet? | Yes — they say "Nice to meet you" | No, they are old friends | No, they work together
+
+@ john-p3-e02
+F | l01,l02 | Is Stuart John's oldest uncle? | No, he isn't | Yes, he is | John doesn't know
+R | l02 | Who is older than Stuart? | John's uncle Peter | John's father | Ana
+R | l02 | Who is younger than Stuart? | John's father | John's uncle Peter | Rick
+N | l02 | Which order, from the oldest to the youngest, is correct? | Uncle Peter, Stuart, John's father | John's father, Stuart, uncle Peter | Stuart, uncle Peter, John's father
+F | l04 | How old is Ana? | Twenty-eight | Thirty-two | Twenty-two
+F | l04 | How old is John? | Thirty-two | Twenty-eight | Thirty
+N | l04,l05 | What does Rick conclude? | That John is older than Ana | That Ana is older than John | That they are twins
+N | l04 | How many years older than Ana is John? | Four | Two | Ten | Nota: 32 − 28 = 4.
+N | l05,l06 | Who is the tallest person in John's family? | Ana | John | Stuart | Nota: "she" retoma Ana, de quem falam na fala anterior.
+R | l03 | Who asks about Ana's age? | Jessy | Rick | Mary
+
+@ john-p3-e03
+C | l01 | What are they looking at? | A photograph | A video | A map
+F | l01,l02 | Who is the little girl? | Penelope Clarke | Ana Mitchell | Joana Fletcher
+R | l02 | Whose daughter is Penelope? | John's sister's | John's brother's | John's cousin's
+R | l02 | What is Penelope to John? | His niece | His daughter | His cousin
+F | l03,l04 | Who is the boy next to Penelope? | Rodri Morgan | Peter Walker | Stuart Hughes
+R | l04 | Whose son is Rodri? | John's brother's | John's sister's | Stuart's
+R | l04 | What is Rodri to John? | His nephew | His son | His brother
+F | l05,l06 | Do Penelope and Rodri live nearby? | Yes, they do | No, they don't | Only Rodri does
+F | l06 | Who lives in the same town? | Their grandparents | Their teachers | Rick and Jessy
+N | l02,l04 | What are Penelope and Rodri to each other? | Cousins | Brother and sister | Just neighbours | Nota: filha da irmã e filho do irmão de John são primos.
+
+@ john-p3-e04
+F | l01,l02 | Who is the man with Rick in the photograph? | Peter Walker | Stuart Hughes | Ruan Parker
+R | l02 | What is Peter to Rick? | One of his oldest friends | His brother | His colleague
+F | l03,l04 | Is Peter the most talkative one? | Yes, definitely | No, he's very quiet | John isn't sure
+F | l04 | How does John describe Peter? | Probably the funniest person in the group | The quietest person in the group | The oldest person in the group
+F | l05 | Who does Mary think is funnier? | Rick | Peter | John
+F | l06 | According to John, who is more outgoing? | Peter | Rick | Mary
+N | l05,l06 | Does John completely disagree with Mary? | No — he says "Maybe a little" | Yes, completely | He doesn't answer her
+I | l07 | What does Mary want to know at the end? | Which friend John prefers spending time with | Where Peter lives | How old Rick is
+F | l08 | Who does John prefer? | He likes them both | Peter | Rick
+F | l08 | What does John say about his two friends? | They're different, but both great friends | They're very similar | They don't like each other
+
+@ john-p3-e05
+F | l01 | What are they talking about? | The new café | A new restaurant | A football match
+F | l02 | What does John think of the new café? | It's nicer than the old one | It isn't as good as the old one | It's too expensive
+F | l03 | Does Rick agree with John? | No, he doesn't | Yes, completely | He has no opinion
+F | l05 | Which café does Rick prefer? | The café near the station | The new café | Neither of them
+F | l05 | Why does Rick prefer it? | Their coffee is the best | It's cheaper | It's near his house
+R | l01 | Who starts the conversation? | Jessy | Rick | Mary
+R | l04 | Who asks Rick which café he prefers? | Mary | Jessy | John
+
+@ john-p3-x01
+F | l01 | What are they talking about? | Rick's new photograph | A new café | A family photograph
+F | l02 | How does John compare Rick's new photograph with the last one? | It's nicer | It isn't as good | It's the same
+F | l02,l04 | Whose photograph does John think is the most impressive and the nicest? | Mary's | Rick's | Jessy's
+R | l01,l03 | Who asks for John's opinion? | Jessy | Mary | Rick
+
+@ john-p3-x02
+F | l01 | Who is getting married? | Ruan | Rick | John
+F | l01 | When is he getting married? | Next week | Next year | Tomorrow
+A | l01 | What are his friends organising? | A stag do | A hen do | A family lunch
+A | l02 | What is his future wife having with her friends? | A hen do | A stag do | A business dinner
+F | l03 | Where are they going afterwards? | To a nightclub | To a restaurant | Home
+
+@ john-p4-e01
+I | l01 | What does Rick want to decide? | What to do on Saturday | Where to work | What to eat
+F | l02 | What does John suggest? | Going to the football match | Watching the race | Going to the cinema
+N | l03 | How does Jessy react to John's idea? | She isn't enthusiastic about it | She loves it | She agrees immediately | Nota: "Again?" mostra que ela não quer repetir o programa.
+I | l03 | What does Jessy ask for? | Better ideas | The time of the match | Tickets
+F | l04 | What is there in the park? | A sports event | A concert | A market
+F | l04 | What does Mary suggest? | Watching the race | Playing football | Going swimming
+F | l05 | What does Rick think of Mary's idea? | It's a good idea | It's a bad idea | He isn't sure
+F | l06 | What time does the race start? | At half past ten | At ten o'clock | At half past eleven
+R | l05 | Who asks what time it starts? | Rick | Jessy | John
+N | l04,l05 | Which plan do they choose? | The race in the park | The football match | Staying at home
+
+@ john-p4-e02
+F | l01 | Who is in first place at the beginning? | The runner in the blue shirt | The runner in red | The runner in green
+F | l02 | Who is closely following the leader? | The runner in red | The runner in green | The runner in blue
+A | l03 | What is the runner in green doing? | Coming up quickly | Slowing down | Stopping
+F | l04 | Which position does the runner in green take? | Second | First | Third
+F | l05 | Where is the runner in red now? | In third place | In second place | In first place
+F | l06 | Who comes in first? | The blue runner | The green runner | The red runner
+N | l02,l05 | Which runner loses a position during the race? | The runner in red | The runner in blue | The runner in green | Nota: o vermelho estava logo atrás do líder e depois volta para terceiro.
+N | l03,l04 | Which runner moves up during the race? | The runner in green | The runner in red | The runner in blue
+C | l01 | What are they watching? | A race | A football match | A swimming competition
+R | l06 | Who says "What a finish!"? | Rick | John | Mary
+
+@ john-p4-e03
+N | l01 | How does Jessy feel about the race? | It was great fun | It was boring | It was too long
+F | l02 | Who does Rick think was brilliant? | The runner in blue | The runner in green | The runner in red
+N | l03 | What does John think about the runner in blue? | He must train every day | He was lucky | He didn't try hard
+F | l04 | What did the runner in green do? | He kept trying until the end | He stopped running | He won the race
+N | l04 | Is Mary sure that the runner in blue trains every day? | No — she says "Perhaps" | Yes, she is sure | She knows he doesn't train
+I | l05 | What is Rick's message? | You must keep trying | Only winning matters | Training is not important
+R | l04,l05 | Who agrees with Mary's point about the runner in green? | Rick | John | Jessy
+I | l06 | What does John suggest? | Getting something to eat | Going home | Watching another race
+F | l07 | Why does Jessy agree with John's suggestion? | She's starving | She's tired | She's cold
+C | title | When does this conversation happen? | After the competition | Before the race | During the race
+
+@ john-p4-e04
+I | l01 | What does Mary ask? | Where they should go | What time it is | Who won the race
+F | l02 | What does Rick suggest? | A new restaurant | The café near the station | The park
+F | l02 | Where is the new restaurant? | In King Street | In Duke Street | Near the station
+I | l03 | What does John want to know about the new restaurant? | If it's better than the one near the station | How much it costs | What time it opens
+F | l04 | Has Rick tried the new restaurant? | No, not yet | Yes, once | Yes, many times
+N | l04 | Why does Rick suggest the restaurant, then? | People say it's very good | He works there | It's very cheap
+I | l05 | What does Jessy suggest? | Giving it a try | Going home | Choosing another place
+R | l06 | Who agrees with Jessy's suggestion? | Mary | John | Rick
+A | l06 | What can they talk about over lunch? | The race | The football match | Their trip
+C | l06 | Which meal are they going to have? | Lunch | Breakfast | Dinner
+
+@ john-p4-e05
+I | l01 | What does John want to know? | If Jessy is doing anything next Saturday | Where Jessy lives | If Jessy likes football
+F | l02 | Has Jessy got any plans for next Saturday? | Not that she knows of | Yes, she's very busy | She's travelling
+A | l03 | What is John having? | A small get-together | A big party in a club | A family lunch
+F | l03 | Where is the get-together? | At John's place | At Jessy's place | In a restaurant
+I | l03 | What does John do? | He invites Jessy | He asks Jessy for help | He cancels a plan
+N | l04 | How does Jessy respond to the invitation? | She'd love to come | She refuses | She says maybe
+F | l05 | What time is the get-together? | Around seven | Around eight | At half past ten
+A | l05 | What will John send Jessy? | The address | A ticket | Some photographs
+F | l01 | When is the get-together? | Next Saturday | This Sunday | Tonight
+N | l05,l06 | What does Jessy mean by "See you then!"? | At the get-together next Saturday | Tomorrow at work | Tonight
+
+@ john-p4-x01
+F | l01 | Which runner gets a good start? | Number seven | Number four | Number one
+F | l01 | Who is in second place at the beginning? | Number four | Number seven | Number three
+A | l02 | What does number one do? | Moves up into third place | Drops back to fifth | Stops running
+A | l02 | What happens to number three? | Drops back to fifth | Moves up into third | Wins the race
+F | l03 | Who wins the race? | Number seven | Number one | Number four
+F | l03 | Who finishes second? | Number one | Number four | Number three
+F | l03 | Where does number four finish? | Third | Second | Fifth
+N | l01,l03 | Which runner is in a worse position at the end than at the beginning? | Number four | Number seven | Number one | Nota: o número quatro começa em segundo e termina em terceiro.
+
+@ john-p5-e01
+F | l01 | Who is on the phone for Mary? | Mr Walker | John | Rick
+I | l02 | What does Mary ask the receptionist to do? | Put the call through | Take a message | Say she is busy
+I | l05 | Why is Mr Walker calling? | He wants advice on a new computer system | He wants to complain | He wants to invite Mary to dinner
+I | l07 | What does Mr Walker want to know? | Which product would most suit a small business | How much a computer costs | Where Mary's office is
+A | l08 | What does Mary offer? | To explain the options | To send him a new computer | To call him tomorrow
+I | l08 | What does Mary propose? | Meeting later this afternoon | Meeting tomorrow morning | Meeting next week
+F | l09 | When is Mr Walker free? | At about half past five | At about nine | At about eleven
+F | l10 | Where does Mary suggest meeting? | At the Palace Hotel | At a café near the station | At her office
+N | l10 | Why does Mary suggest the Palace Hotel? | It has a wonderful restaurant | It's near her house | It's cheap
+F | l11 | What time will they meet? | At half past five | At half past nine | At five o'clock | Nota: "half five" = 5h30 (BrE).
+
+@ john-p5-e02
+I | l01 | What does John want to know? | If Mary is available tomorrow morning | If Mary is free this afternoon | If Mary can book a flight
+N | l02 | What is Mary's first answer? | It depends on the time | Yes, she is free all morning | No, she isn't available
+F | l03 | What time does John suggest? | Nine | Half past nine | Eight
+F | l04 | Can Mary meet at nine? | No, she can't | Yes, she can | She isn't sure
+F | l04 | What time does Mary suggest instead? | Half past nine | Nine | Ten
+N | l05 | Does the new time suit John? | Yes, it does | No, it doesn't | He doesn't say
+I | l06 | What does Mary offer to do? | Book a meeting room | Cancel the meeting | Call the team
+F | l07 | Does John accept Mary's offer? | Yes, he does | No, he doesn't | He'll book it himself
+N | l07 | Why does John thank Mary? | For arranging the meeting | For the coffee | For the report
+C | l01 | When is the meeting going to be? | Tomorrow morning | This afternoon | Next week
+
+@ john-p5-e03
+I | l01 | What are they planning? | Where to go next Friday | Where to work next week | What to buy
+F | l02 | What does John suggest? | Going to the cinema | Going to a new club | Going to the park
+N | l03 | How does Jessy react to John's idea? | She wants a better idea | She loves it | She agrees immediately
+F | l04 | What does Mary suggest? | A new club in Duke Street | A restaurant in King Street | The café near the station
+F | l04 | What do we know about the club? | It has just opened | It is very old | It is closed
+I | l05 | What does Rick want to know? | Where the club is | What time it opens | How much it costs
+F | l06 | Where is the club? | Near the old library | Near the station | In King Street
+F | l06 | What time does Mary suggest meeting? | At half past eight | At half past five | At seven
+N | l07 | Does John agree with Mary's plan? | Yes, he does | No, he doesn't | He isn't sure
+F | l01 | When are they going out? | Next Friday | Next Saturday | Tonight
+
+@ john-p5-e04
+F | l01 | Where are they meeting? | At the Palace Hotel | In Duke Street | In King Street
+N | l01 | What does Jessy's question "Are we still meeting at the Palace Hotel?" show? | The plan was already arranged | It's a new idea | The meeting was cancelled
+A | l02 | What has Mary done? | She has booked a table | She has cancelled the meeting | She has changed the place
+I | l03 | What does Rick want to know? | What time they should arrive | Where the hotel is | Who is coming
+F | l04 | What time should they arrive? | At about half past five | At about seven | At about nine
+N | l05 | How does John feel about the arrangement? | He's happy with it — "Perfect" | He's worried about it | He doesn't like it
+A | l05 | What will John do? | Arrive a little early | Arrive late | Not go
+
+@ john-p6-e01
+C | ctx | What does John have next week? | An important meeting | A trip to Edinburgh | A wedding
+F | l01 | According to Mary, what does John need? | Something smart for the meeting | A new computer | A train ticket
+F | l02 | When did John last buy a suit? | Years ago | Last week | Yesterday
+F | l03 | Where is there a good clothes shop? | In the city centre | Near the station | In King Street
+I | l04 | What does John suggest? | Having a look this afternoon | Buying online | Going next week
+A | l05 | What will Mary do? | Help him choose | Wait at home | Pay for the suit
+C | ctx | Who suggests buying a new suit? | Mary | John | Rick
+N | l04,l05 | Does Mary agree to go with John? | Yes — "Certainly" | No, she's busy | She doesn't answer
+
+@ john-p6-e02
+I | l01 | What does the shop assistant offer at the beginning? | To help John | To close the shop | To show the changing rooms
+F | l02 | What is John looking for? | A suit for a business meeting | A shirt for a wedding | Shoes for work
+I | l03 | What does the shop assistant ask? | What size John is | What colour he likes | How much he wants to spend
+F | l04 | Does John know his size? | No, he isn't sure | Yes, he does | He says it's medium
+A | l04 | What does John want to do? | Try this one on | Buy it without trying it | Look at another shop
+F | l05 | Where are the changing rooms? | Over here | Upstairs | There aren't any
+F | l06 | What is the problem with the jacket? | It's a little too large | It's too small | It's the wrong colour
+I | l06 | What does John ask for? | A smaller size | A larger size | A different colour
+F | l08 | What does Mary think? | The colour suits John | The jacket is too expensive | John should try another shop
+A | l09 | What else is John going to try? | The shirt | A pair of shoes | A tie
+
+@ john-p6-e03
+I | l01 | What does John ask to see? | A blue shirt | A grey suit | A jacket
+I | l02 | What does the shop assistant ask? | What size John would like | What colour he wants | When he needs it
+F | l03 | What size does John want? | Medium | Small | Large
+N | l03 | What does "if you have one" show? | John isn't sure the shop has a medium | John doesn't want a shirt | John wants two shirts
+N | l04 | What happens when the assistant says "Here you are"? | The assistant gives John the shirt | The assistant shows the door | The assistant gives John the bill
+I | l04 | What does the shop assistant offer? | That John tries it on | A discount | Another colour
+F | l05 | What does John ask? | Where he can change | How much it costs | If they have a smaller size
+F | l06 | Where are the changing rooms? | Over here | Upstairs | Outside
+C | l01 | Where is John? | In a clothes shop | At the office | At the station
+R | l02 | Who helps John? | The shop assistant | Mary | Rick
+
+@ john-p6-e04
+I | l01 | What does Mary suggest? | The dark blue suit | The grey suit | A jacket
+F | l02 | Does John like the dark blue suit? | Yes, he does | No, he doesn't | He isn't sure
+F | l02 | Which suit is cheaper? | The grey one | The dark blue one | They cost the same
+F | l03 | What does Mary think of the blue suit? | It looks smarter | It's too expensive | It's too large
+N | l03,l04 | Which suit does John decide to take? | The dark blue one | The grey one | Neither of them
+N | l03,l04 | Why does John choose that suit? | Mary convinces him that it looks smarter | It's cheaper | It's the only one in his size
+R | l04 | How does John respond to Mary's opinion? | He agrees — "You're right" | He disagrees | He asks the shop assistant
+I | l05 | What does the shop assistant ask? | If John would like anything else | If John needs a smaller size | If John wants to pay by card
+F | l06 | What is John buying? | The suit and the shirt | Only the suit | The suit, the shirt and a tie
+N | l06 | Does John want anything else? | No | Yes, a tie | Yes, shoes
+
+@ john-p6-e05
+I | l01 | What does Rick want to know? | If John has got everything for the meeting | Where the meeting is | When John bought the suit
+F | l02 | Has John got everything for the meeting? | Almost | Yes, everything | Nothing yet
+F | l02 | What has John bought? | A suit and a shirt | A suit and shoes | Only a shirt
+F | l03,l04 | Has John tried them on? | Yes, he has | No, not yet | Only the shirt
+F | l04 | How do the clothes fit? | Perfectly | They're too large | They're too small
+N | l05 | What does Rick think? | John will look very smart | John needs another suit | John will be late
+C | l01 | What are the clothes for? | The meeting | A wedding | A trip
+
+@ john-p7-e01
+C | ctx | Where does John need to travel to? | Edinburgh | Boston | London
+C | ctx | Why does John need to travel? | For a work meeting | For a holiday | To visit his family
+F | l01,l02 | Has John booked his train ticket? | Not yet | Yes, he has | He has booked a flight
+A | l02 | What is John doing now? | Checking the times | Buying the ticket | Packing his suitcase
+F | l03 | How many trains are there in the morning? | Several | Only one | None
+F | l04 | When does John want to get there? | Before eleven | Before nine | In the afternoon
+F | l05 | Which train does Mary suggest? | The 8.40 train | The 9.05 train | The 7.15 train
+N | l06 | What does John think of Mary's suggestion? | It would be ideal | It's too early | It's too late
+F | l06,l07 | How long does the journey take? | About three and a half hours | About ten minutes | About one hour
+R | ctx | Who helps John plan the journey? | Mary | Rick | A travel agent
+
+@ john-p7-e02
+I | l01 | What does John want to know? | How to get to the railway station | What time the train leaves | Where the bus stop is
+F | l02 | What is the first direction the passer-by gives? | Go straight on | Turn right | Take the bus
+F | l02 | Where should John turn left? | At the traffic lights | At the bus stop | At the station
+F | l03,l04 | Is the station far from there? | No, it isn't | Yes, very far | The passer-by doesn't know
+F | l04 | How long does it take on foot? | About ten minutes | About an hour | About two minutes
+R | l02 | Who helps John? | A passer-by | A station employee | Mary
+N | l05 | How does John react to the help? | He thanks the passer-by | He complains | He asks again
+
+@ john-p7-e03
+I | l01 | What is John looking for? | The departure board | The ticket office | The information desk
+F | l02 | Where is the departure board? | Next to platform three | Next to platform five | Outside the station
+I | l03 | What does John want to know? | Which platform the Edinburgh train leaves from | How much the ticket costs | If the train is late
+F | l04 | Which platform does the train leave from? | Platform five | Platform three | Platform eight
+F | l04 | What time does the train leave? | At twenty past eight | At ten past nine | At half past nine
+F | l05,l06 | Is the train direct? | Yes, it is | No, it stops at several stations | The employee doesn't know
+R | l02 | Who helps John? | A station employee | A passer-by | Mary
+C | l01 | Where is John? | At the railway station | At the airport | At a travel agency
+
+@ john-p7-e04
+C | l01 | How does John learn that the train is delayed? | From a message on the departure board | From Mary | From a passer-by
+F | l01 | Which train is delayed? | The 8.20 service to Edinburgh | The 9.05 train | The flight to Boston
+F | l01 | How long is the delay? | Ten minutes | Two hours | Half an hour
+N | l02 | How does John feel when he hears about the delay? | Unhappy — "Oh, no" | Happy | Indifferent
+I | l02 | What does John ask? | If the train is always late | Where the platform is | How much the ticket costs
+R | l03 | Who is John talking to? | Mary, on the phone | A station employee | Rick
+F | l04 | What does John tell Mary? | It'll be another ten minutes | The train is cancelled | He has missed the train
+N | l05 | What does Mary think of the delay? | It's inconvenient | It's good news | It's not a problem
+I | l05 | What does Mary want to know? | If John has asked the staff | Where John is | What time the meeting is
+A | l06 | What will John do? | Speak to someone at the information desk | Take a taxi | Go home
+
+@ john-p7-e05
+I | l01 | What does John want to know? | If there is another train to Edinburgh | Where the information desk is | How much a ticket costs
+F | l02 | What time is the other train? | At 9.05 | At 8.20 | At 8.40
+F | l02 | What is the problem with the other train? | It stops at several stations | It is very expensive | It is cancelled
+I | l03 | What is John worried about? | Arriving before eleven | Finding the platform | Buying a ticket
+F | l04 | Would John arrive before eleven on the other train? | No, he wouldn't | Yes, he would | The employee doesn't know
+F | l04 | When would he arrive on the other train? | At about half past eleven | At about eleven | At about ten
+A | l05 | What does John decide to do? | Wait for the direct service | Take the 9.05 train | Go home
+N | l04,l05 | Why does John decide to wait? | The other train would arrive too late | The other train is cheaper | Mary told him to wait
+F | l06 | When should the direct train arrive? | Shortly | In two hours | Tomorrow
+R | l02 | Who gives John the information? | A station employee | Mary | A passenger
+
+@ john-p7-e06
+C | ctx | Who does John call? | A travel agency | The railway station | Mary
+I | l02 | What does John want to do? | Book a flight | Book a train ticket | Book a hotel
+F | l02 | Where does John want to fly to? | Boston | Edinburgh | Manchester
+F | l04 | When does John want to travel? | Next Thursday | Next Saturday | Tomorrow
+I | l04 | What kind of flight does John ask about? | An early flight | A charter flight | A night flight
+F | l05 | What time is the early flight? | At around nine o'clock | At around eleven | At around seven
+F | l05 | What other flights are there? | Several charter flights later in the day | One flight early in the morning | No other flights
+N | l06 | Which flight does John prefer? | The early flight | A charter flight | He doesn't choose
+I | l07 | What does the travel agent offer? | To book the flight | To change the date | To find a hotel
+N | l08 | Does John accept the offer? | Yes, he does | No, he doesn't | He'll call back later
+
+@ john-p7-e07
+F | l01,l02 | Has John checked in online? | Yes, he has | No, not yet | He can't check in online
+A | l02 | What does John still need to do? | Drop off his suitcase | Buy a ticket | Check in at the desk
+F | l04 | What time does John board? | At eight twenty | At eight | At nine
+F | l04 | By what time should John get to the gate? | By eight | By eight twenty | By nine
+I | l05 | What does Mary remind John to do? | Pick up his passport | Buy a ticket | Call her later
+F | l06 | Where is John's passport? | In his bag | At home | In his suitcase
+N | l06 | How does John react to Mary's reminder? | He thanks her | He gets angry | He goes back home
+C | l01 | Where is John probably going? | To the airport, to take a flight | To the railway station | To the office
+
+@ john-p7-x01
+I | l01 | What does John want to know first? | How much further it is to the station | What time the bus leaves | Where the hotel is
+F | l02 | Is the station much further? | No, it isn't | Yes, it's very far | The passenger doesn't know
+A | l02 | What should John do? | Keep walking until he sees the bus stop | Take a taxi | Turn back
+I | l03 | What does John want to make? | A complaint about the service | A reservation | A phone call
+F | l03 | How late is the train? | Two hours | Ten minutes | Half an hour
+A | l04 | What will the staff member do? | Check the timetable and explain the delay | Give John a new ticket | Call a taxi

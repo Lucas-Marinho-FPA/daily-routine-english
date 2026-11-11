@@ -34,7 +34,7 @@ export const RUBRICS = {
   vocab: 'dre-speech-lexical-1',
   dictation: 'dre-writing-1',
   translation: 'dre-translation-semantic-1',
-  listening: 'dre-comprehension-1',
+  listening: 'dre-comprehension-2', // 2: recuperação só das erradas conta para a rodada (sem nova rodada completa)
   reading: 'dre-speech-lexical-1',
 };
 export const EVALUATORS = {
@@ -75,7 +75,7 @@ export function requiredOf(pack, act, phaseId) {
 export function contentProblems(pack, act, { hasAudio = () => true } = {}) {
   const out = [];
   const qs = questionsOf(pack, act);
-  if (qs.length < QUESTIONS_TOTAL) out.push({ phase: 'listening', code: 'questions', text: `Faltam questões de compreensão curadas (${qs.length} de ${QUESTIONS_TOTAL}). Nada é inventado pelo app.` });
+  if (qs.length < QUESTIONS_TOTAL) out.push({ phase: 'listening', code: 'questions', text: `Questões de compreensão: ${qs.length} de ${QUESTIONS_TOTAL} — o texto do diálogo não sustenta mais questões sem inventar conteúdo (fase 4 indisponível; decisão do Product Owner pendente).` });
   for (const q of qs) if (!q.options || q.options.length < 2 || !q.options.some((o) => o.id === q.correctOptionId)) out.push({ phase: 'listening', code: 'question-invalid', text: `Questão ${q.id} inválida (alternativas/gabarito).` });
   const noAudio = act.lines.filter((l) => !hasAudio(l.audio));
   if (noAudio.length) out.push({ phase: 'audio', code: 'audio', text: `${noAudio.length} fala(s) sem áudio gravado.`, ids: noAudio.map((l) => l.id) });
@@ -213,14 +213,31 @@ export function addRound(p, round) {
   if (!p.startedAt) p.startedAt = round.submittedAt;
   return true;
 }
-/** O que a fase 4 pede agora: 'listen' | 'full' | 'recovery' | 'done'. Depois de uma rodada reprovada, a recuperação
- *  (questões erradas, com explicação) vem antes de uma nova rodada completa. */
+/**
+ * Compreensão a partir das rodadas gravadas: a rodada completa (10 questões) mais as recuperações feitas depois dela.
+ * Cada questão errada é reapresentada SOZINHA (sem repetir as já acertadas); acertada na recuperação, passa a contar.
+ * A fase é aprovada quando a rodada chega a ≥ 8/10 (contando as questões recuperadas). → { round, mastered:Set, wrong:[ids], tally }
+ */
+export function comprehension(p) {
+  let full = -1;
+  p.rounds.forEach((r, i) => { if (r.kind === 'full') full = i; });
+  if (full < 0) return null;
+  const round = p.rounds[full];
+  const mastered = new Set(round.results.filter((r) => r.correct).map((r) => r.questionId));
+  for (const r of p.rounds.slice(full + 1)) if (r.kind === 'recovery') r.results.forEach((x) => { if (x.correct) mastered.add(x.questionId); });
+  const wrong = round.results.map((r) => r.questionId).filter((id) => !mastered.has(id));
+  return { round, mastered, wrong, tally: mastered.size, total: round.total };
+}
+/** Questão já acertada (na rodada ou na recuperação): só então a resposta certa e a explicação completa aparecem. */
+export const questionMastered = (p, id) => { const c = comprehension(p); return !!c && c.mastered.has(id); };
+
+/** O que a fase 4 pede agora: 'blocked' | 'listen' | 'full' | 'recovery' | 'done'. */
 export function listeningNext(p, questionsCount = QUESTIONS_TOTAL) {
   if (questionsCount < QUESTIONS_TOTAL) return 'blocked';
-  if (p.rounds.some((r) => r.kind === 'full' && r.passed)) return 'done';
+  const c = comprehension(p);
+  if (c && c.total === QUESTIONS_TOTAL && c.tally >= QUESTIONS_PASS) return 'done';
   if (!canAnswerQuestions(p)) return 'listen';
-  const last = p.rounds[p.rounds.length - 1];
-  if (last && last.kind === 'full' && !last.passed && last.correct < last.total) return 'recovery';
+  if (c && c.wrong.length) return 'recovery';
   return 'full';
 }
 export const wrongOf = (round) => (round ? round.results.filter((r) => !r.correct).map((r) => r.questionId) : []);
@@ -312,11 +329,10 @@ export function activityReport(pack, act, p) {
     const m = mastery(p, phase, id);
     return { id, status: m.status, best: m.bestValidScore, attempts: m.attemptCount, repeated: m.attemptCount > 1 };
   });
-  const full = p.rounds.filter((r) => r.kind === 'full');
   return {
     state: st.state, phases: st.phases,
     vocab: items('vocab'), dictation: items('dictation'), translation: items('translation'), reading: items('reading'),
-    comprehension: full.length ? { rounds: full.length, best: Math.max(...full.map((r) => r.correct)), passed: full.some((r) => r.passed) } : null,
+    comprehension: (() => { const c = comprehension(p); return c ? { firstRound: c.round.correct, tally: c.tally, total: c.total, recovered: c.tally - c.round.correct, stillWrong: c.wrong.length, passed: c.tally >= QUESTIONS_PASS } : null; })(),
     pending: Object.values(p.attempts).filter((a) => a.status === 'pending').length,
     inconclusive: Object.values(p.attempts).filter((a) => a.status === 'inconclusive').length,
   };

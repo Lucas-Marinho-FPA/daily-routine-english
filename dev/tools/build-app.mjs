@@ -15,6 +15,8 @@ execFileSync(process.execPath, [join(ROOT, 'tools/build-content.mjs')], { stdio:
 execFileSync(process.execPath, [join(ROOT, 'tools/build-characters.mjs')], { stdio: 'inherit' }); // personagens: data/characters.js
 execFileSync(process.execPath, [join(ROOT, 'tools/build-journeys.mjs')], { stdio: 'inherit' }); // jornadas (Conversation Practice): data/journeys.js
 execFileSync(process.execPath, [join(ROOT, 'tools/build-glossary.mjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [join(ROOT, 'tools/dialogues-questions.mjs')], { stdio: 'inherit' }); // questões (fase 4): src.txt → json
+execFileSync(process.execPath, [join(ROOT, 'tools/dialogues-source.mjs')], { stdio: 'inherit' }); // documentos → john.json (+ questões)
 execFileSync(process.execPath, [join(ROOT, 'tools/build-dialogues.mjs')], { stdio: 'inherit' }); // atividades de diálogo (The Story of John): data/dialogues.js // glossário en→pt (Curso — Atividades): data/glossary-en-pt.json.gz
 
 mkdirSync(join(APP, 'dist'), { recursive: true });

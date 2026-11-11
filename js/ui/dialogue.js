@@ -16,7 +16,7 @@ import { transcriptIntegrity } from '../engine/integrity.js';
 import {
   PHASES, THRESHOLD, LISTENS_REQUIRED, QUESTIONS_TOTAL, QUESTIONS_PASS, STORE_KEY, dialoguePack, activityById, itemsOf, questionsOf,
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
-  mastery, gradeRound, addRound, listeningNext, wrongOf, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
+  mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
   activityReport, phaseById, pendingAttempts,
 } from '../engine/dialogue.js';
 import { scoreWriting, evaluateSpeech, localTranslation, foldPt } from '../engine/dialogueeval.js';
@@ -230,7 +230,7 @@ export function renderDialogue(App, { arg, params }) {
 
 function phaseRow(act, s) {
   const locked = s.state === 'locked';
-  const counter = s.id === 'listening' ? (s.total ? `${QUESTIONS_TOTAL} questões · aprovação com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}` : 'questões ainda não curadas')
+  const counter = s.id === 'listening' ? (s.state === 'blocked_by_content' ? 'diálogo curto: menos de 10 questões sustentadas pelo texto' : `${QUESTIONS_TOTAL} questões · aprovação com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}`)
     : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` · ${s.pending} pendentes` : ''}` : 'sem itens';
   const cls = s.state === 'completed' ? 'done' : locked ? 'locked' : 'open';
   const mark = h('span', { class: `stage-mark ${cls}`, 'aria-hidden': 'true' }, locked ? icon('lock') : s.state === 'completed' ? icon('check') : String(s.n));
@@ -294,7 +294,7 @@ function resultCard(pack, act, p) {
   return h('section', { class: 'card', 'data-role': 'activity-result', style: { marginTop: '12px' } },
     h('h3', { style: { marginTop: 0 }, text: 'Atividade concluída' }),
     row('Vocabulário', rep.vocab), row('Escrita por escuta', rep.dictation), row('Tradução', rep.translation),
-    rep.comprehension ? h('div', { class: 'small' }, h('b', { text: 'Compreensão: ' }), `melhor rodada ${rep.comprehension.best}/${QUESTIONS_TOTAL}`) : null,
+    rep.comprehension ? h('div', { class: 'small', 'data-role': 'result-comprehension' }, h('b', { text: 'Compreensão: ' }), `${rep.comprehension.tally}/${rep.comprehension.total} (${rep.comprehension.firstRound} na rodada${rep.comprehension.recovered ? `, ${rep.comprehension.recovered} na recuperação` : ''})`) : null,
     row('Leitura em voz alta', rep.reading),
     h('p', { class: 'tiny muted', text: 'Os itens continuam voltando na revisão. O resultado é por item; não há pontos nem recompensas.' }));
 }
@@ -598,6 +598,8 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
   const qs = questionsOf(pack, act);
   let answers = {};
   let shown = null; // rodada recém-corrigida
+  let optional = false; // recuperação opcional das erradas depois de a fase estar aprovada
+  let revealed = false;
   const draw = () => {
     const next = listeningNext(p, qs.length);
     const n = listensOf(p, 'listening');
@@ -621,17 +623,25 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
       draw();
     };
     if (next === 'blocked') {
-      area.append(h('div', { class: 'notice warn', 'data-role': 'questions-missing' }, h('b', { text: 'Questões ainda não curadas. ' }),
-        `Esta atividade precisa de ${QUESTIONS_TOTAL} questões de compreensão validadas; o app não cria questões por conta própria. As audições e anotações ficam salvas.`));
+      area.append(h('div', { class: 'notice warn', 'data-role': 'questions-missing' }, h('b', { text: 'Fase indisponível neste diálogo. ' }),
+        `A fase exige ${QUESTIONS_TOTAL} questões de compreensão e este diálogo tem ${qs.length}: o texto não sustenta mais questões sem inventar conteúdo. Pendência registrada para o Product Owner. As audições e anotações ficam salvas.`));
     } else if (shown) {
       area.append(roundFeedback(shown, qs));
     } else if (next === 'listen') {
       area.append(h('div', { class: 'small muted', 'data-role': 'questions-locked', text: `As questões aparecem depois da ${LISTENS_REQUIRED}ª audição completa.` }));
-    } else if (next === 'full' || next === 'recovery') {
-      const last = p.rounds[p.rounds.length - 1];
-      const list = next === 'recovery' ? qs.filter((q) => wrongOf(last).includes(q.id)) : qs;
-      area.append(questionForm(list, next));
+    } else if (next === 'full' || next === 'recovery' || optional) {
+      const c = comprehension(p);
+      const list = next === 'full' ? qs : qs.filter((q) => c.wrong.includes(q.id));
+      area.append(questionForm(list, next === 'full' ? 'full' : 'recovery'));
+    } else if (next === 'done') {
+      const c = comprehension(p);
+      area.append(h('div', { class: 'notice ok small', 'data-role': 'comprehension-done', text: `Compreensão: ${c.tally}/${c.total} questões acertadas${c.tally > c.round.correct ? ` (${c.round.correct} na rodada e ${c.tally - c.round.correct} na recuperação)` : ''}.` }));
+      if (c.wrong.length) area.append(h('div', { class: 'row', style: { marginTop: '8px' } },
+        h('button', { class: 'btn', type: 'button', 'data-role': 'optional-recovery', onclick: () => { optional = true; draw(); } }, icon('refresh'), `Refazer ${c.wrong.length === 1 ? 'a errada' : `as ${c.wrong.length} erradas`}`),
+        h('button', { class: 'btn ghost', type: 'button', 'data-role': 'reveal-answers', onclick: () => { revealed = true; draw(); } }, 'Ver as respostas')));
+      if (revealed) area.append(...qs.filter((q) => c.wrong.includes(q.id)).map((q) => answerCard(q, { correct: false, reveal: true })));
     }
+    if (qs.length) area.append(h('p', { class: 'tiny muted', 'data-role': 'questions-status', text: 'Questões elaboradas a partir do texto do diálogo (complemento didático); validação pelo professor pendente.' }));
     area.append(phaseFooter(pack, act, p, 'listening'));
   };
   function notesField() {
@@ -641,7 +651,7 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
   }
   const questionForm = (list, kind) => {
     const form = h('section', { class: 'stack', 'data-role': 'questions', 'data-kind': kind });
-    if (kind === 'recovery') form.append(h('div', { class: 'notice small', text: 'Recuperação: refaça as questões que você errou. Depois, uma nova rodada completa decide a fase.' }));
+    if (kind === 'recovery') form.append(h('div', { class: 'notice small', text: 'Recuperação: só as questões que você ainda não acertou. As que você já acertou continuam valendo.' }));
     list.forEach((q, i) => {
       const opts = orderedOptions(q, kind);
       form.append(h('div', { class: 'card', role: 'group', 'aria-labelledby': `q-${q.id}`, 'data-question': q.id },
@@ -656,23 +666,32 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
       addRound(p, round);
       settleCompletion(pack, act, p);
       await save();
-      shown = round; answers = {};
+      shown = round; answers = {}; optional = false;
       if (ctx.alive) draw();
     } }, 'Enviar respostas'));
     return form;
   };
-  const roundFeedback = (round, all) => h('section', { class: 'stack', 'data-role': 'round-result', 'data-passed': String(round.passed), 'data-correct': String(round.correct) },
-    h('div', { class: `feedback ${round.kind === 'full' ? (round.passed ? 'good' : 'bad') : 'mid'}` },
-      h('div', { class: 'head', text: round.kind === 'full' ? `${round.correct}/${round.total} — ${round.passed ? 'rodada aprovada' : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}`}` : `Recuperação: ${round.correct}/${round.total}` })),
-    ...round.results.map((r) => {
-      const q = all.find((x) => x.id === r.questionId);
-      const right = q.options.find((o) => o.id === q.correctOptionId);
-      return h('div', { class: `card flat small`, 'data-question': q.id, 'data-correct': String(r.correct) },
-        h('b', { text: `${r.correct ? '✓' : '✗'} ${q.prompt}` }),
-        r.correct ? null : h('div', { text: `Resposta: ${right.text}` }),
-        q.explanation ? h('div', { class: 'muted', text: q.explanation }) : null);
-    }),
-    h('button', { class: 'btn block', type: 'button', 'data-role': 'continue', onclick: () => { shown = null; draw(); } }, 'Continuar'));
+  /** Cartão de uma questão corrigida. Errada e ainda não acertada: só a pista (fala a reouvir), sem a resposta. */
+  const answerCard = (q, { correct, reveal }) => {
+    const right = q.options.find((o) => o.id === q.correctOptionId);
+    const showAnswer = correct || reveal || questionMastered(p, q.id);
+    const where = (q.sourceLineIds || []).map((id) => { const i = act.lines.findIndex((l) => l.id === id); return i >= 0 ? `fala ${i + 1} (${act.lines[i].speaker})` : null; }).filter(Boolean);
+    return h('div', { class: 'card flat small', 'data-question': q.id, 'data-correct': String(correct), 'data-revealed': String(showAnswer) },
+      h('b', { text: `${correct ? '✓' : '✗'} ${q.prompt}` }),
+      showAnswer ? h('div', { text: `Resposta: ${right.text}` }) : null,
+      showAnswer && q.explanation ? h('div', { class: 'muted', text: q.explanation }) : null,
+      showAnswer ? null : h('div', { class: 'muted', 'data-role': 'hint', text: `Incorreta. Pista: ouça de novo ${where.length ? where.join(' e ') : 'o diálogo'} e tente na recuperação.` }));
+  };
+  const roundFeedback = (round, all) => {
+    const c = comprehension(p);
+    const head = round.kind === 'full'
+      ? `${round.correct}/${round.total} — ${round.passed ? 'rodada aprovada' : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}: refaça só as erradas`}`
+      : `Recuperação: ${round.correct}/${round.total} · compreensão ${c.tally}/${c.total}${c.tally >= QUESTIONS_PASS ? ' — aprovada' : ''}`;
+    return h('section', { class: 'stack', 'data-role': 'round-result', 'data-kind': round.kind, 'data-passed': String(c.tally >= QUESTIONS_PASS), 'data-correct': String(round.correct), 'data-tally': String(c.tally) },
+      h('div', { class: `feedback ${c.tally >= QUESTIONS_PASS ? 'good' : round.kind === 'full' ? 'bad' : 'mid'}` }, h('div', { class: 'head', text: head })),
+      ...round.results.map((r) => answerCard(all.find((x) => x.id === r.questionId), { correct: r.correct, reveal: false })),
+      h('button', { class: 'btn block', type: 'button', 'data-role': 'continue', onclick: () => { shown = null; draw(); } }, 'Continuar'));
+  };
   const orderedOptions = (q, kind) => {
     const key = `opts:${q.id}:${p.rounds.length}`;
     if (!p.order[key]) { const o = q.options.map((x) => x.id); for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; } p.order[key] = o; }

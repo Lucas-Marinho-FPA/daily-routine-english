@@ -11,8 +11,9 @@
 //    (john-p1-e01, john-p1-e01-l01, john-p1-e01-v01) — NÃO são códigos pedagógicos (ACT/SRC/MAT/EX/VOC);
 //  • vocabulário = linhas das tabelas “| English | Português |”; o item fica na atividade da seção onde a tabela
 //    está e também em toda atividade da mesma parte cujas falas contêm o item (vínculo verificável, sourceLineIds);
-//  • questões de compreensão: os documentos NÃO trazem as dez questões objetivas por diálogo; nada é inventado
-//    aqui (a fase 4 fica bloqueada por conteúdo até chegar um arquivo de questões curado — ver questionsFile);
+//  • questões de compreensão: lidas de content/dialogues/john-questions.json (gerado por tools/dialogues-questions.mjs a
+//    partir de john-questions.src.txt: complemento didático da IA, só com base no texto do diálogo, não validado pelo
+//    professor); diálogo com menos de 10 questões fica com a fase 4 indisponível (pendência registrada);
 //  • lacunas e decisões ficam no relatório (dev/content/dialogues/<pacote>-report.json).
 //
 // Uso: node tools/dialogues-source.mjs   (na cópia de trabalho; grava content/dialogues/john.json e o relatório)
@@ -24,7 +25,7 @@ const ROOT = new URL('../', import.meta.url);
 const SRC_DIR = new URL('content/dialogues/source/the-story-of-john/', ROOT);
 const OUT = new URL('content/dialogues/john.json', ROOT);
 const REPORT = new URL('content/dialogues/john-report.json', ROOT);
-const QUESTIONS = new URL('content/dialogues/john-questions.json', ROOT); // opcional (curado fora deste gerador)
+const QUESTIONS = new URL('content/dialogues/john-questions.json', ROOT); // gerado por tools/dialogues-questions.mjs
 
 // Elenco recorrente (00_LEIA-ME.md, “Elenco recorrente”) + papéis que aparecem nas falas.
 const CAST = {
@@ -199,7 +200,7 @@ if (existsSync(QUESTIONS)) {
     a.questionIds.push(x.id);
   }
 }
-for (const a of activities) if (a.questionIds.length < 10) report.warnings.push(`${a.id}: ${a.questionIds.length} de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).`);
+for (const a of activities) if (a.questionIds.length < 10) report.warnings.push(`${a.id}: ${a.questionIds.length} de 10 questões de compreensão sustentadas pelo texto (fase 4 indisponível).`);
 
 // ---------- conferência literal: cada fala refeita a partir do Markdown ----------
 let checked = 0;

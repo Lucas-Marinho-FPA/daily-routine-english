@@ -63,7 +63,7 @@ A Base de Conhecimento pessoal é fonte potencial de curadoria, não autorizaç�
 
 ### Separação obrigatória de responsabilidades
 - **Produto e Desenvolvimento:** requisitos do produto, arquitetura técnica, UX/UI, implementação, testes, qualidade, roadmap e publicação.
-- **Projeto Base de Conhecimento:** conteúdo de aprendizagem, curadoria, decisões pedagógicas, validação com professor e códigos/de-para de fontes e materiais. A Base de Conhecimento é privada e fica fora deste repositório; a Base Pedagógica (branch `base-pedagogica`) é uma camada pública distinta, cuja relação com ela aguarda decisão do Product Owner (ver `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md`).
+- **Projeto Base de Conhecimento:** conteúdo de aprendizagem, curadoria, decisões pedagógicas, validação com professor e códigos/de-para de fontes e materiais. O acervo da Base de Conhecimento é privado e fica fora deste repositório (só a governança da Base está publicada, na branch `base-conhecimento`, desde 2026-11-11); a Base Pedagógica (branch `base-pedagogica`) é uma camada pública distinta, cuja relação com ela aguarda decisão do Product Owner (ver `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md`).
 - O projeto Produto e Desenvolvimento não cria, altera, valida nem atribui códigos de-para pedagógicos por conta própria.
 - Ao identificar necessidade pedagógica ou de Base de Conhecimento, registrar uma demanda objetiva e encaminhá-la ao projeto responsável. Não improvisar uma solução pedagógica nem pedir ao usuário que faça a ponte entre projetos.
 - Mudanças de produto que dependam de decisão pedagógica aguardam o direcionamento do projeto Base de Conhecimento; mudanças técnicas independentes podem prosseguir.
