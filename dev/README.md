@@ -14,14 +14,16 @@ no pré-cache do app (o service worker só lista os arquivos do app).
 | `content/characters/lucas-kid.json` | **pacote do Lukinhas** (L01–L10): os dez textos, traduções, 73 expressões, 30 perguntas |
 | `content/personas-planned.json` | personagens previstos sem conteúdo (Heitor) |
 | `content/journeys/cp.json` | Conversation Practice (CP01–CP02), conteúdo original |
+| `content/dialogues/` | **The Story of John**: documentos autorais (`source/`, sem alteração), `john.json` (gerado por `tools/dialogues-source.mjs`) e `john-report.json` (lacunas) — ver `docs/dialogos.md` |
+| `backend/ai-gateway/` | AI Gateway de referência para a avaliação semântica das traduções (**não implantado**; provedor a decidir) |
 | `content/build/` | gerado pelo build (mantido aqui para os testes rodarem sem regenerar áudio/durações) |
 | `tools/build-app.mjs` | build completo: conteúdo, personagens, jornadas, léxico, `dist/app.js`, `sw.js` |
-| `tools/build-content.mjs` · `build-characters.mjs` · `build-journeys.mjs` | builds parciais (chamados pelo build-app) |
+| `tools/build-content.mjs` · `build-characters.mjs` · `build-journeys.mjs` · `build-dialogues.mjs` | builds parciais (chamados pelo build-app); `build-dialogues` aceita `DRG_EVAL_ENDPOINT=https://…` (endereço do gateway) |
 | `tools/lukinhas-source.mjs` | **gerador do pacote do Lukinhas** (confere os dez textos caractere por caractere) |
 | `tools/gen_audio.py` · `qa_audio.py` | áudio britânico offline (Kokoro) e conferência de pronúncia |
 | `tools/qr.mjs` · `screenshots.mjs` · `sw.template.js` · `extract_word.py` | QR da página de instalação, capturas do manifesto, modelo do service worker, extração do Word |
 | `tests/unit/` | testes unitários (`node --test`), inclui `lukinhas.test.js` |
-| `tests/e2e/` | testes E2E Chromium: `run`, `run-pages`, `asr-local`, `storage`, `wordpractice`, `characters`, `journey`, `mvp`, `pwa`, `lukinhas`, `update-transition`, `course` (Curso — Atividades; `DRG_COURSE_FILE=<arquivo fora do repositório>` usa a atividade real, senão conteúdo sintético) |
+| `tests/e2e/` | testes E2E Chromium: `run`, `run-pages`, `asr-local`, `storage`, `wordpractice`, `characters`, `journey`, `mvp`, `pwa`, `lukinhas`, `update-transition`, `dialogue` (atividades de diálogo em cinco fases), `course` (Curso — Atividades; `DRG_COURSE_FILE=<arquivo fora do repositório>` usa a atividade real, senão conteúdo sintético) |
 | `tests/fixtures/` | áudios sintéticos, transcrições reais do Moonshine, referências publicadas de Lucas/Karla, **`lukinhas-texts.json`** (os dez textos aprovados) |
 | `vendor/` | dicionário CMU (léxico) e fontes do reconhecimento de fala (Moonshine, onnxruntime-web, tokenizer; MIT) |
 | `docs/` | notas internas antigas (backlog de publicação, relatório de integridade) |

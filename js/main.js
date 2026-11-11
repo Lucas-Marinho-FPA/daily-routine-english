@@ -20,6 +20,7 @@ import { renderModules, renderModule, renderWords, plannedNotice } from './ui/mo
 import { initPwa, confirmBoot, updateBanner, live } from './ui/pwa.js';
 import { renderCourse, renderCourseQuestion } from './ui/course.js';
 import { renderCoursePractice } from './ui/coursepractice.js';
+import { renderDialogues, renderDialogue, renderPhase } from './ui/dialogue.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -133,6 +134,7 @@ function route() {
       session: renderSession, lab: renderLab, review: renderReview, stats: renderStats, settings: renderSettings, checklist: renderChecklist,
       modules: renderModules, module: renderModule, words: renderWords,
       course: renderCourse, cq: renderCourseQuestion, cpr: renderCoursePractice, // Curso — Atividades (independente das jornadas)
+      dialogues: renderDialogues, dialogue: renderDialogue, dphase: renderPhase, // atividades de diálogo em cinco fases (The Story of John)
     };
     // persona prevista (sem conteúdo ainda): telas de estudo da Daily Routine mostram “em preparação”
     const needsContent = ['explore', 'routine', 'context', 'category', 'session', 'lab', 'review', 'checklist', 'module', 'words'];

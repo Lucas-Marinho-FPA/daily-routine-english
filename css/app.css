@@ -600,3 +600,14 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .char-choice.with-illus { grid-template-columns: 1fr auto auto; }
 .char-choice .char-choice-img { grid-column: 3; grid-row: 1 / span 2; align-self: end; max-width: 80px; filter: none; }
 .char-choice.with-illus .char-sub { grid-column: 1 / 3; }
+
+/* ---------- atividades de diálogo (The Story of John): só tokens e padrões já existentes ---------- */
+.dlg-conn { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 10px; }
+.dlg-lines { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.dlg-line { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 12px; }
+.dlg-line.dlg-now { border-color: var(--accent); background: var(--accent-soft); }
+.dlg-speaker { font-weight: 700; font-size: .85rem; color: var(--muted); }
+.dlg-en { font-family: var(--font-en); font-size: 1.05rem; }
+.dlg-pt { margin-top: 2px; }
+.option[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.dlg-q { font-weight: 600; margin-bottom: 8px; }

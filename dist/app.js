@@ -1317,11 +1317,11 @@
     });
     return dbPromise;
   }
-  function tx(store, mode, fn) {
+  function tx(store2, mode, fn) {
     return openDb().then((db) => new Promise((resolve, reject) => {
-      const t = db.transaction(store, mode);
+      const t = db.transaction(store2, mode);
       let out;
-      Promise.resolve(fn(t.objectStore(store))).then((r) => {
+      Promise.resolve(fn(t.objectStore(store2))).then((r) => {
         out = r;
       });
       t.oncomplete = () => resolve(out);
@@ -6150,7 +6150,7 @@ ${body.join("\n\n")}
       drawChecks();
       const prev = n > 1 ? h("button", { class: "btn", "data-role": "q-prev", onclick: () => App2.go(qHref(act.id, n - 1)) }, icon("back"), "Anterior") : null;
       const last = n === total;
-      const save = h("button", { class: "btn primary grow", "data-role": "q-save", onclick: async () => {
+      const save2 = h("button", { class: "btn primary grow", "data-role": "q-save", onclick: async () => {
         const res = finishQuestion(act, n);
         msg.replaceChildren();
         if (!res.ok) {
@@ -6174,7 +6174,7 @@ ${body.join("\n\n")}
         h("p", { class: "small muted", text: "Traduza cada bloco para o portugu\xEAs. As respostas s\xE3o salvas automaticamente enquanto voc\xEA digita." }),
         ...areas.map((x) => x.el),
         msg,
-        h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save),
+        h("div", { class: "row nowrap", style: { marginTop: "14px" } }, prev, save2),
         act.done[n] && !isValidated(act, n) ? h("p", { class: "small muted", "data-role": "check-note", text: "A avalia\xE7\xE3o autom\xE1tica compara o SENTIDO de cada bloco com o original (gloss\xE1rio ingl\xEAs\u2013portugu\xEAs e respostas de refer\xEAncia j\xE1 registradas): Adequada = sentido identificado; Incompat\xEDvel = a resposta muda o sentido; Inconclusiva = n\xE3o h\xE1 evid\xEAncia suficiente (n\xE3o \xE9 erro). \xC9 s\xF3 uma orienta\xE7\xE3o de estudo: n\xE3o muda sua resposta e n\xE3o \xE9 a corre\xE7\xE3o oficial." }) : null,
         last && isDone(act, n) ? h(
           "section",
@@ -6213,6 +6213,1539 @@ ${body.join("\n\n")}
       info,
       h("a", { class: "btn block primary", href: "#/course", style: { marginTop: "10px" }, "data-role": "open-course" }, icon("book"), "Abrir")
     );
+  }
+
+  // app/js/engine/integrity.js
+  var TOKENS_PER_SECOND = 6;
+  function estimateTokens(text) {
+    const s = String(text || "");
+    const words3 = wordTokens(s);
+    let n = 0;
+    for (const w of words3) n += /\d/.test(w) ? Math.max(2, w.replace(/\D/g, "").length + 1) : w.length > 7 ? 2 : 1;
+    return n + (s.match(/[.,!?;:]/g) || []).length;
+  }
+  function transcriptIntegrity({ text = "", segments = null, secs = null } = {}) {
+    const parts = segments && segments.length ? segments : secs ? [{ secs, text, voicedSec: null }] : null;
+    if (!parts) return { checked: false, complete: null, issues: [] };
+    const issues = [];
+    parts.forEach((p, i) => {
+      const label = parts.length > 1 ? ` (trecho ${i + 1} de ${parts.length})` : "";
+      const budget = Math.trunc((p.secs || 0) * TOKENS_PER_SECOND);
+      const words4 = wordTokens(p.text || "").length;
+      if (budget > 0 && words4 > 0 && estimateTokens(p.text) >= budget - 1) {
+        issues.push({ code: "possibly-truncated", part: i, msg: `A transcri\xE7\xE3o pode ter sido cortada no fim${label}: o reconhecedor chegou perto do limite de texto para esse tempo de \xE1udio.` });
+      }
+      if (p.voicedSec != null && p.voicedSec >= 1 && words4 === 0) {
+        issues.push({ code: "lost-part", part: i, msg: `Um trecho com voz n\xE3o gerou texto${label}: parte da fala pode ter sido perdida pelo reconhecimento.` });
+      }
+      if (p.cutInSpeech && i < parts.length - 1) {
+        issues.push({ code: "cut-in-speech", part: i, msg: `A divis\xE3o do \xE1udio caiu no meio da fala${label}: uma palavra pode ter sido partida ou repetida na emenda.` });
+      }
+    });
+    const voiced = parts.reduce((n, p) => n + (p.voicedSec || 0), 0);
+    const words3 = segments && segments.length ? parts.reduce((n, p) => n + wordTokens(p.text || "").length, 0) : wordTokens(text).length;
+    if (voiced >= 4 && words3 / voiced < 0.6) {
+      issues.push({ code: "low-density", msg: "H\xE1 bem menos palavras do que o tempo de fala sugere: parte do que voc\xEA disse pode n\xE3o ter sido reconhecida." });
+    }
+    return { checked: true, complete: issues.length === 0, issues };
+  }
+  var mayHaveLostSpeech = (integ) => !!integ && integ.issues.some((x) => ["possibly-truncated", "lost-part", "low-density", "cut-in-speech"].includes(x.code));
+
+  // app/js/engine/dialogue.js
+  var THRESHOLD = 80;
+  var LISTENS_REQUIRED = 3;
+  var QUESTIONS_TOTAL = 10;
+  var QUESTIONS_PASS = 8;
+  var PHASES = [
+    { id: "vocab", n: 1, title: "Vocabul\xE1rio e express\xF5es", short: "Vocabul\xE1rio" },
+    { id: "dictation", n: 2, title: "Escuta e escrita", short: "Escrita" },
+    { id: "translation", n: 3, title: "Tradu\xE7\xE3o do di\xE1logo", short: "Tradu\xE7\xE3o" },
+    { id: "listening", n: 4, title: "Compreens\xE3o auditiva", short: "Compreens\xE3o" },
+    { id: "reading", n: 5, title: "Leitura em voz alta", short: "Leitura" }
+  ];
+  var phaseById = (id) => PHASES.find((p) => p.id === id) || null;
+  var RUBRICS = {
+    vocab: "dre-speech-lexical-1",
+    dictation: "dre-writing-1",
+    translation: "dre-translation-semantic-1",
+    listening: "dre-comprehension-1",
+    reading: "dre-speech-lexical-1"
+  };
+  var EVALUATORS = {
+    local_deterministic: "dre-local-1",
+    local_asr: "dre-local-asr-1"
+  };
+  var meetsThreshold = (score, threshold = THRESHOLD) => typeof score === "number" && Number.isFinite(score) && score >= threshold;
+  var dialoguePack = (pack = globalThis.DRG_DIALOGUES) => pack && Array.isArray(pack.activities) ? pack : null;
+  var activityById = (pack, id) => pack ? pack.activities.find((a) => a.id === id) || null : null;
+  var itemsOf = (pack, act) => act.itemIds.map((id) => pack.items.find((x) => x.id === id)).filter(Boolean);
+  var questionsOf = (pack, act) => (act.questionIds || []).map((id) => (pack.questions || []).find((x) => x.id === id)).filter(Boolean);
+  function requiredOf(pack, act, phaseId) {
+    switch (phaseId) {
+      case "vocab":
+        return act.itemIds.slice();
+      case "dictation":
+      case "translation":
+      case "reading":
+        return act.lines.map((l) => l.id);
+      case "listening":
+        return (act.questionIds || []).slice();
+      default:
+        return [];
+    }
+  }
+  function contentProblems(pack, act, { hasAudio: hasAudio2 = () => true } = {}) {
+    const out = [];
+    const qs = questionsOf(pack, act);
+    if (qs.length < QUESTIONS_TOTAL) out.push({ phase: "listening", code: "questions", text: `Faltam quest\xF5es de compreens\xE3o curadas (${qs.length} de ${QUESTIONS_TOTAL}). Nada \xE9 inventado pelo app.` });
+    for (const q of qs) if (!q.options || q.options.length < 2 || !q.options.some((o) => o.id === q.correctOptionId)) out.push({ phase: "listening", code: "question-invalid", text: `Quest\xE3o ${q.id} inv\xE1lida (alternativas/gabarito).` });
+    const noAudio = act.lines.filter((l) => !hasAudio2(l.audio));
+    if (noAudio.length) out.push({ phase: "audio", code: "audio", text: `${noAudio.length} fala(s) sem \xE1udio gravado.`, ids: noAudio.map((l) => l.id) });
+    return out;
+  }
+  var STORE_KEY = "dialogues";
+  var emptyStore = () => ({ v: 1, acts: {}, consent: { online: false, at: null } });
+  function validStore(s) {
+    if (!s || s.v !== 1 || typeof s.acts !== "object" || !s.acts) return emptyStore();
+    if (!s.consent) s.consent = { online: false, at: null };
+    return s;
+  }
+  function actProgress2(store2, act) {
+    const p = store2.acts[act.id] || (store2.acts[act.id] = { contentVersion: act.contentVersion || null, startedAt: null, completedAt: null, attempts: {}, listens: {}, rounds: [], notes: "", order: {} });
+    p.attempts = p.attempts || {};
+    p.listens = p.listens || {};
+    p.rounds = p.rounds || [];
+    p.order = p.order || {};
+    return p;
+  }
+  function newAttemptId(now = Date.now(), rand = Math.random) {
+    return `att-${now.toString(36)}-${Math.floor(rand() * 4294967295).toString(36).padStart(7, "0")}`;
+  }
+  function recordListen(p, key, now = Date.now()) {
+    p.listens[key] = (p.listens[key] || 0) + 1;
+    if (!p.startedAt) p.startedAt = now;
+    return p.listens[key];
+  }
+  var listensOf = (p, key) => p && p.listens && p.listens[key] || 0;
+  var canSpeakItem = (p, itemId) => listensOf(p, `vocab:${itemId}`) >= LISTENS_REQUIRED;
+  var canAnswerQuestions = (p) => listensOf(p, "listening") >= LISTENS_REQUIRED;
+  function addAttempt(p, { attemptId, phase, itemId, inputType, response, result, now = Date.now() }) {
+    if (p.attempts[attemptId]) return p.attempts[attemptId];
+    const a = {
+      attemptId,
+      phase,
+      itemId,
+      inputType,
+      response: response ?? null,
+      status: result.status,
+      score: typeof result.score === "number" ? result.score : null,
+      threshold: THRESHOLD,
+      feedback: result.feedback || null,
+      evidence: result.evidence || null,
+      evaluationMode: result.evaluationMode,
+      rubricVersion: result.rubricVersion || RUBRICS[phase],
+      evaluatorVersion: result.evaluatorVersion || null,
+      createdAt: now,
+      evaluatedAt: result.status === "pending" ? null : now,
+      syncStatus: result.status === "pending" ? "queued" : "local",
+      tries: 0,
+      nextTryAt: 0,
+      lastError: null
+    };
+    if (a.status === "passed" && !meetsThreshold(a.score)) a.status = "inconclusive";
+    if (a.status === "needs_practice" && a.score !== null && meetsThreshold(a.score)) a.status = "passed";
+    p.attempts[attemptId] = a;
+    if (!p.startedAt) p.startedAt = now;
+    return a;
+  }
+  function applyEvaluation(p, attemptId, result, now = Date.now()) {
+    const a = p.attempts[attemptId];
+    if (!a) return { applied: false, reason: "unknown" };
+    if (a.status !== "pending") return { applied: false, reason: "already" };
+    if (result.status === "pending") return { applied: false, reason: "still-pending" };
+    a.status = result.status;
+    a.score = typeof result.score === "number" ? result.score : null;
+    if (a.status === "passed" && !meetsThreshold(a.score)) a.status = "inconclusive";
+    if (a.status === "needs_practice" && a.score !== null && meetsThreshold(a.score)) a.status = "passed";
+    a.feedback = result.feedback || null;
+    a.evidence = result.evidence || null;
+    a.evaluationMode = result.evaluationMode || "remote_ai";
+    a.rubricVersion = result.rubricVersion || a.rubricVersion;
+    a.evaluatorVersion = result.evaluatorVersion || a.evaluatorVersion;
+    a.evaluatedAt = now;
+    a.syncStatus = "done";
+    return { applied: true };
+  }
+  function markRetry(p, attemptId, error, now = Date.now()) {
+    const a = p.attempts[attemptId];
+    if (!a || a.status !== "pending") return null;
+    a.tries = (a.tries || 0) + 1;
+    a.lastError = String(error || "erro");
+    a.syncStatus = "retry";
+    a.nextTryAt = now + Math.min(30 * 6e4, 15e3 * 2 ** Math.min(a.tries - 1, 7));
+    return a.nextTryAt;
+  }
+  var pendingAttempts = (p, now = Date.now(), { force = false } = {}) => Object.values(p.attempts).filter((a) => a.status === "pending" && (force || !a.nextTryAt || a.nextTryAt <= now)).sort((x, y) => x.createdAt - y.createdAt);
+  function mastery2(p, phase, itemId) {
+    const list = Object.values(p && p.attempts || {}).filter((a) => a.phase === phase && a.itemId === itemId).sort((x, y) => x.createdAt - y.createdAt);
+    const valid = list.filter((a) => a.score !== null && (a.status === "passed" || a.status === "needs_practice"));
+    const passed = list.some((a) => a.status === "passed");
+    const last = list[list.length - 1] || null;
+    let status3 = "unseen";
+    if (passed) status3 = "passed";
+    else if (list.some((a) => a.status === "pending")) status3 = "pending_evaluation";
+    else if (last) status3 = last.status;
+    return {
+      itemId,
+      phase,
+      status: status3,
+      attemptCount: list.length,
+      bestValidScore: valid.length ? Math.max(...valid.map((a) => a.score)) : null,
+      lastValidScore: valid.length ? valid[valid.length - 1].score : null,
+      lastAttempt: last,
+      passedAttempt: list.find((a) => a.status === "passed") || null,
+      lastPractisedAt: last ? last.createdAt : null
+    };
+  }
+  function gradeRound(questions, answers, { kind = "full", now = Date.now(), id } = {}) {
+    const results = questions.map((q) => ({ questionId: q.id, chosen: answers[q.id] ?? null, correct: answers[q.id] === q.correctOptionId }));
+    const correct = results.filter((r) => r.correct).length;
+    return {
+      id: id || `round-${now.toString(36)}`,
+      kind,
+      submittedAt: now,
+      total: questions.length,
+      correct,
+      results,
+      passed: kind === "full" && questions.length === QUESTIONS_TOTAL && correct >= QUESTIONS_PASS,
+      rubricVersion: RUBRICS.listening
+    };
+  }
+  function addRound(p, round2) {
+    if (p.rounds.some((r) => r.id === round2.id)) return false;
+    p.rounds.push(round2);
+    if (!p.startedAt) p.startedAt = round2.submittedAt;
+    return true;
+  }
+  function listeningNext(p, questionsCount = QUESTIONS_TOTAL) {
+    if (questionsCount < QUESTIONS_TOTAL) return "blocked";
+    if (p.rounds.some((r) => r.kind === "full" && r.passed)) return "done";
+    if (!canAnswerQuestions(p)) return "listen";
+    const last = p.rounds[p.rounds.length - 1];
+    if (last && last.kind === "full" && !last.passed && last.correct < last.total) return "recovery";
+    return "full";
+  }
+  var wrongOf = (round2) => round2 ? round2.results.filter((r) => !r.correct).map((r) => r.questionId) : [];
+  function phaseStatuses(pack, act, p) {
+    const out = [];
+    let prevDone = true;
+    for (const ph of PHASES) {
+      const ids = requiredOf(pack, act, ph.id);
+      const items = ids.map((id) => ph.id === "listening" ? null : mastery2(p, ph.id, id)).filter(Boolean);
+      const passed = items.filter((m) => m.status === "passed").length;
+      const pending3 = items.filter((m) => m.status === "pending_evaluation").length;
+      const failing = items.filter((m) => m.status === "needs_practice" || m.status === "inconclusive").length;
+      const touched = items.filter((m) => m.status !== "unseen").length;
+      let state;
+      if (ph.id === "listening") {
+        const next = listeningNext(p, ids.length);
+        const st = next === "blocked" ? "blocked_by_content" : next === "done" ? "completed" : null;
+        state = !prevDone ? "locked" : st || (p.rounds.length || listensOf(p, "listening") ? next === "recovery" ? "needs_retry" : "in_progress" : "available");
+        out.push({ ...ph, state, total: ids.length, passed: state === "completed" ? ids.length : 0, pending: 0, failing: 0, next });
+      } else if (!ids.length) {
+        state = prevDone ? "not_applicable" : "locked";
+        out.push({ ...ph, state, total: 0, passed: 0, pending: 0, failing: 0 });
+      } else {
+        const complete = passed === ids.length;
+        state = !prevDone ? "locked" : complete ? "completed" : pending3 && !failing && passed + pending3 === ids.length ? "pending_online" : failing && touched === ids.length ? "needs_retry" : touched ? "in_progress" : "available";
+        out.push({ ...ph, state, total: ids.length, passed, pending: pending3, failing });
+      }
+      const last = out[out.length - 1];
+      prevDone = prevDone && (last.state === "completed" || last.state === "not_applicable");
+    }
+    return out;
+  }
+  function activityStatus(pack, act, p) {
+    const phases = phaseStatuses(pack, act, p);
+    const current2 = phases.find((x) => x.state !== "completed" && x.state !== "not_applicable") || null;
+    let state;
+    if (!current2) state = "completed";
+    else if (current2.state === "blocked_by_content") state = "blocked_by_content";
+    else if (current2.state === "pending_online") state = "waiting_for_online_evaluation";
+    else if (!p || !p.startedAt && !Object.keys(p.attempts || {}).length) state = "not_started";
+    else state = "in_progress";
+    const done = phases.filter((x) => x.state === "completed" || x.state === "not_applicable").length;
+    return { state, phases, current: current2, done, ratio: done / PHASES.length };
+  }
+  function nextItem(order, p, phase) {
+    for (const id of order) {
+      const m = mastery2(p, phase, id);
+      if (m.status !== "passed") return id;
+    }
+    return null;
+  }
+  function phaseOrder(p, phase, ids, rand = Math.random) {
+    const saved = p.order[phase];
+    if (saved && saved.length === ids.length && saved.every((id) => ids.includes(id))) return saved;
+    const out = ids.slice();
+    if (phase === "dictation") for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    p.order[phase] = out;
+    return out;
+  }
+  function settleCompletion(pack, act, p, now = Date.now()) {
+    const st = activityStatus(pack, act, p);
+    if (st.state === "completed" && !p.completedAt) p.completedAt = now;
+    return st;
+  }
+  function activityReport(pack, act, p) {
+    const st = activityStatus(pack, act, p);
+    const items = (phase) => requiredOf(pack, act, phase).map((id) => {
+      const m = mastery2(p, phase, id);
+      return { id, status: m.status, best: m.bestValidScore, attempts: m.attemptCount, repeated: m.attemptCount > 1 };
+    });
+    const full = p.rounds.filter((r) => r.kind === "full");
+    return {
+      state: st.state,
+      phases: st.phases,
+      vocab: items("vocab"),
+      dictation: items("dictation"),
+      translation: items("translation"),
+      reading: items("reading"),
+      comprehension: full.length ? { rounds: full.length, best: Math.max(...full.map((r) => r.correct)), passed: full.some((r) => r.passed) } : null,
+      pending: Object.values(p.attempts).filter((a) => a.status === "pending").length,
+      inconclusive: Object.values(p.attempts).filter((a) => a.status === "inconclusive").length
+    };
+  }
+
+  // app/js/engine/dialogueeval.js
+  var r100 = (x) => Math.max(0, Math.min(100, Math.round(x * 100)));
+  function nearToken(a, b) {
+    if (a === b) return true;
+    if (Math.min(a.length, b.length) < 4 || /\d/.test(a + b)) return false;
+    return levenshtein(a, b) <= (Math.max(a.length, b.length) >= 8 ? 2 : 1);
+  }
+  function scoreWriting(checker, answer, target, variants = []) {
+    const raw = String(answer || "").trim();
+    const base = { evaluationMode: "local_deterministic", rubricVersion: RUBRICS.dictation, evaluatorVersion: EVALUATORS.local_deterministic };
+    if (!raw) return { ...base, status: "inconclusive", score: null, feedback: { summary: "Resposta vazia: escreva a frase que voc\xEA ouviu." } };
+    const ck = checker.check(raw, [target, ...variants]);
+    const A = checker.prepare(raw).full;
+    const T = checker.prepare(target).full;
+    const exact = lcsAlign(T, A, (x, y) => x === y);
+    const usedT = new Set(exact.map(([i]) => i)), usedA = new Set(exact.map(([, j]) => j));
+    const restT = T.map((t, i) => [t, i]).filter(([, i]) => !usedT.has(i));
+    const restA = A.map((t, j) => [t, j]).filter(([, j]) => !usedA.has(j));
+    const near = lcsAlign(restT.map(([t]) => t), restA.map(([t]) => t), nearToken).map(([i, j]) => [restT[i][1], restA[j][1]]);
+    near.forEach(([i, j]) => {
+      usedT.add(i);
+      usedA.add(j);
+    });
+    let score = r100((exact.length + 0.5 * near.length) / Math.max(T.length, A.length, 1));
+    const variantAccepted = ck.accepted && ck.cls !== "spelling";
+    if (variantAccepted) score = 100;
+    const leftT = T.filter((_, i) => !usedT.has(i)), leftA = A.filter((_, j) => !usedA.has(j));
+    const reordered = leftT.filter((t) => leftA.includes(t));
+    const omissions = leftT.filter((t) => !reordered.includes(t));
+    const insertions = leftA.filter((t) => !reordered.includes(t));
+    const spelling = near.map(([i, j]) => `${A[j]} \u2192 ${T[i]}`);
+    const kind = variantAccepted ? ck.cls === "correct" ? "exact" : "variant" : ck.cls;
+    return {
+      ...base,
+      status: meetsThreshold(score) ? "passed" : "needs_practice",
+      score,
+      feedback: {
+        kind,
+        // exact | variant | spelling | grammar | meaning | inconclusive (classe do verificador)
+        summary: variantAccepted ? ck.cls === "correct" ? "Igual \xE0 frase." : "Variante aceita." : `Correspond\xEAncia de ${score}% com a frase ouvida.`,
+        notes: ck.notes || [],
+        omissions,
+        insertions,
+        spelling,
+        reordered,
+        diff: ck.diff || null
+      },
+      evidence: { method: "alinhamento de palavras normalizadas (contra\xE7\xF5es, BrE/AmE, n\xFAmeros)", targetWords: T.length, answerWords: A.length, exact: exact.length, near: near.length }
+    };
+  }
+  function evaluateSpeech(target, asr, opts = {}) {
+    const base = { evaluationMode: "local_asr", rubricVersion: RUBRICS.reading, evaluatorVersion: EVALUATORS.local_asr };
+    const inconclusive = (why, extra = {}) => ({
+      ...base,
+      status: "inconclusive",
+      score: null,
+      feedback: { summary: why, transcriptionReliability: "insufficient", ...extra },
+      evidence: { method: "transcri\xE7\xE3o local", heard: asr ? asr.text : null }
+    });
+    if (!asr) return inconclusive(opts.reason || "Reconhecimento de fala indispon\xEDvel: a tentativa n\xE3o aprova nem reprova.");
+    const ev = evaluateWords(target, asr, { insufficient: !!opts.insufficient, tailUnreliable: !!opts.tailUnreliable });
+    if (!ev.evaluated) return inconclusive(ev.note || "Transcri\xE7\xE3o n\xE3o confi\xE1vel: grave de novo.");
+    const words3 = ev.words;
+    const judged = words3.filter((w) => w.state === "good" || w.state === "needs_practice");
+    const judgeable = words3.filter((w) => !/átona|Nome próprio/.test(w.reason || "") || w.state === "good");
+    if (!judged.length) return inconclusive("Nenhuma palavra avali\xE1vel com seguran\xE7a nesta grava\xE7\xE3o (palavras \xE1tonas ou nomes pr\xF3prios). Tente outra vez.", { words: words3 });
+    const cover = judged.length / Math.max(judgeable.length, 1);
+    if (cover < 0.6) return inconclusive("A transcri\xE7\xE3o cobriu pouco do texto (pode ter sido cortada): grave de novo.", { words: words3 });
+    const good = judged.filter((w) => w.state === "good").length;
+    const score = r100(good / judged.length);
+    return {
+      ...base,
+      status: meetsThreshold(score) ? "passed" : "needs_practice",
+      score,
+      feedback: {
+        summary: `Correspond\xEAncia da fala com o texto: ${score}% (${good} de ${judged.length} palavras avaliadas reconhecidas). Isto mede o que o reconhecedor entendeu, n\xE3o a pron\xFAncia de cada som.`,
+        lexicalCorrespondence: score,
+        completeness: r100(cover),
+        transcriptionReliability: opts.tailUnreliable ? "partial" : "ok",
+        rhythmEvidence: null,
+        // não medido nesta fase
+        phoneticAssessment: null,
+        // o app não tem avaliação fonética validada
+        words: words3,
+        toPractise: words3.filter((w) => w.state === "needs_practice").map((w) => w.text)
+      },
+      evidence: { method: "transcri\xE7\xE3o local (Moonshine) + alinhamento de palavras", heard: asr.text, engine: asr.engine || null }
+    };
+  }
+  var foldPt = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, " ").trim();
+  var EN_ONLY2 = /* @__PURE__ */ new Set(["the", "and", "you", "are", "is", "what", "do", "does", "have", "has", "with", "this", "that", "my", "your", "i'm", "it's", "of", "to", "at", "in", "on", "for", "we", "they", "he", "she", "can", "could", "would", "will", "please", "thank", "yes", "not"]);
+  function localTranslation(answer, line) {
+    const base = { evaluationMode: "local_deterministic", rubricVersion: RUBRICS.translation, evaluatorVersion: EVALUATORS.local_deterministic };
+    const t = foldPt(answer);
+    if (!t) return null;
+    if (t === foldPt(line.pt) || (line.acceptedPt || []).some((v) => foldPt(v) === t)) {
+      return { ...base, status: "passed", score: 100, feedback: { summary: "Igual \xE0 tradu\xE7\xE3o de refer\xEAncia.", meaningPreserved: true } };
+    }
+    const w = t.split(" ");
+    const enShare = w.filter((x) => EN_ONLY2.has(x)).length / w.length;
+    if (t === foldPt(line.en) || w.length >= 3 && enShare >= 0.4) {
+      return { ...base, status: "needs_practice", score: null, feedback: { summary: "A resposta parece ainda estar em ingl\xEAs: escreva a tradu\xE7\xE3o em portugu\xEAs.", meaningPreserved: false } };
+    }
+    return null;
+  }
+  var TRANSLATION_REQUEST_KIND = "dre/translation-evaluation";
+  function translationRequest({ attemptId, act, line, answer }) {
+    return {
+      kind: TRANSLATION_REQUEST_KIND,
+      v: 1,
+      attemptId,
+      rubricVersion: RUBRICS.translation,
+      threshold: THRESHOLD,
+      source: {
+        lang: "en-GB",
+        text: line.en,
+        speaker: line.speaker,
+        context: act.context || null,
+        activityTitle: act.title,
+        dialogue: act.lines.map((l) => ({ speaker: l.speaker, text: l.en }))
+      },
+      reference: { lang: "pt-BR", text: line.pt, status: "refer\xEAncia autoral, n\xE3o validada pelo professor", acceptedVariants: line.acceptedPt || [] },
+      response: { lang: "pt-BR", text: String(answer).slice(0, 1e3) }
+    };
+  }
+  var isStrList = (x, max = 8) => Array.isArray(x) && x.length <= max && x.every((s) => typeof s === "string" && s.length <= 300);
+  function validateTranslationResult(json, { attemptId } = {}) {
+    const bad = (why) => ({
+      status: "inconclusive",
+      score: null,
+      evaluationMode: "remote_ai",
+      rubricVersion: RUBRICS.translation,
+      evaluatorVersion: null,
+      feedback: { summary: `Avalia\xE7\xE3o online inv\xE1lida (${why}): a tentativa n\xE3o aprova nem reprova. Envie de novo mais tarde.` },
+      evidence: { invalid: why }
+    });
+    if (!json || typeof json !== "object" || Array.isArray(json)) return bad("formato");
+    if (attemptId && json.attemptId !== void 0 && json.attemptId !== attemptId) return bad("tentativa diferente");
+    if (json.rubricVersion !== RUBRICS.translation) return bad("rubrica");
+    if (typeof json.evaluatorVersion !== "string" || !json.evaluatorVersion || json.evaluatorVersion.length > 80) return bad("vers\xE3o do avaliador");
+    if (json.status === "pending") return { status: "pending" };
+    const common = { evaluationMode: "remote_ai", rubricVersion: json.rubricVersion, evaluatorVersion: json.evaluatorVersion };
+    const text = (s, max = 1200) => typeof s === "string" && s.length <= max ? s : null;
+    if (json.status === "inconclusive") {
+      return { ...common, status: "inconclusive", score: null, feedback: { summary: text(json.explanationPtBr) || "O avaliador n\xE3o conseguiu julgar esta resposta." } };
+    }
+    if (json.status !== "evaluated") return bad("status");
+    if (typeof json.score !== "number" || !Number.isInteger(json.score) || json.score < 0 || json.score > 100) return bad("nota");
+    if (typeof json.meaningPreserved !== "boolean") return bad("meaningPreserved");
+    if (!isStrList(json.preservedElements) || !isStrList(json.omissions) || !isStrList(json.distortions)) return bad("listas");
+    if (json.naturalnessNotes !== void 0 && !isStrList(json.naturalnessNotes)) return bad("naturalidade");
+    const suggested = text(json.suggestedTranslation, 600), explanation = text(json.explanationPtBr);
+    if (suggested === null || explanation === null) return bad("textos");
+    const consistent = !(meetsThreshold(json.score) && (!json.meaningPreserved || json.distortions.length));
+    if (!consistent) return bad("nota incoerente com o sentido");
+    return {
+      ...common,
+      status: meetsThreshold(json.score) ? "passed" : "needs_practice",
+      score: json.score,
+      feedback: {
+        summary: explanation,
+        meaningPreserved: json.meaningPreserved,
+        preservedElements: json.preservedElements,
+        omissions: json.omissions,
+        distortions: json.distortions,
+        naturalnessNotes: json.naturalnessNotes || [],
+        suggestedTranslation: suggested
+      }
+    };
+  }
+
+  // app/js/engine/evalsync.js
+  var evaluationConfig = (pack = globalThis.DRG_DIALOGUES) => {
+    const e = pack && pack.evaluation || {};
+    return { endpoint: typeof e.endpoint === "string" && /^https:\/\//.test(e.endpoint) ? e.endpoint.replace(/\/+$/, "") : null, timeoutMs: e.timeoutMs || 2e4 };
+  };
+  function remoteBlocker({ config, consent, online: online2 }) {
+    if (!config.endpoint) return { code: "not-configured", text: "A avalia\xE7\xE3o online ainda n\xE3o est\xE1 configurada neste aplicativo (falta o servi\xE7o seguro de avalia\xE7\xE3o). Sua resposta fica salva e pendente." };
+    if (!consent) return { code: "consent", text: "Para avaliar o sentido da tradu\xE7\xE3o, o texto da sua resposta precisa ser enviado ao servi\xE7o de avalia\xE7\xE3o. Autorize o envio para continuar; sem isso, a resposta fica salva e pendente." };
+    if (!online2) return { code: "offline", text: "Sem internet: sua resposta ficou salva neste aparelho e ser\xE1 avaliada quando a conex\xE3o voltar." };
+    return null;
+  }
+  function createRemoteEvaluator({ endpoint, timeoutMs = 2e4, fetchImpl = globalThis.fetch }) {
+    return async function evaluateTranslation(request) {
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const t = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+      let res;
+      try {
+        res = await fetchImpl(`${endpoint}/v1/evaluate/translation`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "idempotency-key": request.attemptId },
+          body: JSON.stringify(request),
+          signal: ctrl ? ctrl.signal : void 0,
+          credentials: "omit",
+          cache: "no-store"
+        });
+      } catch (e) {
+        throw Object.assign(new Error(e && e.name === "AbortError" ? "tempo esgotado" : "falha de rede"), { retryable: true });
+      } finally {
+        if (t) clearTimeout(t);
+      }
+      if (res.status === 429 || res.status >= 500) throw Object.assign(new Error(`servi\xE7o indispon\xEDvel (${res.status})`), { retryable: true });
+      if (!res.ok) throw Object.assign(new Error(`pedido recusado (${res.status})`), { retryable: res.status === 408 });
+      let json;
+      try {
+        json = await res.json();
+      } catch (e) {
+        return validateTranslationResult(null);
+      }
+      return validateTranslationResult(json, { attemptId: request.attemptId });
+    };
+  }
+  function requestFor(pack, attempt) {
+    const act = activityById(pack, attempt.itemId.replace(/-l\d+$/, ""));
+    const line = act && act.lines.find((l) => l.id === attempt.itemId);
+    if (!act || !line) return null;
+    return translationRequest({ attemptId: attempt.attemptId, act, line, answer: attempt.response });
+  }
+  var running = null;
+  function processQueue(store2, pack, evaluate, { now = () => Date.now(), force = false, onApplied } = {}) {
+    if (running) return running;
+    const job = (async () => {
+      const out = { sent: 0, applied: 0, failed: 0, skipped: 0 };
+      try {
+        for (const actId of Object.keys(store2.acts)) {
+          const act = activityById(pack, actId);
+          if (!act) continue;
+          const p = actProgress2(store2, act);
+          for (const a of pendingAttempts(p, now(), { force })) {
+            if (a.phase !== "translation") {
+              out.skipped++;
+              continue;
+            }
+            const req = requestFor(pack, a);
+            if (!req) {
+              out.skipped++;
+              continue;
+            }
+            out.sent++;
+            a.syncStatus = "sending";
+            try {
+              const result = await evaluate(req);
+              const r = applyEvaluation(p, a.attemptId, result, now());
+              if (r.applied) {
+                out.applied++;
+                if (onApplied) await onApplied(act, a);
+              } else if (r.reason === "still-pending") markRetry(p, a.attemptId, "avalia\xE7\xE3o ainda em andamento", now());
+            } catch (e) {
+              out.failed++;
+              markRetry(p, a.attemptId, e.message, now());
+            }
+          }
+        }
+      } catch (e) {
+      }
+      return out;
+    })();
+    running = job;
+    job.finally(() => {
+      if (running === job) running = null;
+    });
+    return job;
+  }
+
+  // app/js/ui/dialogue.js
+  var store = null;
+  var loading3 = null;
+  function loadStore() {
+    if (store) return Promise.resolve(store);
+    if (!loading3) loading3 = getKv(STORE_KEY).then((v) => store = validStore(v || null)).catch(() => store = emptyStore()).finally(() => {
+      loading3 = null;
+    });
+    return loading3;
+  }
+  async function save() {
+    try {
+      await putKv(STORE_KEY, store);
+      return true;
+    } catch (e) {
+      toast("N\xE3o foi poss\xEDvel salvar neste aparelho. Tente de novo.", 5e3);
+      return false;
+    }
+  }
+  var STATE_LABEL3 = {
+    locked: "Bloqueada",
+    available: "Dispon\xEDvel",
+    in_progress: "Em andamento",
+    pending_online: "Aguardando avalia\xE7\xE3o online",
+    needs_retry: "Precisa de pr\xE1tica",
+    completed: "Conclu\xEDda",
+    blocked_by_content: "Conte\xFAdo pendente",
+    not_applicable: "Sem itens nesta atividade"
+  };
+  var ACT_LABEL = { not_started: "N\xE3o iniciada", in_progress: "Em andamento", waiting_for_online_evaluation: "Aguardando avalia\xE7\xE3o online", completed: "Conclu\xEDda", blocked_by_content: "Conte\xFAdo pendente" };
+  var ITEM_LABEL = { unseen: "N\xE3o praticado", passed: "Aprovado", needs_practice: "Precisa de pr\xE1tica", inconclusive: "Inconclusivo", pending_evaluation: "Aguardando avalia\xE7\xE3o" };
+  var TYPE_LABEL = { word: "Palavra", phrasal_verb: "Phrasal verb", collocation: "Collocation", chunk: "Express\xE3o (chunk)", expression: "Express\xE3o", pattern: "Padr\xE3o" };
+  var ITEM_CHIP = { passed: "ok", needs_practice: "bad", inconclusive: "warn", pending_evaluation: "warn", unseen: "" };
+  var online = () => navigator.onLine !== false;
+  var asrEngine = () => globalThis.__DRG_TEST_ASR || localasr_exports;
+  var hasAudio = (key) => hasEmbedded(key);
+  async function playOnce(clip) {
+    const pr = play(clip);
+    const g = generation();
+    const r = await pr;
+    return { completed: !!r.ok && generation() === g && r.reason !== "cancel", via: r.via || null, ok: !!r.ok };
+  }
+  async function playAll(clips, { onIndex } = {}) {
+    for (let i = 0; i < clips.length; i++) {
+      onIndex && onIndex(i);
+      const r = await playOnce(clips[i]);
+      if (!r.completed) {
+        onIndex && onIndex(-1);
+        return false;
+      }
+      await new Promise((res) => setTimeout(res, 200));
+    }
+    onIndex && onIndex(-1);
+    return true;
+  }
+  function remote() {
+    const config = evaluationConfig();
+    return { config, blocker: remoteBlocker({ config, consent: !!(store && store.consent.online), online: online() }) };
+  }
+  async function flushQueue({ force = false } = {}) {
+    const pack = dialoguePack();
+    const { config, blocker } = remote();
+    if (blocker) return { sent: 0, blocker };
+    const evaluate = createRemoteEvaluator({ endpoint: config.endpoint, timeoutMs: config.timeoutMs });
+    const r = await processQueue(store, pack, evaluate, { force, onApplied: (act) => {
+      settleCompletion(pack, act, actProgress2(store, act));
+    } });
+    await save();
+    return r;
+  }
+  var pendingTotal = () => Object.values(store.acts).reduce((n, p) => n + Object.values(p.attempts || {}).filter((a) => a.status === "pending").length, 0);
+  function connectivityBar(onChange) {
+    const box2 = h("div", { class: "dlg-conn", "data-role": "connectivity", role: "status", "aria-live": "polite" });
+    const draw = () => {
+      const n = pendingTotal();
+      const { blocker } = remote();
+      clear(box2).append(
+        h("span", { class: `chip ${online() ? "ok" : "warn"}`, "data-role": "online-state", text: online() ? "Online" : "Sem internet" }),
+        n ? h("span", { class: "chip warn", "data-role": "pending-count", text: `${n} ${n === 1 ? "avalia\xE7\xE3o pendente" : "avalia\xE7\xF5es pendentes"}` }) : null,
+        n && !blocker ? h("button", { class: "link-btn", type: "button", "data-role": "send-pending", onclick: async () => {
+          await flushQueue({ force: true });
+          draw();
+          onChange && onChange();
+        } }, "Enviar agora") : null
+      );
+      box2.dataset.online = String(online());
+    };
+    draw();
+    const on = async () => {
+      draw();
+      if (online() && pendingTotal()) {
+        await flushQueue();
+        draw();
+        onChange && onChange();
+      }
+    };
+    window.addEventListener("online", on);
+    window.addEventListener("offline", draw);
+    box2._cleanup = () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", draw);
+    };
+    return box2;
+  }
+  function dialogueHomeCard(App2) {
+    const pack = dialoguePack();
+    if (!pack) return null;
+    const info = h("div", { class: "small", style: { marginTop: "6px" }, "data-role": "dialogues-next" });
+    loadStore().then(() => {
+      const next = pack.activities.find((a) => activityStatus(pack, a, actProgress2(store, a)).state !== "completed");
+      const done = pack.activities.filter((a) => store.acts[a.id] && store.acts[a.id].completedAt).length;
+      info.append(h("span", { class: "muted", text: `${done} de ${pack.activities.length} di\xE1logos conclu\xEDdos` }), next ? ` \xB7 Pr\xF3ximo: ${partLabel(pack, next)} \u2014 ${next.title}` : "");
+      const n = pendingTotal();
+      if (n) info.append(h("div", { class: "tiny muted", text: `${n} ${n === 1 ? "tradu\xE7\xE3o aguarda" : "tradu\xE7\xF5es aguardam"} avalia\xE7\xE3o online.` }));
+    });
+    return h(
+      "section",
+      { class: "card", style: { marginTop: "12px" }, "data-role": "dialogues-entry" },
+      h("h3", { style: { margin: 0 }, text: pack.title }),
+      h("p", { class: "small muted", style: { margin: "2px 0 8px" }, text: "Di\xE1logos em cinco fases: vocabul\xE1rio, escrita, tradu\xE7\xE3o, compreens\xE3o e leitura em voz alta." }),
+      info,
+      h("a", { class: "btn block primary", href: "#/dialogues", style: { marginTop: "10px" }, "data-role": "open-dialogues" }, icon("chat"), "Abrir")
+    );
+  }
+  var partLabel = (pack, act) => `Parte ${act.partN}`;
+  function renderDialogues(App2) {
+    const pack = dialoguePack();
+    const view = App2.layout(pack ? pack.title : "Di\xE1logos", { back: "#/" });
+    if (!pack) {
+      view.append(h("div", { class: "notice bad", text: "Conte\xFAdo dos di\xE1logos n\xE3o encontrado (data/dialogues.js)." }));
+      return null;
+    }
+    const body = h("div", { "data-role": "dialogues" }, h("div", { class: "small muted", text: "Carregando\u2026" }));
+    view.append(body);
+    let conn = null;
+    loadStore().then(() => {
+      conn = connectivityBar(() => draw());
+      const draw = () => {
+        clear(body).append(
+          conn,
+          h("p", { class: "small muted", text: "Cada di\xE1logo tem cinco fases em sequ\xEAncia. Cada palavra, frase ou fala precisa de 80% individualmente; a m\xE9dia n\xE3o compensa um item abaixo do corte." })
+        );
+        for (const part of pack.parts) {
+          body.append(h("h2", { text: `Parte ${part.n} \u2014 ${part.title}` }));
+          const list = h("ol", { class: "stages", "data-role": "part", "data-part": String(part.n) });
+          for (const id of part.activityIds) {
+            const act = activityById(pack, id);
+            const st = activityStatus(pack, act, actProgress2(store, act));
+            list.append(h(
+              "li",
+              { class: `stage ${st.state === "completed" ? "done" : "open"}`, "data-role": "dialogue", "data-id": act.id, "data-state": st.state },
+              h(
+                "a",
+                { class: "stage-row", href: `#/dialogue/${act.id}` },
+                h("span", { class: `stage-mark ${st.state === "completed" ? "done" : "open"}`, "aria-hidden": "true" }, st.state === "completed" ? icon("check") : String(act.order)),
+                h(
+                  "div",
+                  { class: "grow" },
+                  h("div", { class: "stage-title" }, h("b", { text: act.title }), act.kind === "supplementary" ? h("span", { class: "small muted", text: " \xB7 complementar" }) : null),
+                  h("div", { class: "small muted", text: `${ACT_LABEL[st.state]} \xB7 ${st.done}/${PHASES.length} fases \xB7 ${act.lines.length} ${act.lines.length === 1 ? "fala" : "falas"}` })
+                ),
+                icon("next")
+              )
+            ));
+          }
+          body.append(list);
+        }
+        body.append(onlineSettings(() => draw()));
+      };
+      draw();
+    });
+    return () => {
+      if (conn && conn._cleanup) conn._cleanup();
+    };
+  }
+  function onlineSettings(onChange) {
+    const { config } = remote();
+    const consent = store.consent.online;
+    return h(
+      "section",
+      { class: "card", style: { marginTop: "16px" }, "data-role": "online-settings" },
+      h("h3", { style: { marginTop: 0 }, text: "Avalia\xE7\xE3o online das tradu\xE7\xF5es" }),
+      h("p", { class: "small", text: "A tradu\xE7\xE3o (fase 3) \xE9 corrigida pelo sentido, o que exige um servi\xE7o de avalia\xE7\xE3o na internet. S\xF3 o texto da sua resposta, a fala em ingl\xEAs e o contexto do di\xE1logo s\xE3o enviados \u2014 nunca seu nome, grava\xE7\xF5es ou outros dados. Sem conex\xE3o ou sem autoriza\xE7\xE3o, a resposta fica salva aqui e pendente." }),
+      config.endpoint ? null : h("div", { class: "notice warn small", "data-role": "eval-not-configured", text: "Servi\xE7o de avalia\xE7\xE3o ainda n\xE3o configurado nesta vers\xE3o do aplicativo: as tradu\xE7\xF5es que n\xE3o forem iguais \xE0 refer\xEAncia ficam pendentes." }),
+      h(
+        "button",
+        {
+          class: `btn block${consent ? "" : " primary"}`,
+          type: "button",
+          "data-role": "consent-toggle",
+          style: { marginTop: "10px" },
+          onclick: async () => {
+            store.consent = { online: !consent, at: Date.now() };
+            await save();
+            onChange && onChange();
+          }
+        },
+        consent ? "Retirar autoriza\xE7\xE3o de envio" : "Autorizar envio para avalia\xE7\xE3o"
+      )
+    );
+  }
+  function renderDialogue(App2, { arg, params }) {
+    const pack = dialoguePack();
+    const act = activityById(pack, arg);
+    if (!act) {
+      App2.go("#/dialogues");
+      return null;
+    }
+    const view = App2.layout(`${partLabel(pack, act)} \xB7 ${act.title}`, { back: "#/dialogues" });
+    const body = h("div", { "data-role": "dialogue-screen", "data-id": act.id });
+    view.append(body);
+    let tab = params.tab || "dialogue";
+    let conn = null;
+    loadStore().then(() => {
+      const p = actProgress2(store, act);
+      conn = connectivityBar(() => draw());
+      const draw = () => {
+        const st = settleCompletion(pack, act, p);
+        clear(body).append(
+          conn,
+          h(
+            "section",
+            { class: "card module-head" },
+            h("div", { class: "eyebrow", text: `${pack.title} \xB7 Parte ${act.partN} \xB7 ${act.order}` }),
+            h("h2", { style: { margin: "4px 0" }, text: act.title }),
+            act.context ? h("p", { class: "small", style: { margin: "4px 0" }, text: act.context }) : null,
+            h("div", { class: "row nowrap", style: { marginTop: "8px" } }, h("div", { class: "grow" }, bar(st.ratio)), h("span", { class: "small muted", "data-role": "phases-done", text: `${st.done}/${PHASES.length} fases` })),
+            h("div", { class: "small muted", "data-role": "activity-state", "data-state": st.state, text: ACT_LABEL[st.state] })
+          )
+        );
+        const problems = contentProblems(pack, act, { hasAudio });
+        if (problems.length) body.append(h("div", { class: "notice warn small", "data-role": "content-problems" }, h("b", { text: "Conte\xFAdo pendente: " }), problems.map((x) => x.text).join(" ")));
+        const list = h("ol", { class: "stages", "data-role": "phases" });
+        for (const s of st.phases) list.append(phaseRow(act, s));
+        body.append(h("h3", { text: "Fases" }), list);
+        if (st.state === "completed") body.append(resultCard(pack, act, p));
+        const tabs = h(
+          "div",
+          { class: "seg", role: "tablist", style: { marginTop: "16px" } },
+          ...[["dialogue", "Di\xE1logo"], ["vocab", "Vocabul\xE1rio"], ["grammar", "Gram\xE1tica"]].map(([id, label]) => h("button", { type: "button", role: "tab", "aria-pressed": String(tab === id), "data-tab": id, onclick: () => {
+            tab = id;
+            draw();
+          } }, label))
+        );
+        const panel = h("div", { "data-role": `tab-${tab}`, style: { marginTop: "12px" } });
+        body.append(tabs, panel);
+        if (tab === "dialogue") panel.append(dialogueList(pack, act, p));
+        else if (tab === "vocab") panel.append(vocabList(pack, act, p));
+        else panel.append(grammarNotes(act));
+      };
+      draw();
+    });
+    return () => {
+      stopAll();
+      if (conn && conn._cleanup) conn._cleanup();
+    };
+  }
+  function phaseRow(act, s) {
+    const locked = s.state === "locked";
+    const counter = s.id === "listening" ? s.total ? `${QUESTIONS_TOTAL} quest\xF5es \xB7 aprova\xE7\xE3o com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}` : "quest\xF5es ainda n\xE3o curadas" : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` \xB7 ${s.pending} pendentes` : ""}` : "sem itens";
+    const cls = s.state === "completed" ? "done" : locked ? "locked" : "open";
+    const mark = h("span", { class: `stage-mark ${cls}`, "aria-hidden": "true" }, locked ? icon("lock") : s.state === "completed" ? icon("check") : String(s.n));
+    const text = h(
+      "div",
+      { class: "grow" },
+      h("div", { class: "stage-title" }, h("b", { text: `${s.n}. ${s.title}` })),
+      h("div", { class: "small muted", text: locked ? "Bloqueada \u2014 conclua a fase anterior" : `${STATE_LABEL3[s.state]} \xB7 ${counter}` })
+    );
+    const attrs = { class: `stage ${cls}`, "data-role": "phase", "data-phase": s.id, "data-state": s.state };
+    if (locked || s.state === "not_applicable") return h("li", attrs, h("div", { class: "stage-row", "aria-disabled": "true" }, mark, text));
+    return h("li", attrs, h("a", { class: "stage-row", href: `#/dphase/${act.id}?p=${s.id}`, "aria-label": `${s.title}: ${STATE_LABEL3[s.state]}` }, mark, text, icon("next")));
+  }
+  function dialogueList(pack, act, p) {
+    const showEn = (l) => mastery2(p, "dictation", l.id).attemptCount > 0;
+    const showPt = (l) => {
+      const m = mastery2(p, "translation", l.id);
+      return m.attemptCount > 0 && m.status !== "pending_evaluation";
+    };
+    const playing = h("div", { class: "small muted", "data-role": "full-status" });
+    const rows = act.lines.map((l) => h(
+      "li",
+      { class: "dlg-line", "data-line": l.id },
+      h(
+        "div",
+        { class: "row nowrap" },
+        h(
+          "div",
+          { class: "grow" },
+          h("div", { class: "dlg-speaker", text: l.speaker }),
+          showEn(l) ? h("div", { class: "en dlg-en", text: l.en }) : h("div", { class: "small muted", text: "Texto em ingl\xEAs depois da fase 2 (escrita por escuta)." }),
+          showPt(l) ? h("div", { class: "pt small muted dlg-pt", text: l.pt }) : null
+        ),
+        h("button", {
+          class: "icon-btn",
+          type: "button",
+          "aria-label": `Ouvir a fala de ${l.speaker}`,
+          "data-role": "line-audio",
+          disabled: !hasAudio(l.audio),
+          onclick: () => play({ key: l.audio, text: l.en })
+        }, icon("speaker"))
+      )
+    ));
+    const list = h("ol", { class: "dlg-lines" }, rows);
+    const allAudio = act.lines.every((l) => hasAudio(l.audio));
+    return h(
+      "div",
+      {},
+      h(
+        "div",
+        { class: "row" },
+        h("button", { class: "btn", type: "button", "data-role": "play-dialogue", disabled: !allAudio, onclick: () => playAll(act.lines.map((l) => ({ key: l.audio, text: l.en })), {
+          onIndex: (i) => {
+            rows.forEach((r, k) => r.classList.toggle("dlg-now", k === i));
+            playing.textContent = i >= 0 ? `Tocando a fala ${i + 1} de ${act.lines.length}` : "";
+          }
+        }) }, icon("play"), "Ouvir o di\xE1logo completo"),
+        h("button", { class: "btn ghost", type: "button", onclick: () => stopAll() }, icon("stop"), "Parar")
+      ),
+      allAudio ? playing : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para uma ou mais falas desta atividade." }),
+      list
+    );
+  }
+  function vocabList(pack, act, p) {
+    const items = itemsOf(pack, act);
+    if (!items.length) return h("p", { class: "small muted", "data-role": "no-items", text: "Os documentos desta atividade n\xE3o trazem vocabul\xE1rio pr\xF3prio (lacuna registrada para a curadoria)." });
+    return h("ul", { class: "list" }, items.map((it) => {
+      const m = mastery2(p, "vocab", it.id);
+      return h(
+        "li",
+        { class: "row nowrap", "data-item": it.id },
+        h("div", { class: "grow" }, h("div", { class: "en", text: it.en }), h("div", { class: "small muted", text: it.pt })),
+        h("span", { class: `chip ${ITEM_CHIP[m.status]}`, text: ITEM_LABEL[m.status] }),
+        h("button", { class: "icon-btn", type: "button", "aria-label": `Ouvir \u201C${it.en}\u201D`, disabled: !hasAudio(it.audio), onclick: () => play({ key: it.audio, text: it.spoken }) }, icon("speaker"))
+      );
+    }));
+  }
+  function grammarNotes(act) {
+    if (!act.notes.length) return h("p", { class: "small muted", text: "Sem notas de gram\xE1tica nesta atividade." });
+    const clean = (s) => s.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1");
+    return h("div", { class: "stack" }, act.notes.map((n) => h("section", { class: "card flat" }, n.split("\n").map((line) => {
+      if (/^###\s/.test(line)) return h("h4", { style: { margin: "0 0 6px" }, text: clean(line.replace(/^###\s+/, "")) });
+      if (/^\s*-\s/.test(line)) return h("div", { class: "small", text: `\u2022 ${clean(line.replace(/^\s*-\s+/, ""))}` });
+      return h("p", { class: "small", style: { margin: "4px 0" }, text: clean(line) });
+    }))));
+  }
+  function resultCard(pack, act, p) {
+    const rep = activityReport(pack, act, p);
+    const row = (label, list) => list.length ? h(
+      "div",
+      { class: "small" },
+      h("b", { text: `${label}: ` }),
+      `${list.filter((x) => x.status === "passed").length}/${list.length} aprovados`,
+      list.some((x) => x.repeated) ? h("span", { class: "muted", text: ` \xB7 ${list.filter((x) => x.repeated).length} precisaram de repeti\xE7\xE3o` }) : null
+    ) : null;
+    return h(
+      "section",
+      { class: "card", "data-role": "activity-result", style: { marginTop: "12px" } },
+      h("h3", { style: { marginTop: 0 }, text: "Atividade conclu\xEDda" }),
+      row("Vocabul\xE1rio", rep.vocab),
+      row("Escrita por escuta", rep.dictation),
+      row("Tradu\xE7\xE3o", rep.translation),
+      rep.comprehension ? h("div", { class: "small" }, h("b", { text: "Compreens\xE3o: " }), `melhor rodada ${rep.comprehension.best}/${QUESTIONS_TOTAL}`) : null,
+      row("Leitura em voz alta", rep.reading),
+      h("p", { class: "tiny muted", text: "Os itens continuam voltando na revis\xE3o. O resultado \xE9 por item; n\xE3o h\xE1 pontos nem recompensas." })
+    );
+  }
+  function renderPhase(App2, { arg, params }) {
+    const pack = dialoguePack();
+    const act = activityById(pack, arg);
+    const ph = phaseById(params.p);
+    if (!act || !ph) {
+      App2.go("#/dialogues");
+      return null;
+    }
+    const view = App2.layout(`${ph.n}. ${ph.short} \xB7 ${act.title}`, { back: `#/dialogue/${act.id}`, nav: false });
+    const body = h("div", { "data-role": "phase-screen", "data-phase": ph.id, "data-id": act.id });
+    view.append(body);
+    const ctx = { alive: true, cleanups: [] };
+    loadStore().then(() => {
+      const p = actProgress2(store, act);
+      const st = phaseStatuses(pack, act, p).find((x) => x.id === ph.id);
+      if (st.state === "locked") {
+        App2.go(`#/dialogue/${act.id}`);
+        return;
+      }
+      const area = h("div", {});
+      const R = { vocab: phaseVocab, dictation: phaseDictation, translation: phaseTranslation, listening: phaseListening, reading: phaseReading }[ph.id];
+      const conn = connectivityBar(() => {
+        if (ctx.alive) R(App2, { pack, act, p, area, ctx });
+      });
+      ctx.cleanups.push(() => conn._cleanup());
+      body.append(conn, area);
+      R(App2, { pack, act, p, area, ctx });
+    });
+    return () => {
+      ctx.alive = false;
+      stopAll();
+      ctx.cleanups.forEach((f) => {
+        try {
+          f();
+        } catch (e) {
+        }
+      });
+      release2();
+    };
+  }
+  function phaseFooter(pack, act, p, phaseId) {
+    const s = phaseStatuses(pack, act, p).find((x) => x.id === phaseId);
+    const done = s.state === "completed";
+    return h(
+      "div",
+      { class: "stack", style: { marginTop: "16px" }, "data-role": "phase-footer", "data-state": s.state },
+      done ? h("div", { class: "notice ok", "data-role": "phase-done" }, icon("check"), ` ${phaseById(phaseId).title}: fase conclu\xEDda.`) : null,
+      s.state === "pending_online" ? h("div", { class: "notice warn small", "data-role": "phase-pending", text: "Fase aguardando avalia\xE7\xE3o online das respostas pendentes. Ela ser\xE1 conclu\xEDda quando todas forem avaliadas." }) : null,
+      h("a", { class: `btn block${done ? " primary" : ""}`, href: `#/dialogue/${act.id}`, "data-role": "back-to-dialogue" }, icon("back"), "Voltar ao di\xE1logo")
+    );
+  }
+  function itemChips(ids, p, phase, label, current2, onPick) {
+    return h("div", { class: "chips", "data-role": "item-chips", style: { margin: "8px 0" } }, ids.map((id, i) => {
+      const m = mastery2(p, phase, id);
+      return h("button", {
+        class: `chip ${ITEM_CHIP[m.status]}`,
+        type: "button",
+        "aria-pressed": String(id === current2),
+        "data-item": id,
+        "data-status": m.status,
+        "aria-label": `${label(id, i)}: ${ITEM_LABEL[m.status]}`,
+        onclick: () => onPick(id)
+      }, label(id, i));
+    }));
+  }
+  function statusFeedback(result, extra = []) {
+    const cls = result.status === "passed" ? "good" : result.status === "needs_practice" ? "bad" : "mid";
+    const head = result.status === "passed" ? "Aprovado" : result.status === "needs_practice" ? "Precisa de pr\xE1tica" : result.status === "pending" ? "Aguardando avalia\xE7\xE3o" : "Inconclusivo";
+    return h(
+      "div",
+      { class: `feedback ${cls}`, "data-role": "feedback", "data-status": result.status, role: "status" },
+      h(
+        "div",
+        { class: "head" },
+        icon(result.status === "passed" ? "check" : result.status === "needs_practice" ? "x" : "refresh"),
+        head,
+        typeof result.score === "number" ? h("span", { class: "score-tag", "data-role": "score", text: `${result.score}%` }) : null
+      ),
+      result.status === "inconclusive" ? h("div", { class: "small", text: "N\xE3o aprova nem reprova: tente de novo." }) : null,
+      result.feedback && result.feedback.summary ? h("p", { class: "small", text: result.feedback.summary }) : null,
+      ...extra
+    );
+  }
+  async function speechReady(area, App2, onReady) {
+    const st = await asrEngine().status().catch(() => "unsupported");
+    if (st === "installed") return true;
+    const why = unsupportedReason();
+    if (why) {
+      area.append(h("div", { class: "notice bad small", "data-role": "asr-unsupported", text: `Reconhecimento de fala indispon\xEDvel neste navegador (${why}). As tentativas de fala ficam inconclusivas.` }));
+      return false;
+    }
+    area.append(asrSetupCard(App2, { onInstalled: onReady, onLater: () => {
+    } }));
+    return false;
+  }
+  async function recordAndEvaluate({ target, maxMs, word, statusEl, ctx }) {
+    let session;
+    try {
+      session = await start({ maxMs });
+    } catch (e) {
+      return { result: evaluateSpeech(target, null, { reason: e.userMessage || "N\xE3o foi poss\xEDvel usar o microfone." }), micError: e.userMessage || "Microfone indispon\xEDvel." };
+    }
+    return new Promise((resolve) => {
+      clear(statusEl).append(
+        h("span", { class: "wp-dot", "aria-hidden": "true" }),
+        " Gravando\u2026 toque em Parar quando terminar.",
+        h("button", { class: "btn primary block", type: "button", "data-role": "stop", style: { marginTop: "8px" }, onclick: () => session.stop() }, icon("stop"), "Parar")
+      );
+      ctx.cleanups.push(() => session.cancel());
+      session.stopped.then(async ({ blob }) => {
+        if (!ctx.alive) return resolve(null);
+        clear(statusEl).append(h("span", { class: "spinner", "aria-hidden": "true" }), " Reconhecendo no aparelho\u2026");
+        const analysis = await analyseBlob(blob).catch(() => null);
+        const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
+        let asr = null, reason = "";
+        try {
+          asr = await asrEngine().transcribe(blob, { word });
+        } catch (e) {
+          reason = `O reconhecimento falhou nesta grava\xE7\xE3o (${e.message}). Isso n\xE3o conta como erro seu.`;
+        }
+        if (!ctx.alive) return resolve(null);
+        const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
+        const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === "possibly-truncated" || x.code === "lost-part");
+        clear(statusEl);
+        resolve({ result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }), heard: asr ? asr.text : null });
+      });
+    });
+  }
+  function speechDetails(result, heard) {
+    const f = result.feedback || {};
+    return [
+      heard !== null && heard !== void 0 ? h("div", { class: "small" }, h("span", { class: "muted", text: "O app ouviu: " }), h("span", { "data-role": "heard", text: `\u201C${heard}\u201D` })) : null,
+      f.toPractise && f.toPractise.length ? h("div", { class: "small" }, h("span", { class: "muted", text: "Palavras a praticar: " }), f.toPractise.join(", ")) : null,
+      h("div", { class: "tiny muted", text: "Correspond\xEAncia entre a transcri\xE7\xE3o e o texto \u2014 n\xE3o \xE9 avalia\xE7\xE3o fon\xE9tica da pron\xFAncia." })
+    ];
+  }
+  function phaseVocab(App2, { pack, act, p, area, ctx }) {
+    const items = itemsOf(pack, act);
+    const ids = items.map((x) => x.id);
+    let current2 = nextItem(ids, p, "vocab") || ids[0];
+    let last = null;
+    const draw = async () => {
+      const it = items.find((x) => x.id === current2);
+      const m = mastery2(p, "vocab", it.id);
+      const n = listensOf(p, `vocab:${it.id}`);
+      const canSpeak = canSpeakItem(p, it.id);
+      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
+      const listenBtn = h("button", { class: "btn primary", type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
+      const recBtn = h("button", { class: "btn block", type: "button", "data-role": "record-item", disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
+      const fb = h("div", { "data-role": "item-result" });
+      clear(area).append(
+        h("p", { class: "small muted", text: `Ou\xE7a cada item ${LISTENS_REQUIRED} vezes at\xE9 o fim; depois, grave voc\xEA dizendo. Aprova\xE7\xE3o: ${THRESHOLD}% de correspond\xEAncia em cada item.` }),
+        itemChips(ids, p, "vocab", (id, i) => String(i + 1), current2, (id) => {
+          current2 = id;
+          last = null;
+          draw();
+        }),
+        h(
+          "section",
+          { class: "card", "data-role": "vocab-card", "data-item": it.id, "data-status": m.status },
+          h("div", { class: "eyebrow", text: TYPE_LABEL[it.type] || it.type }),
+          h("div", { class: "big-en en", "data-role": "item-en", text: it.en }),
+          h("div", { class: "small muted", text: `Significado no contexto: ${it.pt}` }),
+          h(
+            "div",
+            { class: "row", style: { marginTop: "10px" } },
+            listenBtn,
+            h("span", { class: "small", "data-role": "listen-count", text: `Audi\xE7\xF5es: ${Math.min(n, LISTENS_REQUIRED)}/${LISTENS_REQUIRED}` })
+          ),
+          hasAudio(it.audio) ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para este item: a produ\xE7\xE3o oral fica bloqueada." }),
+          h("div", { style: { marginTop: "12px" } }, recBtn),
+          status3
+        ),
+        fb
+      );
+      if (last && last.id === it.id) fb.append(statusFeedback(last.result, speechDetails(last.result, last.heard)));
+      else if (m.status !== "unseen") fb.append(h("div", { class: `chip ${ITEM_CHIP[m.status]}`, "data-role": "item-status", text: `${ITEM_LABEL[m.status]}${m.bestValidScore !== null ? ` \xB7 melhor ${m.bestValidScore}%` : ""}` }));
+      if (m.status === "passed" || last && last.id === it.id) fb.append(h(
+        "div",
+        { class: "card flat small", "data-role": "item-explanation", style: { marginTop: "8px" } },
+        h("b", { text: it.en }),
+        ` \u2014 ${it.pt}.`,
+        it.sourceLineIds.length ? h("div", { class: "muted", text: `Aparece em ${it.sourceLineIds.length} ${it.sourceLineIds.length === 1 ? "fala" : "falas"} deste di\xE1logo.` }) : null
+      ));
+      const next = nextItem(ids, p, "vocab");
+      if (next && next !== it.id && m.status === "passed") fb.append(h("button", { class: "btn primary block", type: "button", "data-role": "next-item", style: { marginTop: "10px" }, onclick: () => {
+        current2 = next;
+        last = null;
+        draw();
+      } }, "Pr\xF3ximo item", icon("next")));
+      area.append(phaseFooter(pack, act, p, "vocab"));
+      listenBtn.onclick = async () => {
+        listenBtn.disabled = true;
+        const r = await playOnce({ key: it.audio, text: it.spoken });
+        if (!ctx.alive) return;
+        if (r.completed) {
+          recordListen(p, `vocab:${it.id}`);
+          await save();
+        }
+        draw();
+      };
+      recBtn.onclick = async () => {
+        if (!await speechReady(status3, App2, () => draw())) return;
+        recBtn.disabled = true;
+        const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8e3, word: !/\s/.test(it.spoken), statusEl: status3, ctx });
+        if (!out || !ctx.alive) return;
+        const result = { ...out.result, rubricVersion: "dre-speech-lexical-1" };
+        addAttempt(p, { attemptId: newAttemptId(), phase: "vocab", itemId: it.id, inputType: "speech", response: out.heard, result });
+        settleCompletion(pack, act, p);
+        await save();
+        last = { id: it.id, result, heard: out.heard };
+        if (out.micError) toast(out.micError, 6e3);
+        draw();
+      };
+    };
+    if (!items.length) {
+      clear(area).append(h("p", { class: "small muted", text: "Esta atividade n\xE3o tem itens de vocabul\xE1rio nos documentos." }), phaseFooter(pack, act, p, "vocab"));
+      return;
+    }
+    draw();
+  }
+  function phaseDictation(App2, { pack, act, p, area, ctx }) {
+    const order = phaseOrder(p, "dictation", act.lines.map((l) => l.id));
+    save();
+    let current2 = nextItem(order, p, "dictation") || order[0];
+    let last = null;
+    const items = itemsOf(pack, act);
+    const draw = () => {
+      const l = act.lines.find((x) => x.id === current2);
+      const m = mastery2(p, "dictation", l.id);
+      const lineWords = foldPt(l.pt).split(" ").filter(Boolean);
+      const whole = (pt) => {
+        const w = foldPt(String(pt).replace(/\(.*?\)/g, "")).split(" ").filter(Boolean);
+        return w.length >= lineWords.length * 0.6;
+      };
+      const hints = items.filter((it) => it.sourceLineIds.includes(l.id) && !whole(it.pt)).map((it) => it.pt);
+      const input = h("textarea", { class: "field en", rows: 3, "data-role": "answer", "aria-label": "Escreva em ingl\xEAs a frase que voc\xEA ouviu", autocapitalize: "sentences", spellcheck: "false", placeholder: "Escreva em ingl\xEAs o que voc\xEA ouviu" });
+      const send = h("button", { class: "btn primary block", type: "button", "data-role": "submit", style: { marginTop: "10px" } }, icon("check"), "Enviar");
+      const fb = h("div", { "data-role": "line-result" });
+      clear(area).append(
+        h("p", { class: "small muted", text: `Ou\xE7a a fala em ingl\xEAs e escreva-a. Cada frase precisa de ${THRESHOLD}% de correspond\xEAncia. A frase s\xF3 aparece depois do envio.` }),
+        itemChips(order, p, "dictation", (id, i) => String(i + 1), current2, (id) => {
+          current2 = id;
+          last = null;
+          draw();
+        }),
+        h(
+          "section",
+          { class: "card", "data-role": "dictation-card", "data-line": l.id, "data-status": m.status },
+          h("div", { class: "eyebrow", text: `Fala de ${l.speaker}` }),
+          h(
+            "div",
+            { class: "small", "data-role": "hint" },
+            h("b", { text: "Pista em portugu\xEAs: " }),
+            hints.length ? hints.join(" \xB7 ") : act.context || `Fala de ${l.speaker} neste di\xE1logo.`
+          ),
+          h(
+            "div",
+            { class: "row", style: { marginTop: "10px" } },
+            h("button", { class: "btn", type: "button", "data-role": "listen-line", disabled: !hasAudio(l.audio), onclick: () => play({ key: l.audio, text: l.en }) }, icon("speaker"), "Ouvir a fala"),
+            h("button", { class: "btn ghost", type: "button", disabled: !hasAudio(l.audio), onclick: () => play({ key: l.audio, text: l.en }, { rate: 0.75 }) }, icon("slow"), "Mais devagar")
+          ),
+          hasAudio(l.audio) ? null : h("div", { class: "notice warn small", text: "\xC1udio indispon\xEDvel para esta fala." }),
+          h("div", { style: { marginTop: "10px" } }, input),
+          send
+        ),
+        fb
+      );
+      if (last && last.id === l.id) {
+        const f = last.result.feedback || {};
+        fb.append(statusFeedback(last.result, [
+          h("div", { class: "model en", "data-role": "reference" }, h("span", { class: "small muted", text: "Frase: " }), l.en),
+          f.omissions && f.omissions.length ? h("div", { class: "small", text: `Faltou: ${f.omissions.join(", ")}` }) : null,
+          f.insertions && f.insertions.length ? h("div", { class: "small", text: `A mais: ${f.insertions.join(", ")}` }) : null,
+          f.spelling && f.spelling.length ? h("div", { class: "small", text: `Ortografia: ${f.spelling.join(", ")}` }) : null,
+          f.reordered && f.reordered.length ? h("div", { class: "small", text: `Fora de ordem: ${f.reordered.join(", ")}` }) : null,
+          ...(f.notes || []).map((n) => h("div", { class: "small muted", text: n }))
+        ]));
+        const next = nextItem(order.filter((id) => id !== l.id), p, "dictation");
+        if (next) fb.append(h("button", { class: "btn primary block", type: "button", "data-role": "next-item", style: { marginTop: "10px" }, onclick: () => {
+          current2 = next;
+          last = null;
+          draw();
+        } }, "Pr\xF3xima frase", icon("next")));
+      } else if (m.status === "passed") {
+        fb.append(h("div", { class: "chip ok", "data-role": "item-status", text: `Aprovada \xB7 ${m.bestValidScore}%` }), h("div", { class: "en small", text: l.en }));
+      }
+      area.append(phaseFooter(pack, act, p, "dictation"));
+      send.onclick = async () => {
+        const answer = input.value.trim();
+        if (!answer) {
+          toast("Escreva a frase antes de enviar.");
+          return;
+        }
+        send.disabled = true;
+        const result = scoreWriting(App2.checker, answer, l.en, l.acceptedVariants || []);
+        addAttempt(p, { attemptId: newAttemptId(), phase: "dictation", itemId: l.id, inputType: "text", response: answer, result });
+        settleCompletion(pack, act, p);
+        await save();
+        last = { id: l.id, result };
+        if (ctx.alive) draw();
+      };
+    };
+    draw();
+  }
+  function phaseTranslation(App2, { pack, act, p, area, ctx }) {
+    const ids = act.lines.map((l) => l.id);
+    let current2 = nextItem(ids, p, "translation") || ids[0];
+    let last = null;
+    const draw = () => {
+      const l = act.lines.find((x) => x.id === current2);
+      const m = mastery2(p, "translation", l.id);
+      const { blocker } = remote();
+      const input = h("textarea", { class: "field", rows: 3, "data-role": "answer", "aria-label": "Escreva a tradu\xE7\xE3o em portugu\xEAs", placeholder: "Tradu\xE7\xE3o em portugu\xEAs" });
+      const send = h("button", { class: "btn primary block", type: "button", "data-role": "submit", style: { marginTop: "10px" } }, icon("check"), "Enviar tradu\xE7\xE3o");
+      const fb = h("div", { "data-role": "line-result" });
+      clear(area).append(
+        h("p", { class: "small muted", text: `Traduza cada fala para o portugu\xEAs. A corre\xE7\xE3o \xE9 pelo sentido (avalia\xE7\xE3o online); cada fala precisa de ${THRESHOLD}%. A tradu\xE7\xE3o de refer\xEAncia s\xF3 aparece depois da avalia\xE7\xE3o.` }),
+        itemChips(ids, p, "translation", (id, i) => String(i + 1), current2, (id) => {
+          current2 = id;
+          last = null;
+          draw();
+        }),
+        h(
+          "section",
+          { class: "card", "data-role": "translation-card", "data-line": l.id, "data-status": m.status },
+          h("div", { class: "eyebrow", text: l.speaker }),
+          h(
+            "div",
+            { class: "row nowrap" },
+            h("div", { class: "grow en big-en", "data-role": "source", text: l.en }),
+            h("button", { class: "icon-btn", type: "button", "aria-label": "Ouvir", disabled: !hasAudio(l.audio), onclick: () => play({ key: l.audio, text: l.en }) }, icon("speaker"))
+          ),
+          m.status === "pending_evaluation" ? h("div", { class: "notice warn small", "data-role": "pending-note", text: "Sua tradu\xE7\xE3o est\xE1 salva e aguarda avalia\xE7\xE3o online." }) : h("div", { style: { marginTop: "10px" } }, input),
+          m.status === "pending_evaluation" ? null : send
+        ),
+        fb
+      );
+      if (blocker && m.status !== "passed") fb.append(blockerCard(blocker, () => draw()));
+      const tf = last && last.id === l.id ? translationFeedback(last.result, l) : m.status === "passed" ? translationFeedback(m.passedAttempt, l) : null;
+      if (tf) fb.append(tf);
+      const next = nextItem(ids.filter((id) => id !== l.id), p, "translation");
+      if (next && m.status !== "unseen") fb.append(h("button", { class: "btn block", type: "button", "data-role": "next-item", style: { marginTop: "10px" }, onclick: () => {
+        current2 = next;
+        last = null;
+        draw();
+      } }, "Pr\xF3xima fala", icon("next")));
+      area.append(phaseFooter(pack, act, p, "translation"));
+      send.onclick = async () => {
+        const answer = input.value.trim();
+        if (!answer) {
+          toast("Escreva a tradu\xE7\xE3o antes de enviar.");
+          return;
+        }
+        send.disabled = true;
+        const attemptId = newAttemptId();
+        const local = localTranslation(answer, l);
+        addAttempt(p, { attemptId, phase: "translation", itemId: l.id, inputType: "text", response: answer, result: local || { status: "pending", evaluationMode: "remote_ai" } });
+        await save();
+        if (!local && !remote().blocker) {
+          clear(fb).append(h("div", { class: "small", role: "status" }, h("span", { class: "spinner", "aria-hidden": "true" }), " Avaliando o sentido\u2026"));
+          await flushQueue({ force: true });
+        }
+        settleCompletion(pack, act, p);
+        await save();
+        last = { id: l.id, result: p.attempts[attemptId] };
+        if (ctx.alive) draw();
+      };
+    };
+    draw();
+  }
+  function blockerCard(blocker, onChange) {
+    const box2 = h("div", { class: "notice warn small", "data-role": "remote-blocker", "data-code": blocker.code, style: { marginTop: "10px" } }, blocker.text);
+    if (blocker.code === "consent") box2.append(h(
+      "div",
+      { class: "row", style: { marginTop: "8px" } },
+      h("button", { class: "btn primary small", type: "button", "data-role": "consent-yes", onclick: async () => {
+        store.consent = { online: true, at: Date.now() };
+        await save();
+        await flushQueue({ force: true });
+        onChange();
+      } }, "Autorizar envio"),
+      h("button", { class: "btn ghost small", type: "button", onclick: () => box2.remove() }, "Agora n\xE3o")
+    ));
+    return box2;
+  }
+  function translationFeedback(a, l) {
+    if (!a) return null;
+    if (a.status === "pending") return statusFeedback({ status: "pending", feedback: { summary: "Resposta salva. A avalia\xE7\xE3o do sentido acontece online; nada foi decidido ainda." } });
+    const f = a.feedback || {};
+    return statusFeedback(a, [
+      f.preservedElements && f.preservedElements.length ? h("div", { class: "small", text: `Preservou: ${f.preservedElements.join("; ")}` }) : null,
+      f.omissions && f.omissions.length ? h("div", { class: "small", text: `Omitiu: ${f.omissions.join("; ")}` }) : null,
+      f.distortions && f.distortions.length ? h("div", { class: "small", text: `Distorceu: ${f.distortions.join("; ")}` }) : null,
+      f.naturalnessNotes && f.naturalnessNotes.length ? h("div", { class: "small", text: `Naturalidade: ${f.naturalnessNotes.join("; ")}` }) : null,
+      f.suggestedTranslation ? h("div", { class: "small", text: `Sugest\xE3o: ${f.suggestedTranslation}` }) : null,
+      h("div", { class: "small", "data-role": "reference" }, h("span", { class: "muted", text: "Tradu\xE7\xE3o de refer\xEAncia (autoral): " }), l.pt),
+      h("div", { class: "tiny muted", text: a.evaluationMode === "remote_ai" ? `Avalia\xE7\xE3o online \xB7 rubrica ${a.rubricVersion}` : "Avalia\xE7\xE3o local (igual \xE0 refer\xEAncia ou resposta ainda em ingl\xEAs)." })
+    ]);
+  }
+  function phaseListening(App2, { pack, act, p, area, ctx }) {
+    const qs = questionsOf(pack, act);
+    let answers = {};
+    let shown = null;
+    const draw = () => {
+      const next = listeningNext(p, qs.length);
+      const n = listensOf(p, "listening");
+      clear(area);
+      area.append(h("p", { class: "small muted", text: `Ou\xE7a o di\xE1logo completo ${LISTENS_REQUIRED} vezes at\xE9 o fim (pode anotar). Depois, responda \xE0s ${QUESTIONS_TOTAL} quest\xF5es; a rodada \xE9 aprovada com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}. A corre\xE7\xE3o aparece s\xF3 depois do envio.` }));
+      const allAudio = act.lines.every((l) => hasAudio(l.audio));
+      const now = h("div", { class: "small muted", "data-role": "full-status" });
+      const play3 = h("button", { class: "btn primary", type: "button", "data-role": "play-dialogue", disabled: !allAudio }, icon("play"), n ? "Ouvir de novo" : "Ouvir o di\xE1logo completo");
+      area.append(h(
+        "section",
+        { class: "card", "data-role": "listening-card" },
+        h(
+          "div",
+          { class: "row" },
+          play3,
+          h("button", { class: "btn ghost", type: "button", onclick: () => stopAll() }, icon("stop"), "Parar"),
+          h("span", { class: "small", "data-role": "listen-count", text: `Audi\xE7\xF5es completas: ${Math.min(n, LISTENS_REQUIRED)}/${LISTENS_REQUIRED}` })
+        ),
+        now,
+        allAudio ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para uma ou mais falas: a fase n\xE3o pode ser feita." }),
+        h("label", { class: "small muted", for: "dlg-notes", text: "Suas anota\xE7\xF5es (opcional, n\xE3o s\xE3o avaliadas)" }),
+        notesField()
+      ));
+      play3.onclick = async () => {
+        play3.disabled = true;
+        const ok = await playAll(act.lines.map((l) => ({ key: l.audio, text: l.en })), { onIndex: (i) => {
+          now.textContent = i >= 0 ? `Tocando a fala ${i + 1} de ${act.lines.length}` : "";
+        } });
+        if (!ctx.alive) return;
+        if (ok) {
+          recordListen(p, "listening");
+          await save();
+        } else toast("Audi\xE7\xE3o interrompida: n\xE3o conta. Ou\xE7a at\xE9 o fim.");
+        draw();
+      };
+      if (next === "blocked") {
+        area.append(h(
+          "div",
+          { class: "notice warn", "data-role": "questions-missing" },
+          h("b", { text: "Quest\xF5es ainda n\xE3o curadas. " }),
+          `Esta atividade precisa de ${QUESTIONS_TOTAL} quest\xF5es de compreens\xE3o validadas; o app n\xE3o cria quest\xF5es por conta pr\xF3pria. As audi\xE7\xF5es e anota\xE7\xF5es ficam salvas.`
+        ));
+      } else if (shown) {
+        area.append(roundFeedback(shown, qs));
+      } else if (next === "listen") {
+        area.append(h("div", { class: "small muted", "data-role": "questions-locked", text: `As quest\xF5es aparecem depois da ${LISTENS_REQUIRED}\xAA audi\xE7\xE3o completa.` }));
+      } else if (next === "full" || next === "recovery") {
+        const last = p.rounds[p.rounds.length - 1];
+        const list = next === "recovery" ? qs.filter((q) => wrongOf(last).includes(q.id)) : qs;
+        area.append(questionForm(list, next));
+      }
+      area.append(phaseFooter(pack, act, p, "listening"));
+    };
+    function notesField() {
+      const t = h("textarea", { class: "field", id: "dlg-notes", rows: 3, "data-role": "notes", oninput: (e) => {
+        p.notes = e.target.value;
+        putKv(STORE_KEY, store).catch(() => {
+        });
+      } });
+      t.value = p.notes || "";
+      return t;
+    }
+    const questionForm = (list, kind) => {
+      const form = h("section", { class: "stack", "data-role": "questions", "data-kind": kind });
+      if (kind === "recovery") form.append(h("div", { class: "notice small", text: "Recupera\xE7\xE3o: refa\xE7a as quest\xF5es que voc\xEA errou. Depois, uma nova rodada completa decide a fase." }));
+      list.forEach((q, i) => {
+        const opts = orderedOptions(q, kind);
+        form.append(h(
+          "div",
+          { class: "card", role: "group", "aria-labelledby": `q-${q.id}`, "data-question": q.id },
+          h("div", { class: "dlg-q", id: `q-${q.id}`, text: `${i + 1}. ${q.prompt}` }),
+          h("div", { class: "options" }, opts.map((o) => h("button", {
+            class: "option",
+            type: "button",
+            "aria-pressed": String(answers[q.id] === o.id),
+            "data-option": o.id,
+            onclick: (e) => {
+              answers[q.id] = o.id;
+              e.currentTarget.parentElement.querySelectorAll(".option").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.option === o.id)));
+            }
+          }, o.text)))
+        ));
+      });
+      form.append(h("button", { class: "btn primary block", type: "button", "data-role": "submit-round", onclick: async () => {
+        const missing = list.filter((q) => !answers[q.id]).length;
+        if (missing) {
+          toast(`Responda todas as quest\xF5es (${missing} sem resposta).`);
+          return;
+        }
+        const round2 = gradeRound(list, answers, { kind });
+        addRound(p, round2);
+        settleCompletion(pack, act, p);
+        await save();
+        shown = round2;
+        answers = {};
+        if (ctx.alive) draw();
+      } }, "Enviar respostas"));
+      return form;
+    };
+    const roundFeedback = (round2, all) => h(
+      "section",
+      { class: "stack", "data-role": "round-result", "data-passed": String(round2.passed), "data-correct": String(round2.correct) },
+      h(
+        "div",
+        { class: `feedback ${round2.kind === "full" ? round2.passed ? "good" : "bad" : "mid"}` },
+        h("div", { class: "head", text: round2.kind === "full" ? `${round2.correct}/${round2.total} \u2014 ${round2.passed ? "rodada aprovada" : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}`}` : `Recupera\xE7\xE3o: ${round2.correct}/${round2.total}` })
+      ),
+      ...round2.results.map((r) => {
+        const q = all.find((x) => x.id === r.questionId);
+        const right = q.options.find((o) => o.id === q.correctOptionId);
+        return h(
+          "div",
+          { class: `card flat small`, "data-question": q.id, "data-correct": String(r.correct) },
+          h("b", { text: `${r.correct ? "\u2713" : "\u2717"} ${q.prompt}` }),
+          r.correct ? null : h("div", { text: `Resposta: ${right.text}` }),
+          q.explanation ? h("div", { class: "muted", text: q.explanation }) : null
+        );
+      }),
+      h("button", { class: "btn block", type: "button", "data-role": "continue", onclick: () => {
+        shown = null;
+        draw();
+      } }, "Continuar")
+    );
+    const orderedOptions = (q, kind) => {
+      const key = `opts:${q.id}:${p.rounds.length}`;
+      if (!p.order[key]) {
+        const o = q.options.map((x) => x.id);
+        for (let i = o.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [o[i], o[j]] = [o[j], o[i]];
+        }
+        p.order[key] = o;
+      }
+      return p.order[key].map((id) => q.options.find((x) => x.id === id)).filter(Boolean);
+    };
+    draw();
+  }
+  function phaseReading(App2, { pack, act, p, area, ctx }) {
+    const ids = act.lines.map((l) => l.id);
+    let current2 = nextItem(ids, p, "reading") || ids[0];
+    let last = null;
+    const draw = () => {
+      const l = act.lines.find((x) => x.id === current2);
+      const m = mastery2(p, "reading", l.id);
+      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
+      const recBtn = h("button", { class: "btn primary block", type: "button", "data-role": "record-line" }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar a leitura");
+      const fb = h("div", { "data-role": "line-result" });
+      clear(area).append(
+        h("p", { class: "small muted", text: `Leia cada fala em voz alta. Aprova\xE7\xE3o: ${THRESHOLD}% de correspond\xEAncia confi\xE1vel por fala. Transcri\xE7\xE3o duvidosa n\xE3o reprova: fica inconclusiva.` }),
+        itemChips(ids, p, "reading", (id, i) => String(i + 1), current2, (id) => {
+          current2 = id;
+          last = null;
+          draw();
+        }),
+        h(
+          "section",
+          { class: "card", "data-role": "reading-card", "data-line": l.id, "data-status": m.status },
+          h("div", { class: "eyebrow", text: l.speaker }),
+          h("div", { class: "big-en en", "data-role": "target", text: l.en }),
+          h(
+            "div",
+            { class: "row", style: { marginTop: "8px" } },
+            h("button", { class: "btn ghost small", type: "button", disabled: !hasAudio(l.audio), onclick: () => play({ key: l.audio, text: l.en }) }, icon("speaker"), "Ouvir o modelo")
+          ),
+          h("div", { style: { marginTop: "12px" } }, recBtn),
+          status3
+        ),
+        fb
+      );
+      if (last && last.id === l.id) fb.append(statusFeedback(last.result, speechDetails(last.result, last.heard)));
+      else if (m.status !== "unseen") fb.append(h("div", { class: `chip ${ITEM_CHIP[m.status]}`, "data-role": "item-status", text: `${ITEM_LABEL[m.status]}${m.bestValidScore !== null ? ` \xB7 melhor ${m.bestValidScore}%` : ""}` }));
+      const next = nextItem(ids.filter((id) => id !== l.id), p, "reading");
+      if (next && m.status !== "unseen") fb.append(h("button", { class: `btn block${m.status === "passed" ? " primary" : ""}`, type: "button", "data-role": "next-item", style: { marginTop: "10px" }, onclick: () => {
+        current2 = next;
+        last = null;
+        draw();
+      } }, "Pr\xF3xima fala", icon("next")));
+      area.append(phaseFooter(pack, act, p, "reading"));
+      recBtn.onclick = async () => {
+        if (!await speechReady(status3, App2, () => draw())) return;
+        recBtn.disabled = true;
+        const out = await recordAndEvaluate({ target: l.en, maxMs: 3e4, word: false, statusEl: status3, ctx });
+        if (!out || !ctx.alive) return;
+        addAttempt(p, { attemptId: newAttemptId(), phase: "reading", itemId: l.id, inputType: "speech", response: out.heard, result: out.result });
+        settleCompletion(pack, act, p);
+        await save();
+        last = { id: l.id, result: out.result, heard: out.heard };
+        if (out.micError) toast(out.micError, 6e3);
+        draw();
+      };
+    };
+    draw();
   }
 
   // app/js/ui/home.js
@@ -6302,6 +7835,8 @@ ${body.join("\n\n")}
       }));
     }
     view.append(courseHomeCard(App2));
+    const dlg = dialogueHomeCard(App2);
+    if (dlg) view.append(dlg);
     const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App2.content, c.k)).length;
     if (due) view.append(h(
       "a",
@@ -7072,42 +8607,6 @@ ${body.join("\n\n")}
     return out;
   }
 
-  // app/js/engine/integrity.js
-  var TOKENS_PER_SECOND = 6;
-  function estimateTokens(text) {
-    const s = String(text || "");
-    const words3 = wordTokens(s);
-    let n = 0;
-    for (const w of words3) n += /\d/.test(w) ? Math.max(2, w.replace(/\D/g, "").length + 1) : w.length > 7 ? 2 : 1;
-    return n + (s.match(/[.,!?;:]/g) || []).length;
-  }
-  function transcriptIntegrity({ text = "", segments = null, secs = null } = {}) {
-    const parts = segments && segments.length ? segments : secs ? [{ secs, text, voicedSec: null }] : null;
-    if (!parts) return { checked: false, complete: null, issues: [] };
-    const issues = [];
-    parts.forEach((p, i) => {
-      const label = parts.length > 1 ? ` (trecho ${i + 1} de ${parts.length})` : "";
-      const budget = Math.trunc((p.secs || 0) * TOKENS_PER_SECOND);
-      const words4 = wordTokens(p.text || "").length;
-      if (budget > 0 && words4 > 0 && estimateTokens(p.text) >= budget - 1) {
-        issues.push({ code: "possibly-truncated", part: i, msg: `A transcri\xE7\xE3o pode ter sido cortada no fim${label}: o reconhecedor chegou perto do limite de texto para esse tempo de \xE1udio.` });
-      }
-      if (p.voicedSec != null && p.voicedSec >= 1 && words4 === 0) {
-        issues.push({ code: "lost-part", part: i, msg: `Um trecho com voz n\xE3o gerou texto${label}: parte da fala pode ter sido perdida pelo reconhecimento.` });
-      }
-      if (p.cutInSpeech && i < parts.length - 1) {
-        issues.push({ code: "cut-in-speech", part: i, msg: `A divis\xE3o do \xE1udio caiu no meio da fala${label}: uma palavra pode ter sido partida ou repetida na emenda.` });
-      }
-    });
-    const voiced = parts.reduce((n, p) => n + (p.voicedSec || 0), 0);
-    const words3 = segments && segments.length ? parts.reduce((n, p) => n + wordTokens(p.text || "").length, 0) : wordTokens(text).length;
-    if (voiced >= 4 && words3 / voiced < 0.6) {
-      issues.push({ code: "low-density", msg: "H\xE1 bem menos palavras do que o tempo de fala sugere: parte do que voc\xEA disse pode n\xE3o ter sido reconhecida." });
-    }
-    return { checked: true, complete: issues.length === 0, issues };
-  }
-  var mayHaveLostSpeech = (integ) => !!integ && integ.issues.some((x) => ["possibly-truncated", "lost-part", "low-density", "cut-in-speech"].includes(x.code));
-
   // app/js/engine/freeanswer.js
   var STOP = new Set("a an the and or but so if of to in on at for from by with about as into than then also too very really just i me my mine you your yours he him his she her it its we us our they them their this that these those there here be is am are was were been being do does did done have has had having can could will would shall should may might must not no yes oh um uh er ah hmm yeah okay ok well like what when where why how who which some any all every each much many more most lot lots thing things kind sort get got go going gone make made take took say said tell told know think".split(" "));
   var DAILY = "wake sleep bed alarm breakfast lunch dinner supper meal snack coffee tea juice milk water toast bread egg eggs cereal fruit banana apple rice beans salad sandwich pasta pizza soup chicken meat fish vegetable cook cooking kitchen dish dishes shower bath teeth brush dress clothes uniform work job office company boss colleague coworker meeting email computer laptop desk report project task school college university class lesson course study homework teacher student english language book read write news newspaper watch tv television series movie film music song listen podcast radio phone message call chat text drive car bus train subway metro walk bike cycle taxi uber ride traffic commute home house apartment flat room clean cleaning laundry wash shop shopping supermarket market store buy pay gym exercise workout run running jog sport football soccer swim swimming yoga training walk family wife husband son daughter child kid baby parent mother mom mum father dad brother sister friend neighbour neighbor dog cat pet morning afternoon evening night noon midnight early late today weekday weekend monday tuesday wednesday thursday friday saturday sunday day week month year hour minute usually always sometimes often never daily routine schedule busy tired relax rest nap break hobby chess game play pray church eat drink prepare start finish leave arrive return spend stay visit help meet plan organise organize free time fun enjoy love park garden street bank salary shift customer client patient".split(" ");
@@ -7781,7 +9280,7 @@ ${body.join("\n\n")}
     return vocabCache.get(content);
   };
   var fmt2 = (n) => String(n).replace(".", ",");
-  var STATE_LABEL3 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
+  var STATE_LABEL4 = { good: "Compat\xEDvel", needs_practice: "Confira", uncertain: "N\xE3o avaliada" };
   function freeAnswerPanel(App2, { question = "", model = "", alternatives = [], modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
@@ -8035,7 +9534,7 @@ ${body.join("\n\n")}
           continue;
         }
         const info = states.get(seg.w) || { state: "uncertain", reason: "" };
-        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL3[info.state]}`, text: seg.text });
+        const span = h("span", { class: `w w-${info.state}`, role: "button", tabindex: "0", "data-state": info.state, "aria-label": `${seg.text}: ${STATE_LABEL4[info.state]}`, text: seg.text });
         const pick = () => {
           spans.forEach((s) => s.classList.toggle("w-focus", s === span));
           if (onPick && info.state === "needs_practice") {
@@ -8049,7 +9548,7 @@ ${body.join("\n\n")}
               "div",
               { class: "row nowrap" },
               h("b", { class: "en", text: seg.text }),
-              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL3[info.state] }),
+              h("span", { class: `chip w-chip-${info.state}`, text: STATE_LABEL4[info.state] }),
               h("span", { class: "spacer" }),
               hasEmbedded(key) ? h("button", { class: "btn small", type: "button", onclick: () => play({ key, text: clean }) }, icon("speaker"), "Ouvir") : null
             ),
@@ -8070,7 +9569,7 @@ ${body.join("\n\n")}
       }
       const lg = legend();
       lg.querySelectorAll(".lg").forEach((el2, i) => {
-        el2.lastChild.textContent = [STATE_LABEL3.good, STATE_LABEL3.needs_practice, STATE_LABEL3.uncertain][i];
+        el2.lastChild.textContent = [STATE_LABEL4.good, STATE_LABEL4.needs_practice, STATE_LABEL4.uncertain][i];
       });
       const box2 = h(
         "div",
@@ -10323,8 +11822,12 @@ ${body.join("\n\n")}
         words: renderWords,
         course: renderCourse,
         cq: renderCourseQuestion,
-        cpr: renderCoursePractice
+        cpr: renderCoursePractice,
         // Curso — Atividades (independente das jornadas)
+        dialogues: renderDialogues,
+        dialogue: renderDialogue,
+        dphase: renderPhase
+        // atividades de diálogo em cinco fases (The Story of John)
       };
       const needsContent = ["explore", "routine", "context", "category", "session", "lab", "review", "checklist", "module", "words"];
       if (!App.journey && isPlanned(App.character) && needsContent.includes(r.name)) {

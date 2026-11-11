@@ -5,6 +5,46 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
+## Entrega — MVP de diálogo em cinco fases (2026-11-11) — commit e push da branch de trabalho autorizados pelo PO
+
+Pedido do PO: pacote `DRE_MVP_Arquitetura_Implementacao` (cópia em `docs/produto/mvp-dialogo/`). Implementação
+autorizada só no ambiente/branch de trabalho; **push, merge, deploy, publicação e contratação de serviços NÃO
+autorizados**. Referência técnica completa: `docs/dialogos.md`.
+
+- **Branch de trabalho:** `claude/daily-routine-governance-y9rr0b`, recriada localmente a partir de `origin/governanca`
+  (`c9005fa` = `curso-simplificado` `90b54b6` + governança). Commit e push desta branch autorizados pelo PO em
+  2026-11-11 (sem merge e sem publicação); `gh-pages`, `main` e `base-pedagogica` inalteradas.
+- **Conteúdo:** sete partes de *The Story of John* (fonte literal em `dev/content/dialogues/source/`) → 46 diálogos,
+  273 falas conferidas caractere por caractere, 183 itens de vocabulário; nenhum código ACT/SRC; 425 áudios britânicos
+  Kokoro (uma voz por personagem). Lacunas em `dev/content/dialogues/john-report.json`.
+- **App:** rotas `#/dialogues`, `#/dialogue/<id>`, `#/dphase/<id>?p=<fase>`; cartão no Início; progresso em
+  `kv → dialogues` (separado das jornadas); motor `js/engine/dialogue.js`, avaliadores `dialogueeval.js`, fila/cliente
+  online `evalsync.js`, telas `js/ui/dialogue.js`. Identidade visual: só tokens/classes existentes.
+- **Avaliação online:** provider-neutral; AI Gateway de referência em `dev/backend/ai-gateway/` (não implantado).
+  Sem `DRG_EVAL_ENDPOINT` no build, a CSP continua só `'self'` e traduções não idênticas à referência ficam pendentes.
+- **Build:** `56c5df6175de`, 2.222 arquivos, 20,46 MB offline (era 16,64 MB; +425 áudios), bundle 599 KB.
+- **Testes (2026-11-11):** unitários 250/250 (1 ignorado, pré-existente; a falha de `characters.test.js` da linha de
+  base sumiu porque o build regenerou `content/build/characters.json`); E2E novo `dialogue.mjs` 13/13 (questões e
+  gateway SIMULADOS só no teste; D11 com reconhecimento Moonshine real; D12 offline real com service worker).
+  Regressão no build final (Chromium, simulação do Pages, em sequência): run-pages 37/37, mvp 14/14, journey 10/10,
+  characters 14/14, lukinhas 12/12, course 18/18, coursepractice 10/10, storage 10/10, wordpractice 15/15,
+  asr-local 22/22, pwa 14/14, update-transition (`gh-pages` publicada → nova) 25/25. Logs só no ambiente temporário.
+- **Achados corrigidos durante os testes:** pista da fase 2 revelava a tradução completa quando o item era a fala
+  inteira; tela da fase não se atualizava após “Enviar agora”; questões quebravam o layout móvel (`fieldset`).
+
+### Pendências desta entrega
+
+- **Demanda D-003 (Base de Conhecimento / PO):** 10 questões de compreensão curadas por diálogo (46 diálogos). Sem elas,
+  a fase 4 fica “conteúdo pendente” e a fase 5 não abre. O app não cria questões. Formato: `ComprehensionQuestion`
+  (`docs/produto/mvp-dialogo/05`), arquivo `dev/content/dialogues/john-questions.json`.
+- **Demanda D-004:** 15 diálogos sem vocabulário próprio nos documentos e 89 itens de tabelas da parte sem fala
+  correspondente (lista no relatório).
+- **Decisões do PO:** provedor de IA, conta/chave/custo e hospedagem do gateway; política de retenção dos textos
+  enviados; bloqueio sequencial entre diálogos (hoje aberto); recuperação obrigatória na fase 4 antes de nova rodada
+  (implementada como proposta); publicar no repositório público os documentos autorais de John (hoje só em `dev/`,
+  não enviados).
+- Validação no Galaxy S25+ (roteiro em `docs/dialogos.md`); calibração do corte de 80% da IA com amostras revisadas.
+
 ## Fatos verificados (Git, 2026-11-11)
 
 | Branch | Commit | O que é |

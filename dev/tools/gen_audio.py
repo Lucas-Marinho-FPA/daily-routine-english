@@ -87,6 +87,10 @@ def main():
     if os.path.exists(jpath):
         seen = {m["key"] for m in manifest}
         manifest += [m for m in json.load(open(jpath, encoding="utf-8")) if m["key"] not in seen]
+    dpath = os.path.join(ROOT, "content/build/dialogues-audio-manifest.json")  # atividades de diálogo (The Story of John)
+    if os.path.exists(dpath):
+        seen = {m["key"] for m in manifest}
+        manifest += [m for m in json.load(open(dpath, encoding="utf-8")) if m["key"] not in seen]
     outdir = os.path.join(ROOT, "app/audio")
     os.makedirs(outdir, exist_ok=True)
     index_path = os.path.join(ROOT, "content/build/audio-durations.json")

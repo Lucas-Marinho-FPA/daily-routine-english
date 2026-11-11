@@ -18244,8 +18244,11 @@
     "ext": "png",
     "states": {
      "idle": {
-      "file": "IDLE",
-      "status": "pending"
+      "file": "heitor-avatar",
+      "status": "ready",
+      "kind": "illustration",
+      "w": 1312,
+      "h": 1199
      },
      "thinking": {
       "file": "THINKING",

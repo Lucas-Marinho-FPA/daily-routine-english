@@ -14,7 +14,8 @@ const APP = join(ROOT, 'app');
 execFileSync(process.execPath, [join(ROOT, 'tools/build-content.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(ROOT, 'tools/build-characters.mjs')], { stdio: 'inherit' }); // personagens: data/characters.js
 execFileSync(process.execPath, [join(ROOT, 'tools/build-journeys.mjs')], { stdio: 'inherit' }); // jornadas (Conversation Practice): data/journeys.js
-execFileSync(process.execPath, [join(ROOT, 'tools/build-glossary.mjs')], { stdio: 'inherit' }); // glossário en→pt (Curso — Atividades): data/glossary-en-pt.json.gz
+execFileSync(process.execPath, [join(ROOT, 'tools/build-glossary.mjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [join(ROOT, 'tools/build-dialogues.mjs')], { stdio: 'inherit' }); // atividades de diálogo (The Story of John): data/dialogues.js // glossário en→pt (Curso — Atividades): data/glossary-en-pt.json.gz
 
 mkdirSync(join(APP, 'dist'), { recursive: true });
 const esbuild = await import('esbuild');
@@ -42,6 +43,10 @@ const esbuild = await import('esbuild');
     for (const x of [...Object.values(j.content.listening), ...Object.values(j.content.reading)]) { add(x.q); x.options.forEach(add); }
     for (const it of Object.values(j.content.items)) add(it.en);
   }
+  // atividades de diálogo (The Story of John): falas e itens
+  const dlg = JSON.parse(readFileSync(join(ROOT, 'content/dialogues/john.json'), 'utf8'));
+  for (const a of dlg.activities) for (const l of a.lines) add(l.en);
+  for (const it of dlg.items) add(it.en);
   writeFileSync(join(APP, 'data/lexicon.txt.gz'), gzipSync([...words].sort().join('\n'), { level: 9 }));
   writeFileSync(join(APP, 'data/lexicon-LICENSE.txt'), 'Lista de palavras derivada do CMU Pronouncing Dictionary.\n\n' + readFileSync(join(ROOT, 'vendor/cmudict/LICENSE'), 'utf8'));
 }

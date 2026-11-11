@@ -13,6 +13,7 @@ import { characterSwitcher, characterBadge } from './character.js';
 import { stageHref } from './modules.js';
 import { installCard } from './pwa.js';
 import { courseHomeCard } from './course.js';
+import { dialogueHomeCard } from './dialogue.js';
 
 const EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
 
@@ -82,6 +83,9 @@ export function renderHome(App) {
 
   // atividades do curso (traduções; dados próprios, fora do progresso das jornadas)
   view.append(courseHomeCard(App));
+  // atividades de diálogo (The Story of John): progresso próprio, separado das jornadas
+  const dlg = dialogueHomeCard(App);
+  if (dlg) view.append(dlg);
 
   // revisão do que está vencido na trilha aberta + lembrete de backup
   const due = Object.values(state.cards).filter((c) => c.due <= today && cardInContent(App.content, c.k)).length;

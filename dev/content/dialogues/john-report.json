@@ -1,0 +1,1161 @@
+{
+ "package": "the-story-of-john",
+ "files": [
+  {
+   "file": "01_Getting_to_Know_John.md",
+   "part": 1,
+   "dialogueLines": 55,
+   "activities": 9,
+   "items": 0
+  },
+  {
+   "file": "02_Work_Studies_and_Everyday_Life.md",
+   "part": 2,
+   "dialogueLines": 35,
+   "activities": 7,
+   "items": 0
+  },
+  {
+   "file": "03_Family_Friends_and_Relationships.md",
+   "part": 3,
+   "dialogueLines": 39,
+   "activities": 7,
+   "items": 0
+  },
+  {
+   "file": "04_Opinions_Sports_and_Social_Life.md",
+   "part": 4,
+   "dialogueLines": 34,
+   "activities": 6,
+   "items": 0
+  },
+  {
+   "file": "05_Business_Calls_and_Social_Arrangements.md",
+   "part": 5,
+   "dialogueLines": 30,
+   "activities": 4,
+   "items": 0
+  },
+  {
+   "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+   "part": 6,
+   "dialogueLines": 32,
+   "activities": 5,
+   "items": 0
+  },
+  {
+   "file": "07_Travelling_and_Unexpected_Situations.md",
+   "part": 7,
+   "dialogueLines": 48,
+   "activities": 8,
+   "items": 0
+  }
+ ],
+ "unassignedItems": [
+  {
+   "part": 1,
+   "en": "go fishing / fish in the sea",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 368
+   }
+  },
+  {
+   "part": 1,
+   "en": "fish for salmon",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 369
+   }
+  },
+  {
+   "part": 1,
+   "en": "play golf",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 370
+   }
+  },
+  {
+   "part": 1,
+   "en": "golf player",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 371
+   }
+  },
+  {
+   "part": 1,
+   "en": "play basketball",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 372
+   }
+  },
+  {
+   "part": 1,
+   "en": "basketball player",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 373
+   }
+  },
+  {
+   "part": 1,
+   "en": "race cars",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 374
+   }
+  },
+  {
+   "part": 1,
+   "en": "favourite sport",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 375
+   }
+  },
+  {
+   "part": 1,
+   "en": "like + -ing",
+   "table": "Hobbies and sports — complete lexical set",
+   "src": {
+    "file": "01_Getting_to_Know_John.md",
+    "line": 376
+   }
+  },
+  {
+   "part": 2,
+   "en": "car salesperson / car salesman",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 223
+   }
+  },
+  {
+   "part": 2,
+   "en": "pilot",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 224
+   }
+  },
+  {
+   "part": 2,
+   "en": "fly an aeroplane",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 225
+   }
+  },
+  {
+   "part": 2,
+   "en": "design engines",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 227
+   }
+  },
+  {
+   "part": 2,
+   "en": "grocer",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 228
+   }
+  },
+  {
+   "part": 2,
+   "en": "sell groceries",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 229
+   }
+  },
+  {
+   "part": 2,
+   "en": "businessman / businesswoman",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 232
+   }
+  },
+  {
+   "part": 2,
+   "en": "work for a large company",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 233
+   }
+  },
+  {
+   "part": 2,
+   "en": "chef",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 234
+   }
+  },
+  {
+   "part": 2,
+   "en": "cook in a restaurant",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 235
+   }
+  },
+  {
+   "part": 2,
+   "en": "taxi driver",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 236
+   }
+  },
+  {
+   "part": 2,
+   "en": "drive a taxi",
+   "table": "Professions and actions — expanded inventory",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 237
+   }
+  },
+  {
+   "part": 2,
+   "en": "father / mother",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 253
+   }
+  },
+  {
+   "part": 2,
+   "en": "brother / sister",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 254
+   }
+  },
+  {
+   "part": 2,
+   "en": "grandson / granddaughter",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 257
+   }
+  },
+  {
+   "part": 2,
+   "en": "cousin",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 258
+   }
+  },
+  {
+   "part": 2,
+   "en": "parents",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 259
+   }
+  },
+  {
+   "part": 2,
+   "en": "grandparents",
+   "table": "Family relationships — complete reference",
+   "src": {
+    "file": "02_Work_Studies_and_Everyday_Life.md",
+    "line": 260
+   }
+  },
+  {
+   "part": 4,
+   "en": "take up a position",
+   "table": "Vocabulary & expressions",
+   "src": {
+    "file": "04_Opinions_Sports_and_Social_Life.md",
+    "line": 146
+   }
+  },
+  {
+   "part": 4,
+   "en": "come up to the finish",
+   "table": "Useful commentary chunks",
+   "src": {
+    "file": "04_Opinions_Sports_and_Social_Life.md",
+    "line": 219
+   }
+  },
+  {
+   "part": 4,
+   "en": "win the race",
+   "table": "Useful commentary chunks",
+   "src": {
+    "file": "04_Opinions_Sports_and_Social_Life.md",
+    "line": 221
+   }
+  },
+  {
+   "part": 4,
+   "en": "as fast as you can",
+   "table": "Useful commentary chunks",
+   "src": {
+    "file": "04_Opinions_Sports_and_Social_Life.md",
+    "line": 222
+   }
+  },
+  {
+   "part": 4,
+   "en": "good fun",
+   "table": "Useful commentary chunks",
+   "src": {
+    "file": "04_Opinions_Sports_and_Social_Life.md",
+    "line": 224
+   }
+  },
+  {
+   "part": 5,
+   "en": "the line is engaged",
+   "table": "Telephone language",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 173
+   }
+  },
+  {
+   "part": 5,
+   "en": "hang up",
+   "table": "Telephone language",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 174
+   }
+  },
+  {
+   "part": 5,
+   "en": "hold on",
+   "table": "Telephone language",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 175
+   }
+  },
+  {
+   "part": 5,
+   "en": "hold on a second",
+   "table": "Telephone language",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 176
+   }
+  },
+  {
+   "part": 5,
+   "en": "We are late, aren't we?",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 190
+   }
+  },
+  {
+   "part": 5,
+   "en": "I wonder what time it is.",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 191
+   }
+  },
+  {
+   "part": 5,
+   "en": "I wonder if he will come.",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 192
+   }
+  },
+  {
+   "part": 5,
+   "en": "I wonder if you could help me.",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 193
+   }
+  },
+  {
+   "part": 5,
+   "en": "a natural wonder",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 194
+   }
+  },
+  {
+   "part": 5,
+   "en": "with wonder",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 195
+   }
+  },
+  {
+   "part": 5,
+   "en": "no wonder",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 196
+   }
+  },
+  {
+   "part": 5,
+   "en": "collect stamps",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 197
+   }
+  },
+  {
+   "part": 5,
+   "en": "collect the homework",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 198
+   }
+  },
+  {
+   "part": 5,
+   "en": "collect a parcel",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 199
+   }
+  },
+  {
+   "part": 5,
+   "en": "collect the children from school",
+   "table": "Other source expressions",
+   "src": {
+    "file": "05_Business_Calls_and_Social_Arrangements.md",
+    "line": 200
+   }
+  },
+  {
+   "part": 6,
+   "en": "trousers",
+   "table": "Vocabulary — clothes and shopping",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 112
+   }
+  },
+  {
+   "part": 6,
+   "en": "shoes",
+   "table": "Vocabulary — clothes and shopping",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 113
+   }
+  },
+  {
+   "part": 6,
+   "en": "it suits you",
+   "table": "Vocabulary — clothes and shopping",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 122
+   }
+  },
+  {
+   "part": 6,
+   "en": "Could you help me?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 182
+   }
+  },
+  {
+   "part": 6,
+   "en": "Could you help me, please?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 183
+   }
+  },
+  {
+   "part": 6,
+   "en": "Could you pass the salt?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 184
+   }
+  },
+  {
+   "part": 6,
+   "en": "Would you pass the salt?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 185
+   }
+  },
+  {
+   "part": 6,
+   "en": "Would you like a cup of tea?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 186
+   }
+  },
+  {
+   "part": 6,
+   "en": "Would you take my coat, please?",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 187
+   }
+  },
+  {
+   "part": 6,
+   "en": "ask a question",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 188
+   }
+  },
+  {
+   "part": 6,
+   "en": "change in here",
+   "table": "Source coverage — requests, offers and shopping expressions",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 189
+   }
+  },
+  {
+   "part": 6,
+   "en": "catch the ball",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 200
+   }
+  },
+  {
+   "part": 6,
+   "en": "catch the train",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 201
+   }
+  },
+  {
+   "part": 6,
+   "en": "catch the next bus",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 202
+   }
+  },
+  {
+   "part": 6,
+   "en": "I didn't catch your name.",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 203
+   }
+  },
+  {
+   "part": 6,
+   "en": "Do you catch my drift?",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 204
+   }
+  },
+  {
+   "part": 6,
+   "en": "catch a thief",
+   "table": "Additional meanings of catch",
+   "src": {
+    "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+    "line": 205
+   }
+  },
+  {
+   "part": 7,
+   "en": "get in a car / taxi",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 185
+   }
+  },
+  {
+   "part": 7,
+   "en": "get out of a car",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 186
+   }
+  },
+  {
+   "part": 7,
+   "en": "go into",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 189
+   }
+  },
+  {
+   "part": 7,
+   "en": "set off",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 192
+   }
+  },
+  {
+   "part": 7,
+   "en": "look for",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 193
+   }
+  },
+  {
+   "part": 7,
+   "en": "hold on",
+   "table": "Phrasal verbs and travel chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 194
+   }
+  },
+  {
+   "part": 7,
+   "en": "check the train timetable",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 249
+   }
+  },
+  {
+   "part": 7,
+   "en": "a two-hour delay",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 250
+   }
+  },
+  {
+   "part": 7,
+   "en": "a delay in replying",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 251
+   }
+  },
+  {
+   "part": 7,
+   "en": "delay the construction",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 252
+   }
+  },
+  {
+   "part": 7,
+   "en": "delay the meeting until tomorrow",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 253
+   }
+  },
+  {
+   "part": 7,
+   "en": "How much further is the station?",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 254
+   }
+  },
+  {
+   "part": 7,
+   "en": "walk a bit further",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 255
+   }
+  },
+  {
+   "part": 7,
+   "en": "further questions",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 256
+   }
+  },
+  {
+   "part": 7,
+   "en": "discuss this further",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 257
+   }
+  },
+  {
+   "part": 7,
+   "en": "customer complaints",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 259
+   }
+  },
+  {
+   "part": 7,
+   "en": "complain about the delay",
+   "table": "Timetable and delay language",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 260
+   }
+  },
+  {
+   "part": 7,
+   "en": "catch the train",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 280
+   }
+  },
+  {
+   "part": 7,
+   "en": "miss the bus",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 281
+   }
+  },
+  {
+   "part": 7,
+   "en": "catch the next one",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 282
+   }
+  },
+  {
+   "part": 7,
+   "en": "get on / get off",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 283
+   }
+  },
+  {
+   "part": 7,
+   "en": "get in / get out of",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 284
+   }
+  },
+  {
+   "part": 7,
+   "en": "set off",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 285
+   }
+  },
+  {
+   "part": 7,
+   "en": "pick someone up",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 286
+   }
+  },
+  {
+   "part": 7,
+   "en": "drop someone off",
+   "table": "Additional movement and transport chunks",
+   "src": {
+    "file": "07_Travelling_and_Unexpected_Situations.md",
+    "line": 287
+   }
+  }
+ ],
+ "notDialogue": [
+  {
+   "file": "01_Getting_to_Know_John.md",
+   "line": 245,
+   "label": "A"
+  },
+  {
+   "file": "01_Getting_to_Know_John.md",
+   "line": 247,
+   "label": "B (one possible version)"
+  },
+  {
+   "file": "01_Getting_to_Know_John.md",
+   "line": 362,
+   "label": "Language focus"
+  },
+  {
+   "file": "01_Getting_to_Know_John.md",
+   "line": 378,
+   "label": "Contrast"
+  },
+  {
+   "file": "02_Work_Studies_and_Everyday_Life.md",
+   "line": 76,
+   "label": "Nota BrE"
+  },
+  {
+   "file": "02_Work_Studies_and_Everyday_Life.md",
+   "line": 190,
+   "label": "A"
+  },
+  {
+   "file": "02_Work_Studies_and_Everyday_Life.md",
+   "line": 192,
+   "label": "B"
+  },
+  {
+   "file": "02_Work_Studies_and_Everyday_Life.md",
+   "line": 214,
+   "label": "Future with intention — be going to + verb"
+  },
+  {
+   "file": "03_Family_Friends_and_Relationships.md",
+   "line": 186,
+   "label": "A"
+  },
+  {
+   "file": "03_Family_Friends_and_Relationships.md",
+   "line": 188,
+   "label": "B"
+  },
+  {
+   "file": "03_Family_Friends_and_Relationships.md",
+   "line": 250,
+   "label": "Grammar in context"
+  },
+  {
+   "file": "04_Opinions_Sports_and_Social_Life.md",
+   "line": 178,
+   "label": "A"
+  },
+  {
+   "file": "04_Opinions_Sports_and_Social_Life.md",
+   "line": 180,
+   "label": "B"
+  },
+  {
+   "file": "04_Opinions_Sports_and_Social_Life.md",
+   "line": 226,
+   "label": "Practice instruction"
+  },
+  {
+   "file": "04_Opinions_Sports_and_Social_Life.md",
+   "line": 229,
+   "label": "Language focus"
+  },
+  {
+   "file": "05_Business_Calls_and_Social_Arrangements.md",
+   "line": 56,
+   "label": "Phrasal verbs"
+  },
+  {
+   "file": "05_Business_Calls_and_Social_Arrangements.md",
+   "line": 161,
+   "label": "A"
+  },
+  {
+   "file": "05_Business_Calls_and_Social_Arrangements.md",
+   "line": 163,
+   "label": "B"
+  },
+  {
+   "file": "05_Business_Calls_and_Social_Arrangements.md",
+   "line": 202,
+   "label": "Grammar note"
+  },
+  {
+   "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+   "line": 124,
+   "label": "Phrasal verbs"
+  },
+  {
+   "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+   "line": 174,
+   "label": "A"
+  },
+  {
+   "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+   "line": 176,
+   "label": "B"
+  },
+  {
+   "file": "06_Shopping_Clothes_and_Everyday_Services.md",
+   "line": 207,
+   "label": "Note"
+  },
+  {
+   "file": "07_Travelling_and_Unexpected_Situations.md",
+   "line": 237,
+   "label": "A"
+  },
+  {
+   "file": "07_Travelling_and_Unexpected_Situations.md",
+   "line": 239,
+   "label": "B"
+  },
+  {
+   "file": "07_Travelling_and_Unexpected_Situations.md",
+   "line": 241,
+   "label": "C"
+  },
+  {
+   "file": "07_Travelling_and_Unexpected_Situations.md",
+   "line": 293,
+   "label": "BrE usage note"
+  }
+ ],
+ "warnings": [
+  "john-p1-e01-v02 “work for a company”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e02-v04 “cover a match”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e02-v07 “solve a problem”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e02-v08 “be good at”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v02 “bus driver”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v03 “computer programmer”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v04 “French teacher”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v06 “watchmaker”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v08 “fisherman”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v09 “sports photographer”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v11 “make a watch”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v13 “drive a bus”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v14 “teach French”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e08-v15 “programme computers”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v01 “car salesperson”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v02 “pilot”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v05 “chef”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v06 “taxi driver”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v07 “bus driver”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v08 “computer programmer”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v10 “design engines”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v11 “teach French”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e02-v12 “sell vegetables”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e04-v04 “find the cause”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-e04-v06 “That would be helpful.”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v01 “always”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v03 “often”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v05 “rarely”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v06 “never”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v07 “every Saturday”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p2-x01-v08 “twice a week”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v01 “mother / father”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v02 “brother / sister”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v03 “uncle / aunt”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v05 “cousin”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v06 “grandson / granddaughter”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e03-v08 “relatives”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e05-v05 “a bit”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e05-v06 “not that handsome”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e05-v07 “the nicest”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-e05-v09 “both”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v04 “Come on!”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v05 “not that handsome”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v06 “a bit”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v08 “funnier”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v10 “more handsome than”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v11 “the most handsome”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v12 “isn't as ... as”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x01-v13 “have ever seen”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x02-v05 “play tricks on someone”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p3-x02-v06 “go out to a nightclub”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p5-e01-v03 “The line is engaged.”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p5-e01-v04 “He hung up.”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p5-e01-v05 “hold on, please”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p5-e01-v06 “What can I do for you?”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p5-e01-v08 “suit my company”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p7-e02-v06 “nearby”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p7-e02-v07 “How do I get to...?”: não aparece literalmente nas falas da atividade (vocabulário da seção).",
+  "john-p1-e03: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p1-e05: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p1-e07: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p1-e09: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p2-e01: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p2-e03: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p2-e05: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p3-e01: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p3-e02: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p3-e04: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p5-e02: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p5-e03: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p5-e04: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p7-e04: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p7-e06: sem itens de vocabulário nos documentos (a fase 1 fica sem itens).",
+  "john-p1-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e06: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e07: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e08: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p1-e09: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-x01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p2-x02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-x01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p3-x02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p4-x01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p5-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p5-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p5-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p5-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p6-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p6-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p6-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p6-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p6-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e02: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e03: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e04: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e05: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e06: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-e07: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo).",
+  "john-p7-x01: 0 de 10 questões de compreensão curadas (fase 4 bloqueada por conteúdo)."
+ ],
+ "decisions": [
+  "john-p1-e07-l02: rótulo da tradução “Estudante” ≠ “Student” (tradução do papel; mantido literal).",
+  "john-p1-e07-l04: rótulo da tradução “Estudante” ≠ “Student” (tradução do papel; mantido literal).",
+  "john-p1-e07-l06: rótulo da tradução “Estudante” ≠ “Student” (tradução do papel; mantido literal).",
+  "john-p2-e02-l02: rótulo da tradução “Novo colega” ≠ “New colleague” (tradução do papel; mantido literal).",
+  "john-p2-e02-l05: rótulo da tradução “Novo colega” ≠ “New colleague” (tradução do papel; mantido literal).",
+  "john-p4-x01-l01: rótulo da tradução “Comentarista” ≠ “Commentator” (tradução do papel; mantido literal).",
+  "john-p4-x01-l02: rótulo da tradução “Comentarista” ≠ “Commentator” (tradução do papel; mantido literal).",
+  "john-p4-x01-l03: rótulo da tradução “Comentarista” ≠ “Commentator” (tradução do papel; mantido literal).",
+  "john-p5-e01-l01: rótulo da tradução “Recepcionista” ≠ “Receptionist” (tradução do papel; mantido literal).",
+  "john-p5-e01-l03: rótulo da tradução “Recepcionista” ≠ “Receptionist” (tradução do papel; mantido literal).",
+  "john-p6-e02-l01: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e02-l03: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e02-l05: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e02-l07: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e03-l02: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e03-l04: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e03-l06: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p6-e04-l05: rótulo da tradução “Vendedor(a)” ≠ “Shop assistant” (tradução do papel; mantido literal).",
+  "john-p7-e02-l02: rótulo da tradução “Transeunte” ≠ “Passer-by” (tradução do papel; mantido literal).",
+  "john-p7-e02-l04: rótulo da tradução “Transeunte” ≠ “Passer-by” (tradução do papel; mantido literal).",
+  "john-p7-e03-l02: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e03-l04: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e03-l06: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e04-l01: rótulo da tradução “Anúncio” ≠ “Announcement” (tradução do papel; mantido literal).",
+  "john-p7-e04-l03: rótulo da tradução “Mary (ao telefone)” ≠ “Mary (on the phone)” (tradução do papel; mantido literal).",
+  "john-p7-e05-l02: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e05-l04: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e05-l06: rótulo da tradução “Funcionário” ≠ “Station employee” (tradução do papel; mantido literal).",
+  "john-p7-e06-l01: rótulo da tradução “Agente de viagens” ≠ “Travel agent” (tradução do papel; mantido literal).",
+  "john-p7-e06-l03: rótulo da tradução “Agente de viagens” ≠ “Travel agent” (tradução do papel; mantido literal).",
+  "john-p7-e06-l05: rótulo da tradução “Agente de viagens” ≠ “Travel agent” (tradução do papel; mantido literal).",
+  "john-p7-e06-l07: rótulo da tradução “Agente de viagens” ≠ “Travel agent” (tradução do papel; mantido literal).",
+  "john-p7-x01-l02: rótulo da tradução “Passageiro” ≠ “Passenger” (tradução do papel; mantido literal).",
+  "john-p7-x01-l04: rótulo da tradução “Funcionário” ≠ “Staff member” (tradução do papel; mantido literal)."
+ ],
+ "summary": {
+  "contentVersion": "ea71ea302b0d",
+  "parts": 7,
+  "activities": 46,
+  "lines": 273,
+  "items": 183,
+  "questions": 0,
+  "activitiesWithoutItems": 15,
+  "unassignedItems": 89
+ }
+}
