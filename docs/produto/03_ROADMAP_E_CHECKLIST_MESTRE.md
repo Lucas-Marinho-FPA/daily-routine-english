@@ -68,8 +68,8 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
   - [x] Correção implementada e testada (recorte nas fases 1 e 5, 2ª passada, corte do reconhecedor → inconclusivo, léxico): ensaio com Moonshine real 0 inconclusivas em 102 gravações (antes 16 vazias); `voice` 5/5, `dialogue` 14/14, `asr-local` 22/22. Falta validar com voz humana no Galaxy S25+.
 - [ ] Diferenças visuais entre celulares: investigação em etapa separada.
   - [x] Diagnóstico registrado no `HANDOFF.md` (V-01 a V-09); causa da divergência de tema: padrão “automático” seguia o modo do sistema.
-  - [~] Tema azul padrão + sol/lua no cabeçalho + tema claro (mockup aprovado): implementado e testado (build `612e8b43e90c`); aguarda autorização de commit/publicação e validação nos dois celulares.
-- [~] Avatar oficial da Karla no padrão dos demais: integrado e testado (build `f957ef20603e`); aguarda autorização de commit/publicação.
-- [~] Descrições aprovadas dos quatro personagens nos cartões de escolha: implementado e testado (build `994be0c72452`).
-- [~] Publicação consolidada (voz + temas + Karla + descrições): bloqueio anterior resolvido (voz implementada); build `bcfa17dbf2ec`; publicação registrada no `HANDOFF.md`.
+  - [x] Tema azul padrão + sol/lua no cabeçalho + tema claro (mockup aprovado): publicado (build `bcfa17dbf2ec`); falta validação nos dois celulares.
+- [x] Avatar oficial da Karla no padrão dos demais: publicado (build `bcfa17dbf2ec`).
+- [x] Descrições aprovadas dos quatro personagens nos cartões de escolha: publicado (build `bcfa17dbf2ec`).
+- [x] Publicação consolidada (voz + temas + Karla + descrições) — publicado (`gh-pages` `1ba9b34`, workflow nº 29, build `bcfa17dbf2ec`); verificação no `HANDOFF.md`.
 - [ ] Validação no Galaxy S25+ das entregas de 11/11.

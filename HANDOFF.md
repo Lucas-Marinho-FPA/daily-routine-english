@@ -5,12 +5,12 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
-## Estado verificado (Git, GitHub e site publicado, 2026-11-11 15:50 UTC)
+## Estado verificado (Git, GitHub e site publicado, 2026-11-11 18:35 UTC)
 
 | Branch | Commit | O que é | Situação |
 |---|---|---|---|
-| `gh-pages` | `1f39b60` | **Publicada (2026-11-11 15:46 UTC, workflow nº 28, success; build `ee69e6bf46b5`).** Avatares de Lucas e Lukinhas sobre `a6e8bbb` (MVP de diálogo, workflow nº 27). Anterior: `12accf2`. | Concluído e verificado no site |
-| `claude/daily-routine-governance-y9rr0b` | `1f39b60` + registro da publicação | Branch de trabalho (o nome contém “governance”); publicada em `gh-pages`. Commits desde `c9005fa`: `399c1b2`, `5b2d973`, `30c2cd1`, merge `2923008`, `54ec2c1`, `a6e8bbb`, `17b96d1`, `1f39b60` e o registro desta publicação (só documentação). | Concluído |
+| `gh-pages` | `1ba9b34` | **Publicada (2026-11-11 18:30 UTC, workflow nº 29, success; build `bcfa17dbf2ec`): voz + temas + Karla + descrições.** Anterior: `1f39b60` (workflow nº 28, build `ee69e6bf46b5`). Avatares de Lucas e Lukinhas sobre `a6e8bbb` (MVP de diálogo, workflow nº 27). Anterior: `12accf2`. | Concluído e verificado no site |
+| `claude/daily-routine-governance-y9rr0b` | `1ba9b34` + registro da publicação | Branch de trabalho (o nome contém “governance”); publicada em `gh-pages` (`1ba9b34`). Commits desde `c9005fa`: `399c1b2`, `5b2d973`, `30c2cd1`, merge `2923008`, `54ec2c1`, `a6e8bbb`, `17b96d1`, `1f39b60`, `e6ddff4`, `a8a5318`, `1ba9b34` e o registro desta publicação (só documentação, não enviado à `gh-pages`). | Concluído |
 | `governanca` | `c9005fa` | Governança documental (sobre `curso-simplificado` `90b54b6`). Só documentação. | Concluído; integração aguarda PO |
 | `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Publicado em 2026-11-11** como parte de `a6e8bbb`. | Concluído |
 | `base-conhecimento` | `01c59b4` | **Nova (2026-11-11 02:59 UTC):** governança da Base de Conhecimento (11 arquivos). Base Mestra, acervos Ian e de-para **não** publicados (motivos em `base-conhecimento/PUBLICACAO.md`). Área da Base: o produto não altera. | Fora do escopo do produto |
@@ -67,7 +67,15 @@ descrições (as três últimas já no commit `a8a5318`, preservadas sem altera�
   pré-cache conferido por hash (`img/bg-flow-light.svg`, `assets/characters/karla/karla-avatar.png`, `css/app.css`,
   `dist/app.js`, `data/characters.js`, `index.html`, `manifest.webmanifest`). `dev/content/dialogues/john*.json`
   continuam fora (pendência própria; `data/dialogues.js` inalterado, `118297cacc48`).
-- **Publicação:** ver o registro de verificação logo abaixo desta seção (commit, `gh-pages`, workflow, versão servida).
+- **Publicação (PUBLICADO e verificado, 2026-11-11 18:30 UTC):** commits `a8a5318` (temas, Karla, descrições) +
+  `1ba9b34` (voz) na branch `claude/daily-routine-governance-y9rr0b`; `gh-pages` avançada de `1f39b60` para `1ba9b34`
+  (fast-forward, um único push); workflow “pages build and deployment” nº 29 (run 43078312057) **success**; site serve
+  `sw.js` versão `bcfa17dbf2ec`. Verificação objetiva: 12 arquivos servidos idênticos (sha256) aos do repositório
+  (`sw.js`, `dist/app.js`, `data/characters.js`, `css/app.css`, `index.html`, `manifest.webmanifest`,
+  `img/bg-flow-light.svg`, os 4 avatares, `data/dialogues.js`); no navegador, no site publicado: abre no azul com o
+  sistema em modo claro; as 4 descrições exatas; avatares dos 4 na escolha; Karla no Início (1132×1390); sol → claro;
+  `karla-avatar.png` e `bg-flow-light.svg` no cache; reaberto offline mantém o claro e mostra a Karla; `voiceEval`
+  presente; 0 erros de página. URL: https://lucas-marinho-fpa.github.io/daily-routine-english/
 - **Pendências:** validação com voz humana no Galaxy S25+ (fase 1: “different teams”, “these days”, “this week”, “sales
   department”, “come along”, “What do you do?” em ritmo natural, devagar e com pausas; fase 5: 2 falas curtas e 2
   longas); saturação do ganho automático (hipótese do diagnóstico, só medível no aparelho); a folga de 0,3 s/sílaba foi
