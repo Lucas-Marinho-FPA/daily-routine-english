@@ -2336,14 +2336,19 @@
 
   // app/js/ui/character.js
   var STATE_LABEL = { idle: "em espera", thinking: "pensando", correct: "acertou", wrong: "errou", celebrate: "comemorando", levelup: "subiu de n\xEDvel" };
-  function characterImage(ch, state, { size = 56 } = {}) {
+  function characterImage(ch, state, { size = 56, illus = null } = {}) {
     if (!ch || !STATES.includes(state)) return null;
     const src = assetFor(ch, state);
     if (!src) return null;
+    const v = ch.visual && ch.visual.states && ch.visual.states[state];
+    if (v && v.kind === "illustration" && v.w && v.h) {
+      const ht = illus || size;
+      return h("img", { class: `char-img char-illus char-${state}`, src, width: Math.round(ht * v.w / v.h), height: ht, alt: ch.name, "data-character": ch.id, "data-state": state, decoding: "async" });
+    }
     return h("img", { class: `char-img char-${state}`, src, width: size, height: size, alt: `${ch.name} ${STATE_LABEL[state]}`, "data-character": ch.id, "data-state": state, decoding: "async" });
   }
-  function characterBadge(ch, state = "idle", { size = 44 } = {}) {
-    const img = characterImage(ch, state, { size });
+  function characterBadge(ch, state = "idle", { size = 44, illus = null } = {}) {
+    const img = characterImage(ch, state, { size, illus });
     if (img) return img;
     return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
   }
@@ -2356,11 +2361,12 @@
     const box2 = h("div", { class: "char-choices", role: "radiogroup", "aria-label": "Personagem", "data-role": role });
     const draw = (sel) => clear(box2).append(...registry().characters.map((c) => {
       const on = c.id === sel;
+      const pic = characterImage(c, "idle", { illus: 64 });
       return h(
         "button",
         {
           type: "button",
-          class: "char-choice",
+          class: `char-choice${pic ? " with-illus" : ""}`,
           role: "radio",
           "aria-checked": String(on),
           "data-character": c.id,
@@ -2371,6 +2377,7 @@
         },
         h("span", { class: "char-name", text: c.name }),
         c.id === current2 ? h("span", { class: "chip accent", text: "atual" }) : null,
+        pic ? Object.assign(pic, { className: `${pic.className} char-choice-img`, alt: "" }) : null,
         h("span", { class: "char-sub small muted", text: choiceSub(c) })
       );
     }));
@@ -6132,7 +6139,8 @@
       h(
         "div",
         { class: "row nowrap" },
-        characterBadge(ch, "idle", { size: 56 }),
+        characterBadge(ch, "idle", { size: 56, illus: 96 }),
+        // ilustração (Heitor) com 96 px de altura; os demais como antes
         h(
           "div",
           { class: "grow", style: { minWidth: 0 } },

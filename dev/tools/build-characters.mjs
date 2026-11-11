@@ -132,8 +132,12 @@ export function buildCharacters() {
   const planned = existsSync(plannedFile) ? JSON.parse(readFileSync(plannedFile, 'utf8')).personas.filter((p) => !packs.some((x) => x.id === p.id)).map((p) => ({
     id: p.id, name: p.name, short: p.short || p.name, status: 'planned', audience: p.audience || 'adult', age: p.age ?? null, content: null,
     profile: { summary: p.summary || '' },
-    visual: { dir: `assets/characters/${p.id}`, ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, { file: s.toUpperCase(), status: 'pending' }])) },
+    visual: { dir: `assets/characters/${p.id}`, ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, (p.visual && p.visual.states && p.visual.states[s]) || { file: s.toUpperCase(), status: 'pending' }])) },
   })) : [];
+  // estado marcado como pronto precisa do arquivo no app (evita imagem quebrada publicada)
+  for (const c of planned) for (const [s, v] of Object.entries(c.visual.states)) {
+    if (v.status === 'ready' && !existsSync(join(ROOT, 'app', c.visual.dir, `${v.file}.${c.visual.ext}`))) throw new Error(`${c.id}: imagem do estado ${s} ausente (${c.visual.dir}/${v.file}.${c.visual.ext})`);
+  }
   return { version: 1, states: STATES, characters: [LUCAS, ...packs, ...planned] };
 }
 

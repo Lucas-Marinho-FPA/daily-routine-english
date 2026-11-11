@@ -7,7 +7,19 @@
    "short": "Heitor",
    "audience": "child",
    "age": null,
-   "summary": "Jornada infantil em preparação."
+   "summary": "Jornada infantil em preparação.",
+   "visual": {
+    "_doc": "Avatar oficial do Heitor (PNG com transparência, 1312×1199), aprovado pelo responsável em 2026-11-10. Só o estado idle tem imagem; os demais seguem pendentes (o app mostra a ilustração apenas onde usa o estado idle).",
+    "states": {
+     "idle": {
+      "file": "heitor-avatar",
+      "status": "ready",
+      "kind": "illustration",
+      "w": 1312,
+      "h": 1199
+     }
+    }
+   }
   }
  ]
 }
