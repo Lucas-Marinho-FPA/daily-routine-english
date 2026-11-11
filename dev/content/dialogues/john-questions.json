@@ -1,7 +1,7 @@
 {
  "kind": "daily-routine-english/dialogue-questions",
  "formato": 1,
- "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor",
+ "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)",
  "source": "content/dialogues/john-questions.src.txt",
  "questions": [
   {
@@ -31,7 +31,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q02",
@@ -60,7 +60,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q03",
@@ -89,7 +89,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q04",
@@ -118,7 +118,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q05",
@@ -147,7 +147,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q06",
@@ -176,7 +176,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q07",
@@ -205,7 +205,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q08",
@@ -234,7 +234,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q09",
@@ -263,7 +263,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e01-q10",
@@ -290,7 +290,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q01",
@@ -319,7 +319,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q02",
@@ -348,7 +348,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q03",
@@ -377,7 +377,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q04",
@@ -406,7 +406,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q05",
@@ -435,7 +435,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q06",
@@ -464,7 +464,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q07",
@@ -493,7 +493,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q08",
@@ -522,7 +522,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q09",
@@ -551,7 +551,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e02-q10",
@@ -582,7 +582,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q01",
@@ -611,7 +611,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q02",
@@ -640,7 +640,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q03",
@@ -669,7 +669,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q04",
@@ -698,7 +698,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q05",
@@ -727,7 +727,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q06",
@@ -756,7 +756,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q07",
@@ -785,7 +785,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q08",
@@ -816,7 +816,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q09",
@@ -845,7 +845,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e03-q10",
@@ -872,7 +872,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q01",
@@ -901,7 +901,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q02",
@@ -930,7 +930,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q03",
@@ -959,7 +959,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q04",
@@ -990,7 +990,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q05",
@@ -1019,7 +1019,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q06",
@@ -1048,7 +1048,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q07",
@@ -1077,7 +1077,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q08",
@@ -1106,7 +1106,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q09",
@@ -1135,7 +1135,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e04-q10",
@@ -1164,7 +1164,7 @@
    "sourceRefs": [
     "l09"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q01",
@@ -1193,7 +1193,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q02",
@@ -1222,7 +1222,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q03",
@@ -1253,7 +1253,7 @@
     "l02",
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q04",
@@ -1282,7 +1282,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q05",
@@ -1311,7 +1311,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q06",
@@ -1340,7 +1340,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q07",
@@ -1367,7 +1367,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q08",
@@ -1396,7 +1396,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e05-q09",
@@ -1423,7 +1423,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q01",
@@ -1452,7 +1452,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q02",
@@ -1481,7 +1481,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q03",
@@ -1510,7 +1510,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q04",
@@ -1539,7 +1539,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q05",
@@ -1568,7 +1568,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q06",
@@ -1597,7 +1597,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q07",
@@ -1626,7 +1626,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q08",
@@ -1655,7 +1655,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q09",
@@ -1684,7 +1684,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e06-q10",
@@ -1711,7 +1711,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q01",
@@ -1740,7 +1740,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q02",
@@ -1769,7 +1769,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q03",
@@ -1800,7 +1800,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q04",
@@ -1829,7 +1829,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q05",
@@ -1858,7 +1858,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q06",
@@ -1887,7 +1887,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q07",
@@ -1916,7 +1916,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q08",
@@ -1945,7 +1945,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q09",
@@ -1974,7 +1974,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e07-q10",
@@ -2001,7 +2001,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q01",
@@ -2030,7 +2030,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q02",
@@ -2059,7 +2059,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q03",
@@ -2088,7 +2088,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q04",
@@ -2117,7 +2117,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q05",
@@ -2146,7 +2146,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q06",
@@ -2173,7 +2173,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e08-q07",
@@ -2202,12 +2202,12 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p1-e09-q01",
    "activityId": "john-p1-e09",
-   "prompt": "When did John meet Peter, according to John?",
+   "prompt": "When did John last see Peter?",
    "skill": "explicit_fact",
    "options": [
     {
@@ -2224,6 +2224,37 @@
     }
    ],
    "correctOptionId": "a",
+   "explanation": "No diálogo — Rick: “Did you meet Peter at the university?” / John: “Yes, I met him last week at a conference.”",
+   "sourceLineIds": [
+    "john-p1-e09-l01",
+    "john-p1-e09-l02"
+   ],
+   "sourceRefs": [
+    "l01",
+    "l02"
+   ],
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
+  },
+  {
+   "id": "john-p1-e09-q02",
+   "activityId": "john-p1-e09",
+   "prompt": "Where did John see Peter last week?",
+   "skill": "context",
+   "options": [
+    {
+     "id": "a",
+     "text": "At a conference"
+    },
+    {
+     "id": "b",
+     "text": "At the university"
+    },
+    {
+     "id": "c",
+     "text": "At the sports centre"
+    }
+   ],
+   "correctOptionId": "a",
    "explanation": "No diálogo — John: “Yes, I met him last week at a conference.”",
    "sourceLineIds": [
     "john-p1-e09-l02"
@@ -2231,10 +2262,10 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p1-e09-q02",
+   "id": "john-p1-e09-q03",
    "activityId": "john-p1-e09",
    "prompt": "Does John know if Peter was going out with anyone at the time?",
    "skill": "explicit_fact",
@@ -2262,10 +2293,10 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p1-e09-q03",
+   "id": "john-p1-e09-q04",
    "activityId": "john-p1-e09",
    "prompt": "What is Peter's situation now?",
    "skill": "explicit_fact",
@@ -2291,10 +2322,10 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p1-e09-q04",
+   "id": "john-p1-e09-q05",
    "activityId": "john-p1-e09",
    "prompt": "Who asks the questions about Peter?",
    "skill": "relation",
@@ -2322,7 +2353,7 @@
     "l01",
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q01",
@@ -2351,7 +2382,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q02",
@@ -2380,7 +2411,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q03",
@@ -2409,7 +2440,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q04",
@@ -2438,7 +2469,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q05",
@@ -2467,7 +2498,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q06",
@@ -2498,7 +2529,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q07",
@@ -2527,7 +2558,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q08",
@@ -2556,7 +2587,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q09",
@@ -2585,7 +2616,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e01-q10",
@@ -2614,7 +2645,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q01",
@@ -2643,7 +2674,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q02",
@@ -2672,7 +2703,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q03",
@@ -2701,7 +2732,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q04",
@@ -2730,7 +2761,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q05",
@@ -2761,7 +2792,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q06",
@@ -2790,7 +2821,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q07",
@@ -2819,7 +2850,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q08",
@@ -2846,7 +2877,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q09",
@@ -2875,7 +2906,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e02-q10",
@@ -2904,7 +2935,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q01",
@@ -2933,7 +2964,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q02",
@@ -2962,7 +2993,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q03",
@@ -2993,7 +3024,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q04",
@@ -3022,7 +3053,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q05",
@@ -3053,7 +3084,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q06",
@@ -3082,7 +3113,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q07",
@@ -3111,7 +3142,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q08",
@@ -3138,7 +3169,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q09",
@@ -3167,7 +3198,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e03-q10",
@@ -3200,7 +3231,7 @@
     "l03",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q01",
@@ -3229,7 +3260,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q02",
@@ -3260,7 +3291,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q03",
@@ -3289,7 +3320,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q04",
@@ -3320,7 +3351,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q05",
@@ -3349,7 +3380,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q06",
@@ -3378,7 +3409,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q07",
@@ -3407,7 +3438,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q08",
@@ -3436,7 +3467,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q09",
@@ -3465,7 +3496,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e04-q10",
@@ -3492,7 +3523,7 @@
    "sourceRefs": [
     "title"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q01",
@@ -3521,7 +3552,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q02",
@@ -3550,7 +3581,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q03",
@@ -3579,7 +3610,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q04",
@@ -3608,7 +3639,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q05",
@@ -3639,7 +3670,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q06",
@@ -3668,7 +3699,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q07",
@@ -3697,7 +3728,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q08",
@@ -3726,7 +3757,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q09",
@@ -3757,7 +3788,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-e05-q10",
@@ -3784,7 +3815,7 @@
    "sourceRefs": [
     "title"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x01-q01",
@@ -3813,7 +3844,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x01-q02",
@@ -3842,7 +3873,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x01-q03",
@@ -3871,7 +3902,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x02-q01",
@@ -3900,7 +3931,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x02-q02",
@@ -3929,7 +3960,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p2-x02-q03",
@@ -3958,7 +3989,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q01",
@@ -3987,7 +4018,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q02",
@@ -4016,7 +4047,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q03",
@@ -4045,7 +4076,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q04",
@@ -4074,7 +4105,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q05",
@@ -4103,7 +4134,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q06",
@@ -4132,7 +4163,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q07",
@@ -4161,7 +4192,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q08",
@@ -4190,7 +4221,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q09",
@@ -4217,7 +4248,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e01-q10",
@@ -4248,7 +4279,7 @@
     "l02",
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q01",
@@ -4279,7 +4310,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q02",
@@ -4308,7 +4339,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q03",
@@ -4337,7 +4368,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q04",
@@ -4366,7 +4397,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q05",
@@ -4395,7 +4426,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q06",
@@ -4424,7 +4455,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q07",
@@ -4455,7 +4486,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q08",
@@ -4484,7 +4515,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q09",
@@ -4515,7 +4546,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e02-q10",
@@ -4544,7 +4575,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q01",
@@ -4573,7 +4604,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q02",
@@ -4604,7 +4635,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q03",
@@ -4633,7 +4664,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q04",
@@ -4662,7 +4693,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q05",
@@ -4693,7 +4724,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q06",
@@ -4722,7 +4753,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q07",
@@ -4751,7 +4782,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q08",
@@ -4782,7 +4813,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q09",
@@ -4811,7 +4842,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e03-q10",
@@ -4842,7 +4873,7 @@
     "l02",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q01",
@@ -4873,7 +4904,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q02",
@@ -4902,7 +4933,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q03",
@@ -4933,7 +4964,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q04",
@@ -4962,7 +4993,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q05",
@@ -4991,7 +5022,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q06",
@@ -5020,7 +5051,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q07",
@@ -5051,7 +5082,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q08",
@@ -5080,7 +5111,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q09",
@@ -5109,7 +5140,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e04-q10",
@@ -5138,7 +5169,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q01",
@@ -5167,7 +5198,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q02",
@@ -5196,7 +5227,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q03",
@@ -5225,7 +5256,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q04",
@@ -5254,7 +5285,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q05",
@@ -5283,7 +5314,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q06",
@@ -5312,7 +5343,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-e05-q07",
@@ -5341,7 +5372,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x01-q01",
@@ -5370,7 +5401,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x01-q02",
@@ -5399,7 +5430,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x01-q03",
@@ -5430,7 +5461,7 @@
     "l02",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x01-q04",
@@ -5461,7 +5492,7 @@
     "l01",
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x02-q01",
@@ -5490,7 +5521,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x02-q02",
@@ -5519,7 +5550,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x02-q03",
@@ -5548,7 +5579,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x02-q04",
@@ -5577,7 +5608,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p3-x02-q05",
@@ -5606,7 +5637,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q01",
@@ -5635,7 +5666,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q02",
@@ -5664,7 +5695,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q03",
@@ -5693,7 +5724,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q04",
@@ -5722,7 +5753,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q05",
@@ -5751,7 +5782,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q06",
@@ -5780,7 +5811,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q07",
@@ -5809,7 +5840,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q08",
@@ -5838,7 +5869,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q09",
@@ -5867,7 +5898,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e01-q10",
@@ -5898,7 +5929,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q01",
@@ -5927,7 +5958,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q02",
@@ -5956,7 +5987,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q03",
@@ -5985,7 +6016,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q04",
@@ -6014,7 +6045,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q05",
@@ -6043,7 +6074,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q06",
@@ -6072,7 +6103,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q07",
@@ -6103,7 +6134,7 @@
     "l02",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q08",
@@ -6134,7 +6165,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q09",
@@ -6163,7 +6194,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e02-q10",
@@ -6192,7 +6223,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q01",
@@ -6221,7 +6252,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q02",
@@ -6250,7 +6281,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q03",
@@ -6279,7 +6310,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q04",
@@ -6308,7 +6339,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q05",
@@ -6337,7 +6368,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q06",
@@ -6366,7 +6397,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q07",
@@ -6397,7 +6428,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q08",
@@ -6426,7 +6457,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q09",
@@ -6455,7 +6486,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e03-q10",
@@ -6482,7 +6513,7 @@
    "sourceRefs": [
     "title"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q01",
@@ -6511,7 +6542,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q02",
@@ -6540,7 +6571,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q03",
@@ -6569,7 +6600,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q04",
@@ -6598,7 +6629,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q05",
@@ -6627,7 +6658,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q06",
@@ -6656,7 +6687,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q07",
@@ -6685,7 +6716,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q08",
@@ -6714,7 +6745,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q09",
@@ -6743,7 +6774,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e04-q10",
@@ -6772,7 +6803,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q01",
@@ -6801,7 +6832,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q02",
@@ -6830,7 +6861,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q03",
@@ -6859,7 +6890,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q04",
@@ -6888,7 +6919,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q05",
@@ -6917,7 +6948,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q06",
@@ -6946,7 +6977,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q07",
@@ -6975,7 +7006,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q08",
@@ -7004,7 +7035,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q09",
@@ -7033,7 +7064,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-e05-q10",
@@ -7064,7 +7095,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q01",
@@ -7093,7 +7124,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q02",
@@ -7122,7 +7153,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q03",
@@ -7151,7 +7182,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q04",
@@ -7180,7 +7211,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q05",
@@ -7209,7 +7240,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q06",
@@ -7238,7 +7269,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q07",
@@ -7267,7 +7298,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p4-x01-q08",
@@ -7298,7 +7329,7 @@
     "l01",
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q01",
@@ -7327,7 +7358,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q02",
@@ -7356,7 +7387,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q03",
@@ -7385,7 +7416,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q04",
@@ -7414,7 +7445,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q05",
@@ -7443,7 +7474,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q06",
@@ -7472,7 +7503,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q07",
@@ -7501,7 +7532,7 @@
    "sourceRefs": [
     "l09"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q08",
@@ -7530,7 +7561,7 @@
    "sourceRefs": [
     "l10"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q09",
@@ -7559,7 +7590,7 @@
    "sourceRefs": [
     "l10"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e01-q10",
@@ -7588,7 +7619,7 @@
    "sourceRefs": [
     "l11"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q01",
@@ -7617,7 +7648,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q02",
@@ -7646,7 +7677,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q03",
@@ -7675,7 +7706,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q04",
@@ -7704,7 +7735,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q05",
@@ -7733,7 +7764,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q06",
@@ -7762,7 +7793,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q07",
@@ -7791,7 +7822,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q08",
@@ -7820,7 +7851,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q09",
@@ -7849,7 +7880,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e02-q10",
@@ -7878,7 +7909,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q01",
@@ -7907,7 +7938,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q02",
@@ -7936,7 +7967,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q03",
@@ -7965,7 +7996,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q04",
@@ -7994,7 +8025,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q05",
@@ -8023,7 +8054,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q06",
@@ -8052,7 +8083,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q07",
@@ -8081,7 +8112,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q08",
@@ -8110,7 +8141,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q09",
@@ -8139,7 +8170,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e03-q10",
@@ -8168,7 +8199,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e04-q01",
@@ -8197,7 +8228,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e04-q02",
@@ -8226,7 +8257,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e04-q03",
@@ -8255,10 +8286,39 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p5-e04-q04",
+   "activityId": "john-p5-e04",
+   "prompt": "For how many people is the table?",
+   "skill": "explicit_fact",
+   "options": [
+    {
+     "id": "a",
+     "text": "Six"
+    },
+    {
+     "id": "b",
+     "text": "Four"
+    },
+    {
+     "id": "c",
+     "text": "Eight"
+    }
+   ],
+   "correctOptionId": "a",
+   "explanation": "No diálogo — Mary: “Yes. I've booked a table for six.”",
+   "sourceLineIds": [
+    "john-p5-e04-l02"
+   ],
+   "sourceRefs": [
+    "l02"
+   ],
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
+  },
+  {
+   "id": "john-p5-e04-q05",
    "activityId": "john-p5-e04",
    "prompt": "What does Rick want to know?",
    "skill": "intention",
@@ -8284,10 +8344,10 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p5-e04-q05",
+   "id": "john-p5-e04-q06",
    "activityId": "john-p5-e04",
    "prompt": "What time should they arrive?",
    "skill": "explicit_fact",
@@ -8313,10 +8373,10 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p5-e04-q06",
+   "id": "john-p5-e04-q07",
    "activityId": "john-p5-e04",
    "prompt": "How does John feel about the arrangement?",
    "skill": "inference",
@@ -8342,10 +8402,10 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
-   "id": "john-p5-e04-q07",
+   "id": "john-p5-e04-q08",
    "activityId": "john-p5-e04",
    "prompt": "What will John do?",
    "skill": "action",
@@ -8371,7 +8431,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q01",
@@ -8398,7 +8458,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q02",
@@ -8427,7 +8487,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q03",
@@ -8456,7 +8516,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q04",
@@ -8485,7 +8545,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q05",
@@ -8514,7 +8574,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q06",
@@ -8543,7 +8603,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q07",
@@ -8570,7 +8630,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e01-q08",
@@ -8601,7 +8661,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q01",
@@ -8630,7 +8690,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q02",
@@ -8659,7 +8719,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q03",
@@ -8688,7 +8748,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q04",
@@ -8717,7 +8777,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q05",
@@ -8746,7 +8806,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q06",
@@ -8775,7 +8835,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q07",
@@ -8804,7 +8864,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q08",
@@ -8833,7 +8893,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q09",
@@ -8862,7 +8922,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e02-q10",
@@ -8891,7 +8951,7 @@
    "sourceRefs": [
     "l09"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q01",
@@ -8920,7 +8980,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q02",
@@ -8949,7 +9009,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q03",
@@ -8978,7 +9038,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q04",
@@ -9007,7 +9067,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q05",
@@ -9036,7 +9096,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q06",
@@ -9065,7 +9125,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q07",
@@ -9094,7 +9154,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q08",
@@ -9123,7 +9183,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q09",
@@ -9152,7 +9212,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e03-q10",
@@ -9181,7 +9241,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q01",
@@ -9210,7 +9270,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q02",
@@ -9239,7 +9299,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q03",
@@ -9268,7 +9328,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q04",
@@ -9297,7 +9357,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q05",
@@ -9328,7 +9388,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q06",
@@ -9359,7 +9419,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q07",
@@ -9388,7 +9448,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q08",
@@ -9417,7 +9477,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q09",
@@ -9446,7 +9506,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e04-q10",
@@ -9475,7 +9535,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q01",
@@ -9504,7 +9564,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q02",
@@ -9533,7 +9593,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q03",
@@ -9562,7 +9622,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q04",
@@ -9593,7 +9653,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q05",
@@ -9622,7 +9682,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q06",
@@ -9651,7 +9711,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p6-e05-q07",
@@ -9680,7 +9740,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q01",
@@ -9707,7 +9767,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q02",
@@ -9734,7 +9794,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q03",
@@ -9765,7 +9825,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q04",
@@ -9794,7 +9854,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q05",
@@ -9823,7 +9883,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q06",
@@ -9852,7 +9912,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q07",
@@ -9862,7 +9922,7 @@
    "options": [
     {
      "id": "a",
-     "text": "The 8.40 train"
+     "text": "The 8.20 train"
     },
     {
      "id": "b",
@@ -9881,7 +9941,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q08",
@@ -9910,7 +9970,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q09",
@@ -9920,7 +9980,7 @@
    "options": [
     {
      "id": "a",
-     "text": "About three and a half hours"
+     "text": "About two and a half hours"
     },
     {
      "id": "b",
@@ -9941,7 +10001,7 @@
     "l06",
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e01-q10",
@@ -9968,7 +10028,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q01",
@@ -9997,7 +10057,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q02",
@@ -10026,7 +10086,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q03",
@@ -10055,7 +10115,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q04",
@@ -10086,7 +10146,7 @@
     "l03",
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q05",
@@ -10115,7 +10175,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q06",
@@ -10144,7 +10204,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e02-q07",
@@ -10173,7 +10233,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q01",
@@ -10202,7 +10262,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q02",
@@ -10231,7 +10291,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q03",
@@ -10260,7 +10320,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q04",
@@ -10289,7 +10349,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q05",
@@ -10318,7 +10378,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q06",
@@ -10349,7 +10409,7 @@
     "l05",
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q07",
@@ -10378,7 +10438,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e03-q08",
@@ -10407,7 +10467,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q01",
@@ -10436,7 +10496,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q02",
@@ -10465,7 +10525,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q03",
@@ -10494,7 +10554,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q04",
@@ -10523,7 +10583,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q05",
@@ -10552,7 +10612,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q06",
@@ -10581,7 +10641,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q07",
@@ -10610,7 +10670,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q08",
@@ -10639,7 +10699,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q09",
@@ -10668,7 +10728,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e04-q10",
@@ -10697,7 +10757,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q01",
@@ -10726,7 +10786,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q02",
@@ -10755,7 +10815,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q03",
@@ -10784,7 +10844,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q04",
@@ -10813,7 +10873,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q05",
@@ -10842,7 +10902,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q06",
@@ -10871,7 +10931,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q07",
@@ -10900,7 +10960,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q08",
@@ -10931,7 +10991,7 @@
     "l04",
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q09",
@@ -10960,7 +11020,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e05-q10",
@@ -10989,7 +11049,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q01",
@@ -11016,7 +11076,7 @@
    "sourceRefs": [
     "ctx"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q02",
@@ -11045,7 +11105,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q03",
@@ -11074,7 +11134,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q04",
@@ -11103,7 +11163,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q05",
@@ -11132,7 +11192,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q06",
@@ -11161,7 +11221,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q07",
@@ -11190,7 +11250,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q08",
@@ -11219,7 +11279,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q09",
@@ -11248,7 +11308,7 @@
    "sourceRefs": [
     "l07"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e06-q10",
@@ -11277,7 +11337,7 @@
    "sourceRefs": [
     "l08"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q01",
@@ -11308,7 +11368,7 @@
     "l01",
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q02",
@@ -11337,7 +11397,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q03",
@@ -11366,7 +11426,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q04",
@@ -11395,7 +11455,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q05",
@@ -11424,7 +11484,7 @@
    "sourceRefs": [
     "l05"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q06",
@@ -11453,7 +11513,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q07",
@@ -11482,7 +11542,7 @@
    "sourceRefs": [
     "l06"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-e07-q08",
@@ -11511,7 +11571,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q01",
@@ -11540,7 +11600,7 @@
    "sourceRefs": [
     "l01"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q02",
@@ -11569,7 +11629,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q03",
@@ -11598,7 +11658,7 @@
    "sourceRefs": [
     "l02"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q04",
@@ -11627,7 +11687,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q05",
@@ -11656,7 +11716,7 @@
    "sourceRefs": [
     "l03"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   },
   {
    "id": "john-p7-x01-q06",
@@ -11685,7 +11745,7 @@
    "sourceRefs": [
     "l04"
    ],
-   "status": "complemento didático da IA a partir do texto do diálogo — não validado pelo professor"
+   "status": "gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)"
   }
  ],
  "insufficient": [
@@ -11702,7 +11762,7 @@
   {
    "id": "john-p1-e09",
    "lines": 4,
-   "questions": 4
+   "questions": 5
   },
   {
    "id": "john-p2-x01",
@@ -11737,7 +11797,7 @@
   {
    "id": "john-p5-e04",
    "lines": 5,
-   "questions": 7
+   "questions": 8
   },
   {
    "id": "john-p6-e01",

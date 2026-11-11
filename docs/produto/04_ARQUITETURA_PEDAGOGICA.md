@@ -32,3 +32,9 @@ Lucas adulto, Karla, Lukinhas e Heitor são personagens narrativos. Não inventa
 
 ## Proveniência
 A Base de Conhecimento pessoal é separada. Cada item incorporado ao produto exige curadoria, contexto e verificação de direitos.
+
+## Atividades de diálogo em cinco fases (DEC-014 a DEC-018, 11/11/2026)
+Vocabulário (3 audições + produção oral) → escuta e escrita → tradução → compreensão auditiva → leitura em voz alta.
+Domínio individual de 80% por item (palavra, frase ou fala); média não compensa. Compreensão: rodada com as questões
+que o diálogo sustenta (10 ou menos), aprovada com ⌈0,8 n⌉; só as erradas voltam. A leitura em voz alta abre com a
+fase 3, independente da compreensão. Transcrição de fala não é avaliação fonética. Regras completas: `docs/dialogos.md`.

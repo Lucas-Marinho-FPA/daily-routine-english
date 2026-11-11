@@ -12,8 +12,9 @@
 //  • vocabulário = linhas das tabelas “| English | Português |”; o item fica na atividade da seção onde a tabela
 //    está e também em toda atividade da mesma parte cujas falas contêm o item (vínculo verificável, sourceLineIds);
 //  • questões de compreensão: lidas de content/dialogues/john-questions.json (gerado por tools/dialogues-questions.mjs a
-//    partir de john-questions.src.txt: complemento didático da IA, só com base no texto do diálogo, não validado pelo
-//    professor); diálogo com menos de 10 questões fica com a fase 4 indisponível (pendência registrada);
+//    partir de john-questions.src.txt, só com base no texto do diálogo; integradas por decisão do PO de 2026-11-11);
+//    diálogo com menos de 10 questões tem rodada reduzida com corte proporcional de 80% (engine/dialogue.js);
+//  • correções aprovadas pelo PO: content/dialogues/john-corrections.json (o original fica em cada fala corrigida);
 //  • lacunas e decisões ficam no relatório (dev/content/dialogues/<pacote>-report.json).
 //
 // Uso: node tools/dialogues-source.mjs   (na cópia de trabalho; grava content/dialogues/john.json e o relatório)
@@ -149,6 +150,29 @@ for (const file of files) {
   closeSection();
   // tabelas das seções com falas pertencem à atividade da seção
 }
+// ---------- correções aprovadas pelo PO (content/dialogues/john-corrections.json) ----------
+// O texto dos documentos continua literal na fonte; aqui só o conteúdo derivado muda, e cada fala corrigida guarda o
+// original e o motivo em `correction` (rastreabilidade). `from` precisa coincidir exatamente com o texto atual.
+const CORRECTIONS = new URL('content/dialogues/john-corrections.json', ROOT);
+const applied = [];
+if (existsSync(CORRECTIONS)) {
+  for (const c of JSON.parse(readFileSync(CORRECTIONS, 'utf8')).corrections) {
+    if (c.field === 'context') {
+      const a = activities.find((x) => x.id === c.id);
+      if (!a || a.context !== c.from) throw new Error(`correção ${c.id}/context: texto de origem não confere`);
+      a.contextCorrection = { original: a.context, reason: c.reason };
+      a.context = c.to;
+    } else {
+      const l = activities.flatMap((x) => x.lines).find((x) => x.id === c.id);
+      if (!l || l[c.field] !== c.from) throw new Error(`correção ${c.id}/${c.field}: texto de origem não confere`);
+      l.correction = { ...(l.correction || {}), [c.field]: c.from, reasons: [...((l.correction && l.correction.reasons) || []), c.reason] };
+      l[c.field] = c.to;
+    }
+    applied.push(`${c.id}/${c.field}`);
+  }
+}
+report.corrections = applied;
+
 // ---------- itens de vocabulário ----------
 // localizar o item nas falas: mesmo matcher do app (flexões “get” ~ “gets”, possessivos); o texto exibido continua literal
 const norm = (s) => ` ${s.toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
@@ -208,10 +232,12 @@ for (const a of activities) for (const l of a.lines) {
   const md = readFileSync(new URL(l.src.file, SRC_DIR), 'utf8').split('\n');
   const en = md[l.src.line - 1].match(SPEAKER)[2];
   const pt = md[l.src.ptLine - 1].match(TRANSL)[2].trim();
-  if (en !== l.en || pt !== l.pt) throw new Error(`${l.id}: texto diferente do documento`);
+  const c = l.correction || {};
+  if (en !== (c.en ?? l.en) || pt !== (c.pt ?? l.pt)) throw new Error(`${l.id}: texto diferente do documento`);
   checked++;
 }
 
+for (const f of [CORRECTIONS, QUESTIONS]) if (existsSync(f)) hash.update(readFileSync(f)); // versão muda com correções e questões
 const contentVersion = hash.digest('hex').slice(0, 12);
 const out = {
   kind: 'daily-routine-english/dialogues', formato: 1, id: 'the-story-of-john', title: 'The Story of John', locale: 'en-GB',
@@ -222,7 +248,7 @@ const out = {
 };
 for (const p of out.parts) delete p.partItems;
 writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
-report.summary = { contentVersion, parts: parts.length, activities: activities.length, lines: checked, items: items.length, questions: questions.length,
+report.summary = { corrections: applied.length, contentVersion, parts: parts.length, activities: activities.length, lines: checked, items: items.length, questions: questions.length,
   activitiesWithoutItems: activities.filter((a) => !a.itemIds.length).length, unassignedItems: report.unassignedItems.length };
 writeFileSync(REPORT, JSON.stringify(report, null, 1) + '\n');
 console.log(JSON.stringify(report.summary));

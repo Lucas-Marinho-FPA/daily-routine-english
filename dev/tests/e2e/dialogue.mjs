@@ -277,6 +277,11 @@ await check('D06', 'Fase 3: autorização; offline fica pendente e sobrevive ao 
   assert(gwCalls.length - before === A.lines.length - 2, `chamadas ao gateway: ${gwCalls.length - before}`);
   assert(await page.getAttribute('[data-role=phase-footer]', 'data-state') === 'completed', 'fase 3 não concluiu');
   await shot('D06-traducao');
+  // fases 4 e 5 abrem juntas depois da tradução (a leitura não depende da compreensão)
+  await go(`#/dialogue/${ACT}`);
+  await page.waitForSelector('[data-role=phases]');
+  const after3 = await page.$$eval('[data-role=phase]', (els) => els.map((e) => e.dataset.state));
+  assert(after3[3] === 'available' && after3[4] === 'available', `fases 4/5 após a tradução: ${after3}`);
   return `${gwCalls.length} avaliações online, 1 local`;
 });
 
@@ -292,7 +297,7 @@ await check('D07', 'Fase 4 (questões reais): 3 audições liberam 10 questões;
   await page.waitForSelector('[data-role=questions][data-kind=full]');
   const realQ = PACK.questions.filter((q) => q.activityId === ACT);
   assert(realQ.length === 10 && await page.locator('[data-role=questions] [data-question]').count() === 10, '10 questões reais');
-  assert(await page.locator('[data-role=questions-status]').count() === 1, 'aviso de validação pendente das questões');
+  assert(!/professor|validação/i.test(await page.locator('main').textContent()), 'aviso de validação exibido ao aluno');
   const shownText = await page.locator('[data-role=questions]').textContent();
   assert(realQ.every((q) => !shownText.includes(q.explanation.slice(0, 30))), 'explicação antes do envio');
   const answerAll = async (nRight) => {
@@ -387,6 +392,54 @@ await check('D10', 'Microfone bloqueado: tentativa inconclusiva com orientação
   const st = await page.getAttribute('[data-role=feedback]', 'data-status');
   assert(st === 'inconclusive', `microfone negado → ${st}`);
   return st;
+});
+
+await check('D14', 'Diálogo curto (3 questões): rodada reduzida com corte proporcional (3/3 = 80% arredondado), recuperação só da errada; leitura em voz alta disponível antes da compreensão', async () => {
+  const SHORT = 'john-p2-x02';
+  const sa = PACK.activities.find((a) => a.id === SHORT);
+  const sq = PACK.questions.filter((q) => q.activityId === SHORT);
+  assert(sq.length === 3, `questões do diálogo curto: ${sq.length}`);
+  // progresso SINTÉTICO das fases 1–3 gravado direto no IndexedDB (atalho do teste; as fases 1–3 já são testadas em D04–D06)
+  await page.evaluate(async ({ sa }) => {
+    const db = await new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => res(r.result); });
+    const get = () => new Promise((res) => { const t = db.transaction('kv').objectStore('kv').get('dialogues'); t.onsuccess = () => res(t.result); });
+    const st = await get();
+    const attempts = {}; let n = 0;
+    const add = (phase, itemId) => { const id = `syn-${n++}`; attempts[id] = { attemptId: id, phase, itemId, status: 'passed', score: 100, threshold: 80, evaluationMode: 'teste', createdAt: n, evaluatedAt: n }; };
+    sa.itemIds.forEach((id) => add('vocab', id));
+    for (const ph of ['dictation', 'translation']) sa.lines.forEach((l) => add(ph, l.id));
+    st.acts[sa.id] = { contentVersion: null, startedAt: 1, completedAt: null, attempts, listens: {}, rounds: [], notes: '', order: {} };
+    await new Promise((res) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = res; });
+  }, { sa });
+  await page.reload(); await page.waitForTimeout(400);
+  await go(`#/dialogue/${SHORT}`);
+  await page.waitForSelector('[data-role=phases]');
+  const states = await page.$$eval('[data-role=phase]', (els) => els.map((e) => e.dataset.state));
+  assert(states[3] === 'available' && states[4] === 'available', `fases 4/5: ${states}`);
+  assert((await textOf('[data-phase=listening]')).includes('3 questões · aprovação com 3/3'), await textOf('[data-phase=listening]'));
+  await go(`#/dphase/${SHORT}?p=listening`);
+  for (let k = 1; k <= 3; k++) {
+    await page.click('[data-role=play-dialogue]');
+    await page.waitForFunction((n) => document.querySelector('[data-role=listen-count]')?.textContent.includes(`${n}/3`), k, { timeout: 60000 });
+  }
+  await page.waitForSelector('[data-role=questions][data-kind=full]');
+  assert(await page.locator('[data-role=questions] [data-question]').count() === 3, 'rodada de 3');
+  const qs = await page.$$eval('[data-role=questions] [data-question]', (els) => els.map((e) => e.dataset.question));
+  for (let i = 0; i < 3; i++) await page.click(`[data-role=questions] [data-question="${qs[i]}"] [data-option="${i < 2 ? 'a' : 'b'}"]`);
+  await page.click('[data-role=submit-round]');
+  await page.waitForSelector('[data-role=round-result]');
+  assert(await page.getAttribute('[data-role=round-result]', 'data-passed') === 'false', '2/3 aprovou (67% < 80%)');
+  assert(await page.getAttribute(`[data-role=round-result] [data-question="${qs[2]}"]`, 'data-revealed') === 'false', 'resposta revelada antes da recuperação');
+  await page.click('[data-role=round-result] [data-role=continue]');
+  await page.waitForSelector('[data-role=questions][data-kind=recovery]');
+  assert(await page.locator('[data-role=questions] [data-question]').count() === 1, 'só a errada volta');
+  await page.click(`[data-role=questions] [data-option="a"]`);
+  await page.click('[data-role=submit-round]');
+  await page.waitForSelector('[data-role=round-result][data-passed=true]');
+  await page.click('[data-role=round-result] [data-role=continue]');
+  assert(await page.getAttribute('[data-role=phase-footer]', 'data-state') === 'completed', 'fase 4 reduzida não concluiu');
+  await shot('D14-rodada-reduzida');
+  return 'rodada 2/3 → recuperação 1/1 → 3/3';
 });
 
 // ---------- D11: reconhecimento REAL (Moonshine) com a voz Kokoro da fala como microfone ----------

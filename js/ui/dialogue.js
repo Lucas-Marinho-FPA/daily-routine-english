@@ -14,7 +14,7 @@ import * as db from '../store/db.js';
 import { asrSetupCard } from './asrsetup.js';
 import { transcriptIntegrity } from '../engine/integrity.js';
 import {
-  PHASES, THRESHOLD, LISTENS_REQUIRED, QUESTIONS_TOTAL, QUESTIONS_PASS, STORE_KEY, dialoguePack, activityById, itemsOf, questionsOf,
+  PHASES, THRESHOLD, LISTENS_REQUIRED, passMark, STORE_KEY, dialoguePack, activityById, itemsOf, questionsOf,
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
   mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
   activityReport, phaseById, pendingAttempts,
@@ -230,12 +230,12 @@ export function renderDialogue(App, { arg, params }) {
 
 function phaseRow(act, s) {
   const locked = s.state === 'locked';
-  const counter = s.id === 'listening' ? (s.state === 'blocked_by_content' ? 'diálogo curto: menos de 10 questões sustentadas pelo texto' : `${QUESTIONS_TOTAL} questões · aprovação com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}`)
+  const counter = s.id === 'listening' && s.total ? `${s.total} ${s.total === 1 ? 'questão' : 'questões'} · aprovação com ${s.passMark}/${s.total}`
     : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` · ${s.pending} pendentes` : ''}` : 'sem itens';
   const cls = s.state === 'completed' ? 'done' : locked ? 'locked' : 'open';
   const mark = h('span', { class: `stage-mark ${cls}`, 'aria-hidden': 'true' }, locked ? icon('lock') : s.state === 'completed' ? icon('check') : String(s.n));
   const text = h('div', { class: 'grow' }, h('div', { class: 'stage-title' }, h('b', { text: `${s.n}. ${s.title}` })),
-    h('div', { class: 'small muted', text: locked ? 'Bloqueada — conclua a fase anterior' : `${STATE_LABEL[s.state]} · ${counter}` }));
+    h('div', { class: 'small muted', text: locked ? (s.id === 'reading' ? 'Bloqueada — conclua a fase 3 (tradução)' : 'Bloqueada — conclua a fase anterior') : `${STATE_LABEL[s.state]} · ${counter}` }));
   const attrs = { class: `stage ${cls}`, 'data-role': 'phase', 'data-phase': s.id, 'data-state': s.state };
   if (locked || s.state === 'not_applicable') return h('li', attrs, h('div', { class: 'stage-row', 'aria-disabled': 'true' }, mark, text));
   return h('li', attrs, h('a', { class: 'stage-row', href: `#/dphase/${act.id}?p=${s.id}`, 'aria-label': `${s.title}: ${STATE_LABEL[s.state]}` }, mark, text, icon('next')));
@@ -604,7 +604,7 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
     const next = listeningNext(p, qs.length);
     const n = listensOf(p, 'listening');
     clear(area);
-    area.append(h('p', { class: 'small muted', text: `Ouça o diálogo completo ${LISTENS_REQUIRED} vezes até o fim (pode anotar). Depois, responda às ${QUESTIONS_TOTAL} questões; a rodada é aprovada com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}. A correção aparece só depois do envio.` }));
+    area.append(h('p', { class: 'small muted', text: `Ouça o diálogo completo ${LISTENS_REQUIRED} vezes até o fim (pode anotar). Depois, responda às ${qs.length} ${qs.length === 1 ? 'questão' : 'questões'}; a rodada é aprovada com ${passMark(qs.length)}/${qs.length} (80%). A correção aparece só depois do envio.` }));
     const allAudio = act.lines.every((l) => hasAudio(l.audio));
     const now = h('div', { class: 'small muted', 'data-role': 'full-status' });
     const play = h('button', { class: 'btn primary', type: 'button', 'data-role': 'play-dialogue', disabled: !allAudio }, icon('play'), n ? 'Ouvir de novo' : 'Ouvir o diálogo completo');
@@ -622,9 +622,8 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
       if (ok) { recordListen(p, 'listening'); await save(); } else toast('Audição interrompida: não conta. Ouça até o fim.');
       draw();
     };
-    if (next === 'blocked') {
-      area.append(h('div', { class: 'notice warn', 'data-role': 'questions-missing' }, h('b', { text: 'Fase indisponível neste diálogo. ' }),
-        `A fase exige ${QUESTIONS_TOTAL} questões de compreensão e este diálogo tem ${qs.length}: o texto não sustenta mais questões sem inventar conteúdo. Pendência registrada para o Product Owner. As audições e anotações ficam salvas.`));
+    if (next === 'none') {
+      area.append(h('div', { class: 'notice small', 'data-role': 'questions-missing', text: 'Este diálogo não tem questões de compreensão.' }));
     } else if (shown) {
       area.append(roundFeedback(shown, qs));
     } else if (next === 'listen') {
@@ -641,7 +640,6 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
         h('button', { class: 'btn ghost', type: 'button', 'data-role': 'reveal-answers', onclick: () => { revealed = true; draw(); } }, 'Ver as respostas')));
       if (revealed) area.append(...qs.filter((q) => c.wrong.includes(q.id)).map((q) => answerCard(q, { correct: false, reveal: true })));
     }
-    if (qs.length) area.append(h('p', { class: 'tiny muted', 'data-role': 'questions-status', text: 'Questões elaboradas a partir do texto do diálogo (complemento didático); validação pelo professor pendente.' }));
     area.append(phaseFooter(pack, act, p, 'listening'));
   };
   function notesField() {
@@ -685,10 +683,10 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
   const roundFeedback = (round, all) => {
     const c = comprehension(p);
     const head = round.kind === 'full'
-      ? `${round.correct}/${round.total} — ${round.passed ? 'rodada aprovada' : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}: refaça só as erradas`}`
-      : `Recuperação: ${round.correct}/${round.total} · compreensão ${c.tally}/${c.total}${c.tally >= QUESTIONS_PASS ? ' — aprovada' : ''}`;
-    return h('section', { class: 'stack', 'data-role': 'round-result', 'data-kind': round.kind, 'data-passed': String(c.tally >= QUESTIONS_PASS), 'data-correct': String(round.correct), 'data-tally': String(c.tally) },
-      h('div', { class: `feedback ${c.tally >= QUESTIONS_PASS ? 'good' : round.kind === 'full' ? 'bad' : 'mid'}` }, h('div', { class: 'head', text: head })),
+      ? `${round.correct}/${round.total} — ${round.passed ? 'rodada aprovada' : `abaixo de ${passMark(round.total)}/${round.total}: refaça só as erradas`}`
+      : `Recuperação: ${round.correct}/${round.total} · compreensão ${c.tally}/${c.total}${c.tally >= passMark(c.total) ? ' — aprovada' : ''}`;
+    return h('section', { class: 'stack', 'data-role': 'round-result', 'data-kind': round.kind, 'data-passed': String(c.tally >= passMark(c.total)), 'data-correct': String(round.correct), 'data-tally': String(c.tally) },
+      h('div', { class: `feedback ${c.tally >= passMark(c.total) ? 'good' : round.kind === 'full' ? 'bad' : 'mid'}` }, h('div', { class: 'head', text: head })),
       ...round.results.map((r) => answerCard(all.find((x) => x.id === r.questionId), { correct: r.correct, reveal: false })),
       h('button', { class: 'btn block', type: 'button', 'data-role': 'continue', onclick: () => { shown = null; draw(); } }, 'Continuar'));
   };

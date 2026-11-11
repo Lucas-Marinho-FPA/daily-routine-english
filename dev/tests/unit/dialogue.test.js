@@ -9,7 +9,7 @@ import { createChecker } from '../../app/js/engine/checker.js';
 import {
   THRESHOLD, LISTENS_REQUIRED, PHASES, meetsThreshold, emptyStore, validStore, actProgress, addAttempt, applyEvaluation, markRetry,
   pendingAttempts, mastery, recordListen, canSpeakItem, canAnswerQuestions, gradeRound, addRound, listeningNext, wrongOf, comprehension, questionMastered,
-  phaseStatuses, activityStatus, nextItem, phaseOrder, activityReport, spokenItem, requiredOf, contentProblems, newAttemptId, settleCompletion,
+  phaseStatuses, activityStatus, nextItem, phaseOrder, activityReport, spokenItem, requiredOf, contentProblems, newAttemptId, settleCompletion, passMark, PREREQ,
 } from '../../app/js/engine/dialogue.js';
 import { scoreWriting, evaluateSpeech, localTranslation, validateTranslationResult, translationRequest, nearToken } from '../../app/js/engine/dialogueeval.js';
 import { createRemoteEvaluator, processQueue, remoteBlocker, evaluationConfig } from '../../app/js/engine/evalsync.js';
@@ -126,9 +126,52 @@ test('compreensão: 8/10 aprova; abaixo disso só as erradas voltam (as acertada
   const r7 = fresh(); for (let i = 0; i < 3; i++) recordListen(r7, 'listening');
   addRound(r7, gradeRound(Q, answers(7), { now: 5 }));
   assert.equal(listeningNext(r7), 'recovery', '7/10 não aprova');
-  // sem 10 questões no conteúdo → fase indisponível (nada é inventado)
-  assert.equal(listeningNext(fresh(), 9), 'blocked');
+  // diálogo sem questões: a fase não se aplica (nunca bloqueia a leitura)
+  assert.equal(listeningNext(fresh(), 0), 'none');
   assert.deepEqual(wrongOf(r6), ['t-q7', 't-q8', 't-q9', 't-q10']);
+});
+
+test('rodada reduzida: corte proporcional de 80% (arredondado para cima) e recuperação só das erradas', () => {
+  assert.deepEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(passMark), [8, 8, 7, 6, 5, 4, 4, 3, 2, 1]);
+  for (const n of [1, 3, 4, 5, 7, 8, 9, 10]) { assert.ok(passMark(n) / n >= 0.8, `${n}: ≥ 80%`); assert.ok((passMark(n) - 1) / n < 0.8, `${n}: corte mínimo`); }
+  const Q3 = Q.slice(0, 3);
+  const p = fresh(); for (let i = 0; i < 3; i++) recordListen(p, 'listening');
+  assert.equal(listeningNext(p, 3), 'full');
+  const r = gradeRound(Q3, { 't-q1': 'a', 't-q2': 'a', 't-q3': 'b' }, { now: 1 });
+  assert.equal(r.passed, false, '2/3 = 67% não aprova'); assert.equal(r.passMark, 3);
+  addRound(p, r);
+  assert.equal(listeningNext(p, 3), 'recovery');
+  assert.deepEqual(comprehension(p).wrong, ['t-q3']);
+  addRound(p, gradeRound([Q3[2]], { 't-q3': 'a' }, { kind: 'recovery', now: 2 }));
+  assert.equal(listeningNext(p, 3), 'done');
+  const p7 = fresh(); for (let i = 0; i < 3; i++) recordListen(p7, 'listening');
+  addRound(p7, gradeRound(Q.slice(0, 7), Object.fromEntries(Q.slice(0, 7).map((q, i) => [q.id, i < 6 ? 'a' : 'b'])), { now: 3 }));
+  assert.equal(listeningNext(p7, 7), 'done', '6/7 = 86% aprova');
+  // rodada feita com outro número de questões (conteúdo mudou) não vale: nova rodada
+  assert.equal(listeningNext(p7, 8), 'full');
+});
+
+test('fase 5 independente da fase 4: abre quando a tradução (fase 3) está concluída, mesmo sem a compreensão', () => {
+  assert.equal(PREREQ.reading, 'translation');
+  assert.equal(PREREQ.listening, 'translation');
+  const p = fresh();
+  for (const id of ACT.itemIds) att(p, 'vocab', id, 'passed', 100);
+  for (const ph of ['dictation']) for (const l of ACT.lines) att(p, ph, l.id, 'passed', 90);
+  let st = phaseStatuses(PACK, ACT, p);
+  assert.equal(st.find((x) => x.id === 'reading').state, 'locked', 'leitura espera a tradução');
+  // todas as falas traduzidas, mas aguardando avaliação online: as fases 4 e 5 já abrem; a atividade não conclui
+  for (const l of ACT.lines) addAttempt(p, { attemptId: `pend-${l.id}`, phase: 'translation', itemId: l.id, response: 'x', result: { status: 'pending', evaluationMode: 'remote_ai' }, now: clock++ });
+  st = phaseStatuses(PACK, ACT, p);
+  assert.equal(st.find((x) => x.id === 'translation').state, 'pending_online');
+  assert.equal(st.find((x) => x.id === 'reading').state, 'available', 'pendência online não bloqueia a leitura');
+  assert.equal(st.find((x) => x.id === 'listening').state, 'available', 'pendência online não bloqueia a compreensão');
+  for (const l of ACT.lines) att(p, 'translation', l.id, 'passed', 90);
+  st = phaseStatuses(PACK, ACT, p);
+  assert.equal(st.find((x) => x.id === 'listening').state, 'available');
+  assert.equal(st.find((x) => x.id === 'reading').state, 'available', 'leitura aberta sem a compreensão');
+  for (const l of ACT.lines) att(p, 'reading', l.id, 'passed', 100);
+  assert.equal(activityStatus(PACK, ACT, p).state, 'in_progress', 'atividade só conclui com a fase 4 também');
+  assert.equal(activityStatus(PACK, ACT, p).current.id, 'listening');
 });
 
 test('atividade completa só com todas as fases; resultado por item, sem XP/pontos/recompensas', () => {
@@ -289,30 +332,46 @@ test('The Story of John: sete partes, IDs únicos e estáveis, texto literal, tr
   const lines = JOHN.activities.flatMap((a) => a.lines);
   assert.ok(lines.length >= 250);
   for (const l of lines) { assert.ok(l.en && l.pt, l.id); assert.ok(!/\*\*/.test(l.en + l.pt), `${l.id}: sem marcação Markdown`); }
-  // conferência literal com os documentos (a mesma do gerador, refeita aqui)
+  // conferência literal com os documentos (a mesma do gerador, refeita aqui); falas corrigidas pelo PO guardam o original
   const src = (f) => readFileSync(new URL(`../../content/dialogues/source/the-story-of-john/${f}`, import.meta.url), 'utf8').split('\n');
+  const CORR = JSON.parse(readFileSync(new URL('../../content/dialogues/john-corrections.json', import.meta.url))).corrections;
   for (const l of lines) {
     const md = src(l.src.file);
-    assert.ok(md[l.src.line - 1].includes(l.en), `${l.id}: inglês literal`);
-    assert.ok(md[l.src.ptLine - 1].includes(l.pt), `${l.id}: português literal`);
+    const c = l.correction || {};
+    assert.ok(md[l.src.line - 1].includes(c.en ?? l.en), `${l.id}: inglês literal (ou original registrado)`);
+    assert.ok(md[l.src.ptLine - 1].includes(c.pt ?? l.pt), `${l.id}: português literal (ou original registrado)`);
   }
+  for (const c of CORR) {
+    if (c.field === 'context') { assert.equal(JOHN.activities.find((a) => a.id === c.id).context, c.to); continue; }
+    const l = lines.find((x) => x.id === c.id);
+    assert.equal(l[c.field], c.to, `${c.id}: correção aplicada`);
+    assert.equal(l.correction[c.field], c.from, `${c.id}: original preservado`);
+  }
+  // inconsistências resolvidas: um só horário para o trem de Edinburgh; nada de “table for six” ambíguo
+  const p7 = lines.filter((l) => l.id.startsWith('john-p7-')).map((l) => l.en).join(' ');
+  assert.ok(!/8\.40|twenty to nine/.test(p7), 'trem 8.40 removido');
+  assert.ok(lines.some((l) => /table for six people/.test(l.en)));
   const cast = new Set(['john', 'mary', 'rick', 'jessy', 'peter', 'ruan', 'stuart', 'ana', 'ketlyn', 'joana', 'rodri', 'penelope']);
   for (const id of new Set(lines.map((l) => l.speakerId))) assert.ok(cast.has(id) || id.startsWith('role-'), `fala de ${id}: só elenco autoral ou papel genérico`);
-  assert.equal(JOHN.activities[0].lines[0].en, 'Do you remember John Bennett?');
-  assert.equal(JOHN.activities[0].lines[0].pt, 'Rick: Você se lembra do John Bennett?'.slice(6));
+  assert.equal(JOHN.activities[0].lines[0].en, 'John Bennett? Do you remember me?');
+  assert.equal(JOHN.activities[0].lines[0].correction.en, 'Do you remember John Bennett?');
   // itens: tipo, vínculo com as falas e texto falado
   assert.equal(spokenItem('sister / uncle'), 'sister, uncle');
   assert.equal(spokenItem('What do you think of...?'), 'What do you think of?');
   assert.ok(JOHN.items.every((i) => ['word', 'phrasal_verb', 'collocation', 'chunk', 'expression', 'pattern'].includes(i.type)));
-  // fase 4: diálogo com 10 questões não tem problema de conteúdo; diálogo curto aparece com diagnóstico
+  // fase 4 em TODOS os diálogos: 10 questões ou rodada reduzida (nenhum diálogo sem questões)
   const a1 = JOHN.activities[0];
   assert.equal(requiredOf(JOHN, a1, 'listening').length, 10);
-  assert.ok(!contentProblems(JOHN, a1).some((x) => x.code === 'questions'));
+  for (const a of JOHN.activities) {
+    assert.ok(a.questionIds.length >= 3, `${a.id}: ${a.questionIds.length} questões`);
+    assert.ok(!contentProblems(JOHN, a).some((x) => x.code === 'questions'), a.id);
+  }
   const short = JOHN.activities.find((a) => a.id === 'john-p2-x02');
-  assert.equal(contentProblems(JOHN, short).find((x) => x.code === 'questions').code, 'questions');
+  const st = phaseStatuses(JOHN, short, actProgress(emptyStore(), short)).find((x) => x.id === 'listening');
+  assert.deepEqual([st.total, st.passMark], [3, 3]);
 });
 
-test('questões de compreensão: estrutura, evidência citada, sem resposta repetida nas alternativas, status de validação explícito', () => {
+test('questões de compreensão: estrutura, evidência citada, sem resposta repetida nas alternativas, origem rastreável (sem aviso ao aluno)', () => {
   const byId = new Map(JOHN.activities.map((a) => [a.id, a]));
   const ids = JOHN.questions.map((q) => q.id);
   assert.equal(new Set(ids).size, ids.length);
@@ -328,7 +387,8 @@ test('questões de compreensão: estrutura, evidência citada, sem resposta repe
     assert.ok(q.sourceLineIds.length || q.sourceRefs.some((r) => r === 'ctx' || r === 'title'), `${q.id}: evidência`);
     for (const lid of q.sourceLineIds) assert.ok(a.lines.some((l) => l.id === lid), `${q.id}: fala ${lid}`);
     assert.match(q.explanation, /No diálogo — /, `${q.id}: explicação com a evidência`);
-    assert.match(q.status, /não validado pelo professor/);
+    assert.match(q.status, /gerada para o projeto/);
+    assert.ok(!/professor/i.test(q.explanation), `${q.id}: nada de aviso ao aluno sobre validação`);
   }
   // equilíbrio: nenhum diálogo completo só com fatos explícitos
   for (const a of JOHN.activities.filter((x) => x.questionIds.length >= 10)) {
@@ -337,4 +397,5 @@ test('questões de compreensão: estrutura, evidência citada, sem resposta repe
   }
   const full = JOHN.activities.filter((a) => a.questionIds.length >= 10).length;
   assert.equal(full, 30);
+  assert.equal(JOHN.questions.length, 403);
 });

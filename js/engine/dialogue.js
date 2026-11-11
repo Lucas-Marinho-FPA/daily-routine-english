@@ -17,8 +17,10 @@
 
 export const THRESHOLD = 80;
 export const LISTENS_REQUIRED = 3;
-export const QUESTIONS_TOTAL = 10;
-export const QUESTIONS_PASS = 8;
+export const QUESTIONS_TOTAL = 10; // rodada padrão
+export const QUESTIONS_PASS = 8; // corte da rodada padrão (8/10 = 80%)
+/** Corte proporcional de uma rodada com n questões: o menor número de acertos que atinge 80% (10 → 8; 9 → 8; 7 → 6; 5 → 4; 3 → 3). */
+export const passMark = (n) => Math.ceil((n * THRESHOLD) / 100 - 1e-9);
 
 export const PHASES = [
   { id: 'vocab', n: 1, title: 'Vocabulário e expressões', short: 'Vocabulário' },
@@ -75,7 +77,7 @@ export function requiredOf(pack, act, phaseId) {
 export function contentProblems(pack, act, { hasAudio = () => true } = {}) {
   const out = [];
   const qs = questionsOf(pack, act);
-  if (qs.length < QUESTIONS_TOTAL) out.push({ phase: 'listening', code: 'questions', text: `Questões de compreensão: ${qs.length} de ${QUESTIONS_TOTAL} — o texto do diálogo não sustenta mais questões sem inventar conteúdo (fase 4 indisponível; decisão do Product Owner pendente).` });
+  if (!qs.length) out.push({ phase: 'listening', code: 'questions', text: 'Sem questões de compreensão para este diálogo.' });
   for (const q of qs) if (!q.options || q.options.length < 2 || !q.options.some((o) => o.id === q.correctOptionId)) out.push({ phase: 'listening', code: 'question-invalid', text: `Questão ${q.id} inválida (alternativas/gabarito).` });
   const noAudio = act.lines.filter((l) => !hasAudio(l.audio));
   if (noAudio.length) out.push({ phase: 'audio', code: 'audio', text: `${noAudio.length} fala(s) sem áudio gravado.`, ids: noAudio.map((l) => l.id) });
@@ -205,7 +207,7 @@ export function gradeRound(questions, answers, { kind = 'full', now = Date.now()
   const results = questions.map((q) => ({ questionId: q.id, chosen: answers[q.id] ?? null, correct: answers[q.id] === q.correctOptionId }));
   const correct = results.filter((r) => r.correct).length;
   return { id: id || `round-${now.toString(36)}`, kind, submittedAt: now, total: questions.length, correct, results,
-    passed: kind === 'full' && questions.length === QUESTIONS_TOTAL && correct >= QUESTIONS_PASS, rubricVersion: RUBRICS.listening };
+    passed: kind === 'full' && questions.length > 0 && correct >= passMark(questions.length), passMark: passMark(questions.length), rubricVersion: RUBRICS.listening };
 }
 export function addRound(p, round) {
   if (p.rounds.some((r) => r.id === round.id)) return false;
@@ -231,13 +233,15 @@ export function comprehension(p) {
 /** Questão já acertada (na rodada ou na recuperação): só então a resposta certa e a explicação completa aparecem. */
 export const questionMastered = (p, id) => { const c = comprehension(p); return !!c && c.mastered.has(id); };
 
-/** O que a fase 4 pede agora: 'blocked' | 'listen' | 'full' | 'recovery' | 'done'. */
+/** O que a fase 4 pede agora: 'none' (diálogo sem questões) | 'listen' | 'full' | 'recovery' | 'done'.
+ *  Rodada com todas as questões que o diálogo sustenta (padrão 10; diálogos curtos, menos), aprovada com 80% (passMark). */
 export function listeningNext(p, questionsCount = QUESTIONS_TOTAL) {
-  if (questionsCount < QUESTIONS_TOTAL) return 'blocked';
+  if (!questionsCount) return 'none';
   const c = comprehension(p);
-  if (c && c.total === QUESTIONS_TOTAL && c.tally >= QUESTIONS_PASS) return 'done';
+  const valid = c && c.total === questionsCount; // rodada feita com outro conjunto de questões não vale
+  if (valid && c.tally >= passMark(c.total)) return 'done';
   if (!canAnswerQuestions(p)) return 'listen';
-  if (c && c.wrong.length) return 'recovery';
+  if (valid && c.wrong.length) return 'recovery';
   return 'full';
 }
 export const wrongOf = (round) => (round ? round.results.filter((r) => !r.correct).map((r) => r.questionId) : []);
@@ -246,14 +250,26 @@ export const wrongOf = (round) => (round ? round.results.filter((r) => !r.correc
 // Fases e atividade
 // ---------------------------------------------------------------------------------------------------------
 
+/** Fase de que cada fase depende: 1 → 2 → 3 → 4; a leitura em voz alta (5) depende só da tradução (3), não da
+ *  compreensão (4) — decisão do PO de 2026-11-11: a fase 5 não pode ficar bloqueada pela fase 4. */
+export const PREREQ = { vocab: null, dictation: 'vocab', translation: 'dictation', listening: 'translation', reading: 'translation' };
+
 /**
- * Situação de cada fase: locked | available | in_progress | pending_online | needs_retry | completed | blocked_by_content | not_applicable.
+ * Situação de cada fase: locked | available | in_progress | pending_online | needs_retry | completed | not_applicable.
  * Fase sem itens obrigatórios no conteúdo (ex.: atividade sem vocabulário curado) = not_applicable (registrada como lacuna
  * de conteúdo, não como domínio demonstrado) e não trava a seguinte.
  */
 export function phaseStatuses(pack, act, p) {
   const out = [];
-  let prevDone = true;
+  const open = (id) => { // a fase pré-requisito (e a cadeia dela) está concluída?
+    const pre = PREREQ[id];
+    if (!pre) return true;
+    const x = out.find((y) => y.id === pre);
+    // fase 3 com todas as falas respondidas e só aguardando a avaliação online também abre as fases 4 e 5: elas não
+    // dependem do resultado dessa avaliação (doc. 01 §5: falha/pendência online não impede o conteúdo independente);
+    // a atividade só é concluída quando as avaliações pendentes chegam
+    return open(pre) && (x.state === 'completed' || x.state === 'not_applicable' || x.state === 'pending_online');
+  };
   for (const ph of PHASES) {
     const ids = requiredOf(pack, act, ph.id);
     const items = ids.map((id) => (ph.id === 'listening' ? null : mastery(p, ph.id, id))).filter(Boolean);
@@ -261,34 +277,31 @@ export function phaseStatuses(pack, act, p) {
     const pending = items.filter((m) => m.status === 'pending_evaluation').length;
     const failing = items.filter((m) => m.status === 'needs_practice' || m.status === 'inconclusive').length;
     const touched = items.filter((m) => m.status !== 'unseen').length;
+    const unlocked = open(ph.id);
     let state;
-    if (ph.id === 'listening') {
+    if (ph.id === 'listening' && ids.length) {
       const next = listeningNext(p, ids.length);
-      const st = next === 'blocked' ? 'blocked_by_content' : next === 'done' ? 'completed' : null;
-      state = !prevDone ? 'locked' : st || (p.rounds.length || listensOf(p, 'listening') ? (next === 'recovery' ? 'needs_retry' : 'in_progress') : 'available');
-      out.push({ ...ph, state, total: ids.length, passed: state === 'completed' ? ids.length : 0, pending: 0, failing: 0, next });
+      state = !unlocked ? 'locked' : next === 'done' ? 'completed' : (p.rounds.length || listensOf(p, 'listening') ? (next === 'recovery' ? 'needs_retry' : 'in_progress') : 'available');
+      out.push({ ...ph, state, total: ids.length, passMark: passMark(ids.length), passed: state === 'completed' ? ids.length : 0, pending: 0, failing: 0, next });
     } else if (!ids.length) {
-      state = prevDone ? 'not_applicable' : 'locked';
+      state = unlocked ? 'not_applicable' : 'locked';
       out.push({ ...ph, state, total: 0, passed: 0, pending: 0, failing: 0 });
     } else {
       const complete = passed === ids.length;
-      state = !prevDone ? 'locked' : complete ? 'completed' : pending && !failing && passed + pending === ids.length ? 'pending_online'
+      state = !unlocked ? 'locked' : complete ? 'completed' : pending && !failing && passed + pending === ids.length ? 'pending_online'
         : failing && touched === ids.length ? 'needs_retry' : touched ? 'in_progress' : 'available';
       out.push({ ...ph, state, total: ids.length, passed, pending, failing });
     }
-    const last = out[out.length - 1];
-    prevDone = prevDone && (last.state === 'completed' || last.state === 'not_applicable');
   }
   return out;
 }
 
-/** Estado da atividade: not_started | in_progress | waiting_for_online_evaluation | completed | blocked_by_content. */
+/** Estado da atividade: not_started | in_progress | waiting_for_online_evaluation | completed. */
 export function activityStatus(pack, act, p) {
   const phases = phaseStatuses(pack, act, p);
   const current = phases.find((x) => x.state !== 'completed' && x.state !== 'not_applicable') || null;
   let state;
   if (!current) state = 'completed';
-  else if (current.state === 'blocked_by_content') state = 'blocked_by_content';
   else if (current.state === 'pending_online') state = 'waiting_for_online_evaluation';
   else if (!p || (!p.startedAt && !Object.keys(p.attempts || {}).length)) state = 'not_started';
   else state = 'in_progress';

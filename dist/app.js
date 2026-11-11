@@ -6256,6 +6256,7 @@ ${body.join("\n\n")}
   var LISTENS_REQUIRED = 3;
   var QUESTIONS_TOTAL = 10;
   var QUESTIONS_PASS = 8;
+  var passMark = (n) => Math.ceil(n * THRESHOLD / 100 - 1e-9);
   var PHASES = [
     { id: "vocab", n: 1, title: "Vocabul\xE1rio e express\xF5es", short: "Vocabul\xE1rio" },
     { id: "dictation", n: 2, title: "Escuta e escrita", short: "Escrita" },
@@ -6298,7 +6299,7 @@ ${body.join("\n\n")}
   function contentProblems(pack, act, { hasAudio: hasAudio2 = () => true } = {}) {
     const out = [];
     const qs = questionsOf(pack, act);
-    if (qs.length < QUESTIONS_TOTAL) out.push({ phase: "listening", code: "questions", text: `Quest\xF5es de compreens\xE3o: ${qs.length} de ${QUESTIONS_TOTAL} \u2014 o texto do di\xE1logo n\xE3o sustenta mais quest\xF5es sem inventar conte\xFAdo (fase 4 indispon\xEDvel; decis\xE3o do Product Owner pendente).` });
+    if (!qs.length) out.push({ phase: "listening", code: "questions", text: "Sem quest\xF5es de compreens\xE3o para este di\xE1logo." });
     for (const q of qs) if (!q.options || q.options.length < 2 || !q.options.some((o) => o.id === q.correctOptionId)) out.push({ phase: "listening", code: "question-invalid", text: `Quest\xE3o ${q.id} inv\xE1lida (alternativas/gabarito).` });
     const noAudio = act.lines.filter((l) => !hasAudio2(l.audio));
     if (noAudio.length) out.push({ phase: "audio", code: "audio", text: `${noAudio.length} fala(s) sem \xE1udio gravado.`, ids: noAudio.map((l) => l.id) });
@@ -6418,7 +6419,8 @@ ${body.join("\n\n")}
       total: questions.length,
       correct,
       results,
-      passed: kind === "full" && questions.length === QUESTIONS_TOTAL && correct >= QUESTIONS_PASS,
+      passed: kind === "full" && questions.length > 0 && correct >= passMark(questions.length),
+      passMark: passMark(questions.length),
       rubricVersion: RUBRICS.listening
     };
   }
@@ -6447,16 +6449,23 @@ ${body.join("\n\n")}
     return !!c && c.mastered.has(id);
   };
   function listeningNext(p, questionsCount = QUESTIONS_TOTAL) {
-    if (questionsCount < QUESTIONS_TOTAL) return "blocked";
+    if (!questionsCount) return "none";
     const c = comprehension(p);
-    if (c && c.total === QUESTIONS_TOTAL && c.tally >= QUESTIONS_PASS) return "done";
+    const valid = c && c.total === questionsCount;
+    if (valid && c.tally >= passMark(c.total)) return "done";
     if (!canAnswerQuestions(p)) return "listen";
-    if (c && c.wrong.length) return "recovery";
+    if (valid && c.wrong.length) return "recovery";
     return "full";
   }
+  var PREREQ = { vocab: null, dictation: "vocab", translation: "dictation", listening: "translation", reading: "translation" };
   function phaseStatuses(pack, act, p) {
     const out = [];
-    let prevDone = true;
+    const open = (id) => {
+      const pre = PREREQ[id];
+      if (!pre) return true;
+      const x = out.find((y) => y.id === pre);
+      return open(pre) && (x.state === "completed" || x.state === "not_applicable" || x.state === "pending_online");
+    };
     for (const ph of PHASES) {
       const ids = requiredOf(pack, act, ph.id);
       const items = ids.map((id) => ph.id === "listening" ? null : mastery2(p, ph.id, id)).filter(Boolean);
@@ -6464,22 +6473,20 @@ ${body.join("\n\n")}
       const pending3 = items.filter((m) => m.status === "pending_evaluation").length;
       const failing = items.filter((m) => m.status === "needs_practice" || m.status === "inconclusive").length;
       const touched = items.filter((m) => m.status !== "unseen").length;
+      const unlocked = open(ph.id);
       let state;
-      if (ph.id === "listening") {
+      if (ph.id === "listening" && ids.length) {
         const next = listeningNext(p, ids.length);
-        const st = next === "blocked" ? "blocked_by_content" : next === "done" ? "completed" : null;
-        state = !prevDone ? "locked" : st || (p.rounds.length || listensOf(p, "listening") ? next === "recovery" ? "needs_retry" : "in_progress" : "available");
-        out.push({ ...ph, state, total: ids.length, passed: state === "completed" ? ids.length : 0, pending: 0, failing: 0, next });
+        state = !unlocked ? "locked" : next === "done" ? "completed" : p.rounds.length || listensOf(p, "listening") ? next === "recovery" ? "needs_retry" : "in_progress" : "available";
+        out.push({ ...ph, state, total: ids.length, passMark: passMark(ids.length), passed: state === "completed" ? ids.length : 0, pending: 0, failing: 0, next });
       } else if (!ids.length) {
-        state = prevDone ? "not_applicable" : "locked";
+        state = unlocked ? "not_applicable" : "locked";
         out.push({ ...ph, state, total: 0, passed: 0, pending: 0, failing: 0 });
       } else {
         const complete = passed === ids.length;
-        state = !prevDone ? "locked" : complete ? "completed" : pending3 && !failing && passed + pending3 === ids.length ? "pending_online" : failing && touched === ids.length ? "needs_retry" : touched ? "in_progress" : "available";
+        state = !unlocked ? "locked" : complete ? "completed" : pending3 && !failing && passed + pending3 === ids.length ? "pending_online" : failing && touched === ids.length ? "needs_retry" : touched ? "in_progress" : "available";
         out.push({ ...ph, state, total: ids.length, passed, pending: pending3, failing });
       }
-      const last = out[out.length - 1];
-      prevDone = prevDone && (last.state === "completed" || last.state === "not_applicable");
     }
     return out;
   }
@@ -6488,7 +6495,6 @@ ${body.join("\n\n")}
     const current2 = phases.find((x) => x.state !== "completed" && x.state !== "not_applicable") || null;
     let state;
     if (!current2) state = "completed";
-    else if (current2.state === "blocked_by_content") state = "blocked_by_content";
     else if (current2.state === "pending_online") state = "waiting_for_online_evaluation";
     else if (!p || !p.startedAt && !Object.keys(p.attempts || {}).length) state = "not_started";
     else state = "in_progress";
@@ -7063,14 +7069,14 @@ ${body.join("\n\n")}
   }
   function phaseRow(act, s) {
     const locked = s.state === "locked";
-    const counter = s.id === "listening" ? s.state === "blocked_by_content" ? "di\xE1logo curto: menos de 10 quest\xF5es sustentadas pelo texto" : `${QUESTIONS_TOTAL} quest\xF5es \xB7 aprova\xE7\xE3o com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}` : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` \xB7 ${s.pending} pendentes` : ""}` : "sem itens";
+    const counter = s.id === "listening" && s.total ? `${s.total} ${s.total === 1 ? "quest\xE3o" : "quest\xF5es"} \xB7 aprova\xE7\xE3o com ${s.passMark}/${s.total}` : s.total ? `${s.passed}/${s.total} aprovados${s.pending ? ` \xB7 ${s.pending} pendentes` : ""}` : "sem itens";
     const cls = s.state === "completed" ? "done" : locked ? "locked" : "open";
     const mark = h("span", { class: `stage-mark ${cls}`, "aria-hidden": "true" }, locked ? icon("lock") : s.state === "completed" ? icon("check") : String(s.n));
     const text = h(
       "div",
       { class: "grow" },
       h("div", { class: "stage-title" }, h("b", { text: `${s.n}. ${s.title}` })),
-      h("div", { class: "small muted", text: locked ? "Bloqueada \u2014 conclua a fase anterior" : `${STATE_LABEL3[s.state]} \xB7 ${counter}` })
+      h("div", { class: "small muted", text: locked ? s.id === "reading" ? "Bloqueada \u2014 conclua a fase 3 (tradu\xE7\xE3o)" : "Bloqueada \u2014 conclua a fase anterior" : `${STATE_LABEL3[s.state]} \xB7 ${counter}` })
     );
     const attrs = { class: `stage ${cls}`, "data-role": "phase", "data-phase": s.id, "data-state": s.state };
     if (locked || s.state === "not_applicable") return h("li", attrs, h("div", { class: "stage-row", "aria-disabled": "true" }, mark, text));
@@ -7580,7 +7586,7 @@ ${body.join("\n\n")}
       const next = listeningNext(p, qs.length);
       const n = listensOf(p, "listening");
       clear(area);
-      area.append(h("p", { class: "small muted", text: `Ou\xE7a o di\xE1logo completo ${LISTENS_REQUIRED} vezes at\xE9 o fim (pode anotar). Depois, responda \xE0s ${QUESTIONS_TOTAL} quest\xF5es; a rodada \xE9 aprovada com ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}. A corre\xE7\xE3o aparece s\xF3 depois do envio.` }));
+      area.append(h("p", { class: "small muted", text: `Ou\xE7a o di\xE1logo completo ${LISTENS_REQUIRED} vezes at\xE9 o fim (pode anotar). Depois, responda \xE0s ${qs.length} ${qs.length === 1 ? "quest\xE3o" : "quest\xF5es"}; a rodada \xE9 aprovada com ${passMark(qs.length)}/${qs.length} (80%). A corre\xE7\xE3o aparece s\xF3 depois do envio.` }));
       const allAudio = act.lines.every((l) => hasAudio(l.audio));
       const now = h("div", { class: "small muted", "data-role": "full-status" });
       const play3 = h("button", { class: "btn primary", type: "button", "data-role": "play-dialogue", disabled: !allAudio }, icon("play"), n ? "Ouvir de novo" : "Ouvir o di\xE1logo completo");
@@ -7611,13 +7617,8 @@ ${body.join("\n\n")}
         } else toast("Audi\xE7\xE3o interrompida: n\xE3o conta. Ou\xE7a at\xE9 o fim.");
         draw();
       };
-      if (next === "blocked") {
-        area.append(h(
-          "div",
-          { class: "notice warn", "data-role": "questions-missing" },
-          h("b", { text: "Fase indispon\xEDvel neste di\xE1logo. " }),
-          `A fase exige ${QUESTIONS_TOTAL} quest\xF5es de compreens\xE3o e este di\xE1logo tem ${qs.length}: o texto n\xE3o sustenta mais quest\xF5es sem inventar conte\xFAdo. Pend\xEAncia registrada para o Product Owner. As audi\xE7\xF5es e anota\xE7\xF5es ficam salvas.`
-        ));
+      if (next === "none") {
+        area.append(h("div", { class: "notice small", "data-role": "questions-missing", text: "Este di\xE1logo n\xE3o tem quest\xF5es de compreens\xE3o." }));
       } else if (shown) {
         area.append(roundFeedback(shown, qs));
       } else if (next === "listen") {
@@ -7643,7 +7644,6 @@ ${body.join("\n\n")}
         ));
         if (revealed) area.append(...qs.filter((q) => c.wrong.includes(q.id)).map((q) => answerCard(q, { correct: false, reveal: true })));
       }
-      if (qs.length) area.append(h("p", { class: "tiny muted", "data-role": "questions-status", text: "Quest\xF5es elaboradas a partir do texto do di\xE1logo (complemento did\xE1tico); valida\xE7\xE3o pelo professor pendente." }));
       area.append(phaseFooter(pack, act, p, "listening"));
     };
     function notesField() {
@@ -7711,11 +7711,11 @@ ${body.join("\n\n")}
     };
     const roundFeedback = (round2, all) => {
       const c = comprehension(p);
-      const head = round2.kind === "full" ? `${round2.correct}/${round2.total} \u2014 ${round2.passed ? "rodada aprovada" : `abaixo de ${QUESTIONS_PASS}/${QUESTIONS_TOTAL}: refa\xE7a s\xF3 as erradas`}` : `Recupera\xE7\xE3o: ${round2.correct}/${round2.total} \xB7 compreens\xE3o ${c.tally}/${c.total}${c.tally >= QUESTIONS_PASS ? " \u2014 aprovada" : ""}`;
+      const head = round2.kind === "full" ? `${round2.correct}/${round2.total} \u2014 ${round2.passed ? "rodada aprovada" : `abaixo de ${passMark(round2.total)}/${round2.total}: refa\xE7a s\xF3 as erradas`}` : `Recupera\xE7\xE3o: ${round2.correct}/${round2.total} \xB7 compreens\xE3o ${c.tally}/${c.total}${c.tally >= passMark(c.total) ? " \u2014 aprovada" : ""}`;
       return h(
         "section",
-        { class: "stack", "data-role": "round-result", "data-kind": round2.kind, "data-passed": String(c.tally >= QUESTIONS_PASS), "data-correct": String(round2.correct), "data-tally": String(c.tally) },
-        h("div", { class: `feedback ${c.tally >= QUESTIONS_PASS ? "good" : round2.kind === "full" ? "bad" : "mid"}` }, h("div", { class: "head", text: head })),
+        { class: "stack", "data-role": "round-result", "data-kind": round2.kind, "data-passed": String(c.tally >= passMark(c.total)), "data-correct": String(round2.correct), "data-tally": String(c.tally) },
+        h("div", { class: `feedback ${c.tally >= passMark(c.total) ? "good" : round2.kind === "full" ? "bad" : "mid"}` }, h("div", { class: "head", text: head })),
         ...round2.results.map((r) => answerCard(all.find((x) => x.id === r.questionId), { correct: r.correct, reveal: false })),
         h("button", { class: "btn block", type: "button", "data-role": "continue", onclick: () => {
           shown = null;

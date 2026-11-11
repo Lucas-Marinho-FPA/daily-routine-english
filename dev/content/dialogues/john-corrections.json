@@ -1,0 +1,56 @@
+{
+ "kind": "daily-routine-english/dialogue-corrections",
+ "formato": 1,
+ "approvedBy": "Product Owner — autorização de 2026-11-11 (“Resolva os problemas identificados… Corrija o conteúdo derivado e suas perguntas, preservando a rastreabilidade”)",
+ "note": "Os documentos autorais em source/ continuam sem alteração. Estas correções são aplicadas por tools/dialogues-source.mjs ao conteúdo derivado; cada fala corrigida guarda o texto original em `correction`.",
+ "corrections": [
+  {
+   "id": "john-p7-e01-l05", "field": "en", "from": "You could take the 8.40 train.", "to": "You could take the 8.20 train.",
+   "reason": "Horário do trem para Edinburgh: p7-e03 (“It leaves at twenty past eight”) e p7-e04 (“The 8.20 service…”) usam 8.20; a sugestão de Mary passa a ser o mesmo trem."
+  },
+  {
+   "id": "john-p7-e01-l05", "field": "pt", "from": "Você poderia pegar o trem das 8h40.", "to": "Você poderia pegar o trem das 8h20.",
+   "reason": "Mesma correção na tradução."
+  },
+  {
+   "id": "john-p7-e01-l07", "field": "en", "from": "About three and a half hours.", "to": "About two and a half hours.",
+   "reason": "John quer chegar antes das onze (p7-e01) e o trem das 9.05, que para em várias estações, chegaria por volta das 11h30 (p7-e05). Com 3h30 de viagem, nem o trem das 8.20 chegaria antes das onze; com cerca de 2h30 a sequência fica coerente (8.20 → ~10h50; 9.05 com paradas → ~11h30)."
+  },
+  {
+   "id": "john-p7-e01-l07", "field": "pt", "from": "Cerca de três horas e meia.", "to": "Cerca de duas horas e meia.",
+   "reason": "Mesma correção na tradução."
+  },
+  {
+   "id": "john-p1-e09-l01", "field": "en", "from": "Did you meet Peter at the university?", "to": "When did you last see Peter?",
+   "reason": "A resposta (“…at a conference”) contradizia a pergunta (“at the university”), e Peter é vizinho e amigo de John (p1-e04, p3-e04): “meet” aqui é encontrar, não conhecer. A pergunta passa a ser sobre o último encontro."
+  },
+  {
+   "id": "john-p1-e09-l01", "field": "pt", "from": "Você conheceu Peter na universidade?", "to": "Quando você viu o Peter pela última vez?",
+   "reason": "Mesma correção na tradução."
+  },
+  {
+   "id": "john-p1-e09-l02", "field": "en", "from": "Yes, I met him last week at a conference.", "to": "I met him last week at a conference.",
+   "reason": "Sem o “Yes”, que respondia à pergunta anterior; o foco gramatical (met = Past Simple de meet) é mantido."
+  },
+  {
+   "id": "john-p1-e09-l02", "field": "pt", "from": "Sim, encontrei com ele na semana passada em uma conferência.", "to": "Encontrei com ele na semana passada em uma conferência.",
+   "reason": "Mesma correção na tradução."
+  },
+  {
+   "id": "john-p1-e01-l01", "field": "en", "from": "Do you remember John Bennett?", "to": "John Bennett? Do you remember me?",
+   "reason": "Abertura ambígua: Rick perguntava ao próprio John se ele se lembrava de John Bennett. Agora Rick reconhece John e pergunta se John se lembra dele, o que combina com a resposta (“We met at university, didn't we?”)."
+  },
+  {
+   "id": "john-p1-e01-l01", "field": "pt", "from": "Você se lembra do John Bennett?", "to": "John Bennett? Você se lembra de mim?",
+   "reason": "Mesma correção na tradução."
+  },
+  {
+   "id": "john-p5-e04-l02", "field": "en", "from": "Yes. I've booked a table for six.", "to": "Yes. I've booked a table for six people.",
+   "reason": "“A table for six” podia ser lido como seis horas (eles chegam às cinco e meia). A tradução do próprio documento já dizia “seis pessoas”."
+  },
+  {
+   "id": "john-p5-e01", "field": "context", "from": "John is at the office when the receptionist calls.", "to": "Mary is at the office when the receptionist calls her.",
+   "reason": "A ligação é para Mary (“Mr Walker is on the phone for you, Mary”); John não participa da cena."
+  }
+ ]
+}

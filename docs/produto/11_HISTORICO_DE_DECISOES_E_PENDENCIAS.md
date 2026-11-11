@@ -16,6 +16,12 @@
 | DEC-011 | PWA incremental como modelo técnico registrado | Confirmar vigência |
 | DEC-012 | Autonomia operacional: resolver pendências internas sem usar o usuário como intermediário; escalar somente decisões de sua alçada ou bloqueios incontornáveis | Aprovada em 10/11/2026 |
 | DEC-013 | Arquitetura de governança no repositório: ponto de entrada `CLAUDE.md`, fonte central de papéis em `docs/governanca/`, fluxo ChatGPT → Claude → auditoria no GitHub, Base de Conhecimento mantida fora deste repositório (público) com governança própria | Aprovada em 11/11/2026 |
+| DEC-014 | Atividades de diálogo em cinco fases (The Story of John): domínio individual de 80% por item; inconclusivo/pendente não aprovam; arquitetura híbrida sem simular IA offline | Aprovada em 11/11/2026 (pacote `docs/produto/mvp-dialogo/`) |
+| DEC-015 | Fase 4: só as questões erradas voltam e contam ao serem acertadas; resposta só depois de acertar (substitui a nova rodada completa proposta pelo executor) | Aprovada em 11/11/2026 |
+| DEC-016 | Questões de compreensão geradas para o projeto a partir do texto dos diálogos integram o produto, sem exigir validação por professor; diálogos curtos com rodada reduzida e corte proporcional de 80% (⌈0,8 n⌉) | Aprovada em 11/11/2026 |
+| DEC-017 | Fase 5 (leitura em voz alta) independente da fase 4: abre ao concluir a fase 3 (ou com as traduções só aguardando avaliação online) | Aprovada em 11/11/2026 |
+| DEC-018 | Inconsistências de The Story of John corrigidas no conteúdo derivado, com a fonte preservada e o original registrado em cada fala (`dev/content/dialogues/john-corrections.json`) | Aprovada em 11/11/2026 |
+| DEC-019 | Publicação da branch de trabalho do MVP de diálogo no GitHub Pages (integração com `gh-pages` pelo fluxo oficial) | Aprovada em 11/11/2026 |
 
 ## Histórico técnico — auditoria somente leitura de 08/11
 `gh-pages` b194cee; `mvp-jornadas` no mesmo SHA; `main` 13de9d2; `remodelagem` 8d5ac0c; `cp-publicacao` b582c29. Workflow Pages 22 sucesso em b194cee. Rebuild de `dev/` idêntico byte a byte ao publicado. Site servido não confirmado diretamente.
@@ -72,3 +78,24 @@ manter o pacote só fora do repositório (rejeitada: o ChatGPT não poderia audi
 publicação continuam exigindo autorização explícita. O conteúdo técnico do antigo `CLAUDE.md` foi movido sem alteração
 para `docs/aplicativo-referencia.md` (mesmo texto já arquivado na branch `base-pedagogica`).
 
+
+## DEC-014 a DEC-019 — Atividades de diálogo — 11/11/2026
+
+**Contexto:** implantação do MVP de diálogo (`docs/produto/mvp-dialogo/`) e duas rodadas de correção. Detalhes técnicos,
+regras e correções de conteúdo: `docs/dialogos.md`.
+
+**Decisões (aprovador: Product Owner, mensagens de 11/11/2026):**
+- DEC-014: cinco fases sequenciais por diálogo, 80% individual por item, sem gamificação de recompensa, avaliação
+  online provider-neutral (provedor/custo ainda por decidir).
+- DEC-015: na compreensão, reapresentar só os itens não dominados, sem repetir os dominados (rubrica
+  `dre-comprehension-2`). Substitui a regra `dre-comprehension-1` (nova rodada completa depois da recuperação).
+- DEC-016: 403 questões elaboradas só a partir do texto dos diálogos, integradas como metodologia própria do DRE; a
+  origem fica registrada em cada questão (rastreabilidade interna, sem aviso ao aluno). Diálogos que não sustentam 10
+  questões não recebem questões inventadas: rodada reduzida com aprovação em ⌈0,8 n⌉.
+- DEC-017: a leitura em voz alta não depende da compreensão. Alternativa descartada: manter a cadeia 4 → 5 (bloquearia
+  a leitura quando a compreensão não estivesse feita).
+- DEC-018: correções em 6 pontos (horário e duração do trem, encontro com Peter, abertura de Rick, mesa para seis
+  pessoas, contexto da ligação de Mary), aplicadas ao conteúdo derivado e às questões; documentos-fonte intactos.
+- DEC-019: integração e publicação autorizadas para esta entrega.
+
+**Fora destas decisões:** escolha de provedor de IA, contratação de serviços e infraestrutura paga (continuam com o PO).

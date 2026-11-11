@@ -1,12 +1,11 @@
 # Questões de compreensão — The Story of John (fase 4)
 #
-# ORIGEM: complemento didático elaborado pela IA (executor técnico) EXCLUSIVAMENTE a partir do texto de cada diálogo
-# (dev/content/dialogues/source/the-story-of-john, documentos autorais do PO). NÃO validadas pelo professor
-# (regra 4 da Base de Conhecimento: separar complemento da IA de conteúdo validado). A Base Mestra e os acervos
-# validados não estão publicados neste repositório e não foram usados.
+# ORIGEM: questões geradas para o projeto (metodologia própria do Daily Routine English), elaboradas EXCLUSIVAMENTE a
+# partir do texto de cada diálogo (dev/content/dialogues/source/the-story-of-john, com as correções de
+# john-corrections.json). Integradas ao produto por decisão do PO (2026-11-11), sem exigência de validação por professor.
 # Regras: cada questão cita as falas que a sustentam; a resposta certa está no texto (ou decorre dele por inferência
 # simples, indicada na nota); as alternativas erradas são falsas no diálogo; nada de conhecimento externo; nenhuma
-# questão só de gramática. Diálogos que não sustentam 10 questões distintas ficam com menos (pendência registrada).
+# questão só de gramática. Diálogos que não sustentam 10 questões distintas ficam com menos: rodada reduzida, corte proporcional de 80%.
 #
 # Formato: "@ <id da atividade>" e, por questão:
 #   habilidade | falas | pergunta | resposta certa | errada 1 | errada 2 | nota (opcional)
@@ -106,7 +105,8 @@ C | ctx | Where are John and his friends? | At a community fair | In a theatre |
 R | l01 | Who asks what the greengrocer does? | Rick | Mary | John
 
 @ john-p1-e09
-F | l02 | When did John meet Peter, according to John? | Last week | Last year | Ten years ago
+F | l01,l02 | When did John last see Peter? | Last week | Last year | Ten years ago
+C | l02 | Where did John see Peter last week? | At a conference | At the university | At the sports centre
 F | l03,l04 | Does John know if Peter was going out with anyone at the time? | No, he doesn't know | Yes, he was going out with Mary | Yes, he was going out with Jessy
 F | l04 | What is Peter's situation now? | He's married | He's single | He's engaged
 R | l01,l03 | Who asks the questions about Peter? | Rick | John | Mary
@@ -361,6 +361,7 @@ F | l01 | When are they going out? | Next Friday | Next Saturday | Tonight
 F | l01 | Where are they meeting? | At the Palace Hotel | In Duke Street | In King Street
 N | l01 | What does Jessy's question "Are we still meeting at the Palace Hotel?" show? | The plan was already arranged | It's a new idea | The meeting was cancelled
 A | l02 | What has Mary done? | She has booked a table | She has cancelled the meeting | She has changed the place
+F | l02 | For how many people is the table? | Six | Four | Eight
 I | l03 | What does Rick want to know? | What time they should arrive | Where the hotel is | Who is coming
 F | l04 | What time should they arrive? | At about half past five | At about seven | At about nine
 N | l05 | How does John feel about the arrangement? | He's happy with it — "Perfect" | He's worried about it | He doesn't like it
@@ -428,9 +429,9 @@ F | l01,l02 | Has John booked his train ticket? | Not yet | Yes, he has | He has
 A | l02 | What is John doing now? | Checking the times | Buying the ticket | Packing his suitcase
 F | l03 | How many trains are there in the morning? | Several | Only one | None
 F | l04 | When does John want to get there? | Before eleven | Before nine | In the afternoon
-F | l05 | Which train does Mary suggest? | The 8.40 train | The 9.05 train | The 7.15 train
+F | l05 | Which train does Mary suggest? | The 8.20 train | The 9.05 train | The 7.15 train
 N | l06 | What does John think of Mary's suggestion? | It would be ideal | It's too early | It's too late
-F | l06,l07 | How long does the journey take? | About three and a half hours | About ten minutes | About one hour
+F | l06,l07 | How long does the journey take? | About two and a half hours | About ten minutes | About one hour
 R | ctx | Who helps John plan the journey? | Mary | Rick | A travel agent
 
 @ john-p7-e02

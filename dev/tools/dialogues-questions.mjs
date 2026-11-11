@@ -4,7 +4,8 @@
 // Confere: atividade existe; falas citadas existem (ou o contexto/título, quando citados, existem); 3 alternativas
 // distintas; nenhuma pergunta repetida no mesmo diálogo; habilidade válida. A explicação mostrada depois da resposta
 // = nota (quando houver) + a evidência literal (fala, contexto ou título). Questões são complemento da IA, não
-// validado pelo professor — o status vai em cada questão e no arquivo.
+// validado por professor por decisão do PO (2026-11-11); a origem fica em cada questão (rastreabilidade interna, não
+// exibida ao aluno).
 //
 // Uso: node tools/dialogues-questions.mjs   (antes de tools/dialogues-source.mjs)
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -14,7 +15,7 @@ const SRC = new URL('content/dialogues/john-questions.src.txt', ROOT);
 const OUT = new URL('content/dialogues/john-questions.json', ROOT);
 const JOHN = JSON.parse(readFileSync(new URL('content/dialogues/john.json', ROOT), 'utf8'));
 const SKILL = { F: 'explicit_fact', A: 'action', I: 'intention', C: 'context', R: 'relation', N: 'inference' };
-const STATUS = 'complemento didático da IA a partir do texto do diálogo — não validado pelo professor';
+const STATUS = 'gerada para o projeto a partir do texto do diálogo (metodologia própria do DRE; integrada por decisão do PO de 2026-11-11)';
 const pad = (n) => String(n).padStart(2, '0');
 
 const questions = [];
