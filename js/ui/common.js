@@ -79,3 +79,20 @@ export function sessionHref(focus) {
   const q = new URLSearchParams(Object.entries(focus).filter(([, v]) => v)).toString();
   return `#/session${q ? '?' + q : ''}`;
 }
+
+/** Alternância de tema do cabeçalho: sol = claro, lua = azul (escuro, padrão). Aplica e salva na hora, só neste aparelho. */
+export function themeToggle(App) {
+  const opts = [['light', 'sun', 'Tema claro'], ['dark', 'moon', 'Tema azul (escuro)']];
+  const current = () => (App.state.settings.theme === 'light' ? 'light' : 'dark');
+  const btns = opts.map(([value, ic, label]) => h('button', { type: 'button', class: 'theme-opt', 'data-theme-option': value, 'aria-label': label, title: label }, icon(ic)));
+  const sync = () => btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeOption === current())));
+  btns.forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.themeOption === current()) return;
+    App.state.settings.theme = b.dataset.themeOption;
+    App.applySettings();
+    App.flush().catch(() => {}); // salva na hora (sem esperar o salvamento adiado)
+    sync();
+  }));
+  sync();
+  return h('div', { class: 'theme-toggle', role: 'group', 'aria-label': 'Tema', 'data-role': 'theme-toggle' }, ...btns);
+}

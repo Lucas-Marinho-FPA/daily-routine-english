@@ -1,9 +1,9 @@
-// Avatares oficiais dos personagens (Lucas, Lukinhas, Heitor) no app — mesmo padrão para os três.
+// Avatares oficiais dos personagens (Lucas, Karla, Lukinhas, Heitor) no app — mesmo padrão para os quatro.
 // Uso: node tests/e2e/avatars.mjs <pasta-do-site> <caminho-base> [pasta-de-evidências]
 //
 // REAL: app construído, Chromium em viewport de celular, service worker e cache offline, arquivos PNG servidos.
 // Verifica: carga de cada imagem; proporção natural (sem distorção) e sem recorte; exibição no bloco do personagem do
-// Início (personagem ativo) e na escolha de personagem; Karla sem imagem; transparência real (pixel do canto com
+// Início (personagem ativo) e na escolha de personagem; nenhum marcador provisório; transparência real (pixel do canto com
 // alfa 0, decodificado no navegador); sem rolagem horizontal em 360/412/430 px; exibição offline com o servidor desligado.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -17,7 +17,7 @@ const BASE_PATH = process.argv[3] || '/';
 const OUT = resolve(process.argv[4] || join(ROOT, 'evidence/avatars'));
 mkdirSync(OUT, { recursive: true });
 const PORT = 8823, BASE = `http://localhost:${PORT}${BASE_PATH}`;
-const AVATARS = { lucas: [1132, 1390], 'lucas-kid': [1312, 1199], heitor: [1312, 1199] };
+const AVATARS = { lucas: [1132, 1390], karla: [1132, 1390], 'lucas-kid': [1312, 1199], heitor: [1312, 1199] };
 
 const results = [];
 const record = (id, name, ok, ev) => { results.push({ id, name, status: ok ? 'aprovado' : 'reprovado', evidence: ev }); console.log(`${ok ? '✔' : '✘'} ${id} ${name} — ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`); };
@@ -48,7 +48,7 @@ await page.waitForFunction(() => navigator.serviceWorker && navigator.serviceWor
 await page.reload();
 await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 120000 });
 
-await check('A01', 'Escolha de personagem: Lucas, Lukinhas e Heitor com o avatar oficial (proporção natural); Karla só pelo nome', async () => {
+await check('A01', 'Escolha de personagem: Lucas, Karla, Lukinhas e Heitor com o avatar oficial (proporção natural)', async () => {
   await go('#/');
   await page.waitForSelector('[data-role=character-pick]');
   const out = {};
@@ -58,12 +58,12 @@ await check('A01', 'Escolha de personagem: Lucas, Lukinhas e Heitor com o avatar
     assert(m.h > 60 && m.h < 70 && m.fit === 'contain' && m.radius === '0px', `${id}: tamanho/recorte ${JSON.stringify(m)}`);
     out[id] = `${Math.round(m.w)}×${Math.round(m.h)}`;
   }
-  assert(await page.locator('[data-role=character-pick] [data-character=karla] img').count() === 0, 'Karla com imagem');
+  assert(await page.locator('[data-role=character-pick] .char-ph').count() === 0, 'marcador provisório na escolha');
   await page.screenshot({ path: join(OUT, 'A01-escolha.png'), fullPage: true });
   return out;
 });
 
-for (const [n, id] of [['A02', 'lucas'], ['A03', 'lucas-kid'], ['A04', 'heitor']]) {
+for (const [n, id] of [['A02', 'lucas'], ['A03', 'lucas-kid'], ['A04', 'heitor'], ['A05', 'karla']]) {
   await check(n, `Início com ${id} ativo: avatar no bloco do personagem, carregado, sem distorção nem recorte, dentro do bloco`, async () => {
     await choose(id);
     await go('#/');
@@ -78,14 +78,14 @@ for (const [n, id] of [['A02', 'lucas'], ['A03', 'lucas-kid'], ['A04', 'heitor']
   });
 }
 
-await check('A05', 'Karla ativa: marcador com a inicial, sem imagem genérica', async () => {
+await check('A05b', 'Karla ativa: avatar oficial no lugar da inicial provisória (sem marcador)', async () => {
   await choose('karla');
   await go('#/');
-  assert(await page.locator('[data-role=persona] img').count() === 0, 'Karla com imagem');
-  assert(await page.locator('[data-role=persona] .char-ph').count() === 1, 'marcador ausente');
+  assert(await page.locator('[data-role=persona] .char-ph').count() === 0, 'marcador com a inicial ainda aparece');
+  assert(await page.locator('[data-role=persona] img.char-illus').count() === 1, 'sem imagem');
 });
 
-await check('A06', 'Transparência real: cantos dos três PNGs com alfa 0 e o personagem opaco, decodificados no navegador', async () => {
+await check('A06', 'Transparência real: cantos dos quatro PNGs com alfa 0 e o personagem opaco, decodificados no navegador', async () => {
   const r = await page.evaluate(async (ids) => {
     const out = {};
     for (const id of ids) {
@@ -100,7 +100,7 @@ await check('A06', 'Transparência real: cantos dos três PNGs com alfa 0 e o pe
   return r;
 });
 
-await check('A07', 'Telas de 360, 412 e 430 px: Início sem rolagem horizontal e avatar dentro do bloco (Lucas, Lukinhas, Heitor)', async () => {
+await check('A07', 'Telas de 360, 412 e 430 px: Início sem rolagem horizontal e avatar dentro do bloco (Lucas, Karla, Lukinhas, Heitor)', async () => {
   const bad = [];
   for (const id of Object.keys(AVATARS)) {
     await choose(id);
@@ -113,10 +113,10 @@ await check('A07', 'Telas de 360, 412 e 430 px: Início sem rolagem horizontal e
   }
   await page.setViewportSize({ width: 412, height: 915 });
   assert(!bad.length, bad.join(' | '));
-  return '9 combinações ok';
+  return '12 combinações ok';
 });
 
-await check('A08', 'Offline: com o servidor desligado e a rede cortada, os três avatares carregam do cache', async () => {
+await check('A08', 'Offline: com o servidor desligado e a rede cortada, os quatro avatares carregam do cache', async () => {
   await page.waitForFunction(async () => { const ks = await caches.keys(); return ks.some((k) => k.startsWith('drgshell')); }, null, { timeout: 120000 });
   await new Promise((r) => server.close(r));
   await ctx.setOffline(true);

@@ -17,7 +17,7 @@ export function freshState(contentVersion) {
   const state = {
     schema: SCHEMA, contentVersion, createdAt: Date.now(), updatedAt: Date.now(),
     userVariants: {}, lastBackupAt: null, profiles: { lucas: emptyProgress(today) }, activeProfile: null,
-    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'auto', reduceMotion: false, dailyGoal: 12, character: 'lucas', characterChosen: false, journey: null },
+    settings: { audioSource: 'embedded', voiceURI: '', rate: 1, autoplay: true, fontScale: 1, theme: 'dark', reduceMotion: false, dailyGoal: 12, character: 'lucas', characterChosen: false, journey: null },
   };
   return activate(state, 'lucas', today);
 }
@@ -215,6 +215,8 @@ export function migrate(raw, contentVersion, { ownerOf } = {}) {
   // escolha); estados e backups anteriores já estavam em uso com o Lucas e não são interrompidos
   if (typeof rawSettings.characterChosen !== 'boolean') s.settings.characterChosen = true;
   if (typeof s.settings.character !== 'string') s.settings.character = 'lucas';
+  // tema: o azul (escuro) é o padrão; o antigo “automático” (ou valor inválido) passa a ser o azul; “claro” é preservado
+  if (s.settings.theme !== 'light') s.settings.theme = 'dark';
   if (!s.userVariants || typeof s.userVariants !== 'object' || Array.isArray(s.userVariants)) { if ('userVariants' in raw) repairs.push('userVariants'); s.userVariants = {}; }
   if (raw.schema === 1) {
     const split = splitLegacy(raw, { ownerOf, today });

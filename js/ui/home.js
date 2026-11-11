@@ -14,13 +14,14 @@ import { stageHref } from './modules.js';
 import { installCard } from './pwa.js';
 import { courseHomeCard } from './course.js';
 import { dialogueHomeCard } from './dialogue.js';
+import { themeToggle } from './common.js';
 
 const EMPTY = { cards: {}, recordingsMeta: {}, xp: 0, days: {}, firstDay: 0 };
 
 export function renderHome(App) {
   const { state } = App;
   const view = App.layout('Daily Routine English', {
-    actions: [h('a', { class: 'icon-btn ghost', href: '#/settings', 'aria-label': 'Ajustes' }, icon('gear'))],
+    actions: [themeToggle(App), h('a', { class: 'icon-btn ghost', href: '#/settings', 'aria-label': 'Ajustes' }, icon('gear'))],
   });
   const today = App.today();
   const ch = App.character;
@@ -50,7 +51,7 @@ export function renderHome(App) {
 
   view.append(h('section', { class: 'hero persona', 'data-role': 'persona', 'data-character': ch.id },
     h('div', { class: 'row nowrap' },
-      characterBadge(ch, 'idle', { size: 56, illus: 96 }), // ilustração (Lucas, Lukinhas, Heitor) com 96 px de altura; a Karla segue com o marcador
+      characterBadge(ch, 'idle', { size: 56, illus: 96 }), // ilustração (Lucas, Karla, Lukinhas, Heitor) com 96 px de altura; o marcador só para quem ainda não tiver imagem
       h('div', { class: 'grow', style: { minWidth: 0 } },
         h('div', { class: 'small muted', text: greeting() }),
         h('div', { class: 'persona-name', text: name }),

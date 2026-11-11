@@ -25,6 +25,147 @@ de agir.
   `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
   validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
 
+## Publicação consolidada (2026-11-11) — commit e push da branch FEITOS; publicação BLOQUEADA (voz não implementada)
+
+Pedido do PO: publicar numa única entrega (1) voz, (2) temas claro/escuro, (3) avatar da Karla, (4) descrições dos
+quatro personagens; sem publicação parcial.
+
+- **Estado conferido antes:** branch `claude/daily-routine-governance-y9rr0b`, `HEAD` = remoto = `e6ddff4`; `gh-pages`
+  = `1f39b60` (build `ee69e6bf46b5`); nenhuma outra branch remota mais nova; alterações das entregas 2 e 3 presentes e
+  intactas no working tree.
+- **BLOQUEIO — entrega 1 (voz) não existe:** a correção do reconhecimento de voz das fases 1 e 5 **só foi
+  diagnosticada** (seção “Diagnóstico técnico — regressão no reconhecimento de voz” e plano em “Diagnóstico — diferenças
+  visuais”); nunca foi autorizada nem implementada; nenhum arquivo de voz (`js/audio`, `asr/`, `js/ui/dialogue.js`,
+  `js/ui/recwidget.js`) foi alterado e não há testes de voz novos. Não foi inventada nem implementada nesta etapa
+  (o pedido manda não refazer automaticamente). Como a publicação deve ser única e com as quatro entregas,
+  **`gh-pages` não foi alterada** (continua `1f39b60`).
+- **Entrega 4 — descrições (feita agora):** campo `card` no cadastro (textos exatos aprovados), exibido por `choiceSub`
+  (`js/ui/character.js`) no lugar da linha anterior (ocupação/resumo, “· em preparação”, “Jornada em preparação…”).
+  Arquivos: `dev/tools/build-characters.mjs`, `dev/content/characters/karla.json`, `dev/tools/lukinhas-source.mjs` e
+  `dev/content/characters/lucas-kid.json` (o gerador reproduz o JSON byte a byte), `dev/content/personas-planned.json`,
+  `js/ui/character.js`; gerados `data/characters.js`, `dev/content/build/characters.json`, `dist/app.js`, `sw.js`.
+  `docs/personagens.md` com a tabela das descrições.
+- **Build consolidado:** `994be0c72452` (temas + Karla + descrições). Pré-cache conferido: hash de
+  `img/bg-flow-light.svg`, `assets/characters/karla/karla-avatar.png`, `css/app.css`, `dist/app.js`,
+  `data/characters.js`, `manifest.webmanifest` e `index.html` no `sw.js` = hash dos arquivos. PNGs de Lucas, Lukinhas
+  e Heitor sem diff. Repositório = saída do build (nenhuma diferença nos arquivos do app).
+- **Testes reaproveitados (arquivos não mudaram depois deles):** `theme` 10/10 e `pwa` 14/14 (build `612e8b43e90c`,
+  após as espirais; o CSS e o tema não mudaram depois); `mvp` 14/14 e `run-pages` 37/37 (build `0d2a88a4c4db`).
+- **Testes repetidos, com motivo:** `characters` 14/14 e `avatars` 10/10 — `js/ui/character.js` e o cadastro mudaram
+  (tela de escolha); `characters` ganhou a conferência dos quatro textos exatos. Unitários 253 aprovados, 0 falhas, 1
+  ignorado (pré-existente) — o cadastro ganhou um campo. Evidências: `/home/user/ev-release/` (fora do repositório).
+- **Pendência técnica pré-existente (não alterada):** `dev/content/dialogues/john*.json` no repositório estão
+  defasados em relação ao que o build regenera (versão `2175ff859f35` × `118297cacc48`); os dados publicados
+  (`data/dialogues.js`) já são `118297cacc48` e não mudam. Atualizar esses intermediários em entrega própria.
+- **Próximo passo (decisão do PO):** (a) autorizar a implementação da correção de voz (plano do diagnóstico) e então
+  publicar as quatro entregas juntas; ou (b) autorizar a publicação das entregas 2–4 já prontas, deixando a voz para
+  depois.
+
+## Avatar oficial da Karla (2026-11-11) — IMPLEMENTADO, sem commit/push/publicação
+
+Integração do PNG oficial aprovado da Karla no mesmo padrão de Lucas, Lukinhas e Heitor (estado `idle` como ilustração;
+sem estados emocionais novos; a Karla segue personagem narrativa).
+
+- **Asset:** `assets/characters/karla/karla-avatar.png` — cópia byte a byte do arquivo enviado (PNG RGBA 1132×1390,
+  1,83 MB, sha256 `90c3caa3f4d20742…`; cantos com alfa 0; sem redimensionar, recortar nem tratar).
+- **Cadastro:** `dev/content/characters/karla.json` (`idle` = `{ file: 'karla-avatar', status: 'ready', kind:
+  'illustration', w: 1132, h: 1390 }`; demais estados continuam pendentes). Gerados pelo build existente:
+  `dev/content/build/characters.json`, `data/characters.js`, `dist/app.js` (só comentários), `sw.js` (imagem no
+  pré-cache offline). Comentários em `js/ui/character.js` e `js/ui/home.js`; nenhuma mudança de lógica, CSS ou tamanho
+  (96 px no Início, 64 px na escolha, `object-fit: contain`, sem recorte). `docs/personagens.md` (tabela de avatares).
+- **Testes atualizados (expectativas que diziam “Karla sem imagem”):** `dev/tests/unit/characters.test.js` (Karla na
+  lista de avatares: PNG, RGBA, dimensões), `dev/tests/e2e/avatars.mjs` (Karla em A01/A05/A06/A07/A08; A05b: sem a
+  inicial provisória), `dev/tests/e2e/characters.mjs` (C03 “Imagens: 1 de 6”; C08 Início com o avatar dela).
+- **Testes executados:** unitários 253 aprovados, 0 falhas, 1 ignorado (pré-existente); `avatars` 10/10 (carga,
+  proporção natural, sem recorte, transparência real nos 4 PNGs, 360/412/430 px, offline com servidor desligado);
+  `characters` 14/14 (a 1ª execução teve 4 reprovações só pelas expectativas antigas acima — C04/C05 em cascata);
+  `pwa` 14/14. Não repetidos (fluxo não atingido): `theme`, `mvp`, `lukinhas`, `journey`, `run-pages`, `dialogue`,
+  `update-transition`. Evidências fora do repositório: `/home/user/ev-karla/`.
+- **Inalterados:** PNGs de Lucas, Lukinhas e Heitor (sem diff); tema; navegação; conteúdo; progresso.
+- **Pendências:** validação no celular; os outros cinco estados visuais da Karla (como dos demais) continuam pendentes.
+
+## Tema azul padrão + alternância sol/lua + tema claro (2026-11-11) — IMPLEMENTADO, sem commit/push/publicação
+
+Causa da divergência (investigação do mesmo dia): o padrão era `theme: 'auto'`, que seguia o modo claro/escuro do
+sistema (`@media (prefers-color-scheme: dark)`) — Android escuro → azul; Android claro → claro. Não era cache nem versão.
+Decisão do PO (2026-11-11): **azul (escuro) é o padrão em qualquer aparelho**; claro é opcional, pelo sol do cabeçalho;
+mockup do tema claro aprovado como referência; sem tema automático.
+
+- **Arquivos do app:** `js/engine/progress.js` (padrão `theme: 'dark'`; migração: qualquer valor ≠ `'light'`, inclusive
+  o antigo `'auto'`, vira `'dark'`; demais ajustes e progresso intactos; IndexedDB não é apagado), `js/main.js`
+  (`applySettings`: sempre grava `data-theme` light/dark; `meta theme-color` acompanha o tema), `js/ui/common.js`
+  (`themeToggle`: sol/lua, `aria-pressed`, `aria-label`, salva na hora com `flush`), `js/ui/home.js` (seletor no
+  cabeçalho do Início, ao lado da engrenagem), `js/ui/dom.js` (ícones `sun`/`moon`), `js/ui/settings.js` (removido o
+  “Tema: Automático/Claro/Escuro” — controle único no cabeçalho), `css/app.css` (tokens azuis em `:root`; claro em
+  `:root[data-theme="light"]` com a paleta lavanda do mockup; removidos os blocos `prefers-color-scheme`; bloco do
+  Início vira cartão branco no claro; espirais do fundo em lavanda com traços alaranjados no claro, como no mockup —
+  `img/bg-flow-light.svg`, novo, mesmo desenho de `img/bg-flow.svg` com outras cores e traço mais grosso, pré-cacheado; estilos do seletor; em telas ≤ 400 px o título do Início fica 1rem para caber ao
+  lado do seletor), `index.html` (`theme-color` `#0A2748`, `color-scheme: dark`), `manifest.webmanifest`
+  (`background_color` `#04142B`, `theme_color` `#0A2748`), `dist/app.js` e `sw.js` (build final `612e8b43e90c`).
+- **Teste novo:** `dev/tests/e2e/theme.mjs` (H01–H10): nova instalação com o sistema CLARO abre azul; estado antigo
+  `auto` (com XP, dias, ajustes e progresso de diálogo) migra para azul sem alterar nenhum outro dado; sol → claro na
+  hora (sem recarregar) e salvo no IndexedDB; reabrir mantém; modo do sistema não altera a escolha (claro+sistema
+  escuro, azul+sistema claro); lua → azul; contraste ≥ 4,5:1 de título, nome, secundário, botão principal, cartões,
+  “Trocar personagem”, navegação e ícone ativo nos dois temas em 360/412/430 px, alvos ≥ 40 px, sem rolagem horizontal;
+  7 telas no claro (diálogo, fase 1, Estudar, Curso, Ajustes, Falar, Diálogos); offline com servidor desligado.
+- **Testes executados (build `0d2a88a4c4db`):** unitários 253 aprovados, 0 falhas, 1 ignorado (pré-existente);
+  `theme` 10/10; `avatars` 9/9; `characters` 14/14; `mvp` 14/14; `pwa` 14/14; `run-pages` 37/37 (inclui T34
+  contraste claro/escuro e T13 tema escuro). Após o ajuste das espirais (build final `612e8b43e90c`): `theme` 10/10 e
+  `pwa` 14/14 repetidos (arquivo novo no pré-cache); as demais não foram afetadas (só CSS do fundo no claro e um SVG). Não repetidos (fluxo não atingido): `dialogue`, `lukinhas`,
+  `update-transition`, `journey`, `course*`. Evidências fora do repositório: `/home/user/ev-theme-reg/`, `/home/user/ev-theme/`.
+- **Desvios conscientes do mockup (contraste):** texto dos botões laranja continua escuro (`#231200`, 6,95:1) — o
+  branco do mockup sobre `#FF7A1A` daria 2,6:1; ícone do sol ativo e item ativo da navegação usam o laranja escuro
+  `#B04D05` (≥ 4,6:1) em vez do laranja vivo. Trocar para branco é decisão do PO (reprova WCAG AA).
+- **Pendências:** validação física (Galaxy S25+ e celular do Lukinhas): abrir → azul; sol/lua; reabrir. Splash do PWA
+  instalado só muda após reinstalação/atualização do manifesto pelo navegador. Voz (fases 1 e 5) e demais itens do
+  diagnóstico visual (V-03/V-04/V-06) seguem fora deste escopo.
+
+## Diagnóstico — diferenças visuais entre celulares (2026-11-11) — SÓ diagnóstico, nada implementado
+
+Objetivo: identificar causas técnicas de diferenças visuais do app entre dois celulares, para uma implementação única
+posterior junto com a correção de voz das fases 1 e 5 (diagnóstico anterior). Nenhum arquivo do app alterado; só este
+registro (sem commit/push/publicação).
+
+- **Estado encontrado:** branch `claude/daily-routine-governance-y9rr0b` = remoto = `e6ddff4`; `gh-pages` = `1f39b60`
+  (sw `ee69e6bf46b5`); árvore limpa. Ensaios no build publicado (cópia local idêntica, mesma versão).
+- **Evidências consultadas:** HANDOFF, `docs/produto/02/07/11`, `docs/personagens.md`, histórico de commits de interface
+  (`4cbb34e` identidade Bora, `12accf2`/`1f39b60` avatares), `css/app.css`, `index.html`, `js/ui/*`.
+- **Lacuna (não inventada):** o histórico **não registra** quais são os dois aparelhos nem as diferenças observadas. Só
+  há o Galaxy S25+ (Samsung Internet) num problema antigo de atualização do PWA, não visual.
+- **Aparelhos usados:** nenhum físico. Só emulação em Chromium headless (larguras CSS 360/384/393/412/430, DPR 2,6–3,
+  tema claro/escuro, escala de fonte do app 1/1,15/1,3, fonte do sistema trocada só no teste). Não é validação física.
+
+| ID | Achado | Classificação | Arquivos | Correção recomendada (futura) | Prior. | Risco |
+|---|---|---|---|---|---|---|
+| V-01 | Aparelhos e sintomas não registrados | Não determinada | — | Coletar modelo, navegador/versão, “Tamanho da tela”, tamanho da fonte do sistema, tema e capturas das mesmas telas | Alta | — |
+| V-02 | O app não embute fontes (`--font: Inter, Roboto, …`; `--font-display: Fredoka, …`; `--font-en: "Noto Serif", …`; nenhum `@font-face`). No Android normal sai Roboto/Noto Serif; aqui (testes anteriores) sai Inter/DejaVu Serif — **as capturas e validações visuais anteriores usaram fontes diferentes das do celular**. Aparelho sem Roboto (ou iPhone/desktop) muda largura de texto e quebras | Confirmada (código e ambiente); impacto entre os dois celulares: Provável | `css/app.css` (tokens `--font*`) | Embutir as fontes da identidade (WOFF2 locais, `@font-face`, `font-display: swap`, no pré-cache) — exige aprovação do PO (identidade/tamanho) | Alta | Médio (métricas mudam em todas as telas) |
+| V-03 | “Trocar personagem” (Início) quebra em 2 linhas (40→45 px): todos os personagens em 360/384/393 px; só Lukinhas em 412/430 px. S25+ costuma ter ~384 px (a confirmar) → mesmo app, Início diferente de um celular de 412 px | Confirmada (emulação) | `js/ui/character.js` (`characterSwitcher`), `css/app.css` (`.char-switch`, `.btn.small`) | Rótulo do botão sem quebra (`white-space: nowrap`) e o nome passa para a linha de baixo; ou rótulo mais curto (“Trocar”) | Média | Baixo |
+| V-04 | Com texto maior (ajuste “Tamanho do texto” do app, guardado por aparelho; e provavelmente o tamanho de fonte do sistema/navegador): título do topo cortado com “…” nas telas de fase; números dos itens em 2 fileiras; “Gravar minha pronúncia” em 2 linhas com ícone desalinhado; “Continuar de onde parou” em 2 linhas < 412 px; linha de estatísticas quebra | Confirmada (ajuste do app); escala do sistema/navegador: Provável | `css/app.css` (`.topbar h1`, `.btn`, `.chips`), `js/ui/dialogue.js` (título da fase) | Títulos de fase mais curtos ou em 2 linhas; botões com ícone alinhado ao texto quebrado; chips com rolagem horizontal | Média | Baixo |
+| V-05 | Configurações por aparelho mudam a aparência legitimamente: tema “automático” (segue claro/escuro do sistema), tamanho do texto, personagem ativo, jornada aberta | Confirmada (código: `settings` em `js/engine/progress.js`) | — | Na comparação, igualar tema/tamanho/personagem antes de concluir que é bug | Alta (método) | — |
+| V-06 | `.topbar` usa `color-mix()` sem cor de reserva (linhas 73 e 521): em navegador sem suporte (Chrome < 111, Samsung Internet < 22) o topo fica transparente | Provável (baixa probabilidade em aparelho atualizado) | `css/app.css` | `background: var(--surface)` antes do `color-mix` | Baixa | Muito baixo |
+| V-07 | Largura CSS e DPR variam por modelo e pelo “Tamanho da tela” da Samsung; o layout é fluido (sem breakpoints, máx. 640 px), então quebras de linha mudam por largura — esperado, mas amplifica V-03/V-04 | Confirmada (mecanismo) / valores dos aparelhos: Não determinada | `index.html` (viewport), `css/app.css` | Testes de layout passam a cobrir 360/384/393/412/430 | — | — |
+| V-08 | Versão diferente entre aparelhos (atualização do PWA pendente) mostraria telas antigas | Não determinada | — | Conferir Ajustes → Aplicativo → versão nos dois | Alta (método) | — |
+| V-09 | Teclado: `interactive-widget=resizes-content` e `100dvh` têm suporte diferente entre Chrome e Samsung Internet (telas de escrita/tradução podem “pular”) | Não determinada (hipótese) | `index.html`, `css/app.css` | Verificar no aparelho antes de mudar | Baixa | — |
+
+Observação fora do escopo: o Início mostra “Nível · XP · dias seguidos” (legado do MVP, P-013) igualmente nos dois
+aparelhos; não é diferença entre celulares.
+
+**Plano para a etapa única de implementação (voz + visual):** (1) coletar V-01/V-05/V-08 nos dois aparelhos;
+(2) voz: recorte na voz para todos os itens da fase 1 e falas curtas da fase 5, tratamento do corte do reconhecedor,
+`loadLexicon` (diagnóstico anterior); (3) visual: V-03, V-04, V-06; (4) V-02 só com aprovação do PO (fontes);
+(5) testes: medição automática de quebra/altura de botões e títulos em 360/384/393/412/430 × tema × tamanho de texto,
+com as fontes do Android (embutidas, se V-02 aprovado); suítes `run-pages`, `mvp`, `characters`, `avatars`, `dialogue`,
+`pwa`; capturas das mesmas telas nos dois aparelhos, no mesmo estado (mesmo personagem, tema, tamanho de texto e
+versão).
+
+**Validações que dependem dos aparelhos:** modelos, navegador e versão; largura CSS real (`innerWidth`, `devicePixelRatio`);
+fonte efetiva; escala de fonte do sistema/Samsung Internet; PWA instalado × navegador; tema; capturas das telas
+Início, diálogo, fase 1, Curso e Ajustes.
+
+**Limitações:** sem aparelho físico; fontes do Android ausentes neste ambiente (Inter instalado aqui); a sonda
+automática de “quebra de linha” teve falsos positivos (descartados após conferência por captura e altura real).
+Scripts e capturas do diagnóstico ficaram fora do repositório (`/home/user/diag-visual/`).
+
 ## Avatares oficiais de Lucas e Lukinhas (2026-11-11) — PUBLICADO e verificado
 
 Pedido do PO: integrar as imagens aprovadas de Lucas e Lukinhas no mesmo padrão do Heitor. Implementado sem autorização

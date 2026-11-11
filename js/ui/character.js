@@ -13,7 +13,7 @@ export function characterImage(ch, state, { size = 56, illus = null } = {}) {
   if (!ch || !STATES.includes(state)) return null;
   const src = assetFor(ch, state);
   if (!src) return null;
-  // ilustração (avatares oficiais de Lucas, Lukinhas e Heitor): proporção natural, sem recorte circular; `illus` = altura em px
+  // ilustração (avatares oficiais de Lucas, Karla, Lukinhas e Heitor): proporção natural, sem recorte circular; `illus` = altura em px
   const v = ch.visual && ch.visual.states && ch.visual.states[state];
   if (v && v.kind === 'illustration' && v.w && v.h) {
     const ht = illus || size;
@@ -29,8 +29,9 @@ export function characterBadge(ch, state = 'idle', { size = 44, illus = null } =
   return h('span', { class: 'char-ph', role: 'img', 'aria-label': `${ch.name} (imagem pendente)`, 'data-character': ch.id, 'data-state': state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
 }
 
-/** Linha curta sob o nome na escolha (só texto do cadastro; nada inventado). */
+/** Linha curta sob o nome na escolha (só texto do cadastro; nada inventado). `card`: descrição aprovada pelo PO, exibida como está. */
 function choiceSub(c) {
+  if (c.card) return c.card;
   const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : (c.profile && c.profile.summary) || '';
   if (c.status === 'planned') return 'Jornada em preparação · progresso próprio desde já';
   return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === 'preview' ? ' · em preparação' : ''}`;
@@ -44,7 +45,7 @@ export function characterChoices({ selected, current = null, onSelect, role = 'c
   const box = h('div', { class: 'char-choices', role: 'radiogroup', 'aria-label': 'Personagem', 'data-role': role });
   const draw = (sel) => clear(box).append(...registry().characters.map((c) => {
     const on = c.id === sel;
-    const pic = characterImage(c, 'idle', { illus: 64 }); // só quem já tem imagem aprovada (hoje: Lucas, Lukinhas e Heitor)
+    const pic = characterImage(c, 'idle', { illus: 64 }); // só quem já tem imagem aprovada (hoje: Lucas, Karla, Lukinhas e Heitor)
     return h('button', { type: 'button', class: `char-choice${pic ? ' with-illus' : ''}`, role: 'radio', 'aria-checked': String(on), 'data-character': c.id,
       onclick: () => { draw(c.id); onSelect(c.id); } },
     h('span', { class: 'char-name', text: c.name }),

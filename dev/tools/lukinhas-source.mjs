@@ -334,7 +334,7 @@ const questions = QUESTIONS.map((q, i) => {
 });
 const pack = {
   _doc: 'Pacote do Lukinhas (id interno lucas-kid, 11 anos) — GERADO por tools/lukinhas-source.mjs a partir dos dez textos definitivos aprovados (Daily Routine do Lukinhas). Textos em inglês sem alteração; traduções, explicações, exemplos adicionais e perguntas são conteúdo de apoio do app. Personagem narrativo fixo: não é perfil de usuário. Dias da semana dos treinos não informados (não atribuir).',
-  id: 'lucas-kid', name: 'Lukinhas', short: 'Lukinhas', status: 'active', audience: 'child', age: 11, idPrefix: 'L', itemPrefix: 'lk.',
+  id: 'lucas-kid', name: 'Lukinhas', short: 'Lukinhas', card: 'Escola, lições, tarefas em casa, jiu-jitsu, passeio com o cachorro e novas descobertas.', status: 'active', audience: 'child', age: 11, idPrefix: 'L', itemPrefix: 'lk.',
   audio: { voice: 'bm_lewis' },
   profile: {
     summary: 'Tem 11 anos. De manhã, antes da escola, cuida do cachorro, ajuda em casa e vê TV com o irmão até o transporte escolar chegar (por volta de 12h40). Em alguns dias, faz jiu-jitsu com o irmão.',

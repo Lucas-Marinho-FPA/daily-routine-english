@@ -1,31 +1,10 @@
 /* Daily Routine English Game — estilos. Sem fontes ou recursos externos. */
 :root {
-  /* Identidade visual do Bora de Inglês (azul profundo + laranja), adaptada aos temas claro, escuro e automático.
-     Tema claro: as mesmas cores da marca sobre um céu claro; tema escuro: a paleta original do Bora.
+  /* Identidade visual do Bora de Inglês (azul profundo + laranja). O tema azul (escuro, paleta original do Bora) é o
+     padrão em qualquer aparelho, sem depender do modo claro/escuro do sistema; o claro é opcional ([data-theme="light"],
+     escolhido pelo sol do cabeçalho — ui/common.js#themeToggle).
      As superfícies são opacas: o “vidro” do Bora (branco a 4–6% sobre o azul) já vem composto na cor, para que o
      contraste do texto não dependa do que passa atrás (espirais laranja) e sem custo de backdrop-filter nos cartões. */
-  --bg: #EEF4FB; --surface: #FFFFFF; --surface-2: #F3F8FD; --surface-solid: #FFFFFF;
-  --ink: #0B1F3A; --muted: #4A5E78; --line: #D3E0EF;
-  --accent: #A84A08; --accent-ink: #231200; --accent-soft: #FFE9D6; --on-status: #FFFFFF;
-  --ok: #0E6B3D; --ok-soft: #E2F6EC; --warn: #8A5300; --warn-soft: #FFF1D6; --bad: #B3261E; --bad-soft: #FDE7EA;
-  --flame: #E2701F; --gold: #A86A00;
-  --shadow: 0 4px 12px rgba(10, 39, 72, .07), 0 12px 32px rgba(10, 39, 72, .07);
-  --bar-track: #DCE7F3;
-  --page-bg: radial-gradient(circle at top, #CFE4FB 0%, transparent 46%), radial-gradient(circle at bottom, #DCE8F7 0%, transparent 48%), linear-gradient(180deg, #F3F8FE 0%, #E6EEF8 100%);
-  --page-glow: radial-gradient(72% 46% at 50% 6%, rgba(34, 160, 255, .16), transparent 72%), radial-gradient(66% 42% at 94% 94%, rgba(255, 122, 26, .08), transparent 70%);
-  --flow-opacity: .38;
-  --brand: #FF7A1A; --brand-2: #FFB061; --on-brand: #231200; --navy: #0A2748; --navy-2: #1668C4;
-  --radius: 20px; --radius-sm: 12px; --radius-md: 14px;
-  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --ease-out: cubic-bezier(.22, 1, .36, 1);
-  --font: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif;
-  --font-display: Fredoka, "Nunito", Inter, Roboto, system-ui, sans-serif;
-  --font-en: "Noto Serif", Georgia, "Times New Roman", serif;
-  --fs: 1;
-  --nav-h: 64px;
-  --safe-b: env(safe-area-inset-bottom, 0px);
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
   --bg: #04142B; --surface: #132C4C; --surface-2: #0F2746; --surface-solid: #0C2442;
   --ink: #F2F7FC; --muted: #9DB8D8; --line: rgba(255, 255, 255, .12);
   --accent: #FFB061; --accent-ink: #231200; --accent-soft: rgba(255, 122, 26, .16); --on-status: #0A1A2E;
@@ -36,22 +15,31 @@
   --page-bg: radial-gradient(circle at top, #1668C4 0%, transparent 42%), radial-gradient(circle at bottom, #0A2E58 0%, transparent 44%), linear-gradient(180deg, #0A2748 0%, #04142B 100%);
   --page-glow: radial-gradient(72% 46% at 50% 6%, rgba(34, 200, 255, .30), rgba(34, 200, 255, .10) 48%, transparent 74%), radial-gradient(66% 42% at 94% 94%, rgba(46, 107, 255, .32), rgba(46, 107, 255, .11) 46%, transparent 72%);
   --flow-opacity: 1;
+  --brand: #FF7A1A; --brand-2: #FFB061; --on-brand: #231200; --navy: #0A2748; --navy-2: #1668C4;
+  --radius: 20px; --radius-sm: 12px; --radius-md: 14px;
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --font: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif;
+  --font-display: Fredoka, "Nunito", Inter, Roboto, system-ui, sans-serif;
+  --font-en: "Noto Serif", Georgia, "Times New Roman", serif;
+  --fs: 1;
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #04142B; --surface: #132C4C; --surface-2: #0F2746; --surface-solid: #0C2442;
-    --ink: #F2F7FC; --muted: #9DB8D8; --line: rgba(255, 255, 255, .12);
-    --accent: #FFB061; --accent-ink: #231200; --accent-soft: rgba(255, 122, 26, .16); --on-status: #0A1A2E;
-    --ok: #7EE3AC; --ok-soft: rgba(60, 203, 127, .18); --warn: #FFD27A; --warn-soft: rgba(255, 210, 122, .14); --bad: #FCA9B8; --bad-soft: rgba(241, 99, 126, .18);
-    --flame: #FF9A52; --gold: #FFB061;
-    --shadow: 0 12px 32px rgba(2, 10, 22, .28), inset 0 1px 0 rgba(255, 255, 255, .09);
-    --bar-track: rgba(6, 20, 38, .55);
-    --page-bg: radial-gradient(circle at top, #1668C4 0%, transparent 42%), radial-gradient(circle at bottom, #0A2E58 0%, transparent 44%), linear-gradient(180deg, #0A2748 0%, #04142B 100%);
-    --page-glow: radial-gradient(72% 46% at 50% 6%, rgba(34, 200, 255, .30), rgba(34, 200, 255, .10) 48%, transparent 74%), radial-gradient(66% 42% at 94% 94%, rgba(46, 107, 255, .32), rgba(46, 107, 255, .11) 46%, transparent 72%);
-    --flow-opacity: 1;
-    color-scheme: dark;
-  }
+:root[data-theme="light"] {
+  /* Tema claro (opcional) — mockup aprovado em 2026-11-11: branco com lavanda suave, cartões brancos de borda lavanda,
+     texto azul-marinho, secundário azul-acinzentado, laranja da marca nos botões principais, barras em lavanda. */
+  --bg: #F1F0FB; --surface: #FFFFFF; --surface-2: #F6F5FD; --surface-solid: #FFFFFF;
+  --ink: #0E1D4A; --muted: #4A5878; --line: #DCDAF2;
+  --accent: #B04D05; --accent-ink: #231200; --accent-soft: #FFEBDA; --on-status: #FFFFFF;
+  --ok: #0E6B3D; --ok-soft: #E2F6EC; --warn: #8A5300; --warn-soft: #FFF1D6; --bad: #B3261E; --bad-soft: #FDE7EA;
+  --flame: #E2701F; --gold: #A86A00;
+  --shadow: 0 2px 8px rgba(70, 60, 160, .06), 0 10px 28px rgba(70, 60, 160, .07);
+  --bar-track: #E2E0F5;
+  --page-bg: radial-gradient(circle at top, #E7E5FB 0%, transparent 46%), linear-gradient(180deg, #F7F6FE 0%, #EFEEFA 100%);
+  --page-glow: radial-gradient(66% 42% at 94% 94%, rgba(255, 122, 26, .05), transparent 70%);
+  --flow-opacity: .85;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -444,9 +432,8 @@ div.wp-result[role=alert] { display: flex; gap: 8px; align-items: flex-start; }
 .char-opt[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 /* ---------- jornadas, módulos e etapas (MVP de navegação) ---------- */
-:root { --orange: #FF7A1A; --orange-soft: #FFE9D6; }
-:root[data-theme="dark"] { --orange: #FF7A1A; --orange-soft: rgba(255, 122, 26, .16); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --orange: #FF7A1A; --orange-soft: rgba(255, 122, 26, .16); } }
+:root { --orange: #FF7A1A; --orange-soft: rgba(255, 122, 26, .16); }
+:root[data-theme="light"] { --orange-soft: #FFE9D6; }
 .persona .char-ph, .persona .char-img { flex: none; border-radius: 50%; }
 .persona-name { font-size: 1.35rem; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
 .card.track h3 { margin: 0; }
@@ -611,3 +598,24 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .dlg-pt { margin-top: 2px; }
 .option[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .dlg-q { font-weight: 600; margin-bottom: 8px; }
+
+/* ---- alternância de tema no cabeçalho (sol = claro, lua = azul): mesmo desenho nos dois temas ---- */
+.theme-toggle { display: inline-flex; flex: none; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.theme-opt { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--muted); }
+.theme-opt svg { width: 22px; height: 22px; }
+.theme-opt[aria-pressed="true"] { background: var(--accent-soft); border-color: color-mix(in srgb, var(--brand) 55%, transparent); color: var(--accent); } /* --accent: contraste ≥ 4,5:1 nos dois temas */
+.theme-opt[aria-pressed="false"] { color: var(--ink); }
+/* telas estreitas: o título do Início cabe inteiro ao lado do seletor e da engrenagem */
+@media (max-width: 400px) { .topbar:has(.theme-toggle) { gap: 6px; padding-left: 14px; padding-right: 10px; } .topbar:has(.theme-toggle) h1 { font-size: 1rem; } }
+
+/* ---- tema claro: o bloco do Início vira cartão branco (no azul continua o “herói” azul profundo) ---- */
+/* espirais do fundo em lavanda com traços alaranjados (mockup aprovado): mesmo desenho do azul, outra cor */
+:root[data-theme="light"] body::after { background-image: url("../img/bg-flow-light.svg"); }
+:root[data-theme="light"] .hero { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--ink); }
+:root[data-theme="light"] .hero .muted { color: var(--muted); }
+:root[data-theme="light"] .hero .bar { background: var(--bar-track); }
+:root[data-theme="light"] .hero .char-ph { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+:root[data-theme="light"] .ring { background: conic-gradient(var(--brand) calc(var(--p) * 1%), var(--bar-track) 0); }
+:root[data-theme="light"] .ring span { background: var(--surface); }
+:root[data-theme="light"] .btn.primary { box-shadow: 0 4px 12px rgba(255, 122, 26, .22); }
+:root[data-theme="light"] .char-img.char-illus { filter: drop-shadow(0 6px 10px rgba(70, 60, 160, .16)); }

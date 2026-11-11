@@ -73,9 +73,12 @@ await check('C01', 'Primeira abertura: escolha pelo nome (Lucas marcado como pad
   assert(await pick.isVisible(), 'tela de escolha não apareceu');
   const opts = await pick.locator('[role=radio]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.getAttribute('aria-checked'), e.querySelector('.char-name').textContent]));
   assert(JSON.stringify(opts) === '[["lucas","true","Lucas"],["karla","false","Karla"],["lucas-kid","false","Lukinhas"],["heitor","false","Heitor"]]', JSON.stringify(opts));
-  // só quem tem imagem aprovada aparece com ela (hoje: avatares oficiais de Lucas, Lukinhas e Heitor); a Karla, só pelo nome
+  // só quem tem imagem aprovada aparece com ela (hoje: avatares oficiais de Lucas, Karla, Lukinhas e Heitor)
   const imgs = await pick.locator('img').evaluateAll((els) => els.map((i) => i.closest('[data-character]').dataset.character));
-  assert(JSON.stringify(imgs) === '["lucas","lucas-kid","heitor"]', `imagem na escolha: ${JSON.stringify(imgs)}`);
+  assert(JSON.stringify(imgs) === '["lucas","karla","lucas-kid","heitor"]', `imagem na escolha: ${JSON.stringify(imgs)}`);
+  // descrições dos cartões: exatamente os textos aprovados pelo PO (2026-11-11), sem acréscimos
+  const subs = await pick.locator('[role=radio] .char-sub').allTextContents();
+  assert(JSON.stringify(subs) === JSON.stringify(['Finanças, motorista, estudos, academia, artes marciais e momentos com a família.', 'Aulas de personal, estudos de Nutrição, leitura, saúde e momentos com a família.', 'Escola, lições, tarefas em casa, jiu-jitsu, passeio com o cachorro e novas descobertas.', 'Escola, tarefas em casa, jiu-jitsu, passeio com o cachorro, jogos e brincadeiras.']), `descrições: ${JSON.stringify(subs)}`);
   const s0 = await app(() => ({ ch: window.DRG_APP.character.id, same: window.DRG_APP.content === window.DRG_APP.baseContent }));
   assert(s0.ch === 'lucas' && s0.same, JSON.stringify(s0));
   await page.screenshot({ path: join(OUT, 'C01-escolha-inicial.png') });
@@ -120,7 +123,7 @@ await check('C02', 'Progresso do Lucas criado numa sessão (base para conferir o
 await check('C03', 'Ajustes → Personagem: escolher a Karla troca o conteúdo (jornada K01–K11), sem perder o progresso', async () => {
   await go('#/settings');
   const opts = await page.locator('[data-role=characters] [role=radio]').allTextContents();
-  assert(opts.length === 4 && /Lucas/.test(opts[0]) && /Karla/.test(opts[1]) && /em preparação/.test(opts[1]) && /Imagens: 0 de 6 prontas/.test(opts[1]) && /Lukinhas.*10 rotina\(s\), 66 frases/.test(opts[2]) && /Heitor/.test(opts[3]), JSON.stringify(opts));
+  assert(opts.length === 4 && /Lucas/.test(opts[0]) && /Karla/.test(opts[1]) && /em preparação/.test(opts[1]) && /Imagens: 1 de 6 prontas/.test(opts[1]) && /Lukinhas.*10 rotina\(s\), 66 frases/.test(opts[2]) && /Heitor/.test(opts[3]), JSON.stringify(opts));
   await page.locator('[data-role=characters] [role=radio][data-character=karla]').click();
   await page.waitForTimeout(400);
   const s = await app(() => ({ ch: window.DRG_APP.character.id, set: window.DRG_APP.state.settings.character, routines: window.DRG_APP.content.routines.map((r) => r.id) }));
@@ -205,7 +208,7 @@ await check('C07', 'Offline (servidor desligado e rede cortada): Karla abre, est
   return { offline: true, vistos: seen, inicioOffline: offName };
 });
 
-await check('C08', 'Layout 430 px: sem rolagem horizontal em Início, Ajustes, Estudar, Falar e rotina da Karla; marcador sem imagem genérica', async () => {
+await check('C08', 'Layout 430 px: sem rolagem horizontal em Início, Ajustes, Estudar, Falar e rotina da Karla; Início com o avatar oficial dela, sem imagem genérica', async () => {
   const over = [];
   for (const hsh of ['#/', '#/settings', '#/explore', '#/lab', '#/routine/K01', '#/stats', '#/review']) {
     await go(hsh);
@@ -214,10 +217,10 @@ await check('C08', 'Layout 430 px: sem rolagem horizontal em Início, Ajustes, E
   }
   await go('#/');
   const marks = await page.locator('[data-role=active-character] .char-ph, [data-role=active-character] img').count();
-  const imgs = await page.locator('img.char-img').count();
+  const imgs = await page.locator('img.char-img').evaluateAll((els) => els.map((i) => i.getAttribute('src')));
   await page.screenshot({ path: join(OUT, 'C08-inicio-430.png') });
-  assert(!over.length && marks === 0 && imgs === 0, JSON.stringify({ over, marks, imgs }));
-  return { semRolagem: true, inicio: 'só o nome, sem imagem' };
+  assert(!over.length && marks === 0 && JSON.stringify(imgs) === '["assets/characters/karla/karla-avatar.png"]', JSON.stringify({ over, marks, imgs }));
+  return { semRolagem: true, inicio: 'avatar oficial da Karla' };
 });
 
 await check('C10', 'Início → “Trocar personagem”: seletor leve marca o atual; Cancelar não muda nada; Karla → Lucas → Karla, nome atualizado na hora e mantido ao recarregar', async () => {

@@ -21,6 +21,7 @@ const base = JSON.parse(readFileSync(join(ROOT, 'content/build/content.json'), '
 // estado idle como ilustração — mesmo padrão do Heitor; os demais estados seguem pendentes.
 const LUCAS = {
   id: 'lucas', name: 'Lucas', status: 'active', content: 'base',
+  card: 'Finanças, motorista, estudos, academia, artes marciais e momentos com a família.', // descrição do cartão de escolha, aprovada pelo PO em 2026-11-11
   profile: { summary: 'Rotinas atuais do app: trabalho, trajeto, academia, família e estudo de inglês.' },
   visual: { dir: 'assets/characters/lucas', ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, s === 'idle'
     ? { file: 'lucas-avatar', status: 'ready', kind: 'illustration', w: 1132, h: 1390 }
@@ -120,7 +121,7 @@ export function buildPack(src) {
   const clash = ids.filter((id) => base.sentences[id] || base.blocks[id] || base.questions[id] || base.routines.some((r) => r.id === id));
   if (clash.length) throw new Error(`IDs do personagem colidem com o conteúdo atual: ${clash.join(', ')}`);
   return {
-    id: src.id, name: src.name, status: src.status, profile: src.profile, visual: src.visual, facts: src.facts, themes: src.themes,
+    id: src.id, name: src.name, status: src.status, card: src.card, profile: src.profile, visual: src.visual, facts: src.facts, themes: src.themes,
     ...(src.short ? { short: src.short } : {}), ...(src.audience ? { audience: src.audience, age: src.age ?? null } : {}),
     journey: src.journey || null, reuse,
     content: { routines, blocks, sentences, items, questions, sharedItems: shared },
@@ -133,7 +134,7 @@ export function buildCharacters() {
   // personas previstas (sem conteúdo ainda): status 'planned', content null — o app mostra a trilha como “em preparação”
   const plannedFile = join(ROOT, 'content/personas-planned.json');
   const planned = existsSync(plannedFile) ? JSON.parse(readFileSync(plannedFile, 'utf8')).personas.filter((p) => !packs.some((x) => x.id === p.id)).map((p) => ({
-    id: p.id, name: p.name, short: p.short || p.name, status: 'planned', audience: p.audience || 'adult', age: p.age ?? null, content: null,
+    id: p.id, name: p.name, short: p.short || p.name, card: p.card, status: 'planned', audience: p.audience || 'adult', age: p.age ?? null, content: null,
     profile: { summary: p.summary || '' },
     visual: { dir: `assets/characters/${p.id}`, ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, (p.visual && p.visual.states && p.visual.states[s]) || { file: s.toUpperCase(), status: 'pending' }])) },
   })) : [];

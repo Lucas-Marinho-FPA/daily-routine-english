@@ -2,6 +2,7 @@
  "_doc": "Fonte do pacote da personagem Karla. Duas camadas: (1) PERFIL e ROTINA-BASE — só fatos informados pelo usuário (rotina de 2026-10-26 e Character Bible — Karla v1.0); cada frase de K01–K03 aponta para os fatos que a sustentam; (2) EPISÓDIOS (kind: episode) — situações ilustrativas criadas para a prática, coerentes com o perfil (basis), que NÃO viram fatos biográficos. Personagens secundários de episódios (Sophie, Ana) são fictícios. Nunca inventar: idade dela, sobrenome, cidade, nome/profissão do marido, nomes dos filhos. Campos derivados são calculados por tools/build-characters.mjs.",
  "id": "karla",
  "name": "Karla",
+ "card": "Aulas de personal, estudos de Nutrição, leitura, saúde e momentos com a família.",
  "status": "preview",
  "idPrefix": "K",
  "profile": {
@@ -60,13 +61,16 @@
   "source": "Rotina informada pelo usuário (2026-10-26) e Character Bible — Karla v1.0 (fornecida pelo usuário, 2026-10-26)."
  },
  "visual": {
-  "_doc": "Seis estados, mesma convenção de nomes do Bora de Inglês (ASSETS/CHARACTERS/<NOME>/<ESTADO>.png): PNG quadrado com transparência; o app usa um marcador com a inicial enquanto o arquivo estiver pendente.",
+  "_doc": "Seis estados, mesma convenção de nomes do Bora de Inglês (ASSETS/CHARACTERS/<NOME>/<ESTADO>.png): PNG com transparência; o app usa um marcador com a inicial enquanto o arquivo estiver pendente. Estado idle: avatar oficial aprovado em 2026-11-11 (ilustração, proporção natural, mesmo padrão de Lucas, Lukinhas e Heitor); os demais estados seguem pendentes.",
   "dir": "assets/characters/karla",
   "ext": "png",
   "states": {
    "idle": {
-    "file": "IDLE",
-    "status": "pending"
+    "file": "karla-avatar",
+    "status": "ready",
+    "kind": "illustration",
+    "w": 1132,
+    "h": 1390
    },
    "thinking": {
     "file": "THINKING",

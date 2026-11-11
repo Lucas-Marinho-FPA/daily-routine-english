@@ -63,6 +63,8 @@ const PATHS = {
   chat: 'M4 5h16v11H9l-5 4z',
   filePlus: 'M14 3H6v18h12V7zM14 3v4h4M12 10v7M8.5 13.5h7',
   export: 'M12 15V4M8 8l4-4 4 4M5 13v7h14v-7',
+  sun: 'M12 16a4 4 0 100-8 4 4 0 000 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z',
 };
 
 export function icon(name, extra = '') {

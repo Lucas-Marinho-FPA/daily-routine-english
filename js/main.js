@@ -78,7 +78,11 @@ const App = {
   applySettings() {
     const s = App.state.settings;
     const root = document.documentElement;
-    if (s.theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', s.theme);
+    // tema: azul (escuro) por padrão, independente do modo do sistema; só “claro” explícito muda (ui/common.js#themeToggle)
+    const theme = s.theme === 'light' ? 'light' : 'dark';
+    root.setAttribute('data-theme', theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#F1F0FB' : '#0A2748');
     root.style.setProperty('--fs', String(s.fontScale || 1));
     document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
     player.configure({ audioSource: s.audioSource, voiceURI: s.voiceURI, rate: s.rate });

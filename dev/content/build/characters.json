@@ -14,6 +14,7 @@
    "name": "Lucas",
    "status": "active",
    "content": "base",
+   "card": "Finanças, motorista, estudos, academia, artes marciais e momentos com a família.",
    "profile": {
     "summary": "Rotinas atuais do app: trabalho, trajeto, academia, família e estudo de inglês."
    },
@@ -55,6 +56,7 @@
    "id": "karla",
    "name": "Karla",
    "status": "preview",
+   "card": "Aulas de personal, estudos de Nutrição, leitura, saúde e momentos com a família.",
    "profile": {
     "occupation": {
      "en": "personal trainer and Pilates instructor",
@@ -111,13 +113,16 @@
     "source": "Rotina informada pelo usuário (2026-10-26) e Character Bible — Karla v1.0 (fornecida pelo usuário, 2026-10-26)."
    },
    "visual": {
-    "_doc": "Seis estados, mesma convenção de nomes do Bora de Inglês (ASSETS/CHARACTERS/<NOME>/<ESTADO>.png): PNG quadrado com transparência; o app usa um marcador com a inicial enquanto o arquivo estiver pendente.",
+    "_doc": "Seis estados, mesma convenção de nomes do Bora de Inglês (ASSETS/CHARACTERS/<NOME>/<ESTADO>.png): PNG com transparência; o app usa um marcador com a inicial enquanto o arquivo estiver pendente. Estado idle: avatar oficial aprovado em 2026-11-11 (ilustração, proporção natural, mesmo padrão de Lucas, Lukinhas e Heitor); os demais estados seguem pendentes.",
     "dir": "assets/characters/karla",
     "ext": "png",
     "states": {
      "idle": {
-      "file": "IDLE",
-      "status": "pending"
+      "file": "karla-avatar",
+      "status": "ready",
+      "kind": "illustration",
+      "w": 1132,
+      "h": 1390
      },
      "thinking": {
       "file": "THINKING",
@@ -11279,6 +11284,7 @@
    "id": "lucas-kid",
    "name": "Lukinhas",
    "status": "active",
+   "card": "Escola, lições, tarefas em casa, jiu-jitsu, passeio com o cachorro e novas descobertas.",
    "profile": {
     "summary": "Tem 11 anos. De manhã, antes da escola, cuida do cachorro, ajuda em casa e vê TV com o irmão até o transporte escolar chegar (por volta de 12h40). Em alguns dias, faz jiu-jitsu com o irmão.",
     "family": "Pai e irmão aparecem nas rotinas; o cachorro é da família.",
@@ -18238,6 +18244,7 @@
    "id": "heitor",
    "name": "Heitor",
    "short": "Heitor",
+   "card": "Escola, tarefas em casa, jiu-jitsu, passeio com o cachorro, jogos e brincadeiras.",
    "status": "planned",
    "audience": "child",
    "age": null,

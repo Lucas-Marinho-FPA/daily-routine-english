@@ -93,7 +93,6 @@ export function renderSettings(App) {
   // ---------- leitura e acessibilidade ----------
   view.append(h('h2', { text: 'Leitura e acessibilidade' }), h('div', { class: 'card' },
     seg('Tamanho do texto', 'fontScale', [[1, 'Normal'], [1.15, 'Grande'], [1.3, 'Maior']]),
-    seg('Tema', 'theme', [['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Escuro']]),
     toggle('Reduzir animações', 'reduceMotion'),
     seg('Meta diária (exercícios)', 'dailyGoal', [[8, '8'], [12, '12'], [20, '20']])));
 

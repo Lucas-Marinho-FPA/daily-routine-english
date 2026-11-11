@@ -71,7 +71,9 @@
     star: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z",
     chat: "M4 5h16v11H9l-5 4z",
     filePlus: "M14 3H6v18h12V7zM14 3v4h4M12 10v7M8.5 13.5h7",
-    export: "M12 15V4M8 8l4-4 4 4M5 13v7h14v-7"
+    export: "M12 15V4M8 8l4-4 4 4M5 13v7h14v-7",
+    sun: "M12 16a4 4 0 100-8 4 4 0 000 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
+    moon: "M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"
   };
   function icon(name, extra = "") {
     const ns = "http://www.w3.org/2000/svg";
@@ -1057,7 +1059,7 @@
       lastBackupAt: null,
       profiles: { lucas: emptyProgress(today) },
       activeProfile: null,
-      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "auto", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false, journey: null }
+      settings: { audioSource: "embedded", voiceURI: "", rate: 1, autoplay: true, fontScale: 1, theme: "dark", reduceMotion: false, dailyGoal: 12, character: "lucas", characterChosen: false, journey: null }
     };
     return activate(state, "lucas", today);
   }
@@ -1243,6 +1245,7 @@
     for (const [k, v] of Object.entries(raw)) if (!(k in s) && !["profiles", "activeProfile"].includes(k) && !PROGRESS_KEYS.includes(k)) s[k] = v;
     if (typeof rawSettings.characterChosen !== "boolean") s.settings.characterChosen = true;
     if (typeof s.settings.character !== "string") s.settings.character = "lucas";
+    if (s.settings.theme !== "light") s.settings.theme = "dark";
     if (!s.userVariants || typeof s.userVariants !== "object" || Array.isArray(s.userVariants)) {
       if ("userVariants" in raw) repairs.push("userVariants");
       s.userVariants = {};
@@ -2355,6 +2358,7 @@
     return h("span", { class: "char-ph", role: "img", "aria-label": `${ch.name} (imagem pendente)`, "data-character": ch.id, "data-state": state, style: { width: `${size}px`, height: `${size}px` }, text: ch.name[0] });
   }
   function choiceSub(c) {
+    if (c.card) return c.card;
     const occ = c.profile && c.profile.occupation ? c.profile.occupation.pt : c.profile && c.profile.summary || "";
     if (c.status === "planned") return "Jornada em prepara\xE7\xE3o \xB7 progresso pr\xF3prio desde j\xE1";
     return `${occ.charAt(0).toUpperCase()}${occ.slice(1)}${c.status === "preview" ? " \xB7 em prepara\xE7\xE3o" : ""}`;
@@ -2723,6 +2727,22 @@
   function sessionHref(focus) {
     const q = new URLSearchParams(Object.entries(focus).filter(([, v]) => v)).toString();
     return `#/session${q ? "?" + q : ""}`;
+  }
+  function themeToggle(App2) {
+    const opts = [["light", "sun", "Tema claro"], ["dark", "moon", "Tema azul (escuro)"]];
+    const current2 = () => App2.state.settings.theme === "light" ? "light" : "dark";
+    const btns = opts.map(([value, ic, label]) => h("button", { type: "button", class: "theme-opt", "data-theme-option": value, "aria-label": label, title: label }, icon(ic)));
+    const sync = () => btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeOption === current2())));
+    btns.forEach((b) => b.addEventListener("click", () => {
+      if (b.dataset.themeOption === current2()) return;
+      App2.state.settings.theme = b.dataset.themeOption;
+      App2.applySettings();
+      App2.flush().catch(() => {
+      });
+      sync();
+    }));
+    sync();
+    return h("div", { class: "theme-toggle", role: "group", "aria-label": "Tema", "data-role": "theme-toggle" }, ...btns);
   }
 
   // app/js/ui/modules.js
@@ -7799,7 +7819,7 @@ ${body.join("\n\n")}
   function renderHome(App2) {
     const { state } = App2;
     const view = App2.layout("Daily Routine English", {
-      actions: [h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))]
+      actions: [themeToggle(App2), h("a", { class: "icon-btn ghost", href: "#/settings", "aria-label": "Ajustes" }, icon("gear"))]
     });
     const today = App2.today();
     const ch = App2.character;
@@ -7834,7 +7854,7 @@ ${body.join("\n\n")}
         "div",
         { class: "row nowrap" },
         characterBadge(ch, "idle", { size: 56, illus: 96 }),
-        // ilustração (Lucas, Lukinhas, Heitor) com 96 px de altura; a Karla segue com o marcador
+        // ilustração (Lucas, Karla, Lukinhas, Heitor) com 96 px de altura; o marcador só para quem ainda não tiver imagem
         h(
           "div",
           { class: "grow", style: { minWidth: 0 } },
@@ -11577,7 +11597,6 @@ ${body.join("\n\n")}
       "div",
       { class: "card" },
       seg("Tamanho do texto", "fontScale", [[1, "Normal"], [1.15, "Grande"], [1.3, "Maior"]]),
-      seg("Tema", "theme", [["auto", "Autom\xE1tico"], ["light", "Claro"], ["dark", "Escuro"]]),
       toggle("Reduzir anima\xE7\xF5es", "reduceMotion"),
       seg("Meta di\xE1ria (exerc\xEDcios)", "dailyGoal", [[8, "8"], [12, "12"], [20, "20"]])
     ));
@@ -11792,8 +11811,10 @@ ${body.join("\n\n")}
     applySettings() {
       const s = App.state.settings;
       const root2 = document.documentElement;
-      if (s.theme === "auto") root2.removeAttribute("data-theme");
-      else root2.setAttribute("data-theme", s.theme);
+      const theme = s.theme === "light" ? "light" : "dark";
+      root2.setAttribute("data-theme", theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", theme === "light" ? "#F1F0FB" : "#0A2748");
       root2.style.setProperty("--fs", String(s.fontScale || 1));
       document.body.classList.toggle("reduce-motion", !!s.reduceMotion);
       configure({ audioSource: s.audioSource, voiceURI: s.voiceURI, rate: s.rate });

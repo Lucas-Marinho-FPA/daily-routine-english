@@ -31,6 +31,21 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 - XP, nível, sequência de dias e conquistas são **globais** (regras inalteradas).
 - Links antigos para conteúdo do outro personagem (ex.: `#/lab?sentence=R01-B1-S1` com a Karla ativa) voltam à tela inicial da seção em vez de quebrar.
 
+## Descrições dos cartões de escolha (aprovadas pelo PO em 2026-11-11)
+
+Exibidas exatamente como abaixo sob o nome, na escolha de personagem (campo `card` do cadastro; `choiceSub` em
+`js/ui/character.js`). Não são perfis de usuário: os quatro seguem personagens narrativos fixos.
+
+| Personagem | Descrição |
+|---|---|
+| Lucas | Finanças, motorista, estudos, academia, artes marciais e momentos com a família. |
+| Karla | Aulas de personal, estudos de Nutrição, leitura, saúde e momentos com a família. |
+| Lukinhas | Escola, lições, tarefas em casa, jiu-jitsu, passeio com o cachorro e novas descobertas. |
+| Heitor | Escola, tarefas em casa, jiu-jitsu, passeio com o cachorro, jogos e brincadeiras. |
+
+Fontes: Lucas em `dev/tools/build-characters.mjs`; Karla em `dev/content/characters/karla.json`; Lukinhas em
+`dev/tools/lukinhas-source.mjs` → `dev/content/characters/lucas-kid.json`; Heitor em `dev/content/personas-planned.json`.
+
 ## Avatares oficiais (estado `idle`, ilustração)
 
 | Personagem | Arquivo | Dimensões | Aprovado |
@@ -38,15 +53,16 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 | Lucas (`lucas`) | `assets/characters/lucas/lucas-avatar.png` | 1132×1390 | 2026-11-11 |
 | Lukinhas (`lucas-kid`) | `assets/characters/lucas-kid/lucas-kid-avatar.png` | 1312×1199 | 2026-11-11 |
 | Heitor (`heitor`) | `assets/characters/heitor/heitor-avatar.png` | 1312×1199 | 2026-11-10 |
+| Karla (`karla`) | `assets/characters/karla/karla-avatar.png` | 1132×1390 | 2026-11-11 |
 
 Todos no mesmo padrão: PNG RGBA com fundo transparente, copiado **byte a byte** do arquivo aprovado (nenhum
 redimensionamento, recorte ou tratamento); cadastrado como `{ file: '<id>-avatar', status: 'ready', kind: 'illustration',
 w, h }` só no estado `idle` (Lucas em `dev/tools/build-characters.mjs`; Lukinhas em `dev/tools/lukinhas-source.mjs` →
-`dev/content/characters/lucas-kid.json`; Heitor em `dev/content/personas-planned.json`). Exibição pela mesma função
+`dev/content/characters/lucas-kid.json`; Heitor em `dev/content/personas-planned.json`; Karla em `dev/content/characters/karla.json`). Exibição pela mesma função
 (`characterImage`, `js/ui/character.js`): proporção natural, `object-fit: contain`, sem recorte circular — 96 px de altura
 no bloco do personagem ativo do Início e 64 px na escolha de personagem. O build falha se um estado marcado como pronto
-não tiver o arquivo (todos os personagens). As imagens entram no pré-cache offline. A Karla continua com o marcador da
-inicial. Os personagens seguem narrativos (não são perfis nem recompensa); nada de seleção nova foi criado.
+não tiver o arquivo (todos os personagens). As imagens entram no pré-cache offline. Desde 2026-11-11 a Karla também tem o
+avatar oficial (antes: marcador com a inicial). Os personagens seguem narrativos (não são perfis nem recompensa); nada de seleção nova foi criado.
 
 ## Estados visuais
 
@@ -96,4 +112,4 @@ Fonte: `content/characters/karla.json` (cópia de trabalho) e a **Character Bibl
 - Novos personagens, rotinas e exercícios; revisão humana do conteúdo da Karla (perguntas da tabela acima).
 - Fora de escopo no projeto todo até nova decisão: cadastro/login, sincronização em nuvem, integração com outros repositórios.
 
-Pendências técnicas da Karla: imagens dos seis estados; áudio britânico pré-gerado (o gerador `tools/gen_audio.py` ainda lê só o manifesto do conteúdo do Lucas); tabela de verbos (3ª pessoa) e drills próprios; revisão humana das frases antes de tirar o status “em preparação”. Detalhes e prioridades no backlog de [`karla-jornada.md`](karla-jornada.md).
+Pendências técnicas da Karla: imagens dos demais estados (o `idle` já tem o avatar oficial); áudio britânico pré-gerado (o gerador `tools/gen_audio.py` ainda lê só o manifesto do conteúdo do Lucas); tabela de verbos (3ª pessoa) e drills próprios; revisão humana das frases antes de tirar o status “em preparação”. Detalhes e prioridades no backlog de [`karla-jornada.md`](karla-jornada.md).
