@@ -149,6 +149,21 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
 
 ## Registros históricos (execuções anteriores; não reverificados nesta sessão)
 
+### Publicação `12accf2` — avatar oficial do Heitor (2026-11-11), registro trazido de `gh-pages` no merge, sem alteração
+
+- **O quê:** só a identidade visual do Heitor, separada da sprint do Curso (`curso-simplificado`, `90b54b6`, que
+  continua **não publicada**). Arquivo `assets/characters/heitor/heitor-avatar.png` (PNG RGBA 1312×1199, idêntico ao
+  aprovado em 2026-11-10; sha256 `d44c5866…`). Heitor segue persona prevista, sem conteúdo nem idade; só o estado
+  `idle` tem imagem, como ilustração (`object-fit: contain`, sem recorte). Aparece no bloco do personagem do Início
+  (96 px de altura) e nas opções de escolha de personagem (64 px). Demais personagens sem mudança.
+- **Arquivos:** imagem; `css/app.css` (bloco da ilustração); `js/ui/character.js`; `js/ui/home.js` (1 linha);
+  `dev/content/personas-planned.json`; `dev/tools/build-characters.mjs` (falha o build se estado pronto não tiver
+  imagem); testes `characters`; gerados `data/characters.js`, `dev/content/build/characters.json`, `dist/app.js`,
+  `sw.js` (versão `deae501a5d3b`, imagem no manifesto offline).
+- **Pendência:** ao publicar `curso-simplificado` no futuro, integrá-la sobre este commit (os arquivos do Heitor são os
+  mesmos; `dev/content/build/characters.json` de `90b54b6` estava desatualizado e este é o correto).
+
+
 - `gh-pages`: build `fce4fe7705db`; workflow Pages #25 com sucesso em 2026-11-10 (após falha por tempo esgotado do
   GitHub no #24, reexecução travada e commit vazio de reativação autorizado).
 - `curso-simplificado`, build `1bc411deb516`, testes de 2026-11-10: unitários 231/232 (1 ignorado, pré-existente);
