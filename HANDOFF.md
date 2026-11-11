@@ -1,4 +1,79 @@
-# HANDOFF — estado atual (atualizado em 2026-11-08)
+# HANDOFF — estado atual e continuidade
+
+Mecanismo de continuidade entre sessões e de auditoria (governança: `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md`).
+O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir daqui e do GitHub; nada é apagado — o
+que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
+de agir.
+
+## Fatos verificados (Git, 2026-11-11)
+
+| Branch | Commit | O que é |
+|---|---|---|
+| `gh-pages` | `a5051d4` | **Publicada** (GitHub Pages). Conteúdo = `4cbb34e` + commit vazio de reativação do deploy. |
+| `identidade-bora` | `4cbb34e` | Identidade visual do Bora; referência de recuperação. |
+| `curso-simplificado` | `90b54b6` | **Trabalho não publicado:** Curso — Atividades simplificado + avatar oficial do Heitor. |
+| `governanca` | (esta entrega; parte de `90b54b6`) | Governança documental: `CLAUDE.md`, `docs/governanca/`, `docs/produto/`, `docs/aplicativo-referencia.md`, este `HANDOFF.md`. Só documentação; nenhum código alterado. |
+| `mvp-jornadas` | `cf78f87` | Linha de desenvolvimento anterior; atrás de `gh-pages`. |
+| `base-pedagogica` | `6aee572` | **Base Pedagógica** — camada pública distinta, com instruções próprias; diverge da linha do produto desde `b194cee`. Não é a Base de Conhecimento. |
+| `main` | `13de9d2` | Branch padrão do GitHub, desatualizada (out/2026). Não alterar sem autorização. |
+| `remodelagem` · `cp-publicacao` · `arquivo/publicado-2026-11-08` | `8d5ac0c` · `b582c29` · `b194cee` | Históricas/preservação; não integrar sem plano aprovado. |
+
+- A **Base de Conhecimento** (governança própria, Base Mestra, acervos das atividades, de-para interno) **não está em
+  nenhuma branch nem no histórico** deste repositório (busca por nomes e por conteúdo em 2026-11-11: 0 ocorrências).
+- Todos os repositórios acessíveis à sessão são públicos; não há repositório privado para a Base de Conhecimento.
+- O de-para interno define a convenção de códigos (SRC, MAT, ACT, EX, VOC); **nenhum código ACT foi atribuído**.
+- **Autorizações permanentes registradas:** nenhuma. Commit, push e publicação seguem autorização explícita por entrega.
+
+## Registros históricos (execuções anteriores; não reverificados nesta sessão)
+
+- `gh-pages`: build `fce4fe7705db`; workflow Pages #25 com sucesso em 2026-11-10 (após falha por tempo esgotado do
+  GitHub no #24, reexecução travada e commit vazio de reativação autorizado).
+- `curso-simplificado`, build `1bc411deb516`, testes de 2026-11-10: unitários 231/232 (1 ignorado, pré-existente);
+  `coursecatalog` 8/8; `course` 18/18; `coursepractice` 10/10; `characters` 14/14; `mvp` 14/14; `pwa` 14/14;
+  `update-transition` 25/25. Conteúdo sintético.
+- Contrato de importação do Curso (`docs/curso-atividades.md` em `90b54b6`) entregue para a Base em 2026-11-11.
+- Diagnóstico de governança da Base de Conhecimento (2026-11-11, somente leitura): proposta apresentada ao Product
+  Owner, nada implementado. Conflitos apontados: auditorias pedidas no checklist da Base × regra de não reauditar;
+  fronteira Base de Conhecimento × Base Pedagógica; ausência de proteção automatizada contra versionar o de-para.
+
+## Pendências
+
+**Produto (executáveis quando autorizadas):**
+- Validar no Galaxy S25+ a identidade Bora publicada e, quando publicada, a entrega `curso-simplificado`.
+- Publicação de `curso-simplificado` e integração desta governança: aguardam autorização do Product Owner.
+- Proteções automatizadas contra versionar/publicar o de-para, a Base Mestra e os acervos (`.gitignore` e checagem no
+  build/validador): proposta pronta, aguardando autorização.
+- Itens P-001…P-013 de `docs/produto/11_HISTORICO_DE_DECISOES_E_PENDENCIAS.md` (snapshot de 08/11).
+
+**Decisões reservadas ao Product Owner:**
+- Onde a Base de Conhecimento será mantida (repositório privado próprio ou fora do Git) e o acesso dos agentes a ela.
+- A quem a Base Pedagógica (`base-pedagogica`) responde e sua relação com a Base de Conhecimento.
+- `main` desatualizada como branch padrão; alinhamento de `mvp-jornadas`.
+
+## Demandas para a Base de Conhecimento
+
+| ID | Demanda | Contrato | Situação |
+|---|---|---|---|
+| D-001 | Gerar os arquivos de estudo das quatro partes do conjunto atual de atividades do curso, com títulos neutros e blocos literais. **Os códigos do conjunto e das partes são atribuídos pela governança da Base** (nenhum foi atribuído até 2026-11-11); de-para e origem só na Base; arquivos fora do repositório | `docs/curso-atividades.md` (seção vigente, formato 1), commit `90b54b6` | Contrato entregue em 2026-11-11; aguardando atribuição de códigos e os arquivos |
+| D-002 | Registrar na governança da Base que o de-para, a origem e a validação do professor das atividades do curso ficam só na Base (controle editorial externo; o app não exige validação) | `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md`, seção 6 | Aberta |
+
+O trabalho técnico que não depende dessas demandas segue normalmente.
+
+## Próxima sessão
+
+1. Ler `CLAUDE.md` e este topo; conferir branch, `HEAD` e remoto.
+2. Partir da branch indicada no pedido (trabalho de produto: hoje `curso-simplificado`, ou `governanca` se a tarefa for
+   documental). Não usar `main` como origem.
+3. Atualizar este topo ao fechar: fatos verificados, registros, pendências e demandas — sem apagar o histórico.
+
+---
+
+# Histórico — estado em 2026-11-08 (preservado)
+
+> O protocolo de sessão abaixo (trocar para `mvp-jornadas`, commitar e enviar ao fim de cada sessão) foi
+> **substituído** em 2026-11-11 pelo `CLAUDE.md` e por `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md` (commit e push só
+> com autorização). O restante é registro técnico daquela data.
+
 
 ## Protocolo para uma conversa nova
 
