@@ -2,7 +2,7 @@
 
 Especificação: `docs/produto/mvp-dialogo/` (pacote do Product Owner de 11/11/2026, copiado sem alteração).
 Decisões do PO posteriores à especificação: seção “Decisões do Product Owner (2026-11-11)” abaixo.
-Situação de publicação: ver `HANDOFF.md` (topo).
+Publicado em 2026-11-11 (`gh-pages` `a6e8bbb`, build `b7dbb3b76936`); detalhes e evidências no `HANDOFF.md`.
 
 ## Onde está cada coisa
 

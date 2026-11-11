@@ -5,14 +5,14 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
-## Estado verificado (Git e GitHub, 2026-11-11, rodada de correção posterior a `399c1b2`)
+## Estado verificado (Git, GitHub e site publicado, 2026-11-11 12:45 UTC)
 
 | Branch | Commit | O que é | Situação |
 |---|---|---|---|
-| `gh-pages` | `12accf2` | **Publicada.** Avatar oficial do Heitor sobre `a5051d4` (13 arquivos; *não* inclui `curso-simplificado`). Workflow “pages build and deployment” nº 26: *success* em 2026-11-11 03:59 UTC. | Concluído (publicação feita fora desta sessão) |
-| `claude/daily-routine-governance-y9rr0b` | ver “Entrega final” | **Branch de trabalho de produto** (o nome contém “governance”, mas o conteúdo é o MVP de diálogo). `399c1b2` = MVP de diálogo em cinco fases, sobre `c9005fa`. `399c1b2` **não** está em `governanca`. | Em andamento (sem merge, não publicada) |
+| `gh-pages` | `a6e8bbb` | **Publicada (2026-11-11 12:41 UTC, workflow nº 27, success; build `b7dbb3b76936`).** MVP de diálogo + Curso simplificado + avatar do Heitor. Anterior: `12accf2` (avatar do Heitor, workflow nº 26). | Concluído e verificado no site |
+| `claude/daily-routine-governance-y9rr0b` | `a6e8bbb` + este registro | Branch de trabalho do MVP de diálogo (o nome contém “governance”); publicada em `gh-pages`. Commits: `399c1b2`, `5b2d973`, `30c2cd1`, merge `2923008`, `54ec2c1`, `a6e8bbb` e o registro da publicação (só documentação). | Concluído |
 | `governanca` | `c9005fa` | Governança documental (sobre `curso-simplificado` `90b54b6`). Só documentação. | Concluído; integração aguarda PO |
-| `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Não publicado** (não está contido em `gh-pages`). | Aguarda autorização de publicação |
+| `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Publicado em 2026-11-11** como parte de `a6e8bbb`. | Concluído |
 | `base-conhecimento` | `01c59b4` | **Nova (2026-11-11 02:59 UTC):** governança da Base de Conhecimento (11 arquivos). Base Mestra, acervos Ian e de-para **não** publicados (motivos em `base-conhecimento/PUBLICACAO.md`). Área da Base: o produto não altera. | Fora do escopo do produto |
 | `base-pedagogica` | `6aee572` | Base Pedagógica (camada pública distinta). | Inalterada |
 | `main` | `13de9d2` | Branch padrão, desatualizada (out/2026). | Inalterada |
@@ -50,7 +50,17 @@ compreensão); `run-pages` 37/37; `mvp` 14/14; `journey` 10/10; `characters` 14/
 `coursepractice` 10/10; `storage` 10/10; `wordpractice` 15/15; `asr-local` 22/22; `pwa` 14/14; `update-transition`
 (publicado `12accf2` → novo) 25/25. `live-check` (app publicado) contra cópia local: 5/5.
 
-**Publicação:** ver “Resultado da publicação” abaixo.
+**Resultado da publicação (verificado):**
+- `gh-pages` avançada por fast-forward `12accf2..a6e8bbb` (sem force). Workflow “pages build and deployment” nº 27
+  (run 43022463554): *success*, 2026-11-11 12:41:05–12:41:35 UTC, `head_sha` `a6e8bbb`.
+- Site <https://lucas-marinho-fpa.github.io/daily-routine-english/> servindo `sw.js` versão `b7dbb3b76936` a partir de
+  12:41:43 UTC.
+- `node tests/e2e/live-check.mjs https://lucas-marinho-fpa.github.io/daily-routine-english/ b7dbb3b76936` → 5/5:
+  service worker e pré-cache; 46 diálogos, 403 questões, 6 falas corrigidas, áudio de todas as falas; fases 4 e 5
+  (rodada reduzida aprovada após recuperação; leitura disponível antes da compreensão); offline pelo cache; sem erros.
+- Usuários com a versão anterior: a troca `12accf2` → nova foi testada (`update-transition` 25/25).
+- Publicação inclui também o Curso simplificado (`curso-simplificado` `90b54b6`), que estava na base da branch de
+  trabalho e foi coberto pela regressão (`course` 18/18, `coursepractice` 10/10).
 
 **Pendências (não resolvidas por estarem fora da autorização ou dependerem de terceiros):**
 - Avaliação semântica online da tradução: provedor, conta, chave, custo e hospedagem (decisão do PO). Sem isso,
@@ -213,7 +223,7 @@ autorizados**. Referência técnica completa: `docs/dialogos.md`.
 
 **Produto (executáveis quando autorizadas):**
 - Validar no Galaxy S25+ a identidade Bora publicada e, quando publicada, a entrega `curso-simplificado`.
-- Publicação de `curso-simplificado` e integração desta governança: aguardam autorização do Product Owner.
+- ~~Publicação de `curso-simplificado` e integração desta governança: aguardam autorização do Product Owner.~~ **Concluído em 2026-11-11** (`gh-pages` `a6e8bbb`, ver topo).
 - Proteções automatizadas contra versionar/publicar o de-para, a Base Mestra e os acervos (`.gitignore` e checagem no
   build/validador): proposta pronta, aguardando autorização.
 - Itens P-001…P-013 de `docs/produto/11_HISTORICO_DE_DECISOES_E_PENDENCIAS.md` (snapshot de 08/11).
