@@ -5,12 +5,12 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
-## Estado verificado (Git, GitHub e site publicado, 2026-11-11 12:45 UTC)
+## Estado verificado (Git, GitHub e site publicado, 2026-11-11 15:50 UTC)
 
 | Branch | Commit | O que é | Situação |
 |---|---|---|---|
-| `gh-pages` | `a6e8bbb` | **Publicada (2026-11-11 12:41 UTC, workflow nº 27, success; build `b7dbb3b76936`).** MVP de diálogo + Curso simplificado + avatar do Heitor. Anterior: `12accf2` (avatar do Heitor, workflow nº 26). | Concluído e verificado no site |
-| `claude/daily-routine-governance-y9rr0b` | `a6e8bbb` + este registro | Branch de trabalho do MVP de diálogo (o nome contém “governance”); publicada em `gh-pages`. Commits: `399c1b2`, `5b2d973`, `30c2cd1`, merge `2923008`, `54ec2c1`, `a6e8bbb` e o registro da publicação (só documentação). | Concluído |
+| `gh-pages` | `1f39b60` | **Publicada (2026-11-11 15:46 UTC, workflow nº 28, success; build `ee69e6bf46b5`).** Avatares de Lucas e Lukinhas sobre `a6e8bbb` (MVP de diálogo, workflow nº 27). Anterior: `12accf2`. | Concluído e verificado no site |
+| `claude/daily-routine-governance-y9rr0b` | `1f39b60` + registro da publicação | Branch de trabalho (o nome contém “governance”); publicada em `gh-pages`. Commits desde `c9005fa`: `399c1b2`, `5b2d973`, `30c2cd1`, merge `2923008`, `54ec2c1`, `a6e8bbb`, `17b96d1`, `1f39b60` e o registro desta publicação (só documentação). | Concluído |
 | `governanca` | `c9005fa` | Governança documental (sobre `curso-simplificado` `90b54b6`). Só documentação. | Concluído; integração aguarda PO |
 | `curso-simplificado` | `90b54b6` | Curso — Atividades simplificado + avatar do Heitor. **Publicado em 2026-11-11** como parte de `a6e8bbb`. | Concluído |
 | `base-conhecimento` | `01c59b4` | **Nova (2026-11-11 02:59 UTC):** governança da Base de Conhecimento (11 arquivos). Base Mestra, acervos Ian e de-para **não** publicados (motivos em `base-conhecimento/PUBLICACAO.md`). Área da Base: o produto não altera. | Fora do escopo do produto |
@@ -25,10 +25,33 @@ de agir.
   `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
   validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
 
-## Avatares oficiais de Lucas e Lukinhas (2026-11-11) — implementado e testado, SEM commit/push/publicação
+## Avatares oficiais de Lucas e Lukinhas (2026-11-11) — PUBLICADO e verificado
 
-Pedido do PO: integrar as imagens aprovadas de Lucas e Lukinhas no mesmo padrão do Heitor. Commit, push, merge e
-publicação **não autorizados** nesta tarefa (aguardam autorização expressa).
+Pedido do PO: integrar as imagens aprovadas de Lucas e Lukinhas no mesmo padrão do Heitor. Implementado sem autorização
+de commit; depois o PO autorizou expressamente commit, push e publicação **só desta entrega** (fora dela: correções de
+voz/Moonshine, diferenças visuais entre celulares, novos estados, conteúdo/pedagogia).
+
+**Publicação (verificada):**
+- Conferência antes de publicar: branch `claude/daily-routine-governance-y9rr0b` = remoto = `17b96d1`; `gh-pages` =
+  `a6e8bbb` (ancestral); 13 arquivos modificados + 3 novos, todos da integração dos personagens (`data/characters.js`
+  difere só no estado `idle` de Lucas e Lukinhas; `sw.js` só acrescenta as 2 imagens e atualiza os hashes de
+  `data/characters.js` e `dist/app.js`; `dist/app.js` só um comentário). Nada do diagnóstico de voz no repositório.
+- Commit **`1f39b60`** (“Personagens: avatares oficiais de Lucas e Lukinhas”), push da branch de trabalho
+  `17b96d1..1f39b60`; `gh-pages` avançada por fast-forward **`a6e8bbb..1f39b60`** (sem force; leva também `17b96d1`,
+  só registro no HANDOFF). `main` e demais branches intocadas.
+- Workflow “pages build and deployment” **nº 28** (run 43051498114): *success*, 2026-11-11 15:45:18–15:46:14 UTC,
+  `head_sha` `1f39b60`. Site servindo `sw.js` versão **`ee69e6bf46b5`**; imagens servidas com o mesmo sha256 dos
+  aprovados (`eb03c4bf…` Lucas, `6f0999a8…` Lukinhas, `d44c5866…` Heitor).
+- Testes da publicação (cópia de trabalho NOVA montada do repositório, `bash dev/setup-workdir.sh /home/user/drg-pub`):
+  `node tools/build-app.mjs` → `ee69e6bf46b5`, 0 arquivos diferentes do repositório (reproduzível);
+  `node tools/lukinhas-source.mjs` → idêntico ao `lucas-kid.json` versionado; `npm test` 254 — 253 aprovados, 1
+  ignorado (pré-existente); em sequência: `avatars` 9/9, `characters` 14/14, `lukinhas` 12/12, `mvp` 14/14, `pwa`
+  14/14, `run-pages` 37/37, `update-transition` (publicado `a6e8bbb` → novo) 25/25.
+- No site publicado: suíte de avatares apontada para o endereço real 9/9 (escolha com as 3 imagens; Início com Lucas
+  78×96, Lukinhas 105×96, Heitor 105×96, natural e sem recorte; Karla com marcador; transparência; 360/412/430 px;
+  offline com a rede cortada) e `live-check` 5/5 (sw `ee69e6bf46b5`, diálogos, fases 4/5, offline).
+
+**Registro da implementação (antes da autorização):**
 
 - **Imagens** (cópia byte a byte dos arquivos enviados; PNG RGBA, fundo com alfa 0 e personagem com alfa 253 — sem
   tratamento): `assets/characters/lucas/lucas-avatar.png` (1132×1390, sha256 `eb03c4bf…`) e

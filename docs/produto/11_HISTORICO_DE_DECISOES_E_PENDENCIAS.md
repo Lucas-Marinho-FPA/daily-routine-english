@@ -40,7 +40,7 @@
 | P-009 | Rever exposição pública de `dev/` e `docs/` | Aberto |
 | P-010 | Tratar licença FreeDict GPL-2.0+ | Aberto |
 | P-011 | Definir licença do repositório | Aberto |
-| P-012 | Decidir/completar assets de personagens | Aberto |
+| P-012 | Decidir/completar assets de personagens | Parcial (11/11/2026): avatares `idle` de Lucas, Lukinhas e Heitor publicados; demais estados e Karla em aberto |
 | P-013 | Confirmar retirada da gamificação na publicação | Aberto |
 
 Acrescentar decisões com ID sequencial, data, contexto, decisão, alternativas, impacto e aprovador. Não apagar decisões superadas; marcar como substituídas e apontar a sucessora.

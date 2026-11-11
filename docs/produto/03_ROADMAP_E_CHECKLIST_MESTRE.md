@@ -35,7 +35,7 @@ Legenda: [x] evidência histórica; [~] parcial; [ ] não concluído/sem evidên
 8. Atualizar README/CLAUDE/HANDOFF obsoletos.
 9. Rever exposição pública de `dev/` e `docs/`.
 10. Definir tratamento/licença do FreeDict (GPL-2.0+) e licença própria do repositório.
-11. Rever assets/personagens pendentes.
+11. Rever assets/personagens pendentes. — [~] 11/11/2026: avatares oficiais (estado `idle`) de Lucas, Lukinhas e Heitor publicados (`gh-pages` `1f39b60`); faltam os demais estados de todos e a imagem da Karla.
 12. Confirmar retirada de gamificação na branch publicada.
 
 ## Diretriz transversal de execução — DEC-012 (10/11/2026)
@@ -60,3 +60,10 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
 - [x] Consulta seletiva: consultar documentos-fonte pertinentes quando houver dúvida ou conflito, sem reler todo o pacote a cada interação.
 - [ ] Confirmar que as instruções equivalentes foram incorporadas às configurações permanentes dos projetos envolvidos.
   - [~] 11/11/2026: incorporadas ao repositório (branch `governanca`): `CLAUDE.md` como ponto de entrada, `docs/governanca/PAPEIS_E_RESPONSABILIDADES.md` como fonte central (DEC-013), pacote oficial em `docs/produto/`, continuidade no `HANDOFF.md`. Falta: configurações dos projetos fora do repositório (ChatGPT e Base de Conhecimento), a cargo de cada projeto.
+
+## Entregas de 11/11/2026 (registro cumulativo)
+- [x] MVP de diálogo em cinco fases (The Story of John), 403 questões, rodada proporcional, fase 5 independente — publicado (`gh-pages` `a6e8bbb`, workflow nº 27). Detalhes: `docs/dialogos.md`, `HANDOFF.md`.
+- [x] Avatares oficiais de Lucas e Lukinhas no padrão do Heitor — publicado (`gh-pages` `1f39b60`, workflow nº 28, build `ee69e6bf46b5`); testes e evidências no `HANDOFF.md`.
+- [ ] Reconhecimento de voz nas fases 1 e 5: diagnóstico feito (expressões de 2+ palavras sem recorte de silêncio → transcrição vazia); correção aguarda autorização própria.
+- [ ] Diferenças visuais entre celulares: investigação em etapa separada.
+- [ ] Validação no Galaxy S25+ das entregas de 11/11.
