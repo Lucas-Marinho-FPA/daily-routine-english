@@ -11,7 +11,7 @@ import {
   pendingAttempts, mastery, recordListen, canSpeakItem, canAnswerQuestions, gradeRound, addRound, listeningNext, wrongOf, comprehension, questionMastered,
   phaseStatuses, activityStatus, nextItem, phaseOrder, activityReport, spokenItem, requiredOf, contentProblems, newAttemptId, settleCompletion, passMark, PREREQ,
 } from '../../app/js/engine/dialogue.js';
-import { scoreWriting, evaluateSpeech, localTranslation, validateTranslationResult, translationRequest, nearToken } from '../../app/js/engine/dialogueeval.js';
+import { scoreWriting, evaluateSpeech, localTranslation, validateTranslationResult, translationRequest, nearToken, tailMiss, tailCutByDuration, tailCutInconclusive, heardSpeechBudget, syllables, trimForLine } from '../../app/js/engine/dialogueeval.js';
 import { createRemoteEvaluator, processQueue, remoteBlocker, evaluationConfig } from '../../app/js/engine/evalsync.js';
 
 const base = JSON.parse(readFileSync(new URL('../../content/build/content.json', import.meta.url)));
@@ -398,4 +398,39 @@ test('questões de compreensão: estrutura, evidência citada, sem resposta repe
   const full = JOHN.activities.filter((a) => a.questionIds.length >= 10).length;
   assert.equal(full, 30);
   assert.equal(JOHN.questions.length, 403);
+});
+
+test('voz (fases 1 e 5): recorte das falas curtas; transcrição interrompida pelo reconhecedor fica inconclusiva só com evidência', () => {
+  // fase 5: falas de até 4 palavras recortadas; longas inteiras (o recorte reduz o limite de texto do Moonshine)
+  assert.equal(trimForLine('Certainly.'), true);
+  assert.equal(trimForLine('What do you do?'), true);
+  assert.equal(trimForLine("I'm working for a technology company in Manchester."), false);
+  assert.equal(syllables('different teams'), 4);
+  // “Different.” para “different teams”: casa só o começo, nada ouvido no lugar de “teams” → padrão de corte
+  const cut = evaluateSpeech('different teams', { text: 'Different.', confidence: 0 });
+  assert.equal(cut.status, 'needs_practice');
+  const m = tailMiss(cut);
+  assert.deepEqual(m, { prefixOnly: true, heard: ['different'], missing: ['teams'] });
+  // sem evidência de voz depois (fala curta, compatível só com “different”): continua o resultado normal
+  assert.equal(tailCutByDuration(m, 0.7), false);
+  assert.equal(tailCutByDuration(m, null), false);
+  // com evidência (voz bem além do que “different” precisa): inconclusiva, sem nota, sem palavras “a praticar”
+  assert.ok(heardSpeechBudget(['different']) < 2);
+  assert.equal(tailCutByDuration(m, 2.2), true);
+  const inc = tailCutInconclusive(cut, m);
+  assert.equal(inc.status, 'inconclusive'); assert.equal(inc.score, null); assert.deepEqual(inc.feedback.toPractise, []);
+  assert.match(inc.feedback.summary, /não conta como erro/);
+  // troca de palavra (ouviu outra coisa no lugar) NÃO é corte: é desvio real da transcrição
+  assert.equal(tailMiss(evaluateSpeech('different teams', { text: 'Different team', confidence: 0 })).prefixOnly, false); // ouviu “team”: desvio real
+  assert.equal(tailMiss(evaluateSpeech('different teams', { text: 'different teens', confidence: 0 })).prefixOnly, false);
+  assert.equal(tailMiss(evaluateSpeech('different teams', { text: 'teams', confidence: 0 })).prefixOnly, false); // faltou o começo
+  // aprovada ou inconclusiva não entra no tratamento
+  assert.equal(tailMiss(evaluateSpeech('different teams', { text: 'different teams', confidence: 0 })).prefixOnly, false);
+  assert.equal(tailMiss(evaluateSpeech('different teams', { text: '', confidence: 0 })).prefixOnly, false);
+  // frase longa cortada no meio pelo reconhecedor
+  const long = evaluateSpeech('I work in the sales department of a big company', { text: 'I work in the sales', confidence: 0 });
+  const ml = tailMiss(long);
+  assert.equal(ml.prefixOnly, true);
+  assert.equal(tailCutByDuration(ml, 1.2), false);
+  assert.equal(tailCutByDuration(ml, 4.5), true);
 });

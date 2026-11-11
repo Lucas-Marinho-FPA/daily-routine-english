@@ -115,6 +115,54 @@ export function evaluateSpeech(target, asr, opts = {}) {
   };
 }
 
+/** Até quantas palavras uma fala da fase 5 é transcrita só no trecho com voz (falas longas vão inteiras: o recorte
+ * reduz o limite de texto do reconhecedor, 6 tokens por segundo de áudio, e poderia cortar frases rápidas).
+ * Na fase 1 todo item é recortado (mesmo recorte da prática de palavras do Speaking Lab). */
+export const SHORT_LINE_WORDS = 4;
+export const trimForLine = (text) => String(text || '').trim().split(/\s+/).filter(Boolean).length <= SHORT_LINE_WORDS;
+
+/** Sílabas aproximadas (grupos de vogais; “e” final mudo descontado) — só para estimar o tempo de fala. */
+export function syllables(text) {
+  return String(text || '').toLowerCase().split(/[^a-z']+/).filter(Boolean).reduce((n, w) => {
+    const v = (w.replace(/'/g, '').replace(/(?<=[^aeiouy].*[aeiouy][^aeiouy]*)e$/, '').match(/[aeiouy]+/g) || []).length;
+    return n + Math.max(1, v);
+  }, 0);
+}
+
+/**
+ * Padrão de transcrição INTERROMPIDA: o que foi ouvido casa com o começo do texto e nada foi ouvido no lugar das
+ * palavras que faltam (não houve troca de palavra — só o fim ficou sem texto). Não decide sozinho: o chamador só trata
+ * como corte do reconhecedor se houver evidência (segunda passada ou tempo de voz — ver tailCutByDuration).
+ * @param {object} result  saída de evaluateSpeech
+ * @returns {{ prefixOnly: boolean, heard: string[], missing: string[] }}
+ */
+export function tailMiss(result) {
+  const words = (result && result.feedback && result.feedback.words) || [];
+  const good = words.map((w, i) => (w.state === 'good' ? i : -1)).filter((i) => i >= 0);
+  const bad = words.map((w, i) => (w.state === 'needs_practice' ? i : -1)).filter((i) => i >= 0);
+  const lastGood = good.length ? good[good.length - 1] : -1;
+  const prefixOnly = result && result.status === 'needs_practice' && good.length > 0 && bad.length > 0
+    && bad.every((i) => i > lastGood && !words[i].heard);
+  return { prefixOnly: !!prefixOnly, heard: good.map((i) => words[i].text), missing: bad.map((i) => words[i].text) };
+}
+
+/** Segundos de voz que as palavras ouvidas explicam, com folga para fala lenta: 0,3 s de VOZ por sílaba (só os trechos
+ * com voz contam; ≈ 2–2,5 sílabas por segundo de fala) + 0,3 s. Calibrado no ensaio de 2026-11-11 (tests/e2e/voice.mjs). */
+export const heardSpeechBudget = (heardWords) => syllables(heardWords.join(' ')) * 0.3 + 0.3;
+
+/** Evidência de voz depois do que foi reconhecido: tempo de voz da gravação maior do que as palavras ouvidas precisam. */
+export const tailCutByDuration = (miss, voicedSec) => !!miss.prefixOnly && typeof voicedSec === 'number' && voicedSec > heardSpeechBudget(miss.heard);
+
+/** Tentativa em que o reconhecimento parou antes do fim da fala: inconclusiva (não aprova nem reprova). */
+export function tailCutInconclusive(result, miss) {
+  return {
+    ...result, status: 'inconclusive', score: null,
+    feedback: { ...result.feedback, transcriptionReliability: 'partial',
+      summary: `O reconhecimento parou antes do fim da sua fala (ouviu só “${miss.heard.join(' ')}”, mas a gravação continua com voz). Isso não conta como erro seu: grave de novo.`,
+      toPractise: [] },
+  };
+}
+
 // ---------------------------------------------------------------------------------------------------------
 // Fase 3 — tradução (local só no caso seguro; semântica é online)
 // ---------------------------------------------------------------------------------------------------------

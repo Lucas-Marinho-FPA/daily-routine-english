@@ -25,6 +25,54 @@ de agir.
   `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
   validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
 
+## Correção de voz (fases 1 e 5) e publicação consolidada das quatro entregas (2026-11-11)
+
+Autorização do PO: implementar a correção de voz diagnosticada e publicar numa única versão voz + temas + Karla +
+descrições (as três últimas já no commit `a8a5318`, preservadas sem alteração).
+
+- **Diagnóstico usado (não refeito):** fase 1 recortava o silêncio só de itens de uma palavra (`js/ui/dialogue.js`,
+  antes linha 448: `word: !/\s/.test(it.spoken)`); fase 5 nunca recortava (linha 730: `word: false`); o Moonshine
+  devolve vazio com o silêncio da gravação (ensaio: 12/60 vazias sem recorte, 0/60 com recorte); corte do reconhecedor no
+  fim contava como erro; a tela dos diálogos não carregava o léxico. Gravador, Moonshine, worker, segmentação,
+  comparador e Speaking Lab sem mudança desde 24–30/10 — **não foram alterados** (conferido: nenhum diff em `js/audio`,
+  `asr/`, `js/ui/lab.js`, `js/ui/wordpractice.js`, `js/engine/wordfeedback.js`, `integrity.js`, `lexicon.js`).
+- **Implementado:** `js/ui/dialogue.js` — `evaluateRecording` (parte pós-gravação, usada pela interface e pelos testes);
+  fase 1 com recorte em todo item; fase 5 com recorte nas falas de até 4 palavras (`trimForLine`); 2ª passada no outro
+  modo quando a transcrição para no começo do texto (vale a que reconhecer mais palavras do texto); corte do
+  reconhecedor com evidência de voz restante → inconclusiva (“não conta como erro seu”); `loadLexicon()` nas fases 1 e
+  5; metadados do reconhecimento na tentativa (modo, 1ª/2ª passada, corte, segundos de voz; nunca o áudio, nada sai do
+  aparelho). `js/engine/dialogueeval.js` — `trimForLine`, `syllables`, `tailMiss`, `heardSpeechBudget` (0,3 s de voz por
+  sílaba + 0,3 s), `tailCutByDuration`, `tailCutInconclusive`. `js/main.js` — `App.voiceEval` (gancho de teste, como
+  `App.asr`). Critério de 80%, modelo e provedores inalterados; continua correspondência textual, não avaliação fonética.
+- **Testes novos:** unitário em `dev/tests/unit/dialogue.test.js` (recorte por tamanho, padrão de corte, troca de
+  palavra ≠ corte, com/sem evidência de voz); E2E `dev/tests/e2e/voice.mjs` com o Moonshine real e as gravações do
+  diagnóstico (voz sintética Kokoro; áudios fora do repositório, ~18 MB, passados por parâmetro):
+  - V01 — 70 gravações sem ruído: **0 inconclusivas** (antes 12 vazias), 69 aprovadas, 1 abaixo do corte (“That sounds
+    interestingly.” 67%, desvio real da transcrição, igual ao diagnóstico); 10/10 falas longas aprovadas; 0 cortes falsos;
+  - V02 — 32 com ruído (20 e 10 dB): **0 inconclusivas** (antes 4 vazias), 30 aprovadas, 2 abaixo do corte (“This
+    weekend” 50%, “That sound interesting.” 67% — desvios reais); 0 cortes falsos;
+  - V03 — corte (áudio real, texto do reconhecedor controlado): 2ª passada recupera → aprovada; fala longa cortada nas
+    duas passadas com 2,2 s de voz → inconclusiva; aluno que parou cedo (0,5 s de voz) → resultado normal;
+  - V04 — interface real da fase 1 com microfone falso: “different teams” e “these days” com pausas → aprovadas
+    (antes vazias/inconclusivas); V05 sem erros de página. **5/5.**
+  - Primeira execução: V03 reprovou (folga de 0,4 s/sílaba não detectava o corte com 2,2 s de voz; e o cenário “curta”
+    usava áudio com as duas palavras) — folga calibrada para 0,3 s/sílaba e cenário corrigido; V01/V02 não acionaram a
+    regra (nenhuma transcrição parou no começo), então não mudam.
+- **Regressões executadas (justificadas):** unitários 254 aprovados, 0 falhas, 1 ignorado (pré-existente; +1 novo);
+  `dialogue` 14/14 (fases 1 e 5 mudaram; inclui D11 com Moonshine real em fala curta, agora recortada); `asr-local` 22/22
+  (Speaking Lab com reconhecedor real — pedido do PO; `js/main.js` mudou). Evidências: `/home/user/ev-voice/`.
+- **Reaproveitados (arquivos dos fluxos não mudaram):** `theme` 10/10, `pwa` 14/14, `mvp` 14/14, `run-pages` 37/37,
+  `characters` 14/14, `avatars` 10/10 (seções abaixo).
+- **Build consolidado:** `bcfa17dbf2ec` — reprodutível (duas gerações, mesma versão); repositório = saída do build;
+  pré-cache conferido por hash (`img/bg-flow-light.svg`, `assets/characters/karla/karla-avatar.png`, `css/app.css`,
+  `dist/app.js`, `data/characters.js`, `index.html`, `manifest.webmanifest`). `dev/content/dialogues/john*.json`
+  continuam fora (pendência própria; `data/dialogues.js` inalterado, `118297cacc48`).
+- **Publicação:** ver o registro de verificação logo abaixo desta seção (commit, `gh-pages`, workflow, versão servida).
+- **Pendências:** validação com voz humana no Galaxy S25+ (fase 1: “different teams”, “these days”, “this week”, “sales
+  department”, “come along”, “What do you do?” em ritmo natural, devagar e com pausas; fase 5: 2 falas curtas e 2
+  longas); saturação do ganho automático (hipótese do diagnóstico, só medível no aparelho); a folga de 0,3 s/sílaba foi
+  calibrada com voz sintética — conferir com voz humana; JSONs intermediários dos diálogos.
+
 ## Publicação consolidada (2026-11-11) — commit e push da branch FEITOS; publicação BLOQUEADA (voz não implementada)
 
 Pedido do PO: publicar numa única entrega (1) voz, (2) temas claro/escuro, (3) avatar da Karla, (4) descrições dos

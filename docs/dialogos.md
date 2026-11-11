@@ -67,6 +67,13 @@ concluída com as cinco fases.
 7. **Fala (fases 1 e 5):** reconhecimento Moonshine no aparelho; nota = palavras avaliadas reconhecidas ÷ avaliadas.
    Inconclusivo quando: sem reconhecimento, gravação sem voz, transcrição vazia/degenerada/cortada, ou menos de 60% do
    texto avaliável. **Não é avaliação fonética** (o app não tem tecnologia validada para isso). Áudio não é guardado.
+   Desde 2026-11-11 (correção de voz): a fase 1 transcreve **todo** item só no trecho com voz (mesmo recorte da prática
+   de palavras do Speaking Lab: `speechBounds`, margem de 0,15 s); a fase 5 recorta as falas de até 4 palavras (as longas
+   vão inteiras, pelo limite de 6 tokens/s do Moonshine). Transcrição que para no começo do texto, sem nada ouvido no
+   lugar do resto (`tailMiss`), ganha uma 2ª passada no outro modo — vale a que reconhecer mais palavras; se ainda faltar
+   o fim e a gravação tiver mais voz do que as palavras ouvidas explicam (0,3 s de voz por sílaba + 0,3 s), a tentativa
+   fica **inconclusiva** (corte do reconhecedor, não erro do aluno). As fases 1 e 5 carregam o léxico, como o Speaking
+   Lab. A tentativa guarda só metadados do reconhecimento (modo, 2ª passada, corte, segundos de voz), nunca o áudio.
 8. **Tradução (fase 3):** localmente só decide dois casos seguros — igual à referência (aprovada) e resposta ainda em
    inglês (prática, sem nota). Todo o resto vai para a avaliação semântica online; sem serviço, sem conexão ou sem
    autorização do aluno, fica **pendente** (nada é simulado). A referência só aparece depois da avaliação.

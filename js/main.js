@@ -20,7 +20,7 @@ import { renderModules, renderModule, renderWords, plannedNotice } from './ui/mo
 import { initPwa, confirmBoot, updateBanner, live } from './ui/pwa.js';
 import { renderCourse, renderCourseQuestion } from './ui/course.js';
 import { renderCoursePractice } from './ui/coursepractice.js';
-import { renderDialogues, renderDialogue, renderPhase } from './ui/dialogue.js';
+import { renderDialogues, renderDialogue, renderPhase, evaluateRecording } from './ui/dialogue.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -89,6 +89,7 @@ const App = {
   },
 };
 App.asr = { local: localasr }; // diagnóstico (usado pelos testes automatizados)
+App.voiceEval = evaluateRecording; // avaliação de fala das fases 1 e 5 (testes com o reconhecedor real: tests/e2e/voice.mjs)
 globalThis.DRG_APP = App; // usado pelos testes automatizados
 
 const TABS = [

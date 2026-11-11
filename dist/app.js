@@ -6655,6 +6655,37 @@ ${body.join("\n\n")}
       evidence: { method: "transcri\xE7\xE3o local (Moonshine) + alinhamento de palavras", heard: asr.text, engine: asr.engine || null }
     };
   }
+  var SHORT_LINE_WORDS = 4;
+  var trimForLine = (text) => String(text || "").trim().split(/\s+/).filter(Boolean).length <= SHORT_LINE_WORDS;
+  function syllables(text) {
+    return String(text || "").toLowerCase().split(/[^a-z']+/).filter(Boolean).reduce((n, w) => {
+      const v = (w.replace(/'/g, "").replace(/(?<=[^aeiouy].*[aeiouy][^aeiouy]*)e$/, "").match(/[aeiouy]+/g) || []).length;
+      return n + Math.max(1, v);
+    }, 0);
+  }
+  function tailMiss(result) {
+    const words3 = result && result.feedback && result.feedback.words || [];
+    const good = words3.map((w, i) => w.state === "good" ? i : -1).filter((i) => i >= 0);
+    const bad = words3.map((w, i) => w.state === "needs_practice" ? i : -1).filter((i) => i >= 0);
+    const lastGood = good.length ? good[good.length - 1] : -1;
+    const prefixOnly = result && result.status === "needs_practice" && good.length > 0 && bad.length > 0 && bad.every((i) => i > lastGood && !words3[i].heard);
+    return { prefixOnly: !!prefixOnly, heard: good.map((i) => words3[i].text), missing: bad.map((i) => words3[i].text) };
+  }
+  var heardSpeechBudget = (heardWords) => syllables(heardWords.join(" ")) * 0.3 + 0.3;
+  var tailCutByDuration = (miss, voicedSec) => !!miss.prefixOnly && typeof voicedSec === "number" && voicedSec > heardSpeechBudget(miss.heard);
+  function tailCutInconclusive(result, miss) {
+    return {
+      ...result,
+      status: "inconclusive",
+      score: null,
+      feedback: {
+        ...result.feedback,
+        transcriptionReliability: "partial",
+        summary: `O reconhecimento parou antes do fim da sua fala (ouviu s\xF3 \u201C${miss.heard.join(" ")}\u201D, mas a grava\xE7\xE3o continua com voz). Isso n\xE3o conta como erro seu: grave de novo.`,
+        toPractise: []
+      }
+    };
+  }
   var foldPt = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, " ").trim();
   var EN_ONLY2 = /* @__PURE__ */ new Set(["the", "and", "you", "are", "is", "what", "do", "does", "have", "has", "with", "this", "that", "my", "your", "i'm", "it's", "of", "to", "at", "in", "on", "for", "we", "they", "he", "she", "can", "could", "would", "will", "please", "thank", "yes", "not"]);
   function localTranslation(answer, line) {
@@ -7208,6 +7239,7 @@ ${body.join("\n\n")}
     const body = h("div", { "data-role": "phase-screen", "data-phase": ph.id, "data-id": act.id });
     view.append(body);
     const ctx = { alive: true, cleanups: [] };
+    if (ph.id === "vocab" || ph.id === "reading") loadLexicon();
     loadStore().then(() => {
       const p = actProgress2(store, act);
       const st = phaseStatuses(pack, act, p).find((x) => x.id === ph.id);
@@ -7291,7 +7323,37 @@ ${body.join("\n\n")}
     } }));
     return false;
   }
-  async function recordAndEvaluate({ target, maxMs, word, statusEl, ctx }) {
+  async function evaluateRecording(blob, { target, trim, alive = () => true }) {
+    const analysis = await analyseBlob(blob).catch(() => null);
+    const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
+    const recognise = async (word) => {
+      let asr = null, reason = "";
+      try {
+        asr = await asrEngine().transcribe(blob, { word });
+      } catch (e) {
+        reason = `O reconhecimento falhou nesta grava\xE7\xE3o (${e.message}). Isso n\xE3o conta como erro seu.`;
+      }
+      const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
+      const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === "possibly-truncated" || x.code === "lost-part");
+      return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
+    };
+    let pass = await recognise(trim);
+    const diag = { trim, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
+    if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
+      const other = await recognise(!trim);
+      diag.secondPass = other.asr ? other.asr.text : null;
+      const goods = (r) => (r.feedback && r.feedback.words || []).filter((w) => w.state === "good").length;
+      if (other.asr && goods(other.result) > goods(pass.result)) pass = other;
+      const miss = tailMiss(pass.result);
+      if (tailCutByDuration(miss, diag.voicedSec)) {
+        diag.tailCut = true;
+        pass = { ...pass, result: tailCutInconclusive(pass.result, miss) };
+      }
+    }
+    const result = { ...pass.result, evidence: { ...pass.result.evidence || {}, asr: diag } };
+    return { result, heard: pass.asr ? pass.asr.text : null };
+  }
+  async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
     let session;
     try {
       session = await start({ maxMs });
@@ -7308,19 +7370,10 @@ ${body.join("\n\n")}
       session.stopped.then(async ({ blob }) => {
         if (!ctx.alive) return resolve(null);
         clear(statusEl).append(h("span", { class: "spinner", "aria-hidden": "true" }), " Reconhecendo no aparelho\u2026");
-        const analysis = await analyseBlob(blob).catch(() => null);
-        const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
-        let asr = null, reason = "";
-        try {
-          asr = await asrEngine().transcribe(blob, { word });
-        } catch (e) {
-          reason = `O reconhecimento falhou nesta grava\xE7\xE3o (${e.message}). Isso n\xE3o conta como erro seu.`;
-        }
+        const out = await evaluateRecording(blob, { target, trim, alive: () => ctx.alive });
         if (!ctx.alive) return resolve(null);
-        const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
-        const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === "possibly-truncated" || x.code === "lost-part");
         clear(statusEl);
-        resolve({ result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }), heard: asr ? asr.text : null });
+        resolve(out);
       });
     });
   }
@@ -7400,7 +7453,7 @@ ${body.join("\n\n")}
       recBtn.onclick = async () => {
         if (!await speechReady(status3, App2, () => draw())) return;
         recBtn.disabled = true;
-        const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8e3, word: !/\s/.test(it.spoken), statusEl: status3, ctx });
+        const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8e3, trim: true, statusEl: status3, ctx });
         if (!out || !ctx.alive) return;
         const result = { ...out.result, rubricVersion: "dre-speech-lexical-1" };
         addAttempt(p, { attemptId: newAttemptId(), phase: "vocab", itemId: it.id, inputType: "speech", response: out.heard, result });
@@ -7801,7 +7854,7 @@ ${body.join("\n\n")}
       recBtn.onclick = async () => {
         if (!await speechReady(status3, App2, () => draw())) return;
         recBtn.disabled = true;
-        const out = await recordAndEvaluate({ target: l.en, maxMs: 3e4, word: false, statusEl: status3, ctx });
+        const out = await recordAndEvaluate({ target: l.en, maxMs: 3e4, trim: trimForLine(l.en), statusEl: status3, ctx });
         if (!out || !ctx.alive) return;
         addAttempt(p, { attemptId: newAttemptId(), phase: "reading", itemId: l.id, inputType: "speech", response: out.heard, result: out.result });
         settleCompletion(pack, act, p);
@@ -11821,6 +11874,7 @@ ${body.join("\n\n")}
     }
   };
   App.asr = { local: localasr_exports };
+  App.voiceEval = evaluateRecording;
   globalThis.DRG_APP = App;
   var TABS = [
     { hash: "#/", label: "In\xEDcio", icon: "home", match: (r) => r === "" },

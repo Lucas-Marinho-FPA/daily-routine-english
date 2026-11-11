@@ -65,10 +65,11 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
 - [x] MVP de diálogo em cinco fases (The Story of John), 403 questões, rodada proporcional, fase 5 independente — publicado (`gh-pages` `a6e8bbb`, workflow nº 27). Detalhes: `docs/dialogos.md`, `HANDOFF.md`.
 - [x] Avatares oficiais de Lucas e Lukinhas no padrão do Heitor — publicado (`gh-pages` `1f39b60`, workflow nº 28, build `ee69e6bf46b5`); testes e evidências no `HANDOFF.md`.
 - [ ] Reconhecimento de voz nas fases 1 e 5: diagnóstico feito (expressões de 2+ palavras sem recorte de silêncio → transcrição vazia); correção aguarda autorização própria.
+  - [x] Correção implementada e testada (recorte nas fases 1 e 5, 2ª passada, corte do reconhecedor → inconclusivo, léxico): ensaio com Moonshine real 0 inconclusivas em 102 gravações (antes 16 vazias); `voice` 5/5, `dialogue` 14/14, `asr-local` 22/22. Falta validar com voz humana no Galaxy S25+.
 - [ ] Diferenças visuais entre celulares: investigação em etapa separada.
   - [x] Diagnóstico registrado no `HANDOFF.md` (V-01 a V-09); causa da divergência de tema: padrão “automático” seguia o modo do sistema.
   - [~] Tema azul padrão + sol/lua no cabeçalho + tema claro (mockup aprovado): implementado e testado (build `612e8b43e90c`); aguarda autorização de commit/publicação e validação nos dois celulares.
 - [~] Avatar oficial da Karla no padrão dos demais: integrado e testado (build `f957ef20603e`); aguarda autorização de commit/publicação.
 - [~] Descrições aprovadas dos quatro personagens nos cartões de escolha: implementado e testado (build `994be0c72452`).
-- [ ] Publicação consolidada (voz + temas + Karla + descrições): branch enviada; publicação bloqueada — a correção de voz só foi diagnosticada, não implementada (ver `HANDOFF.md`).
+- [~] Publicação consolidada (voz + temas + Karla + descrições): bloqueio anterior resolvido (voz implementada); build `bcfa17dbf2ec`; publicação registrada no `HANDOFF.md`.
 - [ ] Validação no Galaxy S25+ das entregas de 11/11.

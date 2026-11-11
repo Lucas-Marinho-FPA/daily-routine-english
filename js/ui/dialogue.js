@@ -19,7 +19,8 @@ import {
   mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
   activityReport, phaseById, pendingAttempts,
 } from '../engine/dialogue.js';
-import { scoreWriting, evaluateSpeech, localTranslation, foldPt } from '../engine/dialogueeval.js';
+import { scoreWriting, evaluateSpeech, localTranslation, foldPt, tailMiss, tailCutByDuration, tailCutInconclusive, trimForLine } from '../engine/dialogueeval.js';
+import { loadLexicon } from '../engine/lexicon.js';
 import { evaluationConfig, remoteBlocker, createRemoteEvaluator, processQueue } from '../engine/evalsync.js';
 
 // ---------------------------------------------------------------------------------------------------------
@@ -311,6 +312,7 @@ export function renderPhase(App, { arg, params }) {
   const body = h('div', { 'data-role': 'phase-screen', 'data-phase': ph.id, 'data-id': act.id });
   view.append(body);
   const ctx = { alive: true, cleanups: [] };
+  if (ph.id === 'vocab' || ph.id === 'reading') loadLexicon(); // como no Speaking Lab: já no cache offline; distingue palavra inexistente de outra palavra do inglês
   loadStore().then(() => {
     const p = actProgress(store, act);
     const st = phaseStatuses(pack, act, p).find((x) => x.id === ph.id);
@@ -366,8 +368,41 @@ async function speechReady(area, App, onReady) {
   return false;
 }
 
-/** Grava (até maxMs), transcreve no aparelho e avalia. Retorna o resultado do avaliador (nunca reprova por falha técnica). */
-async function recordAndEvaluate({ target, maxMs, word, statusEl, ctx }) {
+/**
+ * Avalia uma gravação da fase 1 ou 5 (depois de gravada). Nunca reprova por falha técnica.
+ * trim = true: transcreve só o trecho com voz (speechBounds, margem de 0,15 s — começo e fim falados preservados), como
+ * a prática de palavras do Speaking Lab; sem o recorte, o silêncio da gravação faz o Moonshine devolver texto vazio.
+ * Transcrição que para no começo do texto (tailMiss) tem uma segunda passada no outro modo; se ainda faltar o fim e a
+ * gravação tiver mais voz do que as palavras ouvidas explicam, a tentativa fica inconclusiva (corte do reconhecedor).
+ * Exportada para os testes com o reconhecedor real (App.voiceEval).
+ */
+export async function evaluateRecording(blob, { target, trim, alive = () => true }) {
+  const analysis = await analyseBlob(blob).catch(() => null);
+  const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
+  const recognise = async (word) => {
+    let asr = null, reason = '';
+    try { asr = await asrEngine().transcribe(blob, { word }); } catch (e) { reason = `O reconhecimento falhou nesta gravação (${e.message}). Isso não conta como erro seu.`; }
+    const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
+    const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
+    return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
+  };
+  let pass = await recognise(trim);
+  const diag = { trim, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
+  if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
+    const other = await recognise(!trim); // mesma gravação, outro modo: só substitui se reconhecer MAIS palavras do texto
+    diag.secondPass = other.asr ? other.asr.text : null;
+    const goods = (r) => ((r.feedback && r.feedback.words) || []).filter((w) => w.state === 'good').length;
+    if (other.asr && goods(other.result) > goods(pass.result)) pass = other;
+    const miss = tailMiss(pass.result);
+    if (tailCutByDuration(miss, diag.voicedSec)) { diag.tailCut = true; pass = { ...pass, result: tailCutInconclusive(pass.result, miss) }; }
+  }
+  // registro local de diagnóstico (só metadados e o texto reconhecido, nunca o áudio): modo, segunda passada, corte, voz
+  const result = { ...pass.result, evidence: { ...(pass.result.evidence || {}), asr: diag } };
+  return { result, heard: pass.asr ? pass.asr.text : null };
+}
+
+/** Grava (até maxMs), transcreve no aparelho e avalia (evaluateRecording). */
+async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
   let session;
   try { session = await recorder.start({ maxMs }); } catch (e) {
     return { result: evaluateSpeech(target, null, { reason: e.userMessage || 'Não foi possível usar o microfone.' }), micError: e.userMessage || 'Microfone indisponível.' };
@@ -379,15 +414,10 @@ async function recordAndEvaluate({ target, maxMs, word, statusEl, ctx }) {
     session.stopped.then(async ({ blob }) => {
       if (!ctx.alive) return resolve(null);
       clear(statusEl).append(h('span', { class: 'spinner', 'aria-hidden': 'true' }), ' Reconhecendo no aparelho…');
-      const analysis = await analyseBlob(blob).catch(() => null);
-      const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
-      let asr = null, reason = '';
-      try { asr = await asrEngine().transcribe(blob, { word }); } catch (e) { reason = `O reconhecimento falhou nesta gravação (${e.message}). Isso não conta como erro seu.`; }
+      const out = await evaluateRecording(blob, { target, trim, alive: () => ctx.alive });
       if (!ctx.alive) return resolve(null);
-      const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
-      const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
       clear(statusEl);
-      resolve({ result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }), heard: asr ? asr.text : null });
+      resolve(out);
     });
   });
 }
@@ -445,7 +475,7 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
     recBtn.onclick = async () => {
       if (!(await speechReady(status, App, () => draw()))) return;
       recBtn.disabled = true;
-      const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8000, word: !/\s/.test(it.spoken), statusEl: status, ctx });
+      const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8000, trim: true, statusEl: status, ctx }); // fase 1: sempre só o trecho com voz
       if (!out || !ctx.alive) return;
       const result = { ...out.result, rubricVersion: 'dre-speech-lexical-1' };
       addAttempt(p, { attemptId: newAttemptId(), phase: 'vocab', itemId: it.id, inputType: 'speech', response: out.heard, result });
@@ -727,7 +757,7 @@ function phaseReading(App, { pack, act, p, area, ctx }) {
     recBtn.onclick = async () => {
       if (!(await speechReady(status, App, () => draw()))) return;
       recBtn.disabled = true;
-      const out = await recordAndEvaluate({ target: l.en, maxMs: 30000, word: false, statusEl: status, ctx });
+      const out = await recordAndEvaluate({ target: l.en, maxMs: 30000, trim: trimForLine(l.en), statusEl: status, ctx }); // fase 5: falas curtas recortadas
       if (!out || !ctx.alive) return;
       addAttempt(p, { attemptId: newAttemptId(), phase: 'reading', itemId: l.id, inputType: 'speech', response: out.heard, result: out.result });
       settleCompletion(pack, act, p);
