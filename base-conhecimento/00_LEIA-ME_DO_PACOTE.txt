@@ -1,0 +1,49 @@
+PACOTE DOCUMENTAL — BASE DE CONHECIMENTO — DAILY ROUTINE ENGLISH
+Data de preparação: 2026-11-10
+
+Este pacote reúne os documentos oficiais de governança disponíveis nas fontes do Projeto,
+a Base Mestra e os quatro acervos estruturados Ian. Os arquivos originais foram copiados
+sem edição; seus nomes e conteúdos foram preservados.
+
+ESTRUTURA
+01_Governanca/
+  00_Instrucoes_Permanentes.md
+  01_Manual_de_Consolidacao.md
+  02_Modelo_de_Registro_de_Atividades.md
+  03_Modelo_de_Conhecimento_Linguistico.md
+  04_Politica_de_Preservacao_e_Rastreabilidade.md
+  06_BASE_MESTRA_E_CATALOGO.md
+  07_Checklist_Mestre_de_Consolidacao.md
+  08_Historico_de_Decisoes_e_Pendencias.md
+  09_Metodologia_de_Revisao_e_Praticas.md
+  CONTROLE_INTERNO_NAO_PUBLICAR/05_De_Para_Interno_de_Fontes.md
+  LEIA-ME.md
+02_Base_Mestra/
+  Base_Mestra_Daily_Routine_English_FINAL.md
+03_Acervos_Ian/
+  Acervo_Atividade_Ian_Parte_1_FINAL.md
+  Acervo_Atividade_Ian_Parte_2_FINAL.md
+  Acervo_Atividade_Ian_Parte_3_FINAL.md
+  Acervo_Atividade_Ian_Parte_4_FINAL.md
+
+AVISO DE SEGURANÇA
+O arquivo 05_De_Para_Interno_de_Fontes.md é material interno de rastreabilidade.
+Não publicar na internet, não adicionar ao Git público, não anexar a builds do aplicativo
+e não encaminhar a ambientes sem autorização. A inclusão neste pacote destina-se apenas
+ao ambiente de trabalho interno autorizado do CoWork, conforme as regras do próprio arquivo.
+
+FRONTEIRA ENTRE PROJETOS
+O arquivo curso-atividades.md não foi incluído: ele é uma especificação técnica da área
+"Curso — Atividades" do aplicativo, com regras de importação/exportação e implementação.
+Para evitar misturar documentos de Produto e Desenvolvimento ao pacote da Base de
+Conhecimento, deve ser consultado somente no projeto de Produto e Desenvolvimento quando
+uma tarefa técnica exigir. Não é uma fonte pedagógica nem substitui a governança desta Base.
+
+NOMES / VERSÕES
+O arquivo efetivamente disponível para o item 06 chama-se 06_BASE_MESTRA_E_CATALOGO.md.
+Não foi encontrado um arquivo com o nome 06_Base_Mestra_Daily_Routine_English.md.
+A Base Mestra canônica disponível é Base_Mestra_Daily_Routine_English_FINAL.md, conforme
+referenciado pelo documento 06.
+
+Este pacote não atribui códigos ACT, não gera JSON, não altera o repositório e não autoriza
+qualquer commit, push ou publicação.
