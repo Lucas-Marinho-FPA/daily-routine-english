@@ -73,9 +73,9 @@ await check('C01', 'Primeira abertura: escolha pelo nome (Lucas marcado como pad
   assert(await pick.isVisible(), 'tela de escolha não apareceu');
   const opts = await pick.locator('[role=radio]').evaluateAll((els) => els.map((e) => [e.dataset.character, e.getAttribute('aria-checked'), e.querySelector('.char-name').textContent]));
   assert(JSON.stringify(opts) === '[["lucas","true","Lucas"],["karla","false","Karla"],["lucas-kid","false","Lukinhas"],["heitor","false","Heitor"]]', JSON.stringify(opts));
-  // só quem tem imagem aprovada aparece com ela (hoje: o avatar oficial do Heitor); os demais, só pelo nome
+  // só quem tem imagem aprovada aparece com ela (hoje: avatares oficiais de Lucas, Lukinhas e Heitor); a Karla, só pelo nome
   const imgs = await pick.locator('img').evaluateAll((els) => els.map((i) => i.closest('[data-character]').dataset.character));
-  assert(JSON.stringify(imgs) === '["heitor"]', `imagem na escolha: ${JSON.stringify(imgs)}`);
+  assert(JSON.stringify(imgs) === '["lucas","lucas-kid","heitor"]', `imagem na escolha: ${JSON.stringify(imgs)}`);
   const s0 = await app(() => ({ ch: window.DRG_APP.character.id, same: window.DRG_APP.content === window.DRG_APP.baseContent }));
   assert(s0.ch === 'lucas' && s0.same, JSON.stringify(s0));
   await page.screenshot({ path: join(OUT, 'C01-escolha-inicial.png') });

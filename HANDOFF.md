@@ -25,6 +25,32 @@ de agir.
   `c9005fa`, 02:41 UTC); às 02:59 UTC a governança da Base foi publicada na branch `base-conhecimento`. O conteúdo
   validado pelo professor (Base Mestra, acervos Ian Parts 1–4, de-para) continua **fora** do repositório.
 
+## Avatares oficiais de Lucas e Lukinhas (2026-11-11) — implementado e testado, SEM commit/push/publicação
+
+Pedido do PO: integrar as imagens aprovadas de Lucas e Lukinhas no mesmo padrão do Heitor. Commit, push, merge e
+publicação **não autorizados** nesta tarefa (aguardam autorização expressa).
+
+- **Imagens** (cópia byte a byte dos arquivos enviados; PNG RGBA, fundo com alfa 0 e personagem com alfa 253 — sem
+  tratamento): `assets/characters/lucas/lucas-avatar.png` (1132×1390, sha256 `eb03c4bf…`) e
+  `assets/characters/lucas-kid/lucas-kid-avatar.png` (1312×1199, sha256 `6f0999a8…`). Os nomes dos arquivos enviados
+  chegaram renomeados pelo sistema de upload; a atribuição foi pelo conteúdo (adulto = Lucas; criança = Lukinhas).
+- **Cadastro** (mesmo formato do Heitor, só o estado `idle`, `kind: 'illustration'`): Lucas em
+  `dev/tools/build-characters.mjs`; Lukinhas em `dev/tools/lukinhas-source.mjs` → `dev/content/characters/lucas-kid.json`
+  (regenerado; só o campo `visual` mudou — textos, expressões e perguntas idênticos). Gerados: `data/characters.js`,
+  `dev/content/build/characters.json`, `dist/app.js`, `sw.js` (build `ee69e6bf46b5`, 2.224 arquivos, 23,9 MB offline;
+  as duas imagens no pré-cache com o hash do conteúdo).
+- **Exibição:** a mesma função do Heitor (`characterImage`): bloco do personagem ativo no Início (96 px de altura) e
+  escolha de personagem (64 px), proporção natural, sem recorte. Karla continua com o marcador da inicial. Nenhuma
+  seleção, perfil ou gamificação nova. O build agora exige o arquivo de qualquer estado pronto (antes só das personas
+  previstas). Documentação: `docs/personagens.md` (“Avatares oficiais”).
+- **Testes (2026-11-11):** `npm test` 254 — 253 aprovados, 1 ignorado (pré-existente); novo `avatars.mjs` 9/9 (carga,
+  proporção sem distorção/recorte, Início e escolha, Karla sem imagem, transparência real decodificada, 360/412/430 px,
+  offline com servidor desligado); `characters` 14/14; `lukinhas` 12/12; `mvp` 14/14; `pwa` 14/14; `run-pages` 37/37;
+  `update-transition` (publicado `a6e8bbb` → novo) 25/25. `dialogue` não reexecutado (código e dados dos diálogos
+  inalterados).
+- **Pendências:** autorização de commit/push e, se desejado, de publicação; demais estados visuais (thinking, correct,
+  wrong, celebrate, levelup) continuam pendentes para todos os personagens; Karla sem imagem.
+
 ## Entrega final — decisões do PO, integração e publicação (2026-11-11)
 
 Autorização expressa do PO (2026-11-11): ativar as questões, rodada proporcional, fase 5 independente, corrigir o

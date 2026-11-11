@@ -13,7 +13,7 @@ export function characterImage(ch, state, { size = 56, illus = null } = {}) {
   if (!ch || !STATES.includes(state)) return null;
   const src = assetFor(ch, state);
   if (!src) return null;
-  // ilustração (ex.: avatar oficial do Heitor): proporção natural, sem recorte circular; `illus` = altura em px
+  // ilustração (avatares oficiais de Lucas, Lukinhas e Heitor): proporção natural, sem recorte circular; `illus` = altura em px
   const v = ch.visual && ch.visual.states && ch.visual.states[state];
   if (v && v.kind === 'illustration' && v.w && v.h) {
     const ht = illus || size;
@@ -44,7 +44,7 @@ export function characterChoices({ selected, current = null, onSelect, role = 'c
   const box = h('div', { class: 'char-choices', role: 'radiogroup', 'aria-label': 'Personagem', 'data-role': role });
   const draw = (sel) => clear(box).append(...registry().characters.map((c) => {
     const on = c.id === sel;
-    const pic = characterImage(c, 'idle', { illus: 64 }); // só quem já tem imagem aprovada (hoje: Heitor)
+    const pic = characterImage(c, 'idle', { illus: 64 }); // só quem já tem imagem aprovada (hoje: Lucas, Lukinhas e Heitor)
     return h('button', { type: 'button', class: `char-choice${pic ? ' with-illus' : ''}`, role: 'radio', 'aria-checked': String(on), 'data-character': c.id,
       onclick: () => { draw(c.id); onSelect(c.id); } },
     h('span', { class: 'char-name', text: c.name }),

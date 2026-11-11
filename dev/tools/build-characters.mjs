@@ -17,11 +17,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const STATES = ['idle', 'thinking', 'correct', 'wrong', 'celebrate', 'levelup'];
 const base = JSON.parse(readFileSync(join(ROOT, 'content/build/content.json'), 'utf8'));
 
-// Lucas: o conteúdo atual do app. Sem imagens até hoje (o app nunca teve personagem visual): os seis estados ficam pendentes.
+// Lucas: o conteúdo atual do app. Avatar oficial (PNG com transparência, 1132×1390), aprovado pelo PO em 2026-11-11, no
+// estado idle como ilustração — mesmo padrão do Heitor; os demais estados seguem pendentes.
 const LUCAS = {
   id: 'lucas', name: 'Lucas', status: 'active', content: 'base',
   profile: { summary: 'Rotinas atuais do app: trabalho, trajeto, academia, família e estudo de inglês.' },
-  visual: { dir: 'assets/characters/lucas', ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, { file: s.toUpperCase(), status: 'pending' }])) },
+  visual: { dir: 'assets/characters/lucas', ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, s === 'idle'
+    ? { file: 'lucas-avatar', status: 'ready', kind: 'illustration', w: 1132, h: 1390 }
+    : { file: s.toUpperCase(), status: 'pending' }])) },
 };
 
 export function buildPack(src) {
@@ -134,8 +137,8 @@ export function buildCharacters() {
     profile: { summary: p.summary || '' },
     visual: { dir: `assets/characters/${p.id}`, ext: 'png', states: Object.fromEntries(STATES.map((s) => [s, (p.visual && p.visual.states && p.visual.states[s]) || { file: s.toUpperCase(), status: 'pending' }])) },
   })) : [];
-  // estado marcado como pronto precisa do arquivo no app (evita imagem quebrada publicada)
-  for (const c of planned) for (const [s, v] of Object.entries(c.visual.states)) {
+  // estado marcado como pronto precisa do arquivo no app (evita imagem quebrada publicada) — vale para todos os personagens
+  for (const c of [LUCAS, ...packs, ...planned]) for (const [s, v] of Object.entries(c.visual.states)) {
     if (v.status === 'ready' && !existsSync(join(ROOT, 'app', c.visual.dir, `${v.file}.${c.visual.ext}`))) throw new Error(`${c.id}: imagem do estado ${s} ausente (${c.visual.dir}/${v.file}.${c.visual.ext})`);
   }
   return { version: 1, states: STATES, characters: [LUCAS, ...packs, ...planned] };

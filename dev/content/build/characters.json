@@ -22,8 +22,11 @@
     "ext": "png",
     "states": {
      "idle": {
-      "file": "IDLE",
-      "status": "pending"
+      "file": "lucas-avatar",
+      "status": "ready",
+      "kind": "illustration",
+      "w": 1132,
+      "h": 1390
      },
      "thinking": {
       "file": "THINKING",
@@ -11292,8 +11295,11 @@
     "ext": "png",
     "states": {
      "idle": {
-      "file": "IDLE",
-      "status": "pending"
+      "file": "lucas-kid-avatar",
+      "status": "ready",
+      "kind": "illustration",
+      "w": 1312,
+      "h": 1199
      },
      "thinking": {
       "file": "THINKING",

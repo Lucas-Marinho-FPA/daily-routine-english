@@ -7834,7 +7834,7 @@ ${body.join("\n\n")}
         "div",
         { class: "row nowrap" },
         characterBadge(ch, "idle", { size: 56, illus: 96 }),
-        // ilustração (Heitor) com 96 px de altura; os demais como antes
+        // ilustração (Lucas, Lukinhas, Heitor) com 96 px de altura; a Karla segue com o marcador
         h(
           "div",
           { class: "grow", style: { minWidth: 0 } },

@@ -19,24 +19,36 @@ const REG = JSON.parse(readFileSync(new URL('../../content/build/characters.json
 const SRC = JSON.parse(readFileSync(new URL('../../content/characters/karla.json', import.meta.url)));
 const karla = contentFor(base, 'karla', REG);
 
-test('cadastro: Lucas, Karla e as personas previstas (sem conteúdo), seis estados cada; só a imagem aprovada (avatar do Heitor, estado idle) está pronta — nenhuma imagem genérica', () => {
+test('cadastro: Lucas, Karla e as personas previstas, seis estados cada; avatares oficiais (Lucas, Lukinhas, Heitor — estado idle, ilustração) prontos; Karla sem imagem — nenhuma imagem genérica', () => {
   assert.deepEqual(registry(REG).characters.map((c) => c.id), ['lucas', 'karla', 'lucas-kid', 'heitor']);
   // o Lukinhas (lucas-kid) ganhou pacote próprio; o Heitor continua previsto, sem conteúdo
   assert.deepEqual(REG.characters.filter((c) => c.status === 'planned').map((c) => [c.id, c.content]), [['heitor', null]]);
   assert.equal(REG.characters.find((c) => c.id === 'lucas-kid').name, 'Lukinhas');
   assert.deepEqual(STATES, ['idle', 'thinking', 'correct', 'wrong', 'celebrate', 'levelup']);
+  // mesmo padrão para os três avatares oficiais: <dir>/<id>-avatar.png, só o estado idle, ilustração com as dimensões originais
+  const AVATARS = {
+    lucas: { file: 'lucas-avatar', status: 'ready', kind: 'illustration', w: 1132, h: 1390 }, // aprovado em 2026-11-11
+    'lucas-kid': { file: 'lucas-kid-avatar', status: 'ready', kind: 'illustration', w: 1312, h: 1199 }, // aprovado em 2026-11-11
+    heitor: { file: 'heitor-avatar', status: 'ready', kind: 'illustration', w: 1312, h: 1199 }, // aprovado em 2026-11-10
+  };
   for (const c of REG.characters) {
     assert.deepEqual(Object.keys(c.visual.states).sort(), [...STATES].sort());
-    if (c.id === 'heitor') continue;
-    assert.deepEqual(visualStatus(c), { ready: [], pending: STATES }, `${c.id}: o cadastro não significa imagens prontas`);
-    for (const s of STATES) assert.equal(assetFor(c, s), null);
+    if (!AVATARS[c.id]) {
+      assert.deepEqual(visualStatus(c), { ready: [], pending: STATES }, `${c.id}: o cadastro não significa imagens prontas`);
+      for (const s of STATES) assert.equal(assetFor(c, s), null);
+      continue;
+    }
+    assert.deepEqual(visualStatus(c), { ready: ['idle'], pending: STATES.filter((s) => s !== 'idle') }, c.id);
+    assert.equal(assetFor(c, 'idle'), `assets/characters/${c.id}/${c.id}-avatar.png`);
+    assert.deepEqual(['thinking', 'correct', 'wrong', 'celebrate', 'levelup'].map((s) => assetFor(c, s)), [null, null, null, null, null], `${c.id}: os demais estados continuam pendentes`);
+    assert.deepEqual(c.visual.states.idle, AVATARS[c.id]);
+    // o arquivo existe, é PNG com canal alfa (transparência real) e tem as dimensões cadastradas
+    const png = readFileSync(new URL(`../../app/${assetFor(c, 'idle')}`, import.meta.url));
+    assert.equal(png.toString('latin1', 1, 4), 'PNG', `${c.id}: PNG`);
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [AVATARS[c.id].w, AVATARS[c.id].h], `${c.id}: dimensões`);
+    assert.equal(png[25], 6, `${c.id}: RGBA (cor + alfa)`);
   }
-  // avatar oficial do Heitor (aprovado em 2026-11-10): só o estado idle, como ilustração com as dimensões originais
-  const heitor = REG.characters.find((c) => c.id === 'heitor');
-  assert.deepEqual(visualStatus(heitor), { ready: ['idle'], pending: STATES.filter((s) => s !== 'idle') });
-  assert.equal(assetFor(heitor, 'idle'), 'assets/characters/heitor/heitor-avatar.png');
-  assert.deepEqual(['thinking', 'correct', 'wrong', 'celebrate', 'levelup'].map((s) => assetFor(heitor, s)), [null, null, null, null, null], 'os demais estados continuam pendentes');
-  assert.deepEqual(heitor.visual.states.idle, { file: 'heitor-avatar', status: 'ready', kind: 'illustration', w: 1312, h: 1199 });
+  assert.deepEqual(visualStatus(REG.characters.find((c) => c.id === 'karla')), { ready: [], pending: STATES }, 'Karla segue sem imagem');
   // quando uma imagem for aprovada, o caminho segue a convenção <dir>/<ESTADO>.png
   const ready = { ...characterById('karla', REG), visual: { ...SRC.visual, states: { ...SRC.visual.states, correct: { file: 'CORRECT', status: 'ready' } } } };
   assert.equal(assetFor(ready, 'correct'), 'assets/characters/karla/CORRECT.png');

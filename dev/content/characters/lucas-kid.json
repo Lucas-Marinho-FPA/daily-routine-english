@@ -27,8 +27,11 @@
   "ext": "png",
   "states": {
    "idle": {
-    "file": "IDLE",
-    "status": "pending"
+    "file": "lucas-kid-avatar",
+    "status": "ready",
+    "kind": "illustration",
+    "w": 1312,
+    "h": 1199
    },
    "thinking": {
     "file": "THINKING",

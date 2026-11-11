@@ -7,7 +7,7 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 | Situação | ativo (conteúdo atual do app) | **em preparação** |
 | Conteúdo | `data/content.js` — 10 rotinas do Word (R01–R10, texto intocado) + 8 episódios (R11–R18) do Lucas 2.0, 192 frases — ver [`lucas-jornada.md`](lucas-jornada.md) | `data/characters.js` — jornada de 11 episódios (K01–K11), 104 frases, 151 itens próprios, 35 perguntas — ver [`karla-jornada.md`](karla-jornada.md) |
 | Áudio de referência | 1411 clipes britânicos pré-gerados (inclui os episódios) | **pendente**: até ser gerado, o app usa a voz em inglês do aparelho (offline, qualidade varia) |
-| Imagens dos 6 estados | **pendentes** (o app nunca teve imagem de personagem) | **pendentes** |
+| Imagens dos 6 estados | **avatar oficial no estado `idle`** (desde 2026-11-11); demais estados pendentes | **pendentes** |
 
 > Observação: antes desta etapa o app **não tinha** sistema de personagens — o “Lucas” existia só como a pessoa que narra as rotinas. Os seis estados com estes nomes seguem a convenção do Bora de Inglês (companheiro Tatu), adotada aqui para manter compatibilidade futura.
 
@@ -31,24 +31,41 @@ O app tem dois personagens recorrentes que usam **o mesmo motor de aprendizagem*
 - XP, nível, sequência de dias e conquistas são **globais** (regras inalteradas).
 - Links antigos para conteúdo do outro personagem (ex.: `#/lab?sentence=R01-B1-S1` com a Karla ativa) voltam à tela inicial da seção em vez de quebrar.
 
-## Estados visuais (pendentes de imagem)
+## Avatares oficiais (estado `idle`, ilustração)
+
+| Personagem | Arquivo | Dimensões | Aprovado |
+|---|---|---|---|
+| Lucas (`lucas`) | `assets/characters/lucas/lucas-avatar.png` | 1132×1390 | 2026-11-11 |
+| Lukinhas (`lucas-kid`) | `assets/characters/lucas-kid/lucas-kid-avatar.png` | 1312×1199 | 2026-11-11 |
+| Heitor (`heitor`) | `assets/characters/heitor/heitor-avatar.png` | 1312×1199 | 2026-11-10 |
+
+Todos no mesmo padrão: PNG RGBA com fundo transparente, copiado **byte a byte** do arquivo aprovado (nenhum
+redimensionamento, recorte ou tratamento); cadastrado como `{ file: '<id>-avatar', status: 'ready', kind: 'illustration',
+w, h }` só no estado `idle` (Lucas em `dev/tools/build-characters.mjs`; Lukinhas em `dev/tools/lukinhas-source.mjs` →
+`dev/content/characters/lucas-kid.json`; Heitor em `dev/content/personas-planned.json`). Exibição pela mesma função
+(`characterImage`, `js/ui/character.js`): proporção natural, `object-fit: contain`, sem recorte circular — 96 px de altura
+no bloco do personagem ativo do Início e 64 px na escolha de personagem. O build falha se um estado marcado como pronto
+não tiver o arquivo (todos os personagens). As imagens entram no pré-cache offline. A Karla continua com o marcador da
+inicial. Os personagens seguem narrativos (não são perfis nem recompensa); nada de seleção nova foi criado.
+
+## Estados visuais
 
 Seis estados por personagem: `idle`, `thinking`, `correct`, `wrong`, `celebrate` (Celebration), `levelup` (LevelUp).
 
 | Estado | Onde aparece no app |
 |---|---|
-| idle | Ajustes (o Início e a escolha usam só o nome nesta etapa) |
+| idle | bloco do personagem ativo no Início e escolha de personagem (avatar oficial, quando aprovado) |
 | thinking | painel de feedback quando a resposta é “quase”/diferente do modelo |
 | correct / wrong | painel de feedback do exercício |
 | celebrate / levelup | fim da sessão (levelup quando a sessão subiu de nível) |
 
-Enquanto a imagem de um estado não estiver aprovada, **nada muda nas telas de exercício** (o painel fica como antes) e Ajustes mostra um marcador com a inicial — não há imagem genérica; o Início e a escolha mostram só o nome.
+Enquanto a imagem de um estado não estiver aprovada, **nada muda nas telas de exercício** (o painel fica como antes) e o Início mostra um marcador com a inicial — não há imagem genérica.
 
 **Para entregar as imagens aprovadas** (um arquivo por estado; não usar o painel conceitual inteiro):
 1. PNG quadrado com fundo transparente, recomendado 512×512 px, otimizado (< 100 KB cada); o mesmo enquadramento nos seis estados.
 2. Salvar como `assets/characters/<id>/<ESTADO>.png` — `IDLE`, `THINKING`, `CORRECT`, `WRONG`, `CELEBRATE`, `LEVELUP` (maiúsculas; o servidor diferencia).
 3. Em `content/characters/<id>.json`, trocar `"status": "pending"` por `"ready"` só nos estados entregues e rodar o build (as imagens entram no pré-cache offline).
-O Lucas segue a mesma convenção em `assets/characters/lucas/` quando as imagens dele existirem.
+Os avatares oficiais (acima) usam `<id>-avatar.png` no estado `idle`; os demais estados de todos os personagens seguem a convenção `<ESTADO>.png`.
 
 ## Karla — o que foi usado e o que falta
 

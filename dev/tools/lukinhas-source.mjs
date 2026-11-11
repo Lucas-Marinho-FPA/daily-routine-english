@@ -342,7 +342,11 @@ const pack = {
     notProvided: ['dias da semana dos treinos de jiu-jitsu', 'nome do cachorro', 'nome do irmão', 'escola'],
     source: 'Daily Routine do Lukinhas — dez textos definitivos aprovados pelo usuário.',
   },
-  visual: { dir: 'assets/characters/lucas-kid', ext: 'png', states: Object.fromEntries(['idle', 'thinking', 'correct', 'wrong', 'celebrate', 'levelup'].map((st) => [st, { file: st.toUpperCase(), status: 'pending' }])) },
+  // avatar oficial do Lukinhas (PNG com transparência, 1312×1199), aprovado pelo PO em 2026-11-11: estado idle como
+  // ilustração, mesmo padrão do Heitor; os demais estados seguem pendentes
+  visual: { dir: 'assets/characters/lucas-kid', ext: 'png', states: Object.fromEntries(['idle', 'thinking', 'correct', 'wrong', 'celebrate', 'levelup'].map((st) => [st, st === 'idle'
+    ? { file: 'lucas-kid-avatar', status: 'ready', kind: 'illustration', w: 1312, h: 1199 }
+    : { file: st.toUpperCase(), status: 'pending' }])) },
   facts: FACTS,
   themes: [],
   routines,
