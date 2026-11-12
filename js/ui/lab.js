@@ -255,10 +255,10 @@ function renderTarget(App, params) {
   }
 
   function showError(e, blob, analysis) {
-    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.`, unavailable: `${e.message} Sua gravação está salva.` }[e.code] || 'A análise falhou nesta gravação.';
+    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.`, unavailable: speech.isOnlineCapture(blob) ? e.message : `${e.message} Sua gravação está salva.` }[e.code] || 'A análise falhou nesta gravação.';
     const actions = h('div', { class: 'row fb-actions' });
     const help = h('div', { class: 'small' });
-    if (e.code === 'decode' || e.code === 'too-long') actions.append(h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente'));
+    if (e.code === 'decode' || e.code === 'too-long' || speech.isOnlineCapture(blob)) actions.append(h('button', { class: 'btn small primary', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')); // online: a tentativa não tem áudio para reanalisar
     else actions.append(h('button', { class: 'btn small primary', type: 'button', onclick: () => analyse(blob, analysis) }, icon('refresh'), 'Tentar de novo'));
     if (e.code === 'load') {
       actions.append(h('button', { class: 'btn small', type: 'button', onclick: async (ev) => {
@@ -269,7 +269,7 @@ function renderTarget(App, params) {
           h('button', { class: 'btn small primary', type: 'button', onclick: async () => { const ok = await runInstall(help); if (ok) analyse(blob, analysis); } }, icon('download'), 'Baixar de novo'));
       } }, icon('target'), 'Verificar instalação'));
     }
-    showFb('error', h('div', { class: 'fb-error', role: 'alert' }, h('b', { text: msg }), ' ', h('span', { class: 'muted', text: 'Nenhuma nota foi gerada. Sua gravação continua salva.' })), actions, help,
+    showFb('error', h('div', { class: 'fb-error', role: 'alert' }, h('b', { text: msg }), ' ', h('span', { class: 'muted', text: speech.isOnlineCapture(blob) ? 'Nenhuma nota foi gerada.' : 'Nenhuma nota foi gerada. Sua gravação continua salva.' })), actions, help,
       h('details', { class: 'more' }, h('summary', { text: 'Detalhes técnicos' }), h('p', { class: 'tiny muted', text: `${e.code || 'erro'}: ${e.message}` })));
   }
 

@@ -217,7 +217,8 @@ export function scoreAttempt({ evaluation, analysis, expectedWords = 0, recorded
   } else get('intelligibility').note = evaluation && evaluation.note ? evaluation.note : 'Sem reconhecimento de fala no aparelho.';
 
   // ritmo e fluidez: pausas longas e pausas por palavra (não penaliza falar devagar)
-  if (analysis && !insufficient && analysis.speechSec >= 1) {
+  if (analysis && analysis.online) get('fluency').note = 'Não medido no modo online (sem gravação de áudio).';
+  else if (analysis && !insufficient && analysis.speechSec >= 1) {
     const words = Math.max(1, expectedWords);
     let s = 100 - Math.max(0, analysis.longPauses - (words > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words / 5)) * 5;
     get('fluency').score = Math.max(30, Math.min(100, Math.round(s)));

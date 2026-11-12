@@ -29,9 +29,14 @@ const server = await serve(SITE, PORT);
 const errors = [];
 
 const NO_ONLINE = () => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; };
+// modo online: o reconhecedor é o dono do microfone (não há gravação junto): fala com parciais em 0,3 s e 0,7 s; o
+// resultado final só vem no stop (o fim é decidido pelo app: 1,8 s sem atividade de fala do reconhecimento)
 const FAKE_ONLINE = () => {
-  window.__srMade = [];
-  class FakeSR { constructor() { window.__srMade.push(this); } start() { setTimeout(() => { this.onstart && this.onstart(); this.onaudiostart && this.onaudiostart(); }, 20); }
+  window.__srMade = []; window.__gum = 0;
+  const md = navigator.mediaDevices; const g = md.getUserMedia.bind(md); md.getUserMedia = (c) => { window.__gum++; return g(c); };
+  const res = (t, final) => { const r = [{ transcript: t, confidence: final ? 0.9 : 0 }]; r.isFinal = final; return { resultIndex: 0, results: [r] }; };
+  class FakeSR { constructor() { window.__srMade.push(this); } start() { const first = window.__srMade.length === 1; setTimeout(() => { this.onstart && this.onstart(); this.onaudiostart && this.onaudiostart(); }, 20);
+      if (first) { setTimeout(() => { this.onspeechstart && this.onspeechstart(); this.onresult && this.onresult(res('different', false)); }, 300); setTimeout(() => this.onresult && this.onresult(res('different teams', false)), 700); } }
     stop() { setTimeout(() => { const r = [{ transcript: 'different teams', confidence: 0.9 }]; r.isFinal = true; this.onresult && this.onresult({ resultIndex: 0, results: [r] }); this.onend && this.onend(); }, 30); }
     abort() { setTimeout(() => this.onend && this.onend(), 5); } }
   window.webkitSpeechRecognition = FakeSR; delete window.SpeechRecognition;
@@ -121,14 +126,16 @@ await check('E06', 'Parar manual continua valendo (no meio da fala)', async () =
   return r;
 });
 
-await check('E07', 'Com o reconhecimento online: mesmo fim automático; o resultado final do online é recebido antes da avaliação', async () => {
+await check('E07', 'Modo online (o reconhecedor é o dono do microfone, sem gravação junto): fim automático 1,8 s depois da última fala reconhecida; o resultado final chega antes da avaliação', async () => {
   const { ctx, page } = await open('curta', FAKE_ONLINE, true);
   const r = await autoAttempt(page);
   const log = await page.evaluate(() => window.DRG_APP.speech.logReport());
+  const gum = await page.evaluate(() => window.__gum);
   await ctx.close();
-  const exp = META.curta.speechEnd + SILENCE;
-  assert(r.engine === 'online' && r.stoppedAt >= exp - 0.6 && r.stoppedAt <= exp + 1.2 && /fala detectada@\d+ms → .*fim de fala \(silêncio\)@\d+ms → gravação:fim/.test(log) && /result\(final\)/.test(log), `${JSON.stringify(r)} ${log.split('\n').slice(-1)[0].slice(0, 300)}`);
-  return { ...r, esperado: `≈ ${exp.toFixed(2)} s` };
+  const exp = 0.7 + SILENCE; // última atividade de fala do reconhecimento (parcial em 0,7 s) + silêncio
+  assert(r.engine === 'online' && r.heard === 'different teams' && gum === 0, JSON.stringify({ ...r, gum }));
+  assert(r.stoppedAt >= exp - 0.4 && r.stoppedAt <= exp + 1.2 && /speechstart@\d+ms → .*fim de fala \(silêncio 1\.8 s\)@\d+ms → .*result\(final\)/.test(log), `${JSON.stringify(r)} ${log.split('\n').slice(-1)[0].slice(0, 300)}`);
+  return { ...r, esperado: `≈ ${exp.toFixed(2)} s`, getUserMedia: gum };
 });
 
 await check('E08', 'Cancelar (sair da tela durante a gravação): nada é avaliado nem salvo', async () => {

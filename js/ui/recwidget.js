@@ -2,6 +2,7 @@
 // Cada exercício (targetId) tem um ciclo próprio: regravar substitui só a gravação dele; excluir apaga só ela.
 import { h, icon, clear, toast, confirmSheet } from './dom.js';
 import * as recorder from '../audio/recorder.js';
+import * as speech from '../audio/speech.js';
 import * as player from '../audio/player.js';
 import { analyseBlob, describe } from '../audio/analysis.js';
 import { putRecording, getRecording, deleteRecording, updateRecordingMeta, backend } from '../store/db.js';
@@ -82,6 +83,8 @@ export function recWidget(App, opts) {
     if (destroyed) {
       // a tela foi fechada durante a gravação: a gravação é preservada (salva), sem recriar a interface
       if (targetId && backend === 'indexeddb') {
+        const noAudio = speech.isOnlineCapture(res.blob);
+        if (noAudio) return; // tentativa online interrompida: não há áudio a preservar (a gravação anterior fica)
         try { await putRecording(targetId, res.blob, { ms: res.ms }); recordRecording(App.state, targetId, { ms: res.ms }); App.save(); } catch (e) { /* a anterior continua */ }
       }
       return;
@@ -92,12 +95,12 @@ export function recWidget(App, opts) {
     meter.classList.add('hidden');
     setIdle(true);
     blob = res.blob;
-    meta = { ms: res.ms };
+    const noAudio = speech.isOnlineCapture(blob); // modo online: o microfone foi do reconhecimento — só a transcrição
+    meta = { ms: res.ms, ...(noAudio ? { online: true } : {}) };
     player.releaseElement(audioEl);
-    if (url) URL.revokeObjectURL(url);
-    url = URL.createObjectURL(blob);
-    audioEl.src = url;
-    time.textContent = `Gravação de ${fmtSec(res.ms)} s`;
+    if (url) { URL.revokeObjectURL(url); url = null; }
+    if (!noAudio) { url = URL.createObjectURL(blob); audioEl.src = url; }
+    time.textContent = noAudio ? `Tentativa de ${fmtSec(res.ms)} s · modo online (sem áudio gravado)` : `Gravação de ${fmtSec(res.ms)} s`;
     const mine = blob;
     const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
     if (destroyed || mine !== blob) return;
@@ -106,7 +109,7 @@ export function recWidget(App, opts) {
     showAfter();
     meta = { ...meta, analysis: analysis && { ...analysis, envelope: undefined } };
     if (targetId) {
-      try { if (backend === 'indexeddb') await putRecording(targetId, blob, meta); } catch (e) {
+      try { if (backend === 'indexeddb') await putRecording(targetId, noAudio ? null : blob, meta); } catch (e) {
         // a transação não foi confirmada: a gravação anterior (se houver) continua salva
         toast('Não foi possível salvar esta gravação no aparelho (pouco espaço?). A gravação anterior foi mantida.', 6000);
       }
@@ -123,13 +126,14 @@ export function recWidget(App, opts) {
   }
 
   function showAfter() {
-    clear(after).append(canvas,
+    const audio = !!audioEl.src; // sem áudio (modo online): sem “Minha voz”, A/B, onda nem ritmo
+    clear(after).append(audio ? canvas : h('p', { class: 'tiny muted', 'data-role': 'online-no-audio', text: 'Modo online: o microfone fica com o reconhecimento de voz e o áudio não é gravado. Para ouvir a própria voz, use o Moonshine (Ajustes → Áudio).' }),
       h('div', { class: 'row rec-actions' },
-        mineBtn,
+        audio ? mineBtn : null,
         reference.length ? h('button', { class: 'btn small', type: 'button', onclick: () => playRef() }, icon('speaker'), 'Referência') : null,
-        reference.length ? h('button', { class: 'btn small', type: 'button', onclick: () => ab() }, icon('ab'), 'Comparar A/B') : null),
+        reference.length && audio ? h('button', { class: 'btn small', type: 'button', onclick: () => ab() }, icon('ab'), 'Comparar A/B') : null),
       h('div', { class: 'rec-secondary' },
-        h('details', { class: 'more' }, h('summary', { text: 'Ritmo e pausas' }), metrics),
+        audio ? h('details', { class: 'more' }, h('summary', { text: 'Ritmo e pausas' }), metrics) : h('span'),
         targetId ? h('button', { class: 'link-btn danger', type: 'button', onclick: () => askDelete() }, icon('trash'), 'Excluir gravação') : null));
     after.classList.remove('hidden');
   }
@@ -182,9 +186,10 @@ export function recWidget(App, opts) {
     getRecording(targetId).then((rec) => {
       if (!rec || blob || destroyed || session) return;
       if (!rec.blob) {
-        // áudio apagado pela retenção automática; transcrição e análise continuam salvas
+        // sem áudio: tentativa do modo online (só o resultado) ou áudio apagado pela retenção automática
         setIdle(true);
-        time.textContent = `O áudio desta gravação foi apagado automaticamente após ${RETENTION_DAYS} dias. O resultado continua salvo.`;
+        time.textContent = rec.meta && rec.meta.online ? `Última tentativa (modo online, sem áudio gravado) em ${new Date(rec.at).toLocaleDateString('pt-BR')}. O resultado continua salvo.`
+          : `O áudio desta gravação foi apagado automaticamente após ${RETENTION_DAYS} dias. O resultado continua salvo.`;
         meta = rec.meta || null;
         opts.onLoaded && opts.onLoaded(rec);
         return;

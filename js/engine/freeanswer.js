@@ -406,6 +406,7 @@ function wordsAll(text, state) {
 /** C. Métricas: só o que foi medido; o resto fica null (“indisponível”). */
 export function measure(analysis, words) {
   if (!analysis) return { totalSec: null, speechSec: null, wpm: null, pauses: null, longPauses: null };
+  if (analysis.online) return { totalSec: null, speechSec: null, wpm: null, pauses: null, longPauses: null }; // modo online: sem áudio, nada medido
   const ok = !analysis.silent;
   let wpm = null;
   if (ok && analysis.speechSec >= 3 && words >= 5) {

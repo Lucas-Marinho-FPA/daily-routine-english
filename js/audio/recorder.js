@@ -1,6 +1,7 @@
 // Gravação da própria voz (MediaRecorder). A permissão do microfone só é pedida no primeiro toque em “Gravar”.
-// Junto com a gravação, o motor de fala central (speech.js) pode ouvir online pelo navegador; a gravação continua
-// sendo a fonte de tudo (ouvir, ritmo, guardar e o reconhecimento do aparelho quando o online não atende).
+// Modo ONLINE (Ajustes → Áudio): NÃO grava — a tentativa é do reconhecimento do navegador, que fica sozinho com o
+// microfone (speech.listen; no Chrome Android duas capturas simultâneas deixam o reconhecedor em silêncio).
+// Modo MOONSHINE: grava; a gravação é a fonte de tudo (ouvir, ritmo, guardar e o reconhecimento do aparelho).
 import * as speech from './speech.js';
 
 export const supported = () => !!(globalThis.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && globalThis.MediaRecorder);
@@ -17,7 +18,8 @@ export async function permissionState() {
 // ---------- fim de fala automático (detecção de atividade de voz, no próprio aparelho) ----------
 // Parâmetros iniciais (ajustáveis por tela): só encerra depois de FALA (≥ minSpeechMs de voz acumulada) seguida de
 // silêncio contínuo ≥ silenceMs. Pausas curtas e hesitações zeram o silêncio; sem fala nenhuma, nunca encerra sozinho
-// (vale o limite de segurança maxMs). Não depende do reconhecedor: vale igual para o online e para o Moonshine.
+// (vale o limite de segurança maxMs). No modo online, a mesma regra (silenceMs depois de fala) é aplicada pelo
+// speech.listen sobre os eventos do reconhecimento (não há nível de microfone: o microfone é do reconhecedor).
 export const ENDPOINT = { silenceMs: 1800, minSpeechMs: 300, stepMs: 50 };
 
 /** Acompanha o nível do microfone e chama onEnd() no fim da fala. Retorna { stop() }. */
@@ -55,28 +57,33 @@ export function endpointer(stream, { silenceMs = ENDPOINT.silenceMs, minSpeechMs
 }
 
 /**
- * Inicia a gravação. Retorna { stop(): Promise<{blob, ms}>, cancel() } ou lança erro com .userMessage.
- * maxMs limita a duração (padrão 3 min; também é o limite de segurança do fim automático). lang: idioma do
- * reconhecimento online; recognize: false = só gravar. autoStop (padrão true): encerra sozinho no fim da fala
- * (silenceMs de silêncio depois de falar); o toque em Parar continua valendo.
+ * Inicia a gravação (ou, no modo online, a tentativa do reconhecimento). Retorna { stop(): Promise<{blob, ms}>,
+ * cancel(), stopped } ou lança erro com .userMessage. maxMs limita a duração (padrão 3 min; também é o limite de
+ * segurança do fim automático). lang: idioma do reconhecimento online; recognize: false = só gravar. autoStop (padrão
+ * true): encerra sozinho no fim da fala (silenceMs de silêncio depois de falar); o toque em Parar continua valendo.
+ * No modo online o blob devolvido não tem áudio (speech.isOnlineCapture(blob)); leva a transcrição da tentativa.
  */
-export async function start({ maxMs = 180000, onLevel, lang = 'en-GB', recognize = true, autoStop = true, silenceMs = ENDPOINT.silenceMs } = {}) {
+export async function start({ maxMs = 180000, onLevel, lang = 'en-GB', recognize = true, autoStop = true, silenceMs = ENDPOINT.silenceMs, source = null } = {}) {
+  const online = recognize ? await speech.prepareOnline() : false; // modo online (ou consentimento, uma vez)
+  if (online) return speech.listen({ lang, maxMs, silenceMs: autoStop ? silenceMs : null, onLevel, source });
   if (!supported()) {
     const e = new Error('unsupported');
     e.userMessage = 'Este navegador não oferece gravação de áudio neste modo de execução.';
     throw e;
   }
-  const online = recognize ? await speech.prepareOnline() : false; // consentimento (uma vez) antes do microfone
+  const log = speech.logRecording({ source });
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
   } catch (err) {
+    log.fail(err.name);
     const e = new Error(err.name);
     e.userMessage = err.name === 'NotAllowedError'
       ? 'O microfone foi bloqueado. No Chrome: toque no cadeado ao lado do endereço → Permissões → Microfone → Permitir. Depois tente de novo.'
       : err.name === 'NotFoundError' ? 'Nenhum microfone encontrado.' : `Não foi possível acessar o microfone (${err.name}).`;
     throw e;
   }
+  log.mark('microfone aberto');
   const mimeType = pickMime();
   const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
   const chunks = [];
@@ -100,7 +107,7 @@ export async function start({ maxMs = 180000, onLevel, lang = 'en-GB', recognize
     };
     loop();
   }
-  let ep = null;
+  let ep = null, cancelled = false;
   const cleanup = () => {
     if (ep) ep.stop();
     if (raf) cancelAnimationFrame(raf);
@@ -111,28 +118,23 @@ export async function start({ maxMs = 180000, onLevel, lang = 'en-GB', recognize
   const stopped = new Promise((resolve) => {
     rec.onstop = () => {
       clearTimeout(timer);
+      cleanup();
       const blob = new Blob(chunks, { type: rec.mimeType || mimeType || 'audio/webm' });
-      if (liveCtl) {
-        // primeiro pede o fim do online (ele ainda pode estar processando a faixa); o microfone só fecha depois
-        const res = liveCtl.stop();
-        speech.attach(blob, res); // o texto online desta gravação (speech.transcribe usa)
-        res.finally(cleanup);
-      } else cleanup();
-      resolve({ blob, ms: Math.round(performance.now() - t0), engine: liveCtl ? 'online' : null });
+      const ms = Math.round(performance.now() - t0);
+      log.done(blob, ms, cancelled);
+      resolve({ blob, ms, engine: null, audio: true });
     };
   });
   rec.start(250);
-  // uma única escuta online por gravação, sobre a MESMA faixa do microfone (sem segunda captura)
-  const liveCtl = online ? speech.startLive({ lang, track: stream.getAudioTracks()[0] || null }) : null;
-  timer = setTimeout(() => { if (liveCtl) liveCtl.mark('limite de segurança'); if (rec.state !== 'inactive') rec.stop(); }, maxMs);
+  timer = setTimeout(() => { log.mark('limite de segurança'); if (rec.state !== 'inactive') rec.stop(); }, maxMs);
   if (autoStop) {
     ep = endpointer(stream, { silenceMs,
-      onSpeech: () => { if (liveCtl) liveCtl.mark('fala detectada'); },
-      onEnd: () => { if (liveCtl) liveCtl.mark('fim de fala (silêncio)'); if (rec.state !== 'inactive') rec.stop(); } });
+      onSpeech: () => log.mark('fala detectada'),
+      onEnd: () => { log.mark(`fim de fala (silêncio ${silenceMs / 1000} s)`); if (rec.state !== 'inactive') rec.stop(); } });
   }
   return {
-    stop: () => { if (rec.state !== 'inactive') rec.stop(); return stopped; },
-    cancel: () => { if (liveCtl) liveCtl.cancel(); if (rec.state !== 'inactive') rec.stop(); },
+    stop: () => { if (rec.state !== 'inactive') { log.mark('parar (toque)'); rec.stop(); } return stopped; },
+    cancel: () => { cancelled = true; if (rec.state !== 'inactive') rec.stop(); },
     stopped,
   };
 }

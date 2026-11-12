@@ -28,7 +28,12 @@ export function unsupportedReason() {
 }
 
 /** 'unsupported' | 'not-installed' | 'installed' */
+// testes E2E: Moonshine SIMULADO (globalThis.__DRG_TEST_LOCALASR = { transcribe(blob, opts) }) — só o reconhecedor é
+// substituído; gravação, telas e o resto são reais (mesmo padrão de dialogue.js / __DRG_TEST_ASR). Nunca definido no app.
+const testSim = () => globalThis.__DRG_TEST_LOCALASR || null;
+
 export async function status() {
+  if (testSim()) return 'installed';
   if (unsupportedReason()) return 'unsupported';
   try {
     const cache = await caches.open(cacheName());
@@ -221,6 +226,7 @@ export const MAX_FREE_SECONDS = 180;
  * Resolve também segments: [{ secs, voicedSec, cutInSpeech, text }] por trecho, para a verificação de integridade.
  */
 export async function transcribe(blob, { long = false, onProgress, word = false } = {}) {
+  if (testSim()) return testSim().transcribe(blob, { long, word });
   active++;
   try { return await run(blob, long, onProgress, word); } finally { active--; }
 }

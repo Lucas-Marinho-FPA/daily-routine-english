@@ -2,6 +2,9 @@
 // Mede ritmo/fluência de forma aproximada. NÃO avalia a pronúncia dos sons.
 
 export async function analyseBlob(blob, { expectedWords = 0, referenceSec = 0 } = {}) {
+  // tentativa do modo online (speech.listen): não há áudio; a análise mínima vem dos eventos do reconhecimento
+  const online = blob && blob[Symbol.for('drg-online')];
+  if (online) return { ...online.analysis };
   const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext;
   if (!Ctx) return null;
   const ctx = new Ctx();
@@ -63,6 +66,7 @@ function downsample(arr, n) {
 /** Interpretação em linguagem simples, sem falsa precisão. */
 export function describe(a, { expectedWords = 0 } = {}) {
   if (!a) return { verdict: 'inconclusive', lines: ['Não foi possível analisar o áudio neste aparelho.'] };
+  if (a.online) return { verdict: a.silent ? 'inconclusive' : 'ok', lines: ['Modo online: o microfone fica com o reconhecimento e o áudio não é gravado — ritmo e pausas não são medidos.'] };
   if (a.silent || a.speechSec < 0.4) return { verdict: 'inconclusive', lines: ['Quase não captei voz. Fale mais perto do microfone e tente de novo.'] };
   const lines = [];
   if (a.quiet) lines.push('Volume baixo: aproxime o celular da boca.');

@@ -388,8 +388,8 @@ export async function evaluateRecording(blob, { target, trim, alive = () => true
     return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
   };
   let pass = await recognise(trim);
-  const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
-  if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
+  const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis && !analysis.online ? analysis.voicedSec : null }; // modo online: sem áudio, sem medida de voz
+  if (alive() && pass.asr && pass.asr.engine !== 'online' && tailMiss(pass.result).prefixOnly) { // 2ª passada: só o modelo do aparelho
     const other = await recognise(!trim, true); // mesma gravação, o modelo do aparelho no outro modo: só substitui se reconhecer MAIS palavras
     diag.secondPass = other.asr ? other.asr.text : null;
     const goods = (r) => ((r.feedback && r.feedback.words) || []).filter((w) => w.state === 'good').length;

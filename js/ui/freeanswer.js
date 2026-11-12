@@ -44,7 +44,7 @@ export function freeAnswerPanel(App, { question = '', model = '', alternatives =
   };
   const recordAgain = () => { if (!w) return; w.el.scrollIntoView({ block: 'center', behavior: 'smooth' }); w.start(); };
   const againBtn = (label = 'Gravar novamente') => h('button', { class: 'btn small', type: 'button', onclick: recordAgain }, icon('mic'), label);
-  const mineBtn = () => h('button', { class: 'btn small', type: 'button', onclick: () => w && w.audioEl.src && player.playElement(w.audioEl, { restart: true }) }, icon('play'), 'Ouvir minha resposta');
+  const mineBtn = () => (last && speech.isOnlineCapture(last.blob) ? null : h('button', { class: 'btn small', type: 'button', onclick: () => w && w.audioEl.src && player.playElement(w.audioEl, { restart: true }) }, icon('play'), 'Ouvir minha resposta')); // modo online: sem áudio gravado
 
   async function refreshStatus() {
     status = await speech.status(); // online usável ou modelo do aparelho
@@ -96,10 +96,10 @@ export function freeAnswerPanel(App, { question = '', model = '', alternatives =
   function error(e, blob, analysis) {
     const msg = e.code === 'too-long'
       ? `Sua resposta tem ${Math.round(e.secs)} s; a análise automática vai até ${Math.round(e.max / 60)} min. Ela não foi cortada nem avaliada. Grave uma versão mais curta (por exemplo, um bloco por vez).`
-      : { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.' }[e.code] || 'A análise falhou nesta gravação.';
+      : { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', unavailable: e.message }[e.code] || 'A análise falhou nesta gravação.';
     const actions = h('div', { class: 'row fb-actions' });
     const help = h('div', { class: 'small' });
-    if (e.code === 'too-long' || e.code === 'decode') actions.append(againBtn());
+    if (e.code === 'too-long' || e.code === 'decode' || speech.isOnlineCapture(blob)) actions.append(againBtn()); // online: sem áudio para reanalisar
     else actions.append(h('button', { class: 'btn small primary', type: 'button', onclick: () => analyse(blob, analysis) }, icon('refresh'), 'Tentar de novo'));
     if (e.code === 'load') {
       actions.append(h('button', { class: 'btn small', type: 'button', onclick: async (ev) => {
@@ -110,7 +110,7 @@ export function freeAnswerPanel(App, { question = '', model = '', alternatives =
           h('button', { class: 'btn small primary', type: 'button', onclick: async () => { if (await runInstall(help)) analyse(blob, analysis); } }, icon('download'), 'Baixar de novo'));
       } }, icon('target'), 'Verificar instalação'));
     }
-    show('error', h('div', { class: 'fb-error', role: 'alert' }, h('b', { text: msg }), ' ', h('span', { class: 'muted', text: 'Nenhuma avaliação foi gerada. Sua gravação continua salva e a missão pode seguir normalmente.' })),
+    show('error', h('div', { class: 'fb-error', role: 'alert' }, h('b', { text: msg }), ' ', h('span', { class: 'muted', text: speech.isOnlineCapture(blob) ? 'Nenhuma avaliação foi gerada; a missão pode seguir normalmente.' : 'Nenhuma avaliação foi gerada. Sua gravação continua salva e a missão pode seguir normalmente.' })),
       actions, help, h('details', { class: 'more' }, h('summary', { text: 'Detalhes técnicos' }), h('p', { class: 'tiny muted', text: `${e.code || 'erro'}: ${e.message}` })));
   }
 

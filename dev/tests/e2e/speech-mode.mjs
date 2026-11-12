@@ -91,7 +91,7 @@ await check('M02', 'Modo Online: só o online é inicializado e usado (nenhum wo
 
 await check('M03', 'Modo Online com falha de rede: SEM troca para o Moonshine — inconclusiva, não reprova; Moonshine não carregado', async () => {
   const r = await attempt({ sr: { mode: 'network' } });
-  assert(r.status === 'inconclusive' && !r.engine && r.moonshine === 0 && /online indisponível/.test(r.why), JSON.stringify(r));
+  assert(r.status === 'inconclusive' && !r.engine && r.moonshine === 0 && /online não devolveu texto[^]*falha de rede/.test(r.why), JSON.stringify(r));
   return r;
 });
 
@@ -119,7 +119,7 @@ await check('M07', 'Registro identifica o modo e o mecanismo de cada tentativa (
   await page.goto(BASE + '#/settings'); await page.reload(); await page.waitForSelector('[data-role=speech-log-copy]');
   await page.click('[data-role=speech-log-copy]');
   const rep = await page.evaluate(() => navigator.clipboard.readText());
-  assert(/modo: online \| captura: faixa do gravador[^\n]*motor: online/.test(rep) && /modo: local[^\n]*motor: local-model/.test(rep) && /motor: nenhum[^\n]*sem troca \(modo online\)/.test(rep), rep.slice(0, 600));
+  assert(/modo: online \| motor: online \| captura: reconhecimento online \(dono do microfone\)/.test(rep) && /modo: local \| motor: local-model \| captura: gravação do aparelho/.test(rep) && /motivo: [^\n]*sem troca \(modo online\)/.test(rep), rep.slice(0, 600));
   return rep.split('\n').filter((l) => l.startsWith('#')).slice(0, 5).map((l) => l.replace(/^#\d+ \S+ \| /, '').slice(0, 110));
 });
 

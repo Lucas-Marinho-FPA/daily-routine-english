@@ -38,6 +38,7 @@ const FAKE_SR = () => {
       if (m === 'silent') return;
       setTimeout(() => { this.onstart && this.onstart(); this.onaudiostart && this.onaudiostart(); }, 20);
       if (m === 'network') setTimeout(() => { this.onerror && this.onerror({ error: 'network' }); this.onend && this.onend(); }, 60);
+      if (m === 'denied') setTimeout(() => { this.onerror && this.onerror({ error: 'not-allowed' }); this.onend && this.onend(); }, 40); // microfone negado ao reconhecimento
       // 1ª sessão: “no-speech” (aluno ainda não falou) e fim; a sessão reiniciada funciona
       if (m === 'nospeech-first' && window.__srMade.filter((x) => x.started).length === 1) setTimeout(() => { this.onerror && this.onerror({ error: 'no-speech' }); this.onend && this.onend(); }, 80);
     }
@@ -45,7 +46,7 @@ const FAKE_SR = () => {
       const { mode, text, delay } = this._cfg();
       window.__trackAtStop = this.arg && this.arg.readyState;
       if (mode === 'ok' || mode === 'slow' || mode === 'nospeech-first') setTimeout(() => { const alt = { transcript: text, confidence: 0.92 }; const r = [alt]; r.isFinal = true; this.onresult && this.onresult({ resultIndex: 0, results: [r] }); this.onend && this.onend(); }, mode === 'slow' ? (delay || 7000) : 30);
-      else if (mode !== 'network') setTimeout(() => { this.onend && this.onend(); }, 10);
+      else if (mode !== 'network' && mode !== 'denied') setTimeout(() => { this.onend && this.onend(); }, 10);
     }
     abort() { this.aborted = true; setTimeout(() => { this.onend && this.onend(); }, 5); }
   }
@@ -102,7 +103,7 @@ await check('H00', 'Fechar o pedido de consentimento sem escolher: grava pelo ap
   return { consentimento: 'não decidido', motor: a.asr.engine };
 });
 
-await check('H01', 'Primeira gravação com internet: pede o consentimento UMA vez, antes do microfone; aceito → online; resultado vai ao avaliador da fase 1', async () => {
+await check('H01', 'Primeira gravação com internet: pede o consentimento UMA vez, antes do microfone; aceito → online (o reconhecedor é o dono do microfone, sem captura própria); resultado vai ao avaliador da fase 1', async () => {
   await openPhase1();
   await setSR({ mode: 'ok', text: 'different teams' });
   const c0 = await counts();
@@ -111,9 +112,9 @@ await check('H01', 'Primeira gravação com internet: pede o consentimento UMA v
   const saved = await page.evaluate(() => window.DRG_APP.state.settings.onlineSpeech);
   assert(saved === true, `consentimento ${saved}`);
   assert(r.status === 'passed' && r.asr.engine === 'online' && /online do navegador/.test(r.engineLine), JSON.stringify(r));
-  assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 1, `uma escuta online e uma captura: ${JSON.stringify({ c0, c1 })}`);
-  const sr = await page.evaluate(() => { const x = window.__srMade[window.__srMade.length - 1]; return { track: x.arg instanceof MediaStreamTrack ? x.arg.kind : String(x.arg), continuous: x.continuous, atStop: window.__trackAtStop }; });
-  assert(sr.track === 'audio' && sr.continuous === false && sr.atStop === 'live', `faixa compartilhada / configuração: ${JSON.stringify(sr)}`);
+  assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 0, `uma escuta online e NENHUMA captura própria: ${JSON.stringify({ c0, c1 })}`);
+  const sr = await page.evaluate(() => { const x = window.__srMade[window.__srMade.length - 1]; return { track: x.arg instanceof MediaStreamTrack ? x.arg.kind : String(x.arg), continuous: x.continuous }; });
+  assert(sr.track === 'undefined' && sr.continuous === false, `start() sem faixa / configuração: ${JSON.stringify(sr)}`);
   return { status: r.status, motor: r.asr.engine, ouviu: r.heard, ...sr };
 });
 
@@ -123,15 +124,15 @@ await check('H02', 'Modo online com falha de rede → SEM troca para o Moonshine
   const r = await phase1Attempt();
   const c1 = await counts();
   assert(!(await page.locator('[data-role=speech-consent]').count()), 'consentimento perguntado de novo');
-  assert(!r.asr.engine && r.status === 'inconclusive' && /online: network/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
-  assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 1, `sem captura duplicada: ${JSON.stringify({ c0, c1 })}`);
+  assert(!r.asr.engine && r.status === 'inconclusive' && /falha de rede do serviço de reconhecimento/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
+  assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 0, `sem captura própria: ${JSON.stringify({ c0, c1 })}`);
   return { status: r.status, motor: r.asr.engine, motivo: r.asr.fallbackReason, ouviu: r.heard };
 });
 
 await check('H03', 'Modo online, serviço mudo → aviso interno em 6 s; inconclusiva (sem Moonshine); a tela não trava', async () => {
   await openPhase1(); await setSR({ mode: 'silent' });
   const r = await phase1Attempt({ ms: 6500 });
-  assert(!r.asr.engine && r.status === 'inconclusive' && /sem-resposta|sem texto/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
+  assert(!r.asr.engine && r.status === 'inconclusive' && /não respondeu|sem texto/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
   return { motor: r.asr.engine, motivo: r.asr.fallbackReason };
 });
 
@@ -147,7 +148,7 @@ await check('H03c', '“no-speech” no começo da gravação: a escuta online r
   const c0 = await counts();
   const r = await phase1Attempt();
   const c1 = await counts();
-  assert(r.asr.engine === 'online' && r.status === 'passed' && c1.sr - c0.sr === 2 && c1.gum - c0.gum === 1, JSON.stringify({ r, c0, c1 }));
+  assert(r.asr.engine === 'online' && r.status === 'passed' && c1.sr - c0.sr === 2 && c1.gum - c0.gum === 0, JSON.stringify({ r, c0, c1 }));
   return { motor: r.asr.engine, sessões: c1.sr - c0.sr, capturas: c1.gum - c0.gum };
 });
 
@@ -175,8 +176,8 @@ await check('H05', 'Modo Moonshine (Ajustes) → nenhuma escuta online; só o Mo
 });
 
 await check('H06', 'Idioma: gravação usa en-GB por padrão; o motor aceita en-US', async () => {
-  const lang = await page.evaluate(() => { const c = window.DRG_APP.speech.startLive(); const l = window.__srMade[window.__srMade.length - 1].lang; c.cancel(); return l; });
-  const us = await page.evaluate(() => { const c = window.DRG_APP.speech.startLive({ lang: 'en-US' }); const l = window.__srMade[window.__srMade.length - 1].lang; c.cancel(); return l; });
+  const lang = await page.evaluate(async () => { const c = await window.DRG_APP.speech.listen(); const l = window.__srMade[window.__srMade.length - 1].lang; c.cancel(); await c.stopped; return l; });
+  const us = await page.evaluate(async () => { const c = await window.DRG_APP.speech.listen({ lang: 'en-US' }); const l = window.__srMade[window.__srMade.length - 1].lang; c.cancel(); await c.stopped; return l; });
   assert(lang === 'en-GB' && us === 'en-US', `${lang} / ${us}`);
   return { padrão: lang, us };
 });
@@ -225,7 +226,7 @@ await check('H10', 'Ajustes → Áudio: opção do reconhecimento online e diagn
   assert(/Reconhecimento de voz/.test(txt) && /Moonshine \(aparelho\)/.test(txt) && /Reconhecimento de voz \(modo\)\s*online \(navegador\)/.test(txt), txt.match(/Reconhecimento de voz \(modo\)[^·]*/)?.[0] || 'sem linha');
   await page.click('[data-role=speech-log-copy]');
   const rep = await page.evaluate(() => navigator.clipboard.readText());
-  assert(/captura: faixa do gravador/.test(rep) && /reconhecimento:start\(\)@/.test(rep) && /gravação:fim@/.test(rep) && /motor: online/.test(rep) && /troca: online: network/.test(rep) && !/different teams/i.test(rep), rep.slice(0, 400));
+  assert(/captura: reconhecimento online \(dono do microfone\)/.test(rep) && /reconhecimento:start\(\)@/.test(rep) && /tentativa encerrada@/.test(rep) && /motor: online/.test(rep) && /erro: network/.test(rep) && !/different teams/i.test(rep), rep.slice(0, 400));
   return 'opção + diagnóstico + registro (sem texto falado)';
 });
 
@@ -238,12 +239,21 @@ await ctx.close();
   await c2.addInitScript(FAKE_SR);
   const pg = c2.pages()[0] || await c2.newPage();
   await pg.goto(BASE); await pg.waitForFunction(() => window.DRG_APP && window.DRG_APP.state);
-  await pg.evaluate(async () => { const A = window.DRG_APP; A.state.welcomed = true; A.state.settings.onlineSpeech = true; await A.chooseCharacter('lucas'); });
+  // modo Moonshine: a gravação (getUserMedia) é negada → mensagem clara, nenhuma escuta online
+  await pg.evaluate(async () => { const A = window.DRG_APP; A.state.welcomed = true; A.state.settings.onlineSpeech = false; await A.chooseCharacter('lucas'); await A.flush(); });
   await pg.goto(BASE + '#/lab?sentence=R01-B1-S1'); await pg.reload(); await pg.waitForSelector('.rec-btn');
   await pg.locator('.rec-btn').click(); await pg.waitForTimeout(1500);
   const msg = await pg.textContent('#view');
   const made = await pg.evaluate(() => window.__srMade.length);
-  record('H12', 'Microfone negado: mensagem clara, nenhuma escuta online iniciada', /microfone/i.test(msg) && made === 0, { escutas: made, mensagem: (msg.match(/[^.]*microfone[^.]*\./i) || [''])[0].slice(0, 120) });
+  record('H12', 'Microfone negado (modo Moonshine): mensagem clara, nenhuma escuta online iniciada', /microfone/i.test(msg) && made === 0, { escutas: made, mensagem: (msg.match(/[^.]*microfone[^.]*\./i) || [''])[0].slice(0, 120) });
+  // modo online: o microfone é do reconhecimento; negado, o serviço responde “not-allowed” → motivo explícito
+  await pg.evaluate(async () => { const A = window.DRG_APP; A.state.settings.onlineSpeech = true; window.__sr = { mode: 'denied' }; await A.flush(); });
+  await pg.goto(BASE + '#/settings'); await pg.goto(BASE + '#/lab?sentence=R01-B1-S1'); await pg.waitForSelector('.rec-btn');
+  await pg.evaluate(() => { window.__sr = { mode: 'denied' }; });
+  await pg.locator('.rec-btn').click();
+  await pg.waitForSelector('.fb[data-state="error"]', { timeout: 15000 }).catch(() => {});
+  const msg2 = await pg.textContent('#view');
+  record('H12b', 'Microfone negado (modo online): o reconhecimento responde “not-allowed” e a tela explica (não é erro do aluno)', /microfone bloqueado para o reconhecimento/.test(msg2) && /não conta como erro seu/.test(msg2), (msg2.match(/O reconhecimento online[^.]*\./) || [''])[0].slice(0, 160));
   await c2.close();
 }
 server.close();

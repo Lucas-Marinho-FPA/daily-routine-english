@@ -221,10 +221,11 @@ export function renderCoursePractice(App, r) {
       recBtn.classList.add('on'); status.textContent = 'Gravando… para sozinho quando você terminar (ou toque para terminar).'; clear(out);
     };
     async function analyse(blob) {
-      if (url) URL.revokeObjectURL(url);
-      url = URL.createObjectURL(blob);
-      const mine = h('audio', { src: url, preload: 'auto' });
-      const mineBtn = h('button', { class: 'btn small', type: 'button', onclick: () => player.playElement(mine, { restart: true }) }, icon('play'), 'Minha voz');
+      if (url) { URL.revokeObjectURL(url); url = null; }
+      const noAudio = speech.isOnlineCapture(blob); // modo online: o microfone foi do reconhecimento (sem áudio gravado)
+      if (!noAudio) url = URL.createObjectURL(blob);
+      const mine = noAudio ? null : h('audio', { src: url, preload: 'auto' });
+      const mineBtn = noAudio ? null : h('button', { class: 'btn small', type: 'button', onclick: () => player.playElement(mine, { restart: true }) }, icon('play'), 'Minha voz');
       const analysis = await analyseBlob(blob).catch(() => null);
       const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
       const st = await speech.status().catch(() => 'unsupported'); // online usável ou modelo do aparelho
@@ -238,7 +239,7 @@ export function renderCoursePractice(App, r) {
       if (!insufficient) {
         try { res = await speech.transcribe(blob); } catch (e) {
           if (e.code === 'cancelled') return;
-          out.replaceChildren(h('div', { class: 'notice warn' }, `A análise falhou nesta gravação (${e.message}). Grave de novo; não conta como erro.`), mineBtn);
+          out.replaceChildren(h('div', { class: 'notice warn' }, `A análise falhou nesta gravação (${e.message}). Grave de novo; não conta como erro.`), ...(mineBtn ? [mineBtn] : []));
           return;
         }
       }

@@ -5,6 +5,7 @@ import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
 import * as speech from '../audio/speech.js';
 import * as recorder from '../audio/recorder.js';
+import { speechCheckPanel } from './speechcheck.js';
 import * as db from '../store/db.js';
 import { storageReport } from '../store/storage.js';
 import { freshState } from '../engine/progress.js';
@@ -74,6 +75,8 @@ export function renderSettings(App) {
     h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn small', onclick: () => player.play({ key: null, text: 'I wake up at five, take a shower and brush my teeth.' }).then((r) => toast(r.ok ? 'Voz do sistema OK' : 'Voz do sistema indisponível')) }, icon('speaker'), 'Testar voz do sistema'),
       h('button', { class: 'btn small', onclick: () => player.play({ key: App.baseContent.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
     diag,
+    // diagnóstico integrado: uma frase real pelo mesmo caminho das atividades (microfone → reconhecimento → entrega)
+    speechCheckPanel(App),
     // registro do motor de fala (eventos e tempos das últimas tentativas; sem áudio e sem texto) — diagnóstico
     h('button', { class: 'btn small', type: 'button', 'data-role': 'speech-log-copy', style: { marginTop: '10px' }, onclick: async () => {
       try { await navigator.clipboard.writeText(speech.logReport()); toast('Registro do reconhecimento copiado.'); } catch (e) { toast('Não foi possível copiar automaticamente.'); }

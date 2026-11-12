@@ -143,8 +143,9 @@ const txs = (stores, mode, fn) => openDb().then((db) => new Promise((resolve, re
 export async function putRecording(id, blob, meta, { now = Date.now() } = {}) {
   if (backend !== 'indexeddb') throw new Error('Gravações não podem ser salvas neste modo de execução');
   return txs(['audio', 'recordings'], 'readwrite', (audio, recs) => {
-    audio.put({ blob, bytes: blob.size, type: blob.type, recordedAt: now }, id);
-    recs.put({ meta: meta || null, recordedAt: now, at: now, audio: true }, id);
+    // blob null: tentativa do modo online (sem áudio) — guarda só o resultado; o áudio anterior deste exercício sai
+    if (blob) audio.put({ blob, bytes: blob.size, type: blob.type, recordedAt: now }, id); else audio.delete(id);
+    recs.put({ meta: meta || null, recordedAt: now, at: now, audio: !!blob }, id);
   });
 }
 

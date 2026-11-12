@@ -5,6 +5,66 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
+## Correção definitiva do reconhecimento online (2026-11-12) — IMPLEMENTADO e testado; SEM commit/push/publicação
+
+Pedido do PO: no Galaxy S25+, o reconhecimento online grava mas devolve “sem texto” (inconclusiva) em várias
+atividades, enquanto o diagnóstico isolado do navegador reconhece a mesma voz. Publicação só depois da validação física.
+
+- **Causa raiz:** no modo online, o gravador abria o microfone (`getUserMedia` + `MediaRecorder`) e passava a faixa ao
+  reconhecimento com `SpeechRecognition.start(track)` (introduzido em `85df38e`; antes dele, as duas capturas já rodavam
+  juntas). O Chrome para Android **não suporta** `start(MediaStreamTrack)` (caniuse: “Not supported” no Chrome Android)
+  e o reconhecimento usa a captura do próprio serviço; com duas capturas simultâneas o Android entrega o áudio a uma só
+  (relatos públicos: comportamento “um ou outro”). No aparelho, a gravação recebia o áudio (a onda aparece na captura de
+  tela do PO) e o reconhecedor, silêncio → “online: sem texto”. O diagnóstico isolado funcionava porque não grava.
+  Os testes simulados passavam porque o reconhecedor falso entregava texto sem depender do áudio.
+- **Correção (central, `js/audio/speech.js` + `js/audio/recorder.js`):** no modo online o **reconhecedor é o único
+  dono do microfone** (`speech.listen()`: `start()` sem faixa, `continuous = false`, sessões reiniciadas na pausa —
+  a configuração validada no diagnóstico isolado); nenhuma gravação roda junto. Uma tentativa por vez (uma nova
+  cancela a anterior; eventos de sessões antigas são ignorados). O fim espera o resultado final (até 10 s); o último
+  parcial não se perde se o fim vier antes do final. Fim automático preservado: **1,8 s** (3 s em respostas livres e
+  leituras longas) sem atividade de fala do reconhecimento (parciais/finais/`speechstart`); Parar e o limite de
+  segurança continuam. Erros fatais (rede, microfone negado, serviço bloqueado) encerram na hora; sem eventos em 6 s
+  = “não iniciou”. Sem texto, a tentativa NUNCA vira “quase não captei voz” nem erro do aluno: a tela mostra o motivo
+  técnico. Modo Moonshine: inalterado (gravação + modelo do aparelho). Sem fallback entre os modos.
+- **Consequência de produto (para o PO):** no modo online **não há áudio da própria voz** (o microfone é do
+  reconhecimento): “Minha voz”, A/B, onda e “Ritmo e pausas” não aparecem; a tela avisa e indica o Moonshine para isso.
+  A tentativa online guarda só o resultado (sem apagar o áudio de antes se for interrompida). XP de prática oral igual.
+- **Integração (todas pelo mesmo núcleo `recorder.start` → `speech.transcribe`):** Speaking Lab (frases, perguntas,
+  drills) e sessões via `recwidget.js`; respostas livres (`freeanswer.js`); diálogos fases 1 e 5 (`dialogue.js`:
+  sem medida de voz e sem 2ª passada do Moonshine no online); prática de palavra (`wordpractice.js`); Curso
+  (`coursepractice.js`). `analysis.js`/`wordfeedback.js`/`engine/freeanswer.js`: sem áudio, ritmo “não medido”.
+  `db.js`: tentativa sem áudio grava só o resultado.
+- **Instrumentação:** registro por tentativa (sem áudio e sem o texto falado): origem (rota), modo, motor, eventos com
+  tempo, parciais/finais, sessões, motivo do fim, erro, entrega; `speech.verdict()` classifica: 1 microfone não
+  capturou · 2 reconhecimento não iniciou · 3 iniciou sem resultado · 4 perdido na entrega · 5 resultado vazio ·
+  6 a atividade não pediu · ok entregue. **Diagnóstico integrado** em Ajustes → Áudio (`js/ui/speechcheck.js`):
+  “Testar reconhecimento” usa o MESMO caminho das atividades e mostra microfone / início / resultado / entrega /
+  motor = modo; “Copiar registro do reconhecimento” copia o relatório.
+- **Testes (simulados; não substituem o aparelho):** novo `speech-online.mjs` **13/13** (ciclo completo com parciais e
+  final, fim por silêncio 1,8 s e 3 s, diálogo, parcial aproveitado, sem resultado, erro de rede, não inicia, start
+  recusado, tentativas consecutivas/cancelamento/troca de tela sem contaminação, nunca duas sessões, diagnóstico
+  integrado, registro sem texto falado; **regressão da causa: zero `getUserMedia` no modo online**); `speech-mode`
+  9/9; `speech-hybrid` 16/16 (+H12b microfone negado no online); `endpoint` 9/9; `run-pages` 37/37; `wordpractice`
+  15/15; `coursepractice` 10/10; `dialogue` 14/14; `voice` 5/5 (Moonshine real); `storage` 10/10; `asr-local` 22/22;
+  unitários 254 ok / 1 ignorado. Build `9642f9964a79` (repo = build = site testado). Captura do diagnóstico:
+  `dev/evidence/diagnostico-reconhecimento.png`.
+- **Problemas encontrados nos próprios testes (falsos resultados / cascata):** (1) os reconhecedores falsos entregavam
+  texto sem depender do microfone e aceitavam `start(track)` — por isso os testes passavam com o aparelho quebrado;
+  agora `speech-online` conta as capturas. (2) `run-pages`: a T07 cortava a rede e não religava (cascata; corrigido
+  depois da T08); trocas de modo sem `finally` (T22/T33/T35) contaminavam os testes seguintes (corrigido).
+  (3) Cliques de “parar” depois do fim automático iniciam uma nova tentativa (artefato de tempo). (4) O Chromium de
+  teste tem `SpeechRecognition` nativo sem serviço: os testes precisam removê-lo. (5) `asr-local` F02 falhou uma vez e
+  passou na repetição (possível corrida: o estado do modelo é consultado antes de abrir o worker) — observação.
+  `run-pages` agora roda no modo Moonshine com o reconhecedor do aparelho simulado (`__DRG_TEST_LOCALASR`, só em
+  teste) para cobrir gravação/“Minha voz”; o online fica com `speech-online`/`speech-hybrid`/T09.
+- **Pendente — validação física no Galaxy S25+ (PO), antes de publicar:** ver “Procedimento” abaixo. Não declarar
+  resolvido sem ela. Commit/push/deploy aguardam autorização.
+- **Procedimento (aparelho):** 1) Ajustes → Áudio → Reconhecimento de voz = Online; 2) “Testar reconhecimento”, dizer
+  a frase mostrada; esperar parar sozinho; 3) conferir os 5 itens ✅ (microfone, início, resultado, entrega, motor =
+  modo) e “Funcionou: [ok]”; 4) repetir em uma atividade de cada fluxo: Speaking Lab (frase), pergunta do Lab
+  (resposta livre), Diálogo fase 1 (vocabulário), “Praticar esta palavra” no Lab, uma atividade do Curso; 5) “Copiar
+  registro do reconhecimento” e enviar; 6) repetir 2–3 com Moonshine (deve gravar e ter “Minha voz”).
+
 ## Seletor exclusivo de reconhecimento de voz (2026-11-12) — commit, push e publicação autorizados pelo PO
 
 - **Feito:** Ajustes → Áudio ganhou o seletor “Reconhecimento de voz”: **Online (navegador)** ou **Moonshine (aparelho)**

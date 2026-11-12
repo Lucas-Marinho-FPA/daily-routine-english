@@ -688,12 +688,12 @@
       const tokens = numbersToDigits(canonTimes(expandContractions(wordTokens(answer))));
       const bre = applyAmE(tokens).tokens;
       const syn = applySynonyms(bre).tokens;
-      const has = (raw) => {
+      const has2 = (raw) => {
         const phrase = numbersToDigits(expandContractions(wordTokens(raw))).join(" ");
         return [bre, plain2, syn].some((t) => !!findPattern(phrase, t, { separable: true })) || !!findPattern(applySynonyms(wordTokens(phrase)).tokens.join(" "), syn, { separable: true });
       };
-      const kw = keywords.map((group) => ({ group, ok: group.some((p) => has(String(p))) }));
-      const it = items.map((x) => ({ id: x.id, en: x.en, ok: has((x.match || x.en).split(" / ")[0].replace(/…$/, "")) || (x.v || []).some((v) => has(v)) }));
+      const kw = keywords.map((group) => ({ group, ok: group.some((p) => has2(String(p))) }));
+      const it = items.map((x) => ({ id: x.id, en: x.en, ok: has2((x.match || x.en).split(" / ")[0].replace(/…$/, "")) || (x.v || []).some((v) => has2(v)) }));
       const all = [...kw.map((k) => k.ok), ...it.map((k) => k.ok)];
       const ratio = all.length ? all.filter(Boolean).length / all.length : 0;
       const hits = ruleHits(answer, "");
@@ -760,11 +760,11 @@
       if (!cards[wrt] && box(cards, ord) >= 2) out.push({ k: wrt, unit: "sent", id: s.id, skill: "wrt" });
     }
     for (const b of Object.values(content.blocks).filter((b2) => inFocus.blocks.has(b2.id))) {
-      const seq2 = cardKey("block", b.id, "seq");
+      const seq3 = cardKey("block", b.id, "seq");
       const allOrd = b.sentences.every((sid) => cards[cardKey("sent", sid, "ord")] && cards[cardKey("sent", sid, "ord")].reps > 0);
-      if (!cards[seq2] && b.sentences.length > 1 && allOrd) out.push({ k: seq2, unit: "block", id: b.id, skill: "seq" });
+      if (!cards[seq3] && b.sentences.length > 1 && allOrd) out.push({ k: seq3, unit: "block", id: b.id, skill: "seq" });
       const tell = cardKey("block", b.id, "tell");
-      const seqOk = b.sentences.length > 1 ? !!cards[seq2] && cards[seq2].reps > 0 : allOrd;
+      const seqOk = b.sentences.length > 1 ? !!cards[seq3] && cards[seq3].reps > 0 : allOrd;
       if (!cards[tell] && seqOk) out.push({ k: tell, unit: "block", id: b.id, skill: "tell" });
     }
     for (const r of content.routines.filter((r2) => inFocus.routines.has(r2.id))) {
@@ -1157,24 +1157,24 @@
     state.updatedAt = Date.now();
   }
   function streak(state, today = dayNumber()) {
-    const active2 = (n2) => !!state.days[n2] && (state.days[n2].sessions > 0 || state.days[n2].ex >= 5);
-    let n = active2(today) ? today : today - 1;
+    const active3 = (n2) => !!state.days[n2] && (state.days[n2].sessions > 0 || state.days[n2].ex >= 5);
+    let n = active3(today) ? today : today - 1;
     let count = 0;
     let lastSkip = Infinity;
     while (n >= state.firstDay) {
-      if (active2(n)) {
+      if (active3(n)) {
         count++;
         n--;
         continue;
       }
-      if (lastSkip - n >= 7 && active2(n - 1)) {
+      if (lastSkip - n >= 7 && active3(n - 1)) {
         lastSkip = n;
         n--;
         continue;
       }
       break;
     }
-    return { days: count, today: active2(today) };
+    return { days: count, today: active3(today) };
   }
   var ACHIEVEMENTS = [
     { id: "first-session", icon: "\u{1F331}", title: "Primeira sess\xE3o", desc: "Concluiu a primeira sess\xE3o." },
@@ -1258,9 +1258,9 @@
     } else {
       let ps = raw.profiles && typeof raw.profiles === "object" && !Array.isArray(raw.profiles) ? raw.profiles : null;
       if (!ps) repairs.push("profiles");
-      const live3 = PROGRESS_KEYS.filter((k) => k in raw);
-      if (live3.length && typeof raw.activeProfile === "string") {
-        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live3.map((k) => [k, raw[k]])) } };
+      const live2 = PROGRESS_KEYS.filter((k) => k in raw);
+      if (live2.length && typeof raw.activeProfile === "string") {
+        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live2.map((k) => [k, raw[k]])) } };
       }
       s.profiles = {};
       for (const [id, p] of Object.entries(ps || {})) s.profiles[id] = cleanProgress(p, today, repairs);
@@ -1442,8 +1442,9 @@
   async function putRecording(id, blob, meta, { now = Date.now() } = {}) {
     if (backend !== "indexeddb") throw new Error("Grava\xE7\xF5es n\xE3o podem ser salvas neste modo de execu\xE7\xE3o");
     return txs(["audio", "recordings"], "readwrite", (audio, recs) => {
-      audio.put({ blob, bytes: blob.size, type: blob.type, recordedAt: now }, id);
-      recs.put({ meta: meta || null, recordedAt: now, at: now, audio: true }, id);
+      if (blob) audio.put({ blob, bytes: blob.size, type: blob.type, recordedAt: now }, id);
+      else audio.delete(id);
+      recs.put({ meta: meta || null, recordedAt: now, at: now, audio: !!blob }, id);
     });
   }
   async function updateRecordingMeta(id, patch) {
@@ -1909,7 +1910,9 @@
     if (typeof OfflineAudioContext === "undefined" && typeof webkitOfflineAudioContext === "undefined") return "decodifica\xE7\xE3o de \xE1udio indispon\xEDvel";
     return "";
   }
+  var testSim = () => globalThis.__DRG_TEST_LOCALASR || null;
   async function status() {
+    if (testSim()) return "installed";
     if (unsupportedReason()) return "unsupported";
     try {
       const cache = await caches.open(cacheName());
@@ -2082,6 +2085,7 @@
   }
   var MAX_FREE_SECONDS = 180;
   async function transcribe(blob, { long = false, onProgress, word = false } = {}) {
+    if (testSim()) return testSim().transcribe(blob, { long, word });
     active++;
     try {
       return await run(blob, long, onProgress, word);
@@ -2134,25 +2138,41 @@
   // app/js/audio/speech.js
   var speech_exports = {};
   __export(speech_exports, {
-    attach: () => attach,
     configure: () => configure2,
-    engineFor: () => engineFor,
+    describeAttempt: () => describeAttempt,
+    isOnlineCapture: () => isOnlineCapture,
+    lastAttempt: () => lastAttempt,
+    listen: () => listen,
+    logRecording: () => logRecording,
     logReport: () => logReport,
     mode: () => mode,
     onlineSupported: () => onlineSupported,
     onlineUsable: () => onlineUsable,
     prepareOnline: () => prepareOnline,
     recentLog: () => recentLog,
-    startLive: () => startLive,
     status: () => status2,
-    transcribe: () => transcribe2
+    transcribe: () => transcribe2,
+    verdict: () => verdict
   });
   var SR = () => globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition || null;
   var START_TIMEOUT_MS = 6e3;
   var END_WAIT_MS = 1e4;
   var MAX_RESTARTS = 20;
+  var RESTART_DELAY_MS = 60;
   var LOG_KEY = "drg.speech.log";
-  var LOG_MAX = 15;
+  var LOG_MAX = 20;
+  var FATAL = /* @__PURE__ */ new Set(["not-allowed", "service-not-allowed", "audio-capture", "network", "language-not-supported", "bad-grammar"]);
+  var ERROR_PT = {
+    "not-allowed": "microfone bloqueado para o reconhecimento",
+    "service-not-allowed": "servi\xE7o de reconhecimento bloqueado",
+    "audio-capture": "o reconhecimento n\xE3o conseguiu abrir o microfone",
+    network: "falha de rede do servi\xE7o de reconhecimento",
+    "language-not-supported": "idioma n\xE3o suportado pelo reconhecimento",
+    "no-speech": "nenhuma fala detectada",
+    aborted: "interrompido",
+    "sem-resposta": "o reconhecimento n\xE3o respondeu",
+    "sem-fim": "o resultado final n\xE3o chegou a tempo"
+  };
   var cfg = { getConsent: () => void 0, setConsent: () => {
   } };
   function configure2(c) {
@@ -2179,14 +2199,63 @@
     } catch (e) {
     }
   }
+  var routeNow = () => {
+    try {
+      return (globalThis.location && location.hash ? location.hash.split("?")[0] : "#/") || "#/";
+    } catch (e) {
+      return "?";
+    }
+  };
+  var seq2 = 0;
   function newEntry(extra = {}) {
-    const e = { at: (/* @__PURE__ */ new Date()).toISOString(), online: isOnline(), mode: mode() || "n\xE3o escolhido", events: [], ...extra };
+    const e = {
+      id: `${Date.now().toString(36)}-${++seq2}`,
+      at: (/* @__PURE__ */ new Date()).toISOString(),
+      online: isOnline(),
+      mode: mode() || "n\xE3o escolhido",
+      source: routeNow(),
+      events: [],
+      partials: 0,
+      finals: 0,
+      ...extra
+    };
     const log = loadLog();
     log.push(e);
     if (log.length > LOG_MAX) log.splice(0, log.length - LOG_MAX);
     return e;
   }
   var recentLog = () => loadLog().slice();
+  var lastAttempt = () => {
+    const l = loadLog();
+    return l.length ? l[l.length - 1] : null;
+  };
+  function verdict(e) {
+    if (!e) return { code: "\u2014", text: "nenhuma tentativa registrada" };
+    const has2 = (n) => e.events.some((x) => x.e === n || x.e.startsWith(`${n}:`) || x.e.startsWith(`${n} `));
+    if (e.cancelled && !e.delivered) return { code: "cancelada", text: "tentativa cancelada (troca de tela, nova grava\xE7\xE3o ou sa\xEDda)" };
+    if (e.engine === "online" || e.capture === "reconhecimento online (dono do microfone)") {
+      if (e.startError || !(has2("start") || has2("audiostart"))) return { code: "2", text: `o reconhecimento n\xE3o iniciou${e.startError ? ` (${e.startError})` : ""}` };
+      if (!has2("audiostart")) return { code: "1", text: "o microfone n\xE3o capturou (sem \u201Caudiostart\u201D)" };
+      if (!e.partials && !e.finals) return { code: "3", text: `o reconhecimento iniciou, mas n\xE3o recebeu resultado${has2("soundstart") || has2("speechstart") ? " (houve som/fala)" : " (nenhum som/fala detectado)"}${e.error ? ` \xB7 ${e.error}` : ""}` };
+      if (!e.words) return { code: "5", text: "o resultado chegou vazio" };
+    } else {
+      if (e.micError) return { code: "1", text: `o microfone n\xE3o capturou (${e.micError})` };
+      if (e.bytes === 0) return { code: "1", text: "o microfone n\xE3o capturou (grava\xE7\xE3o vazia)" };
+      if (e.requested && !e.words && !e.deliveryError) return { code: "5", text: "o reconhecimento do aparelho devolveu texto vazio" };
+    }
+    if (e.delivered) return { code: "ok", text: `transcri\xE7\xE3o entregue \xE0 atividade (${e.words} palavra(s))` };
+    if (e.requested) return { code: "4", text: `o resultado chegou, mas se perdeu na entrega${e.deliveryError ? ` (${e.deliveryError})` : ""}` };
+    if (e.engine === "online") return { code: "6", text: "o resultado chegou, mas a atividade n\xE3o o pediu" };
+    return { code: "6", text: "a grava\xE7\xE3o terminou, mas a atividade n\xE3o pediu a transcri\xE7\xE3o" };
+  }
+  function describeAttempt(e) {
+    const v = verdict(e);
+    return `${e.at} | origem: ${e.source || "\u2014"} | modo: ${e.mode || "\u2014"} | motor: ${e.engine || "\u2014"} | captura: ${e.capture || "\u2014"} | idioma ${e.lang || "\u2014"}
+   resultado: [${v.code}] ${v.text}
+   parciais: ${e.partials || 0} \xB7 finais: ${e.finals || 0}${e.words != null ? ` \xB7 palavras: ${e.words}` : ""}${e.sessions ? ` \xB7 sess\xF5es: ${e.sessions}` : ""}${e.endReason ? ` \xB7 fim: ${e.endReason}` : ""}${e.error ? ` \xB7 erro: ${e.error}` : ""}${e.ms != null ? ` \xB7 dura\xE7\xE3o: ${e.ms} ms` : ""}${e.bytes != null ? ` \xB7 \xE1udio: ${e.bytes} bytes` : ""}${e.fallbackReason ? `
+   motivo: ${e.fallbackReason}` : ""}
+   ${e.events.map((x) => `${x.e}@${x.t}ms`).join(" \u2192 ") || "sem eventos"}`;
+  }
   function logReport() {
     const nav = globalThis.navigator || {};
     const head = [
@@ -2196,8 +2265,7 @@
       `API online: ${onlineSupported() ? "sim" : "n\xE3o"} \xB7 internet agora: ${isOnline() ? "sim" : "n\xE3o"} \xB7 modo: ${mode() || "n\xE3o escolhido"}`,
       ""
     ];
-    const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${e.at} | modo: ${e.mode || "\u2014"} | captura: ${e.capture || "\u2014"} | idioma ${e.lang || "\u2014"} | motor: ${e.engine || "\u2014"}${e.fallbackReason ? ` | troca: ${e.fallbackReason}` : ""}${e.error ? ` | erro online: ${e.error}` : ""}${e.words != null ? ` | palavras online: ${e.words}` : ""}${e.sessions ? ` | sess\xF5es: ${e.sessions}` : ""}
-   ${e.events.map((x) => `${x.e}@${x.t}ms`).join(" \u2192 ") || "sem eventos"}`);
+    const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${describeAttempt(e)}`);
     return head.concat(lines.length ? lines : ["(nenhuma tentativa registrada)"]).join("\n");
   }
   async function prepareOnline() {
@@ -2235,163 +2303,289 @@
       s = sheet(body, { label: "Reconhecimento de voz online", onClose: () => finish(null) });
     });
   }
-  function startLive({ lang = "en-GB", track = null } = {}) {
+  var ONLINE = Symbol.for("drg-online");
+  var active2 = null;
+  var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  var isOnlineCapture = (blob) => !!(blob && blob[ONLINE]);
+  async function listen({ lang = "en-GB", maxMs = 18e4, silenceMs = 1800, onLevel = null, source = null } = {}) {
+    if (!onlineSupported()) {
+      const e = new Error("unsupported");
+      e.userMessage = "Este navegador n\xE3o oferece reconhecimento de voz online. Escolha o Moonshine em Ajustes \u2192 \xC1udio.";
+      throw e;
+    }
+    if (active2) {
+      const prev = active2;
+      prev.cancel("nova tentativa");
+      await Promise.race([prev.ended, sleep(800)]);
+    }
     const t0 = performance.now();
     const at = () => Math.round(performance.now() - t0);
-    const entry = newEntry({ lang, capture: track ? "faixa do gravador (start(track))" : "captura pr\xF3pria do navegador", sessions: 0 });
+    const entry = newEntry({ lang, engine: "online", capture: "reconhecimento online (dono do microfone)", sessions: 0, ...source ? { source } : {} });
     const ev = (e) => {
       entry.events.push({ e, t: at() });
     };
-    ev("grava\xE7\xE3o:in\xEDcio");
-    const out = { engine: "online", lang, text: "", confidence: 0, alternatives: [], events: [], error: null, ms: null, entry };
     const finals = [];
-    let stopping = false, cancelled = false, finished = false, resolveFinished, rec = null, sessionEnded = true, gotEvent = false;
-    const finishedP = new Promise((r) => {
-      resolveFinished = r;
+    let rec = null, sessionEnded = true, sessionFinal = false, lastInterim = "", started = false;
+    let firstSpeech = null, lastActivity = null, finishing = null, cancelled = false, resolveEnded;
+    const ended = new Promise((r) => {
+      resolveEnded = r;
     });
-    const done = () => {
-      if (!finished) {
-        finished = true;
-        resolveFinished();
-      }
+    let level = 0;
+    const bump = (v) => {
+      level = Math.max(level, v);
+    };
+    const speechSeen = (now = at()) => {
+      if (firstSpeech === null) firstSpeech = now;
+      lastActivity = now;
     };
     const startSession2 = () => {
+      if (finishing || cancelled) return;
       if (entry.sessions >= MAX_RESTARTS + 1) {
         ev("limite de sess\xF5es");
-        done();
+        finish("limite de sess\xF5es");
         return;
       }
       entry.sessions++;
       sessionEnded = false;
+      sessionFinal = false;
+      lastInterim = "";
+      const r = new (SR())();
+      rec = r;
+      r.lang = lang;
       try {
-        rec = new (SR())();
-        rec.lang = lang;
-        try {
-          rec.continuous = false;
-        } catch (e) {
-        }
-        try {
-          rec.interimResults = true;
-        } catch (e) {
-        }
-        try {
-          rec.maxAlternatives = 3;
-        } catch (e) {
-        }
-        for (const n of ["start", "audiostart", "soundstart", "speechstart", "speechend", "soundend", "audioend", "nomatch"]) rec[`on${n}`] = () => {
-          gotEvent = true;
-          ev(n);
-        };
-        rec.onresult = (e) => {
-          gotEvent = true;
-          for (let i = e.resultIndex || 0; i < e.results.length; i++) {
-            const r = e.results[i];
-            if (r.isFinal === false) continue;
-            finals.push({ text: r[0].transcript, confidence: typeof r[0].confidence === "number" ? r[0].confidence : 0, alts: Array.from(r, (a) => a.transcript) });
-            ev("result(final)");
+        r.continuous = false;
+      } catch (e) {
+      }
+      try {
+        r.interimResults = true;
+      } catch (e) {
+      }
+      try {
+        r.maxAlternatives = 3;
+      } catch (e) {
+      }
+      const mine = (fn) => (e) => {
+        if (rec === r && !cancelled) fn(e);
+      };
+      r.onstart = mine(() => {
+        started = true;
+        ev("start");
+      });
+      r.onaudiostart = mine(() => {
+        started = true;
+        ev("audiostart");
+      });
+      r.onsoundstart = mine(() => {
+        ev("soundstart");
+        bump(0.3);
+      });
+      r.onspeechstart = mine(() => {
+        ev("speechstart");
+        speechSeen();
+        bump(0.6);
+      });
+      for (const n of ["speechend", "soundend", "audioend"]) r[`on${n}`] = mine(() => ev(n));
+      r.onnomatch = mine(() => ev("nomatch"));
+      r.onresult = mine((e) => {
+        for (let i = e.resultIndex || 0; i < e.results.length; i++) {
+          const res = e.results[i];
+          const text = res[0] && res[0].transcript || "";
+          if (res.isFinal === false) {
+            entry.partials++;
+            lastInterim = text;
+            if (text.trim()) {
+              speechSeen();
+              bump(0.7);
+            }
+            continue;
           }
-        };
-        rec.onerror = (e) => {
-          gotEvent = true;
-          out.error = e.error || "erro";
-          ev(`error:${out.error}${e.message ? ` (${e.message})` : ""}`);
-        };
-        rec.onend = () => {
-          sessionEnded = true;
-          ev("end");
-          if (!stopping && !cancelled && (!out.error || out.error === "no-speech")) {
-            if (out.error === "no-speech") out.error = null;
-            startSession2();
-          } else done();
-        };
-        if (track) {
-          try {
-            rec.start(track);
-          } catch (e) {
-            ev(`start(track) recusado: ${e.name}`);
-            entry.capture = "captura pr\xF3pria do navegador (start(track) recusado)";
-            rec.start();
+          entry.finals++;
+          sessionFinal = true;
+          lastInterim = "";
+          if (text.trim()) {
+            finals.push({ text, confidence: typeof res[0].confidence === "number" ? res[0].confidence : 0, alts: Array.from(res, (a) => a.transcript) });
+            speechSeen();
+            bump(0.7);
           }
-        } else rec.start();
+          ev("result(final)");
+        }
+      });
+      r.onerror = mine((e) => {
+        const code = e.error || "erro";
+        ev(`error:${code}${e.message ? ` (${e.message})` : ""}`);
+        if (code === "no-speech" || code === "aborted") return;
+        entry.error = code;
+        if (FATAL.has(code)) finish(`erro:${code}`);
+      });
+      r.onend = () => {
+        if (rec !== r) return;
+        sessionEnded = true;
+        ev("end");
+        if (!sessionFinal && lastInterim.trim()) {
+          finals.push({ text: lastInterim, confidence: 0, alts: [], interim: true });
+          ev("parcial aproveitado");
+        }
+        lastInterim = "";
+        if (finishing || cancelled) {
+          resolveEnded();
+          return;
+        }
+        setTimeout(() => {
+          if (!finishing && !cancelled) startSession2();
+          else resolveEnded();
+        }, RESTART_DELAY_MS);
+      };
+      try {
+        r.start();
         ev(entry.sessions === 1 ? "reconhecimento:start()" : `reconhecimento:rein\xEDcio ${entry.sessions}`);
       } catch (e) {
-        out.error = `start:${e.name || "erro"}`;
-        ev(out.error);
+        entry.startError = `start:${e.name || "erro"}`;
+        ev(entry.startError);
         sessionEnded = true;
-        done();
+        finish("erro ao iniciar");
       }
     };
-    startSession2();
-    const watchdog = setTimeout(() => {
-      if (!gotEvent && !finished) {
-        out.error = out.error || "sem-resposta";
-        ev("sem eventos em 6 s");
+    const tick = setInterval(() => {
+      level *= 0.75;
+      if (onLevel) {
         try {
-          rec.abort();
+          onLevel(Math.min(1, level + (started && !sessionEnded ? 0.05 : 0)));
         } catch (e) {
         }
-        done();
       }
-    }, START_TIMEOUT_MS);
-    let result = null;
-    return {
-      entry,
-      mark: (e) => ev(e),
-      // marcos do gravador (fala detectada, fim de fala, limite)
-      stop() {
-        if (result) return result;
-        stopping = true;
-        ev("grava\xE7\xE3o:fim");
-        result = (async () => {
-          if (!sessionEnded && rec) {
-            try {
-              rec.stop();
-            } catch (e) {
-            }
-          } else done();
-          const timedOut = await Promise.race([finishedP.then(() => false), new Promise((r) => setTimeout(() => r(true), END_WAIT_MS))]);
-          clearTimeout(watchdog);
-          if (timedOut) {
-            ev(`sem fim em ${END_WAIT_MS / 1e3} s`);
-            if (!out.error) out.error = "sem-fim";
-            try {
-              rec.abort();
-            } catch (e) {
-            }
-          }
-          out.text = finals.map((x) => x.text).join(" ").replace(/\s+/g, " ").trim();
-          const conf = finals.map((x) => x.confidence).filter((c) => c > 0);
-          out.confidence = conf.length ? conf.reduce((a, b) => a + b, 0) / conf.length : 0;
-          out.alternatives = finals.length === 1 ? finals[0].alts : [];
-          out.ms = at();
-          out.events = entry.events.map((x) => x.e);
-          entry.error = out.error;
-          entry.words = out.text ? out.text.split(/\s+/).length : 0;
-          saveLog();
-          return out;
-        })();
-        return result;
-      },
-      cancel() {
-        cancelled = true;
-        clearTimeout(watchdog);
-        ev("cancelado");
+      if (finishing || cancelled) return;
+      const now = at();
+      if (!started && now >= START_TIMEOUT_MS) {
+        entry.error = entry.error || "sem-resposta";
+        ev(`sem in\xEDcio em ${START_TIMEOUT_MS / 1e3} s`);
+        finish("o reconhecimento n\xE3o iniciou");
+        return;
+      }
+      if (silenceMs && firstSpeech !== null && now - lastActivity >= silenceMs) {
+        ev(`fim de fala (sil\xEAncio ${silenceMs / 1e3} s)`);
+        finish("sil\xEAncio");
+        return;
+      }
+      if (now >= maxMs) {
+        ev("limite de seguran\xE7a");
+        finish("limite");
+      }
+    }, 100);
+    let resolveStopped;
+    const stopped = new Promise((r) => {
+      resolveStopped = r;
+    });
+    const blob = new Blob([], { type: "audio/x-drg-online" });
+    function finish(reason) {
+      if (finishing) return finishing;
+      entry.endReason = entry.endReason || reason;
+      finishing = (async () => {
         if (!sessionEnded && rec) {
+          try {
+            rec.stop();
+          } catch (e) {
+          }
+        } else resolveEnded();
+        const timedOut = await Promise.race([ended.then(() => false), sleep(END_WAIT_MS).then(() => true)]);
+        clearInterval(tick);
+        if (timedOut) {
+          ev(`sem fim em ${END_WAIT_MS / 1e3} s`);
+          if (!entry.error) entry.error = "sem-fim";
           try {
             rec.abort();
           } catch (e) {
           }
+          resolveEnded();
         }
-        done();
+        if (active2 === ctl) active2 = null;
+        const text = finals.map((x) => x.text).join(" ").replace(/\s+/g, " ").trim();
+        const conf = finals.map((x) => x.confidence).filter((c) => c > 0);
+        const out = {
+          engine: "online",
+          lang,
+          text,
+          confidence: conf.length ? conf.reduce((a, b) => a + b, 0) / conf.length : 0,
+          alternatives: finals.length === 1 ? finals[0].alts : [],
+          events: entry.events.map((x) => x.e),
+          error: entry.error || null,
+          ms: at(),
+          entry
+        };
+        entry.words = text ? text.split(/\s+/).length : 0;
+        entry.ms = out.ms;
+        const speechSec = text ? Math.max(entry.words * 0.4, ((lastActivity ?? 0) - (firstSpeech ?? 0)) / 1e3) : 1;
+        blob[ONLINE] = { result: out, cancelled, analysis: {
+          online: true,
+          totalSec: Math.round(out.ms / 100) / 10,
+          speechSec: Math.round(speechSec * 100) / 100,
+          voicedSec: Math.round(speechSec * 100) / 100,
+          silent: false,
+          pauses: null,
+          longPauses: null,
+          wpm: 0,
+          paceVsReference: null,
+          envelope: [],
+          peak: null
+        } };
+        ev(cancelled ? "tentativa cancelada" : "tentativa encerrada");
+        saveLog();
+        resolveStopped({ blob, ms: out.ms, engine: "online", audio: false });
+        return out;
+      })();
+      return finishing;
+    }
+    const ctl = {
+      ended,
+      stop: () => {
+        if (!finishing) {
+          ev("parar (toque)");
+          finish("parar");
+        }
+        return stopped;
+      },
+      cancel: (why = "cancelada") => {
+        if (finishing) return;
+        cancelled = true;
+        entry.cancelled = true;
+        ev(`cancelado: ${why}`);
+        try {
+          if (!sessionEnded && rec) rec.abort();
+        } catch (e) {
+        }
+        finish(`cancelada (${why})`);
+      },
+      stopped
+    };
+    active2 = ctl;
+    ev("tentativa:in\xEDcio");
+    startSession2();
+    return ctl;
+  }
+  var recEntries = /* @__PURE__ */ new WeakMap();
+  function logRecording({ source = null } = {}) {
+    const t0 = performance.now();
+    const entry = newEntry({ engine: "local-model", capture: "grava\xE7\xE3o do aparelho (MediaRecorder)", ...source ? { source } : {} });
+    const ev = (e) => {
+      entry.events.push({ e, t: Math.round(performance.now() - t0) });
+    };
+    ev("grava\xE7\xE3o:in\xEDcio");
+    return {
+      mark: ev,
+      done(blob, ms, cancelled = false) {
+        entry.bytes = blob ? blob.size : 0;
+        entry.ms = ms;
+        if (cancelled) entry.cancelled = true;
+        ev(cancelled ? "grava\xE7\xE3o cancelada" : "grava\xE7\xE3o:fim");
+        if (blob) recEntries.set(blob, entry);
+        saveLog();
+      },
+      fail(msg) {
+        entry.micError = msg;
+        ev(`microfone: ${msg}`);
         saveLog();
       }
     };
   }
-  var live = /* @__PURE__ */ new WeakMap();
-  function attach(blob, liveResult) {
-    if (blob && liveResult) live.set(blob, liveResult);
-  }
-  var engineFor = (blob) => live.has(blob) ? "online" : "local-model";
   async function status2() {
     if (mode() === "online") return onlineSupported() ? "installed" : "unsupported";
     if (mode() === "local") return status();
@@ -2399,58 +2593,13 @@
     return status();
   }
   async function transcribe2(blob, opts = {}) {
+    if (isOnlineCapture(blob)) return transcribeOnline(blob, opts);
     const m = mode();
-    if (m === "online") return transcribeOnlineOnly(blob, opts);
-    if (m === "local") return transcribeLocalOnly(blob, opts);
-    let fallbackReason = null, entry = null;
-    if (!opts.local) {
-      const p = live.get(blob);
-      if (p) {
-        const r2 = await p;
-        entry = r2.entry || null;
-        if (r2.text) {
-          if (entry) {
-            entry.engine = "online";
-            saveLog();
-          }
-          return {
-            text: r2.text,
-            confidence: r2.confidence || 0,
-            engine: "online",
-            lang: r2.lang,
-            ms: r2.ms,
-            secs: null,
-            status: "ok",
-            alternatives: r2.alternatives,
-            events: r2.events,
-            error: r2.error || null
-          };
-        }
-        fallbackReason = r2.error ? `online: ${r2.error}` : "online: sem texto";
-      } else {
-        fallbackReason = !onlineSupported() ? "navegador sem reconhecimento online" : !isOnline() ? "sem internet" : cfg.getConsent() === false ? "online recusado pelo aluno" : "online n\xE3o iniciado";
-        entry = newEntry({ capture: "sem escuta online" });
-      }
+    if (m === "online") {
+      const reason = opts.local ? "Moonshine desativado (modo online)" : !onlineSupported() ? "navegador sem reconhecimento online" : !isOnline() ? "sem internet" : "grava\xE7\xE3o feita sem o reconhecimento online";
+      throw unavailable(`Reconhecimento online indispon\xEDvel nesta grava\xE7\xE3o (${reason}). Grave de novo; com o modo online, o Moonshine n\xE3o \xE9 usado.`, reason);
     }
-    const st = await status().catch(() => "unsupported");
-    if (st !== "installed") {
-      if (entry) {
-        entry.engine = "nenhum";
-        entry.fallbackReason = `${fallbackReason} \xB7 aparelho: ${st}`;
-        saveLog();
-      }
-      const e = new Error(`nenhum reconhecimento dispon\xEDvel (${fallbackReason || "local n\xE3o instalado"})`);
-      e.code = "unavailable";
-      e.fallbackReason = fallbackReason;
-      throw e;
-    }
-    const r = await transcribe(blob, opts);
-    if (entry) {
-      entry.engine = "local-model";
-      entry.fallbackReason = fallbackReason;
-      saveLog();
-    }
-    return { ...r, engine: "local-model", lang: "en", status: "ok", fallbackReason };
+    return transcribeLocal(blob, opts);
   }
   var unavailable = (msg, reason) => {
     const e = new Error(msg);
@@ -2458,12 +2607,24 @@
     e.fallbackReason = reason;
     return e;
   };
-  async function transcribeOnlineOnly(blob, opts) {
-    const p = opts.local ? null : live.get(blob);
-    const r = p ? await p : null;
-    const entry = r && r.entry ? r.entry : newEntry({ capture: "sem escuta online" });
-    if (r && r.text) {
-      entry.engine = "online";
+  async function transcribeOnline(blob, opts) {
+    const { result: r, cancelled } = blob[ONLINE];
+    const entry = r.entry;
+    entry.requested = true;
+    if (cancelled) {
+      entry.deliveryError = "tentativa cancelada";
+      saveLog();
+      const e = new Error("cancelled");
+      e.code = "cancelled";
+      throw e;
+    }
+    if (opts.local) {
+      saveLog();
+      throw unavailable("Moonshine desativado (modo online).", "Moonshine desativado (modo online)");
+    }
+    if (r.text) {
+      entry.delivered = true;
+      entry.events.push({ e: "transcri\xE7\xE3o entregue", t: entry.ms });
       saveLog();
       return {
         text: r.text,
@@ -2478,23 +2639,33 @@
         error: r.error || null
       };
     }
-    const reason = opts.local ? "Moonshine desativado (modo online)" : r ? r.error ? `online: ${r.error}` : "online: sem texto" : !onlineSupported() ? "navegador sem reconhecimento online" : !isOnline() ? "sem internet" : "online n\xE3o iniciado";
-    entry.engine = "nenhum";
-    entry.fallbackReason = `${reason} \xB7 sem troca (modo online)`;
+    const v = verdict(entry);
+    const why = r.error ? ERROR_PT[r.error] || r.error : v.code === "3" ? "o reconhecimento n\xE3o devolveu resultado" : "nenhum texto reconhecido";
+    entry.fallbackReason = `${why} \xB7 sem troca (modo online)`;
     saveLog();
-    throw unavailable(`Reconhecimento online indispon\xEDvel nesta grava\xE7\xE3o (${reason}). Grave de novo; com o modo online, o Moonshine n\xE3o \xE9 usado.`, reason);
+    throw unavailable(`O reconhecimento online n\xE3o devolveu texto nesta tentativa (${why}). Isso n\xE3o conta como erro seu: grave de novo. No modo online o Moonshine n\xE3o \xE9 usado.`, `online: ${why}`);
   }
-  async function transcribeLocalOnly(blob, opts) {
-    const entry = newEntry({ capture: "sem escuta online (modo Moonshine)" });
+  async function transcribeLocal(blob, opts) {
+    const entry = recEntries.get(blob) || newEntry({ engine: "local-model", capture: "grava\xE7\xE3o salva" });
+    entry.requested = true;
     const st = await status().catch(() => "unsupported");
     if (st !== "installed") {
-      entry.engine = "nenhum";
-      entry.fallbackReason = `Moonshine ${st} \xB7 sem troca (modo Moonshine)`;
+      entry.deliveryError = `Moonshine ${st}`;
+      entry.fallbackReason = `Moonshine ${st} \xB7 sem troca`;
       saveLog();
       throw unavailable(`O Moonshine n\xE3o est\xE1 instalado neste aparelho (${st}). Instale-o ou escolha o reconhecimento online em Ajustes \u2192 \xC1udio.`, `Moonshine: ${st}`);
     }
-    const r = await transcribe(blob, opts);
-    entry.engine = "local-model";
+    let r;
+    try {
+      r = await transcribe(blob, opts);
+    } catch (e) {
+      entry.deliveryError = e.code || e.message || "erro";
+      saveLog();
+      throw e;
+    }
+    entry.words = r.text ? r.text.trim().split(/\s+/).filter(Boolean).length : 0;
+    entry.delivered = !!entry.words;
+    entry.events.push({ e: entry.words ? "transcri\xE7\xE3o entregue" : "transcri\xE7\xE3o vazia", t: entry.ms || 0 });
     saveLog();
     return { ...r, engine: "local-model", lang: "en", status: "ok", fallbackReason: null };
   }
@@ -3546,7 +3717,7 @@
     };
     pwa.check = check;
     let opened = false;
-    const attach2 = (reg) => {
+    const attach = (reg) => {
       if (!reg) return;
       if (pwa.reg !== reg) {
         pwa.reg = reg;
@@ -3564,11 +3735,11 @@
       notify();
     };
     pwa.attach = () => sw.getRegistration().then((reg) => {
-      attach2(reg);
+      attach(reg);
       return reg || null;
     }, () => null);
     pwa.attach();
-    sw.register("sw.js").then(attach2).catch((e) => {
+    sw.register("sw.js").then(attach).catch((e) => {
       pwa.regError = e && e.message || String(e);
       console.warn("SW n\xE3o registrado", e);
       notify();
@@ -3687,7 +3858,7 @@
     }
     return "Baixando a atualiza\xE7\xE3o\u2026";
   }
-  function live2(render) {
+  function live(render) {
     const slot = h("div", { class: "pwa-slot" });
     const draw = () => {
       if (!slot.isConnected && slot.dataset.drawn) {
@@ -3711,7 +3882,7 @@
     );
   }
   function installCard(App2, { compact = false } = {}) {
-    return live2(() => {
+    return live(() => {
       const pwa = App2.pwa || { install: "unsupported" };
       const st = pwa.install;
       if (st === "standalone") return compact ? null : h("div", { class: "card flat small", "data-role": "install-status", "data-state": st }, "\u2713 Aberto como aplicativo instalado.");
@@ -3774,7 +3945,7 @@
     });
   }
   function updateStatus(App2) {
-    return live2(() => {
+    return live(() => {
       const pwa = App2.pwa || {};
       const ver = pwa.version ? `Vers\xE3o ${pwa.version}` : "Vers\xE3o em uso";
       const st = pwa.update;
@@ -4247,7 +4418,8 @@
       if (judged.length >= 2) get("intelligibility").score = Math.round(judged.filter((x) => x.state === "good").length / judged.length * 100);
       else get("intelligibility").note = "Poucas palavras avali\xE1veis.";
     } else get("intelligibility").note = evaluation && evaluation.note ? evaluation.note : "Sem reconhecimento de fala no aparelho.";
-    if (analysis && !insufficient && analysis.speechSec >= 1) {
+    if (analysis && analysis.online) get("fluency").note = "N\xE3o medido no modo online (sem grava\xE7\xE3o de \xE1udio).";
+    else if (analysis && !insufficient && analysis.speechSec >= 1) {
       const words3 = Math.max(1, expectedWords);
       let s = 100 - Math.max(0, analysis.longPauses - (words3 > 20 ? 2 : 0)) * 12 - Math.max(0, analysis.pauses - Math.ceil(words3 / 5)) * 5;
       get("fluency").score = Math.max(30, Math.min(100, Math.round(s)));
@@ -4343,21 +4515,25 @@
     }
     return { stop: stop2 };
   }
-  async function start({ maxMs = 18e4, onLevel, lang = "en-GB", recognize = true, autoStop = true, silenceMs = ENDPOINT.silenceMs } = {}) {
+  async function start({ maxMs = 18e4, onLevel, lang = "en-GB", recognize = true, autoStop = true, silenceMs = ENDPOINT.silenceMs, source = null } = {}) {
+    const online2 = recognize ? await prepareOnline() : false;
+    if (online2) return listen({ lang, maxMs, silenceMs: autoStop ? silenceMs : null, onLevel, source });
     if (!supported()) {
       const e = new Error("unsupported");
       e.userMessage = "Este navegador n\xE3o oferece grava\xE7\xE3o de \xE1udio neste modo de execu\xE7\xE3o.";
       throw e;
     }
-    const online2 = recognize ? await prepareOnline() : false;
+    const log = logRecording({ source });
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     } catch (err) {
+      log.fail(err.name);
       const e = new Error(err.name);
       e.userMessage = err.name === "NotAllowedError" ? "O microfone foi bloqueado. No Chrome: toque no cadeado ao lado do endere\xE7o \u2192 Permiss\xF5es \u2192 Microfone \u2192 Permitir. Depois tente de novo." : err.name === "NotFoundError" ? "Nenhum microfone encontrado." : `N\xE3o foi poss\xEDvel acessar o microfone (${err.name}).`;
       throw e;
     }
+    log.mark("microfone aberto");
     const mimeType = pickMime();
     const rec = new MediaRecorder(stream, mimeType ? { mimeType } : void 0);
     const chunks = [];
@@ -4382,7 +4558,7 @@
       };
       loop();
     }
-    let ep = null;
+    let ep = null, cancelled = false;
     const cleanup2 = () => {
       if (ep) ep.stop();
       if (raf) cancelAnimationFrame(raf);
@@ -4394,40 +4570,38 @@
     const stopped = new Promise((resolve) => {
       rec.onstop = () => {
         clearTimeout(timer2);
+        cleanup2();
         const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" });
-        if (liveCtl) {
-          const res = liveCtl.stop();
-          attach(blob, res);
-          res.finally(cleanup2);
-        } else cleanup2();
-        resolve({ blob, ms: Math.round(performance.now() - t0), engine: liveCtl ? "online" : null });
+        const ms = Math.round(performance.now() - t0);
+        log.done(blob, ms, cancelled);
+        resolve({ blob, ms, engine: null, audio: true });
       };
     });
     rec.start(250);
-    const liveCtl = online2 ? startLive({ lang, track: stream.getAudioTracks()[0] || null }) : null;
     timer2 = setTimeout(() => {
-      if (liveCtl) liveCtl.mark("limite de seguran\xE7a");
+      log.mark("limite de seguran\xE7a");
       if (rec.state !== "inactive") rec.stop();
     }, maxMs);
     if (autoStop) {
       ep = endpointer(stream, {
         silenceMs,
-        onSpeech: () => {
-          if (liveCtl) liveCtl.mark("fala detectada");
-        },
+        onSpeech: () => log.mark("fala detectada"),
         onEnd: () => {
-          if (liveCtl) liveCtl.mark("fim de fala (sil\xEAncio)");
+          log.mark(`fim de fala (sil\xEAncio ${silenceMs / 1e3} s)`);
           if (rec.state !== "inactive") rec.stop();
         }
       });
     }
     return {
       stop: () => {
-        if (rec.state !== "inactive") rec.stop();
+        if (rec.state !== "inactive") {
+          log.mark("parar (toque)");
+          rec.stop();
+        }
         return stopped;
       },
       cancel: () => {
-        if (liveCtl) liveCtl.cancel();
+        cancelled = true;
         if (rec.state !== "inactive") rec.stop();
       },
       stopped
@@ -4436,6 +4610,8 @@
 
   // app/js/audio/analysis.js
   async function analyseBlob(blob, { expectedWords = 0, referenceSec = 0 } = {}) {
+    const online2 = blob && blob[Symbol.for("drg-online")];
+    if (online2) return { ...online2.analysis };
     const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!Ctx) return null;
     const ctx = new Ctx();
@@ -4507,6 +4683,7 @@
   }
   function describe(a, { expectedWords = 0 } = {}) {
     if (!a) return { verdict: "inconclusive", lines: ["N\xE3o foi poss\xEDvel analisar o \xE1udio neste aparelho."] };
+    if (a.online) return { verdict: a.silent ? "inconclusive" : "ok", lines: ["Modo online: o microfone fica com o reconhecimento e o \xE1udio n\xE3o \xE9 gravado \u2014 ritmo e pausas n\xE3o s\xE3o medidos."] };
     if (a.silent || a.speechSec < 0.4) return { verdict: "inconclusive", lines: ["Quase n\xE3o captei voz. Fale mais perto do microfone e tente de novo."] };
     const lines = [];
     if (a.quiet) lines.push("Volume baixo: aproxime o celular da boca.");
@@ -5017,7 +5194,7 @@
     const out = { fromFile: [], keptHere: [], validated: [] };
     into.edited = into.edited || {};
     const fe = from.edited || {};
-    const has = (a, n) => (a.answers[n] || []).some((x) => (x || "").trim());
+    const has2 = (a, n) => (a.answers[n] || []).some((x) => (x || "").trim());
     for (const q of into.questions) {
       const n = q.n;
       const lv = isValidated(into, n) ? into.teacher[n].validatedAt : 0;
@@ -5032,11 +5209,11 @@
         } else out.keptHere.push(n);
         continue;
       }
-      if (!has(from, n)) {
-        if (has(into, n)) out.keptHere.push(n);
+      if (!has2(from, n)) {
+        if (has2(into, n)) out.keptHere.push(n);
         continue;
       }
-      const take = (fe[n] || 0) > (into.edited[n] || 0) || !has(into, n);
+      const take = (fe[n] || 0) > (into.edited[n] || 0) || !has2(into, n);
       if (!take) {
         out.keptHere.push(n);
         continue;
@@ -5135,8 +5312,8 @@
     for (let i = 0; i < toks.length; ) {
       let found = null;
       for (let n = Math.min(6, toks.length - i); n >= 2 && !found; n--) {
-        const seq2 = toks.slice(i, i + n);
-        for (const k of [seq2.join(" "), seq2.map(lemma).join(" ")]) {
+        const seq3 = toks.slice(i, i + n);
+        for (const k of [seq3.join(" "), seq3.map(lemma).join(" ")]) {
           const tr = translationsOf(k);
           if (tr) {
             found = { en: k, pts: tr, n };
@@ -5695,9 +5872,9 @@ ${body.join("\n\n")}
     if (t.join(" ") === o.join(" ")) return { result: "good", missing: [], extra: [] };
     const content = (list) => list.filter((w) => !isFunctionWord(w) && !isFunctionWord(lemma(w)));
     const oc = content(o), tc = content(t);
-    const has = (list, w) => list.some((x) => x === w || lemma(x) === lemma(w));
-    const missing = oc.filter((w) => !has(tc, w));
-    const extra = tc.filter((w) => !has(oc, w));
+    const has2 = (list, w) => list.some((x) => x === w || lemma(x) === lemma(w));
+    const missing = oc.filter((w) => !has2(tc, w));
+    const extra = tc.filter((w) => !has2(oc, w));
     const cov = oc.length ? (oc.length - missing.length) / oc.length : t.length ? 1 : 0;
     if (cov >= 0.8 && extra.length <= 1) return { result: "ok", missing, extra };
     if (cov < 0.4) return { result: "bad", missing, extra };
@@ -6056,10 +6233,14 @@ ${body.join("\n\n")}
         clear(out);
       };
       async function analyse(blob) {
-        if (url) URL.revokeObjectURL(url);
-        url = URL.createObjectURL(blob);
-        const mine = h("audio", { src: url, preload: "auto" });
-        const mineBtn = h("button", { class: "btn small", type: "button", onclick: () => playElement(mine, { restart: true }) }, icon("play"), "Minha voz");
+        if (url) {
+          URL.revokeObjectURL(url);
+          url = null;
+        }
+        const noAudio = isOnlineCapture(blob);
+        if (!noAudio) url = URL.createObjectURL(blob);
+        const mine = noAudio ? null : h("audio", { src: url, preload: "auto" });
+        const mineBtn = noAudio ? null : h("button", { class: "btn small", type: "button", onclick: () => playElement(mine, { restart: true }) }, icon("play"), "Minha voz");
         const analysis = await analyseBlob(blob).catch(() => null);
         const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
         const st = await status2().catch(() => "unsupported");
@@ -6078,7 +6259,7 @@ ${body.join("\n\n")}
             res = await transcribe2(blob);
           } catch (e) {
             if (e.code === "cancelled") return;
-            out.replaceChildren(h("div", { class: "notice warn" }, `A an\xE1lise falhou nesta grava\xE7\xE3o (${e.message}). Grave de novo; n\xE3o conta como erro.`), mineBtn);
+            out.replaceChildren(h("div", { class: "notice warn" }, `A an\xE1lise falhou nesta grava\xE7\xE3o (${e.message}). Grave de novo; n\xE3o conta como erro.`), ...mineBtn ? [mineBtn] : []);
             return;
           }
         }
@@ -7785,8 +7966,8 @@ ${body.join("\n\n")}
       return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
     };
     let pass = await recognise(trim);
-    const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
-    if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
+    const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis && !analysis.online ? analysis.voicedSec : null };
+    if (alive() && pass.asr && pass.asr.engine !== "online" && tailMiss(pass.result).prefixOnly) {
       const other = await recognise(!trim, true);
       diag.secondPass = other.asr ? other.asr.text : null;
       const goods = (r) => (r.feedback && r.feedback.words || []).filter((w) => w.state === "good").length;
@@ -8890,6 +9071,8 @@ ${body.join("\n\n")}
       session = null;
       if (destroyed) {
         if (targetId && backend === "indexeddb") {
+          const noAudio2 = isOnlineCapture(res.blob);
+          if (noAudio2) return;
           try {
             await putRecording(targetId, res.blob, { ms: res.ms });
             recordRecording(App2.state, targetId, { ms: res.ms });
@@ -8905,12 +9088,18 @@ ${body.join("\n\n")}
       meter.classList.add("hidden");
       setIdle(true);
       blob = res.blob;
-      meta = { ms: res.ms };
+      const noAudio = isOnlineCapture(blob);
+      meta = { ms: res.ms, ...noAudio ? { online: true } : {} };
       releaseElement(audioEl);
-      if (url) URL.revokeObjectURL(url);
-      url = URL.createObjectURL(blob);
-      audioEl.src = url;
-      time.textContent = `Grava\xE7\xE3o de ${fmtSec(res.ms)} s`;
+      if (url) {
+        URL.revokeObjectURL(url);
+        url = null;
+      }
+      if (!noAudio) {
+        url = URL.createObjectURL(blob);
+        audioEl.src = url;
+      }
+      time.textContent = noAudio ? `Tentativa de ${fmtSec(res.ms)} s \xB7 modo online (sem \xE1udio gravado)` : `Grava\xE7\xE3o de ${fmtSec(res.ms)} s`;
       const mine = blob;
       const analysis = await analyseBlob(blob, { expectedWords, referenceSec });
       if (destroyed || mine !== blob) return;
@@ -8920,7 +9109,7 @@ ${body.join("\n\n")}
       meta = { ...meta, analysis: analysis && { ...analysis, envelope: void 0 } };
       if (targetId) {
         try {
-          if (backend === "indexeddb") await putRecording(targetId, blob, meta);
+          if (backend === "indexeddb") await putRecording(targetId, noAudio ? null : blob, meta);
         } catch (e) {
           toast("N\xE3o foi poss\xEDvel salvar esta grava\xE7\xE3o no aparelho (pouco espa\xE7o?). A grava\xE7\xE3o anterior foi mantida.", 6e3);
         }
@@ -8937,19 +9126,20 @@ ${body.join("\n\n")}
       );
     }
     function showAfter() {
+      const audio = !!audioEl.src;
       clear(after).append(
-        canvas,
+        audio ? canvas : h("p", { class: "tiny muted", "data-role": "online-no-audio", text: "Modo online: o microfone fica com o reconhecimento de voz e o \xE1udio n\xE3o \xE9 gravado. Para ouvir a pr\xF3pria voz, use o Moonshine (Ajustes \u2192 \xC1udio)." }),
         h(
           "div",
           { class: "row rec-actions" },
-          mineBtn,
+          audio ? mineBtn : null,
           reference.length ? h("button", { class: "btn small", type: "button", onclick: () => playRef() }, icon("speaker"), "Refer\xEAncia") : null,
-          reference.length ? h("button", { class: "btn small", type: "button", onclick: () => ab() }, icon("ab"), "Comparar A/B") : null
+          reference.length && audio ? h("button", { class: "btn small", type: "button", onclick: () => ab() }, icon("ab"), "Comparar A/B") : null
         ),
         h(
           "div",
           { class: "rec-secondary" },
-          h("details", { class: "more" }, h("summary", { text: "Ritmo e pausas" }), metrics),
+          audio ? h("details", { class: "more" }, h("summary", { text: "Ritmo e pausas" }), metrics) : h("span"),
           targetId ? h("button", { class: "link-btn danger", type: "button", onclick: () => askDelete() }, icon("trash"), "Excluir grava\xE7\xE3o") : null
         )
       );
@@ -9003,7 +9193,7 @@ ${body.join("\n\n")}
         if (!rec || blob || destroyed || session) return;
         if (!rec.blob) {
           setIdle(true);
-          time.textContent = `O \xE1udio desta grava\xE7\xE3o foi apagado automaticamente ap\xF3s ${RETENTION_DAYS} dias. O resultado continua salvo.`;
+          time.textContent = rec.meta && rec.meta.online ? `\xDAltima tentativa (modo online, sem \xE1udio gravado) em ${new Date(rec.at).toLocaleDateString("pt-BR")}. O resultado continua salvo.` : `O \xE1udio desta grava\xE7\xE3o foi apagado automaticamente ap\xF3s ${RETENTION_DAYS} dias. O resultado continua salvo.`;
           meta = rec.meta || null;
           opts.onLoaded && opts.onLoaded(rec);
           return;
@@ -9447,25 +9637,25 @@ ${body.join("\n\n")}
     const minWords = unit === "routine" ? 40 : unit === "block" ? 20 : intent === "activities" ? 15 : 8;
     const enough = tokens.length >= minWords;
     const minToAnswer = intent === "activities" ? narrative ? Math.max(8, Math.round(minWords / 2)) : 5 : 3;
-    const checklist = [
+    const checklist2 = [
       { id: "topic", label: "Fala do tema da pergunta", ok: relevance !== "none", required: true },
       { id: intent, label: INTENT_LABEL[intent], ok: !!satisfied[intent], required: true }
     ];
     if (intent === "activities" && narrative) {
-      checklist.push({ id: "time", label: "Usa hor\xE1rios ou momentos do dia", ok: satisfied.time, required: false });
-      checklist.push({ id: "sequence", label: "Liga as ideias (then, after, before\u2026)", ok: RX.sequence.test(low), required: false });
+      checklist2.push({ id: "time", label: "Usa hor\xE1rios ou momentos do dia", ok: satisfied.time, required: false });
+      checklist2.push({ id: "sequence", label: "Liga as ideias (then, after, before\u2026)", ok: RX.sequence.test(low), required: false });
     }
-    checklist.push({ id: "length", label: "Desenvolve a resposta", ok: enough, required: false });
+    checklist2.push({ id: "length", label: "Desenvolve a resposta", ok: enough, required: false });
     const holes = findHoles(text);
     const lostSpeech = mayHaveLostSpeech(integrity) || holes.length > 0;
     if (lostSpeech) {
-      for (const c of checklist) if (c.required && c.id !== "topic" && !c.ok) {
+      for (const c of checklist2) if (c.required && c.id !== "topic" && !c.ok) {
         c.ok = null;
         c.unconfirmed = true;
       }
     }
-    const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok !== false);
-    const unconfirmed = checklist.some((c) => c.unconfirmed);
+    const requiredOk = checklist2.filter((c) => c.required).every((c) => c.ok !== false);
+    const unconfirmed = checklist2.some((c) => c.unconfirmed);
     const misheard = relevance === "none" && hypotheses.length > 0;
     const status4 = misheard ? "unclear" : relevance === "none" ? "off-topic" : requiredOk && tokens.length >= minToAnswer ? unconfirmed ? "unclear" : "answers" : "partial";
     const holeText = holes.length ? ` (por exemplo, depois de \u201C${holes[0].after}\u201D)` : "";
@@ -9477,7 +9667,7 @@ ${body.join("\n\n")}
     }[status4];
     const coherence = findContradictions(text).map((c) => c.kind === "two-times" ? { kind: c.kind, msg: `Voc\xEA mencionou dois hor\xE1rios para \u201C${c.activity}\u201D (${c.times.join(" e ")}) sem dizer quando vale cada um (ex.: \u201Con weekends\u201D). Confira na grava\xE7\xE3o: pode ter sido o reconhecimento.` } : { kind: c.kind, msg: `\u201C${c.times[0]}\u201D e \u201C${c.period}\u201D n\xE3o combinam (p.m. \xE9 tarde/noite; a.m. \xE9 manh\xE3). Confira o hor\xE1rio na grava\xE7\xE3o.` });
     const tips = [];
-    for (const c of checklist) {
+    for (const c of checklist2) {
       if (c.ok || c.unconfirmed) continue;
       if (c.id === "topic") continue;
       if (c.id === "length") tips.push(unit === "q" ? "Desenvolva com mais uma ou duas frases (o que, quando, por qu\xEA)." : "Acrescente mais detalhes: o que voc\xEA faz, quando e por qu\xEA.");
@@ -9494,7 +9684,7 @@ ${body.join("\n\n")}
       message,
       intent,
       relevance,
-      checklist,
+      checklist: checklist2,
       tips: tips.slice(0, 4),
       grammarTips,
       language,
@@ -9542,6 +9732,7 @@ ${body.join("\n\n")}
   }
   function measure(analysis, words3) {
     if (!analysis) return { totalSec: null, speechSec: null, wpm: null, pauses: null, longPauses: null };
+    if (analysis.online) return { totalSec: null, speechSec: null, wpm: null, pauses: null, longPauses: null };
     const ok = !analysis.silent;
     let wpm = null;
     if (ok && analysis.speechSec >= 3 && words3 >= 5) {
@@ -9869,7 +10060,7 @@ ${body.join("\n\n")}
       w.start();
     };
     const againBtn = (label = "Gravar novamente") => h("button", { class: "btn small", type: "button", onclick: recordAgain }, icon("mic"), label);
-    const mineBtn = () => h("button", { class: "btn small", type: "button", onclick: () => w && w.audioEl.src && playElement(w.audioEl, { restart: true }) }, icon("play"), "Ouvir minha resposta");
+    const mineBtn = () => last && isOnlineCapture(last.blob) ? null : h("button", { class: "btn small", type: "button", onclick: () => w && w.audioEl.src && playElement(w.audioEl, { restart: true }) }, icon("play"), "Ouvir minha resposta");
     async function refreshStatus() {
       status4 = await status2();
       if (!alive) return;
@@ -9925,10 +10116,10 @@ ${body.join("\n\n")}
       if (!saved && text !== null && w) w.updateMeta(blob, { free: { text, at: Date.now(), integrity } });
     }
     function error(e, blob, analysis) {
-      const msg = e.code === "too-long" ? `Sua resposta tem ${Math.round(e.secs)} s; a an\xE1lise autom\xE1tica vai at\xE9 ${Math.round(e.max / 60)} min. Ela n\xE3o foi cortada nem avaliada. Grave uma vers\xE3o mais curta (por exemplo, um bloco por vez).` : { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o." }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
+      const msg = e.code === "too-long" ? `Sua resposta tem ${Math.round(e.secs)} s; a an\xE1lise autom\xE1tica vai at\xE9 ${Math.round(e.max / 60)} min. Ela n\xE3o foi cortada nem avaliada. Grave uma vers\xE3o mais curta (por exemplo, um bloco por vez).` : { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", unavailable: e.message }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
       const actions = h("div", { class: "row fb-actions" });
       const help = h("div", { class: "small" });
-      if (e.code === "too-long" || e.code === "decode") actions.append(againBtn());
+      if (e.code === "too-long" || e.code === "decode" || isOnlineCapture(blob)) actions.append(againBtn());
       else actions.append(h("button", { class: "btn small primary", type: "button", onclick: () => analyse(blob, analysis) }, icon("refresh"), "Tentar de novo"));
       if (e.code === "load") {
         actions.append(h("button", { class: "btn small", type: "button", onclick: async (ev) => {
@@ -9948,7 +10139,7 @@ ${body.join("\n\n")}
       }
       show(
         "error",
-        h("div", { class: "fb-error", role: "alert" }, h("b", { text: msg }), " ", h("span", { class: "muted", text: "Nenhuma avalia\xE7\xE3o foi gerada. Sua grava\xE7\xE3o continua salva e a miss\xE3o pode seguir normalmente." })),
+        h("div", { class: "fb-error", role: "alert" }, h("b", { text: msg }), " ", h("span", { class: "muted", text: isOnlineCapture(blob) ? "Nenhuma avalia\xE7\xE3o foi gerada; a miss\xE3o pode seguir normalmente." : "Nenhuma avalia\xE7\xE3o foi gerada. Sua grava\xE7\xE3o continua salva e a miss\xE3o pode seguir normalmente." })),
         actions,
         help,
         h("details", { class: "more" }, h("summary", { text: "Detalhes t\xE9cnicos" }), h("p", { class: "tiny muted", text: `${e.code || "erro"}: ${e.message}` }))
@@ -10670,7 +10861,7 @@ ${body.join("\n\n")}
         };
         area.append(kind("Monte a frase em ingl\xEAs"), h("p", { style: { fontSize: "1.1rem" }, text: sentence.pt }), answer, h("div", { style: { height: "10px" } }), pool);
         draw();
-        const listen2 = h("button", { class: "btn", onclick: () => {
+        const listen3 = h("button", { class: "btn", onclick: () => {
           hintUsed = true;
           play({ key: sentence.au, text: sentence.en });
         } }, icon("speaker"), "Ouvir");
@@ -10688,7 +10879,7 @@ ${body.join("\n\n")}
           autoplay({ key: sentence.au, text: sentence.en });
           actions(continueBtn());
         };
-        actions(listen2, verify2);
+        actions(listen3, verify2);
       },
       write(ex) {
         const { sentence } = ex;
@@ -11064,7 +11255,7 @@ ${body.join("\n\n")}
     }
     return "unsupported";
   }
-  function listen({ lang = "en-GB" } = {}) {
+  function listen2({ lang = "en-GB" } = {}) {
     const finals = [];
     let ended = false, failed = null, resolveEnd;
     const endP = new Promise((r) => {
@@ -11247,7 +11438,7 @@ ${body.join("\n\n")}
         session_.cancel();
         return;
       }
-      const listener = engine === "webspeech" ? listen({ lang: "en-GB" }) : null;
+      const listener = engine === "webspeech" ? listen2({ lang: "en-GB" }) : null;
       rec = session_;
       draw();
       const res = await session_.stopped;
@@ -11585,10 +11776,10 @@ ${body.join("\n\n")}
       );
     }
     function showError(e, blob, analysis) {
-      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.`, unavailable: `${e.message} Sua grava\xE7\xE3o est\xE1 salva.` }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
+      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.`, unavailable: isOnlineCapture(blob) ? e.message : `${e.message} Sua grava\xE7\xE3o est\xE1 salva.` }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
       const actions = h("div", { class: "row fb-actions" });
       const help = h("div", { class: "small" });
-      if (e.code === "decode" || e.code === "too-long") actions.append(h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente"));
+      if (e.code === "decode" || e.code === "too-long" || isOnlineCapture(blob)) actions.append(h("button", { class: "btn small primary", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente"));
       else actions.append(h("button", { class: "btn small primary", type: "button", onclick: () => analyse(blob, analysis) }, icon("refresh"), "Tentar de novo"));
       if (e.code === "load") {
         actions.append(h("button", { class: "btn small", type: "button", onclick: async (ev) => {
@@ -11609,7 +11800,7 @@ ${body.join("\n\n")}
       }
       showFb(
         "error",
-        h("div", { class: "fb-error", role: "alert" }, h("b", { text: msg }), " ", h("span", { class: "muted", text: "Nenhuma nota foi gerada. Sua grava\xE7\xE3o continua salva." })),
+        h("div", { class: "fb-error", role: "alert" }, h("b", { text: msg }), " ", h("span", { class: "muted", text: isOnlineCapture(blob) ? "Nenhuma nota foi gerada." : "Nenhuma nota foi gerada. Sua grava\xE7\xE3o continua salva." })),
         actions,
         help,
         h("details", { class: "more" }, h("summary", { text: "Detalhes t\xE9cnicos" }), h("p", { class: "tiny muted", text: `${e.code || "erro"}: ${e.message}` }))
@@ -11652,7 +11843,7 @@ ${body.join("\n\n")}
       onStart: () => {
         resetFeedback();
         if (!reading) return;
-        listener = asrEligible && engine === "webspeech" ? listen({ lang: "en-GB" }) : null;
+        listener = asrEligible && engine === "webspeech" ? listen2({ lang: "en-GB" }) : null;
       },
       onRecorded: async (blob, analysis) => {
         if (!reading) return;
@@ -11937,6 +12128,87 @@ ${body.join("\n\n")}
     view.append(h("h2", { text: "Conquistas" }), h("div", { class: "ach" }, ACHIEVEMENTS.map((a) => h("div", { class: state.achievements[a.id] ? "" : "locked", title: a.desc }, h("span", { class: "ico", text: a.icon }), a.title))));
   }
 
+  // app/js/ui/speechcheck.js
+  var has = (e, n) => !!e && e.events.some((x) => x.e === n);
+  function checklist(e, { heard = null, mode: mode2 = mode() } = {}) {
+    if (!e) return [];
+    const online2 = e.engine === "online";
+    const expected = mode2 === "online" ? "online" : mode2 === "local" ? "local-model" : null;
+    return [
+      {
+        label: "Microfone capturou",
+        ok: online2 ? has(e, "audiostart") : !e.micError && (e.bytes || 0) > 0,
+        detail: online2 ? has(e, "audiostart") ? `sim (o reconhecimento abriu o microfone${has(e, "speechstart") || has(e, "soundstart") ? " e detectou fala" : ""})` : "n\xE3o (sem \u201Caudiostart\u201D)" : e.micError ? `n\xE3o (${e.micError})` : `${e.bytes || 0} bytes gravados${has(e, "fala detectada") ? ", fala detectada" : ""}`
+      },
+      {
+        label: "Reconhecimento iniciou",
+        ok: online2 ? (has(e, "start") || has(e, "audiostart")) && !e.startError : !!e.requested,
+        detail: online2 ? e.startError || (has(e, "start") ? `sim (${e.sessions || 1} sess\xE3o(\xF5es))` : "n\xE3o (sem \u201Cstart\u201D)") : e.requested ? "sim (Moonshine)" : "n\xE3o pedido"
+      },
+      {
+        label: "Resultado chegou",
+        ok: online2 ? (e.finals || 0) + (e.partials || 0) > 0 && !!e.words : !!e.words,
+        detail: online2 ? `parciais: ${e.partials || 0} \xB7 finais: ${e.finals || 0} \xB7 palavras: ${e.words || 0}${e.error ? ` \xB7 erro: ${e.error}` : ""}` : `palavras: ${e.words || 0}${e.deliveryError ? ` \xB7 ${e.deliveryError}` : ""}`
+      },
+      { label: "Transcri\xE7\xE3o entregue", ok: !!e.delivered && heard !== null, detail: e.delivered && heard !== null ? `\u201C${heard}\u201D` : "n\xE3o entregue" },
+      {
+        label: "Mecanismo = modo escolhido",
+        ok: expected ? e.engine === expected : null,
+        detail: `motor: ${online2 ? "online (navegador)" : "Moonshine (aparelho)"} \xB7 modo: ${mode2 === "online" ? "online" : mode2 === "local" ? "Moonshine" : "n\xE3o escolhido"}`
+      }
+    ];
+  }
+  function speechCheckPanel(App2, { phrase = "I wake up at five, take a shower and brush my teeth." } = {}) {
+    const out = h("div", { "data-role": "speech-check-out", style: { marginTop: "8px" } });
+    const btn = h("button", { class: "btn small primary", type: "button", "data-role": "speech-check-start" }, icon("mic"), "Testar reconhecimento");
+    let session = null;
+    const finish = () => {
+      if (session) session.stop();
+    };
+    btn.onclick = async () => {
+      if (session) return finish();
+      clear(out);
+      try {
+        session = await start({ source: "diagn\xF3stico (Ajustes \u2192 \xC1udio)" });
+      } catch (e2) {
+        out.append(h("div", { class: "notice warn small", text: e2.userMessage || `N\xE3o foi poss\xEDvel iniciar (${e2.message}).` }));
+        return;
+      }
+      clear(btn).append(icon("stop"), "Parar");
+      out.append(h("p", { class: "small", "data-role": "speech-check-status" }, "Ouvindo\u2026 diga a frase acima. Para sozinho quando voc\xEA terminar (ou toque em Parar)."));
+      const res = await session.stopped;
+      session = null;
+      clear(btn).append(icon("mic"), "Testar de novo");
+      clear(out).append(h("p", { class: "small muted", text: "Reconhecendo\u2026" }));
+      let heard = null, err = null;
+      try {
+        heard = (await transcribe2(res.blob, { word: false })).text;
+      } catch (e2) {
+        err = e2;
+      }
+      const e = lastAttempt();
+      const v = verdict(e);
+      clear(out).append(
+        h(
+          "ul",
+          { class: "small", "data-role": "speech-check-list", style: { paddingLeft: "18px", margin: "4px 0" } },
+          checklist(e, { heard }).map((x) => h("li", { "data-ok": String(x.ok) }, x.ok === true ? "\u2705 " : x.ok === false ? "\u274C " : "\u2014 ", h("b", { text: x.label }), `: ${x.detail}`))
+        ),
+        h("p", { class: "small", "data-role": "speech-check-verdict" }, h("b", { text: v.code === "ok" ? "Funcionou: " : "Parou em: " }), `[${v.code}] ${v.text}`),
+        err ? h("p", { class: "tiny muted", text: err.message }) : null,
+        h("p", { class: "tiny muted", text: "Use \u201CCopiar registro do reconhecimento\u201D para enviar o diagn\xF3stico (sem \xE1udio e sem o texto falado)." })
+      );
+    };
+    return h(
+      "div",
+      { class: "card flat", "data-role": "speech-check", style: { marginTop: "10px" } },
+      h("b", { text: "Diagn\xF3stico do reconhecimento (mesmo caminho das atividades)" }),
+      h("p", { class: "small en", lang: "en", style: { margin: "6px 0" }, text: phrase }),
+      btn,
+      out
+    );
+  }
+
   // app/js/store/storage.js
   async function cachesUsage() {
     const out = { app: 0, asr: 0, other: 0, files: 0 };
@@ -12068,6 +12340,8 @@ ${body.join("\n\n")}
         h("button", { class: "btn small", onclick: () => play({ key: App2.baseContent.sentences["R01-B1-S1"].au, text: "" }).then((r) => toast(r.ok ? "\xC1udio embutido OK" : "\xC1udio embutido indispon\xEDvel")) }, icon("speaker"), "Testar \xE1udio embutido")
       ),
       diag,
+      // diagnóstico integrado: uma frase real pelo mesmo caminho das atividades (microfone → reconhecimento → entrega)
+      speechCheckPanel(App2),
       // registro do motor de fala (eventos e tempos das últimas tentativas; sem áudio e sem texto) — diagnóstico
       h("button", { class: "btn small", type: "button", "data-role": "speech-log-copy", style: { marginTop: "10px" }, onclick: async () => {
         try {
@@ -12368,7 +12642,7 @@ ${body.join("\n\n")}
     );
     const view = h("main", { class: `view${nav ? "" : " no-nav"}`, id: "view" });
     root.append(top, view);
-    if (App.pwa) view.append(live2(() => updateBanner(App)));
+    if (App.pwa) view.append(live(() => updateBanner(App)));
     if (nav) {
       const r = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
       root.append(h(
