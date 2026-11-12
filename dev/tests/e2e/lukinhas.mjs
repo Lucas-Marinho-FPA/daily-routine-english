@@ -27,6 +27,7 @@ const stopServer = () => new Promise((r) => { server.close(r); if (server.closeA
 const errors = [], external = [];
 const ctx = await chromium.launchPersistentContext(PROFILE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true,
   args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] });
+await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
 const page = ctx.pages()[0] || await ctx.newPage();
 page.on('pageerror', (e) => errors.push(e.message));
 ctx.on('request', (r) => { const u = r.url(); if (!u.startsWith(ORIGIN) && !/^(blob|data):/.test(u)) external.push(u); });

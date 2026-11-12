@@ -38,6 +38,7 @@ let ctx, page;
 async function open() {
   ctx = await chromium.launchPersistentContext(PROFILE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true,
     permissions: ['microphone'], args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });
+  await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   page = ctx.pages()[0] || await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
   ctx.on('request', (r) => { const u = r.url(); if (!u.startsWith(ORIGIN) && !/^(blob|data):/.test(u)) external.push(u); });

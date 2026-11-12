@@ -10,6 +10,7 @@ import { evaluateWords } from '../engine/wordfeedback.js';
 import * as player from '../audio/player.js';
 import * as recorder from '../audio/recorder.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import { analyseBlob } from '../audio/analysis.js';
 import { asrOffNotice } from './asrsetup.js';
 import { loadCourse } from './course.js';
@@ -225,7 +226,7 @@ export function renderCoursePractice(App, r) {
       const mineBtn = h('button', { class: 'btn small', type: 'button', onclick: () => player.playElement(mine, { restart: true }) }, icon('play'), 'Minha voz');
       const analysis = await analyseBlob(blob).catch(() => null);
       const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
-      const st = await localasr.status().catch(() => 'unsupported');
+      const st = await speech.status().catch(() => 'unsupported'); // online usável ou modelo do aparelho
       status.textContent = 'Toque no microfone para gravar de novo.';
       if (st !== 'installed') {
         out.replaceChildren(h('div', { class: 'notice warn' }, 'Sem reconhecimento de fala instalado: ouça a sua voz e compare com o modelo. Esta tentativa não é corrigida.'),
@@ -234,7 +235,7 @@ export function renderCoursePractice(App, r) {
       }
       let res = null;
       if (!insufficient) {
-        try { res = await localasr.transcribe(blob); } catch (e) {
+        try { res = await speech.transcribe(blob); } catch (e) {
           if (e.code === 'cancelled') return;
           out.replaceChildren(h('div', { class: 'notice warn' }, `A análise falhou nesta gravação (${e.message}). Grave de novo; não conta como erro.`), mineBtn);
           return;

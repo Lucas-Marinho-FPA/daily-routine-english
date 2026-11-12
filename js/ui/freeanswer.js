@@ -4,6 +4,7 @@
 import { h, icon, clear } from './dom.js';
 import * as player from '../audio/player.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import { audioKey } from '../engine/text.js';
 import { segment } from '../engine/wordfeedback.js';
 import { latestGate } from '../engine/practice.js';
@@ -46,7 +47,7 @@ export function freeAnswerPanel(App, { question = '', model = '', alternatives =
   const mineBtn = () => h('button', { class: 'btn small', type: 'button', onclick: () => w && w.audioEl.src && player.playElement(w.audioEl, { restart: true }) }, icon('play'), 'Ouvir minha resposta');
 
   async function refreshStatus() {
-    status = await localasr.status();
+    status = await speech.status(); // online usável ou modelo do aparelho
     if (!alive) return;
     if (pendingSaved) { const r = pendingSaved; pendingSaved = null; loaded(r); }
     else if (status !== 'installed' && el.dataset.state === 'idle' && last) unavailable();
@@ -73,7 +74,7 @@ export function freeAnswerPanel(App, { question = '', model = '', alternatives =
       const prog = h('span', { class: 'small muted' });
       show('analysing', h('div', { class: 'fb-analysing', role: 'status' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Analisando sua resposta…', prog));
       try {
-        const res = await localasr.transcribe(blob, { long: true, onProgress: (i, n) => { if (n > 1) prog.textContent = ` parte ${i} de ${n}`; } });
+        const res = await speech.transcribe(blob, { long: true, onProgress: (i, n) => { if (n > 1) prog.textContent = ` parte ${i} de ${n}`; } });
         text = res.text;
         integrity = transcriptIntegrity({ text, segments: res.segments, secs: res.secs });
       } catch (e) {

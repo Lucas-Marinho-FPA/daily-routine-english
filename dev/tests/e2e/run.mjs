@@ -47,6 +47,7 @@ const AUDIO_PROBE = `
 const server = await serve(APP, PORT);
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, permissions: ['microphone'], acceptDownloads: true });
+await ctx.addInitScript(() => { setInterval(() => { const A = window.DRG_APP; if (A && A.state && A.state.settings.onlineSpeech === undefined) A.state.settings.onlineSpeech = false; }, 20); }); // o aluno recusou o reconhecimento online (motor central: speech.js): o FakeSR abaixo segue testando o modo local do Chrome
 await ctx.addInitScript(ASR_MOCK);
 await ctx.addInitScript(AUDIO_PROBE);
 const page = await ctx.newPage();

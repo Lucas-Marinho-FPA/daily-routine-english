@@ -1,4 +1,7 @@
 // Gravação da própria voz (MediaRecorder). A permissão do microfone só é pedida no primeiro toque em “Gravar”.
+// Junto com a gravação, o motor de fala central (speech.js) pode ouvir online pelo navegador; a gravação continua
+// sendo a fonte de tudo (ouvir, ritmo, guardar e o reconhecimento do aparelho quando o online não atende).
+import * as speech from './speech.js';
 
 export const supported = () => !!(globalThis.navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && globalThis.MediaRecorder);
 
@@ -13,14 +16,15 @@ export async function permissionState() {
 
 /**
  * Inicia a gravação. Retorna { stop(): Promise<{blob, ms}>, cancel() } ou lança erro com .userMessage.
- * maxMs limita a duração (padrão 3 min).
+ * maxMs limita a duração (padrão 3 min). lang: idioma do reconhecimento online; recognize: false = só gravar.
  */
-export async function start({ maxMs = 180000, onLevel } = {}) {
+export async function start({ maxMs = 180000, onLevel, lang = 'en-GB', recognize = true } = {}) {
   if (!supported()) {
     const e = new Error('unsupported');
     e.userMessage = 'Este navegador não oferece gravação de áudio neste modo de execução.';
     throw e;
   }
+  const online = recognize ? await speech.prepareOnline() : false; // consentimento (uma vez) antes do microfone
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -64,14 +68,17 @@ export async function start({ maxMs = 180000, onLevel } = {}) {
     rec.onstop = () => {
       cleanup();
       clearTimeout(timer);
-      resolve({ blob: new Blob(chunks, { type: rec.mimeType || mimeType || 'audio/webm' }), ms: Math.round(performance.now() - t0) });
+      const blob = new Blob(chunks, { type: rec.mimeType || mimeType || 'audio/webm' });
+      if (liveCtl) speech.attach(blob, liveCtl.stop()); // o texto online desta gravação (speech.transcribe usa)
+      resolve({ blob, ms: Math.round(performance.now() - t0), engine: liveCtl ? 'online' : null });
     };
   });
   rec.start(250);
+  const liveCtl = online ? speech.startLive({ lang }) : null; // uma única escuta online por gravação
   timer = setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, maxMs);
   return {
     stop: () => { if (rec.state !== 'inactive') rec.stop(); return stopped; },
-    cancel: () => { if (rec.state !== 'inactive') rec.stop(); },
+    cancel: () => { if (liveCtl) liveCtl.cancel(); if (rec.state !== 'inactive') rec.stop(); },
     stopped,
   };
 }

@@ -5,6 +5,7 @@ import { dayNumber } from './engine/scheduler.js';
 import * as db from './store/db.js';
 import * as player from './audio/player.js';
 import * as localasr from './audio/localasr.js';
+import * as speech from './audio/speech.js';
 import { renderHome } from './ui/home.js';
 import { renderExplore, renderRoutine, renderContext, renderCategory } from './ui/explore.js';
 import { renderSession } from './ui/session.js';
@@ -89,6 +90,9 @@ const App = {
   },
 };
 App.asr = { local: localasr }; // diagnóstico (usado pelos testes automatizados)
+// motor de fala central: consentimento do reconhecimento online guardado nos ajustes deste aparelho
+speech.configure({ getConsent: () => (App.state ? App.state.settings.onlineSpeech : undefined), setConsent: (v) => { if (App.state) { App.state.settings.onlineSpeech = v; App.save(); } } });
+App.speech = speech; // testes automatizados
 App.voiceEval = evaluateRecording; // avaliação de fala das fases 1 e 5 (testes com o reconhecedor real: tests/e2e/voice.mjs)
 globalThis.DRG_APP = App; // usado pelos testes automatizados
 

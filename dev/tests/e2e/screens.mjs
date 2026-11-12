@@ -13,6 +13,7 @@ const content = JSON.parse(readFileSync(join(ROOT, 'content/build/content.json')
 const srv = await serve(join(ROOT, 'app'), 8795);
 const b = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
 const ctx = await b.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, permissions: ['microphone'] });
+await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
 const p = await ctx.newPage();
 await p.goto('http://localhost:8795/');
 await p.waitForTimeout(500);

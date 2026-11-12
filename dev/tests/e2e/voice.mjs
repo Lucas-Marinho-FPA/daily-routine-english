@@ -36,6 +36,7 @@ const server = await serve(SITE, PORT);
 const PROFILE = join(OUT, '.profile');
 rmSync(PROFILE, { recursive: true, force: true });
 let ctx = await chromium.launchPersistentContext(PROFILE, { serviceWorkers: 'block' });
+await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
 let page = ctx.pages()[0] || await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
@@ -105,6 +106,7 @@ const ui = async (file, itemId) => {
   const prof = join(OUT, `.profile-${itemId}`); rmSync(prof, { recursive: true, force: true });
   const c = await chromium.launchPersistentContext(prof, { serviceWorkers: 'block', permissions: ['microphone'],
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${join(AUDIO, 'audio', file)}.wav%noloop`] });
+  await c.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   const p = c.pages()[0] || await c.newPage();
   p.on('pageerror', (e) => errors.push(e.message));
   await p.goto(BASE); await p.waitForFunction(() => window.DRG_APP && window.DRG_APP.state);

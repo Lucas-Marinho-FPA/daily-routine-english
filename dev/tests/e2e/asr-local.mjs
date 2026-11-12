@@ -41,6 +41,7 @@ async function launch(micFile) {
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${join(FIX, micFile)}%noloop`, '--autoplay-policy=no-user-gesture-required'],
     viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, permissions: ['microphone'],
   });
+  await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   // sonda de áudio: registra o que tocou (para verificar referências e “Ouvir minha resposta”)
   await ctx.addInitScript(`window.__plays = []; const __op = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { window.__plays.push((this.currentSrc || this.src || '').replace(location.origin, '')); return __op.call(this); };`);
   page = ctx.pages()[0] || await ctx.newPage();

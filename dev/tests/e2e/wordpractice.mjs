@@ -35,6 +35,7 @@ async function launch(micFile) {
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${join(FIX, micFile)}%noloop`, '--autoplay-policy=no-user-gesture-required'],
     viewport: { width: 430, height: 932 }, isMobile: true, hasTouch: true, permissions: ['microphone'],
   });
+  await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   // sonda: quantas vezes o microfone foi aberto (nenhuma gravação pode começar sozinha)
   await ctx.addInitScript(`window.__mic = 0; const __gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices); navigator.mediaDevices.getUserMedia = (c) => { window.__mic++; return __gum(c); };`);
   if (process.env.WP_DEBUG) await ctx.addInitScript(`window.__dec = []; const __d = BaseAudioContext.prototype.decodeAudioData; BaseAudioContext.prototype.decodeAudioData = async function (b) { const n = b.byteLength; const r = await __d.call(this, b); const d = r.getChannelData(0); let m = 0; for (const v of d) m = Math.max(m, Math.abs(v)); window.__dec.push({ bytes: n, secs: +r.duration.toFixed(2), peak: +m.toFixed(2) }); return r; };`);

@@ -9,6 +9,7 @@ import { h, icon, clear, toast, bar } from './dom.js';
 import * as player from '../audio/player.js';
 import * as recorder from '../audio/recorder.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import { analyseBlob } from '../audio/analysis.js';
 import * as db from '../store/db.js';
 import { asrSetupCard } from './asrsetup.js';
@@ -50,7 +51,7 @@ const ITEM_CHIP = { passed: 'ok', needs_practice: 'bad', inconclusive: 'warn', p
 
 const online = () => navigator.onLine !== false;
 // testes E2E podem substituir SÓ o reconhecedor (globalThis.__DRG_TEST_ASR = { status(), transcribe(blob, o) }); o resto é o real
-const asrEngine = () => globalThis.__DRG_TEST_ASR || localasr;
+const asrEngine = () => globalThis.__DRG_TEST_ASR || speech; // motor central: online desta gravação ou o modelo do aparelho
 const hasAudio = (key) => player.hasEmbedded(key);
 
 // ---------------------------------------------------------------------------------------------------------
@@ -379,17 +380,17 @@ async function speechReady(area, App, onReady) {
 export async function evaluateRecording(blob, { target, trim, alive = () => true }) {
   const analysis = await analyseBlob(blob).catch(() => null);
   const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
-  const recognise = async (word) => {
+  const recognise = async (word, local = false) => {
     let asr = null, reason = '';
-    try { asr = await asrEngine().transcribe(blob, { word }); } catch (e) { reason = `O reconhecimento falhou nesta gravação (${e.message}). Isso não conta como erro seu.`; }
+    try { asr = await asrEngine().transcribe(blob, { word, local }); } catch (e) { reason = `O reconhecimento falhou nesta gravação (${e.message}). Isso não conta como erro seu.`; }
     const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
     const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
     return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
   };
   let pass = await recognise(trim);
-  const diag = { trim, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
+  const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
   if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
-    const other = await recognise(!trim); // mesma gravação, outro modo: só substitui se reconhecer MAIS palavras do texto
+    const other = await recognise(!trim, true); // mesma gravação, o modelo do aparelho no outro modo: só substitui se reconhecer MAIS palavras
     diag.secondPass = other.asr ? other.asr.text : null;
     const goods = (r) => ((r.feedback && r.feedback.words) || []).filter((w) => w.state === 'good').length;
     if (other.asr && goods(other.result) > goods(pass.result)) pass = other;
@@ -427,7 +428,7 @@ function speechDetails(result, heard) {
   return [
     heard !== null && heard !== undefined ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'O app ouviu: ' }), h('span', { 'data-role': 'heard', text: `“${heard}”` })) : null,
     f.toPractise && f.toPractise.length ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'Palavras a praticar: ' }), f.toPractise.join(', ')) : null,
-    h('div', { class: 'tiny muted', text: 'Correspondência entre a transcrição e o texto — não é avaliação fonética da pronúncia.' }),
+    h('div', { class: 'tiny muted', 'data-role': 'asr-engine', text: `Correspondência entre a transcrição e o texto — não é avaliação fonética da pronúncia.${{ online: ' Reconhecimento online do navegador.', 'local-model': ' Reconhecimento do aparelho.' }[((result.evidence || {}).asr || {}).engine] || ''}` }),
   ];
 }
 

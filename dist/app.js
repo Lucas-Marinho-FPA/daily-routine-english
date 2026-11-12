@@ -1258,9 +1258,9 @@
     } else {
       let ps = raw.profiles && typeof raw.profiles === "object" && !Array.isArray(raw.profiles) ? raw.profiles : null;
       if (!ps) repairs.push("profiles");
-      const live2 = PROGRESS_KEYS.filter((k) => k in raw);
-      if (live2.length && typeof raw.activeProfile === "string") {
-        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live2.map((k) => [k, raw[k]])) } };
+      const live3 = PROGRESS_KEYS.filter((k) => k in raw);
+      if (live3.length && typeof raw.activeProfile === "string") {
+        ps = { ...ps || {}, [raw.activeProfile]: { ...(ps || {})[raw.activeProfile] || {}, ...Object.fromEntries(live3.map((k) => [k, raw[k]])) } };
       }
       s.profiles = {};
       for (const [id, p] of Object.entries(ps || {})) s.profiles[id] = cleanProgress(p, today, repairs);
@@ -2129,6 +2129,209 @@
       ms += res.ms;
     }
     return { text: texts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim(), confidence: 0, engine: "local-model", ms, secs, parts: segs.length, segments: info };
+  }
+
+  // app/js/audio/speech.js
+  var speech_exports = {};
+  __export(speech_exports, {
+    attach: () => attach,
+    configure: () => configure2,
+    engineFor: () => engineFor,
+    onlineSupported: () => onlineSupported,
+    onlineUsable: () => onlineUsable,
+    prepareOnline: () => prepareOnline,
+    startLive: () => startLive,
+    status: () => status2,
+    transcribe: () => transcribe2
+  });
+  var SR = () => globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition || null;
+  var START_TIMEOUT_MS = 6e3;
+  var END_WAIT_MS = 4e3;
+  var cfg = { getConsent: () => void 0, setConsent: () => {
+  } };
+  function configure2(c) {
+    cfg = { ...cfg, ...c };
+  }
+  var isOnline = () => !(globalThis.navigator && navigator.onLine === false);
+  var onlineSupported = () => !!SR();
+  var onlineUsable = () => onlineSupported() && isOnline() && cfg.getConsent() !== false;
+  async function prepareOnline() {
+    if (!onlineSupported() || !isOnline()) return false;
+    const c = cfg.getConsent();
+    if (c === true) return true;
+    if (c === false) return false;
+    const yes = await askConsent();
+    cfg.setConsent(yes);
+    return yes;
+  }
+  function askConsent() {
+    return new Promise((resolve) => {
+      let done = false, s = null;
+      const finish = (v) => {
+        if (!done) {
+          done = true;
+          resolve(v);
+          if (s) s.close();
+        }
+      };
+      const body = h(
+        "div",
+        { "data-role": "speech-consent" },
+        h("h3", { text: "Reconhecimento de voz online" }),
+        h("p", { class: "small", text: "Com internet, o app usa o reconhecimento de voz do navegador/dispositivo, que costuma entender melhor. Sua voz poder\xE1 ser enviada a um servi\xE7o externo, como o Google; o aplicativo n\xE3o controla esse processamento." }),
+        h("p", { class: "small muted", text: "Sem internet (ou se voc\xEA preferir), o app usa o reconhecimento do pr\xF3prio aparelho, quando instalado. D\xE1 para mudar depois em Ajustes \u2192 \xC1udio." }),
+        h(
+          "div",
+          { class: "row", style: { marginTop: "14px" } },
+          h("button", { class: "btn", type: "button", "data-choice": "local", onclick: () => finish(false) }, "S\xF3 no aparelho"),
+          h("button", { class: "btn primary", type: "button", "data-choice": "online", onclick: () => finish(true) }, "Usar online")
+        )
+      );
+      s = sheet(body, { label: "Reconhecimento de voz online", onClose: () => finish(false) });
+    });
+  }
+  function startLive({ lang = "en-GB" } = {}) {
+    const t0 = performance.now();
+    const out = { engine: "online", lang, text: "", confidence: 0, alternatives: [], events: [], error: null, ms: null };
+    const finals = [];
+    let ended = false, resolveEnd;
+    const endP = new Promise((r) => {
+      resolveEnd = r;
+    });
+    const end = () => {
+      if (!ended) {
+        ended = true;
+        resolveEnd();
+      }
+    };
+    let rec = null;
+    try {
+      rec = new (SR())();
+      rec.lang = lang;
+      rec.continuous = true;
+      try {
+        rec.interimResults = true;
+      } catch (e) {
+      }
+      try {
+        rec.maxAlternatives = 3;
+      } catch (e) {
+      }
+      for (const n of ["start", "audiostart", "audioend", "nomatch"]) rec[`on${n}`] = () => out.events.push(n);
+      rec.onresult = (e) => {
+        for (let i = e.resultIndex || 0; i < e.results.length; i++) {
+          const r = e.results[i];
+          if (r.isFinal === false) continue;
+          finals[i] = { text: r[0].transcript, confidence: typeof r[0].confidence === "number" ? r[0].confidence : 0, alts: Array.from(r, (a) => a.transcript) };
+        }
+      };
+      rec.onerror = (e) => {
+        out.error = e.error || "erro";
+        out.events.push(`error:${out.error}`);
+      };
+      rec.onend = () => {
+        out.events.push("end");
+        end();
+      };
+      rec.start();
+    } catch (e) {
+      out.error = `start:${e.name || "erro"}`;
+      end();
+    }
+    const watchdog = setTimeout(() => {
+      if (!ended && !out.events.length) {
+        out.error = out.error || "sem-resposta";
+        try {
+          rec.abort();
+        } catch (e) {
+        }
+        end();
+      }
+    }, START_TIMEOUT_MS);
+    let result = null;
+    return {
+      stop() {
+        if (result) return result;
+        result = (async () => {
+          if (!ended && rec) {
+            try {
+              rec.stop();
+            } catch (e) {
+            }
+          }
+          await Promise.race([endP, new Promise((r) => setTimeout(r, END_WAIT_MS))]);
+          clearTimeout(watchdog);
+          if (!ended && rec) {
+            try {
+              rec.abort();
+            } catch (e) {
+            }
+          }
+          const parts = finals.filter(Boolean);
+          out.text = parts.map((x) => x.text).join(" ").replace(/\s+/g, " ").trim();
+          const conf = parts.map((x) => x.confidence).filter((c) => c > 0);
+          out.confidence = conf.length ? conf.reduce((a, b) => a + b, 0) / conf.length : 0;
+          out.alternatives = parts.length === 1 ? parts[0].alts : [];
+          out.ms = Math.round(performance.now() - t0);
+          return out;
+        })();
+        return result;
+      },
+      cancel() {
+        clearTimeout(watchdog);
+        if (!ended && rec) {
+          try {
+            rec.abort();
+          } catch (e) {
+          }
+        }
+        end();
+      }
+    };
+  }
+  var live = /* @__PURE__ */ new WeakMap();
+  function attach(blob, liveResult) {
+    if (blob && liveResult) live.set(blob, liveResult);
+  }
+  var engineFor = (blob) => live.has(blob) ? "online" : "local-model";
+  async function status2() {
+    if (onlineUsable()) return "installed";
+    return status();
+  }
+  async function transcribe2(blob, opts = {}) {
+    let fallbackReason = null;
+    if (!opts.local) {
+      const p = live.get(blob);
+      if (p) {
+        const r2 = await p;
+        if (r2.text) {
+          return {
+            text: r2.text,
+            confidence: r2.confidence || 0,
+            engine: "online",
+            lang: r2.lang,
+            ms: r2.ms,
+            secs: null,
+            status: "ok",
+            alternatives: r2.alternatives,
+            events: r2.events,
+            error: r2.error || null
+          };
+        }
+        fallbackReason = r2.error ? `online: ${r2.error}` : "online: sem texto";
+      } else {
+        fallbackReason = !onlineSupported() ? "navegador sem reconhecimento online" : !isOnline() ? "sem internet" : cfg.getConsent() === false ? "online recusado pelo aluno" : "online n\xE3o iniciado";
+      }
+    }
+    const st = await status().catch(() => "unsupported");
+    if (st !== "installed") {
+      const e = new Error(`nenhum reconhecimento dispon\xEDvel (${fallbackReason || "local n\xE3o instalado"})`);
+      e.code = "unavailable";
+      e.fallbackReason = fallbackReason;
+      throw e;
+    }
+    const r = await transcribe(blob, opts);
+    return { ...r, engine: "local-model", lang: "en", status: "ok", fallbackReason };
   }
 
   // app/js/engine/characters.js
@@ -3178,7 +3381,7 @@
     };
     pwa.check = check;
     let opened = false;
-    const attach = (reg) => {
+    const attach2 = (reg) => {
       if (!reg) return;
       if (pwa.reg !== reg) {
         pwa.reg = reg;
@@ -3196,11 +3399,11 @@
       notify();
     };
     pwa.attach = () => sw.getRegistration().then((reg) => {
-      attach(reg);
+      attach2(reg);
       return reg || null;
     }, () => null);
     pwa.attach();
-    sw.register("sw.js").then(attach).catch((e) => {
+    sw.register("sw.js").then(attach2).catch((e) => {
       pwa.regError = e && e.message || String(e);
       console.warn("SW n\xE3o registrado", e);
       notify();
@@ -3319,7 +3522,7 @@
     }
     return "Baixando a atualiza\xE7\xE3o\u2026";
   }
-  function live(render) {
+  function live2(render) {
     const slot = h("div", { class: "pwa-slot" });
     const draw = () => {
       if (!slot.isConnected && slot.dataset.drawn) {
@@ -3343,7 +3546,7 @@
     );
   }
   function installCard(App2, { compact = false } = {}) {
-    return live(() => {
+    return live2(() => {
       const pwa = App2.pwa || { install: "unsupported" };
       const st = pwa.install;
       if (st === "standalone") return compact ? null : h("div", { class: "card flat small", "data-role": "install-status", "data-state": st }, "\u2713 Aberto como aplicativo instalado.");
@@ -3406,7 +3609,7 @@
     });
   }
   function updateStatus(App2) {
-    return live(() => {
+    return live2(() => {
       const pwa = App2.pwa || {};
       const ver = pwa.version ? `Vers\xE3o ${pwa.version}` : "Vers\xE3o em uso";
       const st = pwa.update;
@@ -3922,12 +4125,13 @@
       return "unknown";
     }
   }
-  async function start({ maxMs = 18e4, onLevel } = {}) {
+  async function start({ maxMs = 18e4, onLevel, lang = "en-GB", recognize = true } = {}) {
     if (!supported()) {
       const e = new Error("unsupported");
       e.userMessage = "Este navegador n\xE3o oferece grava\xE7\xE3o de \xE1udio neste modo de execu\xE7\xE3o.";
       throw e;
     }
+    const online2 = recognize ? await prepareOnline() : false;
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -3971,10 +4175,13 @@
       rec.onstop = () => {
         cleanup2();
         clearTimeout(timer2);
-        resolve({ blob: new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" }), ms: Math.round(performance.now() - t0) });
+        const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" });
+        if (liveCtl) attach(blob, liveCtl.stop());
+        resolve({ blob, ms: Math.round(performance.now() - t0), engine: liveCtl ? "online" : null });
       };
     });
     rec.start(250);
+    const liveCtl = online2 ? startLive({ lang }) : null;
     timer2 = setTimeout(() => {
       if (rec.state !== "inactive") rec.stop();
     }, maxMs);
@@ -3984,6 +4191,7 @@
         return stopped;
       },
       cancel: () => {
+        if (liveCtl) liveCtl.cancel();
         if (rec.state !== "inactive") rec.stop();
       },
       stopped
@@ -5574,7 +5782,7 @@ ${body.join("\n\n")}
       } }, "Falar sem olhar");
       const out = h("div", { "data-role": "speak-out" });
       const recBtn = h("button", { class: "rec-btn", type: "button", "aria-label": "Gravar", "data-role": "rec" }, icon("mic"));
-      const status3 = h("div", { class: "small muted", text: "Toque no microfone, fale e toque de novo para terminar." });
+      const status4 = h("div", { class: "small muted", text: "Toque no microfone, fale e toque de novo para terminar." });
       let rec = null, url = null;
       const stopRec = () => {
         if (rec) {
@@ -5592,7 +5800,7 @@ ${body.join("\n\n")}
           const r0 = rec;
           rec = null;
           recBtn.classList.remove("on");
-          status3.textContent = "Analisando\u2026";
+          status4.textContent = "Analisando\u2026";
           const { blob } = await r0.stop();
           analyse(blob);
           return;
@@ -5601,11 +5809,11 @@ ${body.join("\n\n")}
         try {
           rec = await start({ maxMs: MAX_SECONDS * 1e3 });
         } catch (e) {
-          status3.textContent = e.userMessage || "N\xE3o foi poss\xEDvel gravar.";
+          status4.textContent = e.userMessage || "N\xE3o foi poss\xEDvel gravar.";
           return;
         }
         recBtn.classList.add("on");
-        status3.textContent = "Gravando\u2026 toque para terminar.";
+        status4.textContent = "Gravando\u2026 toque para terminar.";
         clear(out);
       };
       async function analyse(blob) {
@@ -5615,8 +5823,8 @@ ${body.join("\n\n")}
         const mineBtn = h("button", { class: "btn small", type: "button", onclick: () => playElement(mine, { restart: true }) }, icon("play"), "Minha voz");
         const analysis = await analyseBlob(blob).catch(() => null);
         const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.4;
-        const st = await status().catch(() => "unsupported");
-        status3.textContent = "Toque no microfone para gravar de novo.";
+        const st = await status2().catch(() => "unsupported");
+        status4.textContent = "Toque no microfone para gravar de novo.";
         if (st !== "installed") {
           out.replaceChildren(
             h("div", { class: "notice warn" }, "Sem reconhecimento de fala instalado: ou\xE7a a sua voz e compare com o modelo. Esta tentativa n\xE3o \xE9 corrigida."),
@@ -5628,7 +5836,7 @@ ${body.join("\n\n")}
         let res = null;
         if (!insufficient) {
           try {
-            res = await transcribe(blob);
+            res = await transcribe2(blob);
           } catch (e) {
             if (e.code === "cancelled") return;
             out.replaceChildren(h("div", { class: "notice warn" }, `A an\xE1lise falhou nesta grava\xE7\xE3o (${e.message}). Grave de novo; n\xE3o conta como erro.`), mineBtn);
@@ -5658,7 +5866,7 @@ ${body.join("\n\n")}
         textEl,
         ex.meaning ? h("p", { class: "small muted", text: `Sentido: ${ex.meaning}` }) : null,
         h("div", { class: "row" }, listenBtn(ex.text), hideBtn),
-        h("div", { class: "rec-main", style: { marginTop: "12px" } }, recBtn, h("div", { class: "rec-info" }, status3)),
+        h("div", { class: "rec-main", style: { marginTop: "12px" } }, recBtn, h("div", { class: "rec-info" }, status4)),
         out
       ].filter(Boolean);
     }
@@ -5818,7 +6026,7 @@ ${body.join("\n\n")}
       saveSoon2();
       App2.go(qHref(act.id, resumeOf(act)));
     };
-    const status3 = lock ? h("div", { class: "small muted", "data-role": "activity-lock" }, icon("lock"), ` ${lock.reason}`) : h(
+    const status4 = lock ? h("div", { class: "small muted", "data-role": "activity-lock" }, icon("lock"), ` ${lock.reason}`) : h(
       "div",
       { class: "row nowrap small", style: { gap: "6px" } },
       h("span", { class: "grow", "data-role": "activity-progress", text: `${s.done} de ${s.total} quest\xF5es conclu\xEDdas` }),
@@ -5848,7 +6056,7 @@ ${body.join("\n\n")}
       "section",
       { class: `card${lock ? " locked" : ""}`, style: { marginTop: "12px" }, "data-role": "activity", "data-id": act.id, "data-code": act.code || "" },
       h("div", { class: "row nowrap" }, h("h3", { class: "grow", style: { margin: 0 }, text: name }), lock ? null : practiceButton(act)),
-      status3,
+      status4,
       lock ? null : bar(s.total ? s.done / s.total : 0),
       lock ? null : h(
         "button",
@@ -6413,14 +6621,14 @@ ${body.join("\n\n")}
     const valid = list.filter((a) => a.score !== null && (a.status === "passed" || a.status === "needs_practice"));
     const passed = list.some((a) => a.status === "passed");
     const last = list[list.length - 1] || null;
-    let status3 = "unseen";
-    if (passed) status3 = "passed";
-    else if (list.some((a) => a.status === "pending")) status3 = "pending_evaluation";
-    else if (last) status3 = last.status;
+    let status4 = "unseen";
+    if (passed) status4 = "passed";
+    else if (list.some((a) => a.status === "pending")) status4 = "pending_evaluation";
+    else if (last) status4 = last.status;
     return {
       itemId,
       phase,
-      status: status3,
+      status: status4,
       attemptCount: list.length,
       bestValidScore: valid.length ? Math.max(...valid.map((a) => a.score)) : null,
       lastValidScore: valid.length ? valid[valid.length - 1].score : null,
@@ -6895,7 +7103,7 @@ ${body.join("\n\n")}
   var TYPE_LABEL = { word: "Palavra", phrasal_verb: "Phrasal verb", collocation: "Collocation", chunk: "Express\xE3o (chunk)", expression: "Express\xE3o", pattern: "Padr\xE3o" };
   var ITEM_CHIP = { passed: "ok", needs_practice: "bad", inconclusive: "warn", pending_evaluation: "warn", unseen: "" };
   var online = () => navigator.onLine !== false;
-  var asrEngine = () => globalThis.__DRG_TEST_ASR || localasr_exports;
+  var asrEngine = () => globalThis.__DRG_TEST_ASR || speech_exports;
   var hasAudio = (key) => hasEmbedded(key);
   async function playOnce(clip) {
     const pr = play(clip);
@@ -7326,10 +7534,10 @@ ${body.join("\n\n")}
   async function evaluateRecording(blob, { target, trim, alive = () => true }) {
     const analysis = await analyseBlob(blob).catch(() => null);
     const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
-    const recognise = async (word) => {
+    const recognise = async (word, local = false) => {
       let asr = null, reason = "";
       try {
-        asr = await asrEngine().transcribe(blob, { word });
+        asr = await asrEngine().transcribe(blob, { word, local });
       } catch (e) {
         reason = `O reconhecimento falhou nesta grava\xE7\xE3o (${e.message}). Isso n\xE3o conta como erro seu.`;
       }
@@ -7338,9 +7546,9 @@ ${body.join("\n\n")}
       return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
     };
     let pass = await recognise(trim);
-    const diag = { trim, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
+    const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis ? analysis.voicedSec : null };
     if (alive() && pass.asr && tailMiss(pass.result).prefixOnly) {
-      const other = await recognise(!trim);
+      const other = await recognise(!trim, true);
       diag.secondPass = other.asr ? other.asr.text : null;
       const goods = (r) => (r.feedback && r.feedback.words || []).filter((w) => w.state === "good").length;
       if (other.asr && goods(other.result) > goods(pass.result)) pass = other;
@@ -7382,7 +7590,7 @@ ${body.join("\n\n")}
     return [
       heard !== null && heard !== void 0 ? h("div", { class: "small" }, h("span", { class: "muted", text: "O app ouviu: " }), h("span", { "data-role": "heard", text: `\u201C${heard}\u201D` })) : null,
       f.toPractise && f.toPractise.length ? h("div", { class: "small" }, h("span", { class: "muted", text: "Palavras a praticar: " }), f.toPractise.join(", ")) : null,
-      h("div", { class: "tiny muted", text: "Correspond\xEAncia entre a transcri\xE7\xE3o e o texto \u2014 n\xE3o \xE9 avalia\xE7\xE3o fon\xE9tica da pron\xFAncia." })
+      h("div", { class: "tiny muted", "data-role": "asr-engine", text: `Correspond\xEAncia entre a transcri\xE7\xE3o e o texto \u2014 n\xE3o \xE9 avalia\xE7\xE3o fon\xE9tica da pron\xFAncia.${{ online: " Reconhecimento online do navegador.", "local-model": " Reconhecimento do aparelho." }[((result.evidence || {}).asr || {}).engine] || ""}` })
     ];
   }
   function phaseVocab(App2, { pack, act, p, area, ctx }) {
@@ -7395,7 +7603,7 @@ ${body.join("\n\n")}
       const m = mastery2(p, "vocab", it.id);
       const n = listensOf(p, `vocab:${it.id}`);
       const canSpeak = canSpeakItem(p, it.id);
-      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
+      const status4 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
       const listenBtn = h("button", { class: "btn primary", type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
       const recBtn = h("button", { class: "btn block", type: "button", "data-role": "record-item", disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
       const fb = h("div", { "data-role": "item-result" });
@@ -7420,7 +7628,7 @@ ${body.join("\n\n")}
           ),
           hasAudio(it.audio) ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para este item: a produ\xE7\xE3o oral fica bloqueada." }),
           h("div", { style: { marginTop: "12px" } }, recBtn),
-          status3
+          status4
         ),
         fb
       );
@@ -7451,9 +7659,9 @@ ${body.join("\n\n")}
         draw();
       };
       recBtn.onclick = async () => {
-        if (!await speechReady(status3, App2, () => draw())) return;
+        if (!await speechReady(status4, App2, () => draw())) return;
         recBtn.disabled = true;
-        const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8e3, trim: true, statusEl: status3, ctx });
+        const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8e3, trim: true, statusEl: status4, ctx });
         if (!out || !ctx.alive) return;
         const result = { ...out.result, rubricVersion: "dre-speech-lexical-1" };
         addAttempt(p, { attemptId: newAttemptId(), phase: "vocab", itemId: it.id, inputType: "speech", response: out.heard, result });
@@ -7817,7 +8025,7 @@ ${body.join("\n\n")}
     const draw = () => {
       const l = act.lines.find((x) => x.id === current2);
       const m = mastery2(p, "reading", l.id);
-      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
+      const status4 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
       const recBtn = h("button", { class: "btn primary block", type: "button", "data-role": "record-line" }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar a leitura");
       const fb = h("div", { "data-role": "line-result" });
       clear(area).append(
@@ -7838,7 +8046,7 @@ ${body.join("\n\n")}
             h("button", { class: "btn ghost small", type: "button", disabled: !hasAudio(l.audio), onclick: () => play({ key: l.audio, text: l.en }) }, icon("speaker"), "Ouvir o modelo")
           ),
           h("div", { style: { marginTop: "12px" } }, recBtn),
-          status3
+          status4
         ),
         fb
       );
@@ -7852,9 +8060,9 @@ ${body.join("\n\n")}
       } }, "Pr\xF3xima fala", icon("next")));
       area.append(phaseFooter(pack, act, p, "reading"));
       recBtn.onclick = async () => {
-        if (!await speechReady(status3, App2, () => draw())) return;
+        if (!await speechReady(status4, App2, () => draw())) return;
         recBtn.disabled = true;
-        const out = await recordAndEvaluate({ target: l.en, maxMs: 3e4, trim: trimForLine(l.en), statusEl: status3, ctx });
+        const out = await recordAndEvaluate({ target: l.en, maxMs: 3e4, trim: trimForLine(l.en), statusEl: status4, ctx });
         if (!out || !ctx.alive) return;
         addAttempt(p, { attemptId: newAttemptId(), phase: "reading", itemId: l.id, inputType: "speech", response: out.heard, result: out.result });
         settleCompletion(pack, act, p);
@@ -9019,14 +9227,14 @@ ${body.join("\n\n")}
     const requiredOk = checklist.filter((c) => c.required).every((c) => c.ok !== false);
     const unconfirmed = checklist.some((c) => c.unconfirmed);
     const misheard = relevance === "none" && hypotheses.length > 0;
-    const status3 = misheard ? "unclear" : relevance === "none" ? "off-topic" : requiredOk && tokens.length >= minToAnswer ? unconfirmed ? "unclear" : "answers" : "partial";
+    const status4 = misheard ? "unclear" : relevance === "none" ? "off-topic" : requiredOk && tokens.length >= minToAnswer ? unconfirmed ? "unclear" : "answers" : "partial";
     const holeText = holes.length ? ` (por exemplo, depois de \u201C${holes[0].after}\u201D)` : "";
     const message = {
       answers: "Sua resposta responde \xE0 pergunta.",
       partial: "Sua resposta tem rela\xE7\xE3o com a pergunta, mas pode ficar mais completa.",
       unclear: misheard ? `O app pode ter reconhecido errado parte da sua fala (${hypotheses.slice(0, 2).map((x) => `\u201C${x.heard}\u201D \u2014 talvez \u201C${x.ref}\u201D`).join("; ")}). Por isso n\xE3o d\xE1 para confirmar se a resposta trata da pergunta: confira o trecho marcado ouvindo sua grava\xE7\xE3o.` : `Sua resposta tem rela\xE7\xE3o com a pergunta, mas o app pode ter perdido parte da sua fala${holeText}. N\xE3o d\xE1 para afirmar que faltou algo: ou\xE7a sua grava\xE7\xE3o.`,
       "off-topic": "N\xE3o encontrei rela\xE7\xE3o clara com a pergunta. Pode ser erro do reconhecimento: ou\xE7a sua grava\xE7\xE3o. Se voc\xEA falou de outro assunto, tente responder diretamente."
-    }[status3];
+    }[status4];
     const coherence = findContradictions(text).map((c) => c.kind === "two-times" ? { kind: c.kind, msg: `Voc\xEA mencionou dois hor\xE1rios para \u201C${c.activity}\u201D (${c.times.join(" e ")}) sem dizer quando vale cada um (ex.: \u201Con weekends\u201D). Confira na grava\xE7\xE3o: pode ter sido o reconhecimento.` } : { kind: c.kind, msg: `\u201C${c.times[0]}\u201D e \u201C${c.period}\u201D n\xE3o combinam (p.m. \xE9 tarde/noite; a.m. \xE9 manh\xE3). Confira o hor\xE1rio na grava\xE7\xE3o.` });
     const tips = [];
     for (const c of checklist) {
@@ -9042,7 +9250,7 @@ ${body.join("\n\n")}
     const language = { grammar: grammarTips, naturalness: (naturalness || []).slice(0, 2) };
     return {
       ...base,
-      status: status3,
+      status: status4,
       message,
       intent,
       relevance,
@@ -9388,7 +9596,7 @@ ${body.join("\n\n")}
         `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
         d.score === null ? h("i", { text: `n\xE3o avaliado \u2014 ${d.note}` }) : h("b", { text: `${d.score}/100` })
       ))) : null,
-      h("p", { class: "tiny muted", text: `${engine === "model" ? "Reconhecimento local (Moonshine), no aparelho." : engine === "webspeech" ? "Reconhecimento do Chrome, no aparelho." : ""} As cores indicam se cada palavra foi reconhecida, n\xE3o qual som foi dito; sotaque n\xE3o \xE9 erro. Pesos da nota: hip\xF3teses iniciais, n\xE3o validadas.` })
+      h("p", { class: "tiny muted", text: `${engine === "model" || engine === "local-model" ? "Reconhecimento local (Moonshine), no aparelho." : engine === "webspeech" ? "Reconhecimento do Chrome, no aparelho." : engine === "online" ? "Reconhecimento online do navegador (a voz pode ter ido ao servi\xE7o dele)." : ""} As cores indicam se cada palavra foi reconhecida, n\xE3o qual som foi dito; sotaque n\xE3o \xE9 erro. Pesos da nota: hip\xF3teses iniciais, n\xE3o validadas.` })
     );
   }
 
@@ -9403,7 +9611,7 @@ ${body.join("\n\n")}
   function freeAnswerPanel(App2, { question = "", model = "", alternatives = [], modelClips = [], unit = "q" }) {
     const el = h("section", { class: "fb free-fb hidden", "aria-live": "polite", "data-role": "free-feedback", "data-state": "idle" });
     const gate = latestGate();
-    let w = null, status3 = null, alive = true, last = null, pendingSaved = null;
+    let w = null, status4 = null, alive = true, last = null, pendingSaved = null;
     loadLexicon();
     const show = (state, ...children) => {
       clear(el).append(...children);
@@ -9423,41 +9631,41 @@ ${body.join("\n\n")}
     const againBtn = (label = "Gravar novamente") => h("button", { class: "btn small", type: "button", onclick: recordAgain }, icon("mic"), label);
     const mineBtn = () => h("button", { class: "btn small", type: "button", onclick: () => w && w.audioEl.src && playElement(w.audioEl, { restart: true }) }, icon("play"), "Ouvir minha resposta");
     async function refreshStatus() {
-      status3 = await status();
+      status4 = await status2();
       if (!alive) return;
       if (pendingSaved) {
         const r = pendingSaved;
         pendingSaved = null;
         loaded(r);
-      } else if (status3 !== "installed" && el.dataset.state === "idle" && last) unavailable();
+      } else if (status4 !== "installed" && el.dataset.state === "idle" && last) unavailable();
     }
     function unavailable() {
       const installed = () => {
-        status3 = "installed";
+        status4 = "installed";
         if (last) analyse(last.blob, last.analysis);
         else show("idle");
       };
-      if (status3 === "not-installed" && App2.state.settings.asrPrompt !== "later") {
+      if (status4 === "not-installed" && App2.state.settings.asrPrompt !== "later") {
         return show(
           "setup",
           h("p", { class: "small muted", text: "Sua grava\xE7\xE3o est\xE1 salva. Para receber a transcri\xE7\xE3o e o feedback autom\xE1tico, instale o reconhecimento de fala local." }),
           asrSetupCard(App2, { onInstalled: installed, onLater: () => unavailable() })
         );
       }
-      if (status3 === "not-installed") return show("unavailable", asrOffNotice(App2, { onInstalled: installed }));
+      if (status4 === "not-installed") return show("unavailable", asrOffNotice(App2, { onInstalled: installed }));
       show("unavailable", h("p", { class: "small muted", text: `An\xE1lise autom\xE1tica indispon\xEDvel aqui: ${unsupportedReason() || "reconhecimento local ausente"}. A grava\xE7\xE3o continua salva.` }));
     }
     async function analyse(blob, analysis, saved = null) {
       const ticket = gate.next();
       last = { blob, analysis };
-      if (!saved && status3 !== "installed") return unavailable();
+      if (!saved && status4 !== "installed") return unavailable();
       let text = saved ? saved.text : null;
       let integrity = saved ? saved.integrity || null : null;
       if (!saved && !insufficientAudio(analysis)) {
         const prog = h("span", { class: "small muted" });
         show("analysing", h("div", { class: "fb-analysing", role: "status" }, h("span", { class: "spinner", "aria-hidden": "true" }), "Analisando sua resposta\u2026", prog));
         try {
-          const res = await transcribe(blob, { long: true, onProgress: (i, n) => {
+          const res = await transcribe2(blob, { long: true, onProgress: (i, n) => {
             if (n > 1) prog.textContent = ` parte ${i} de ${n}`;
           } });
           text = res.text;
@@ -9709,14 +9917,14 @@ ${body.join("\n\n")}
       last = { blob: rec.blob, analysis: meta.analysis || null };
       if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text, integrity: meta.free.integrity || null });
       if (!rec.blob) return;
-      if (status3 === "installed") return analyse(rec.blob, meta.analysis || null);
+      if (status4 === "installed") return analyse(rec.blob, meta.analysis || null);
       unavailable();
     }
     const hooks = {
       onStart: () => reset(),
       onRecorded: (blob, analysis) => analyse(blob, analysis),
       onLoaded: (rec) => {
-        if (status3 === null) pendingSaved = rec;
+        if (status4 === null) pendingSaved = rec;
         else loaded(rec);
       },
       onDeleted: () => {
@@ -10599,18 +10807,18 @@ ${body.join("\n\n")}
   }
 
   // app/js/audio/asr.js
-  var SR = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
+  var SR2 = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
   var memo = null;
   var cachedStatus = () => memo;
-  async function status2(lang = "en-GB") {
+  async function status3(lang = "en-GB") {
     memo = await queryStatus(lang);
     return memo;
   }
   async function queryStatus(lang) {
-    if (!SR || !("processLocally" in SR.prototype)) return "unsupported";
+    if (!SR2 || !("processLocally" in SR2.prototype)) return "unsupported";
     try {
-      if (typeof SR.available === "function") return await SR.available({ langs: [lang], processLocally: true });
-      if (typeof SR.availableOnDevice === "function") return await SR.availableOnDevice(lang);
+      if (typeof SR2.available === "function") return await SR2.available({ langs: [lang], processLocally: true });
+      if (typeof SR2.availableOnDevice === "function") return await SR2.availableOnDevice(lang);
     } catch (e) {
       return "unavailable";
     }
@@ -10624,8 +10832,8 @@ ${body.join("\n\n")}
     });
     let rec = null;
     try {
-      if (!SR) throw new Error("indispon\xEDvel");
-      rec = new SR();
+      if (!SR2) throw new Error("indispon\xEDvel");
+      rec = new SR2();
       if (!("processLocally" in rec)) throw new Error("sem modo local");
       rec.processLocally = true;
       rec.lang = lang;
@@ -10725,17 +10933,17 @@ ${body.join("\n\n")}
       if (!sel) return;
       const x = sel, st = session.get(x.key);
       const sentenceClips = clips.filter((c) => new RegExp(`\\b${x.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(c.text));
-      const status3 = h("div", { class: "wp-status", role: "status", "aria-live": "polite" });
+      const status4 = h("div", { class: "wp-status", role: "status", "aria-live": "polite" });
       const actions = h("div", { class: "wp-actions" });
       if (st.status === "recording") {
-        status3.append(h("span", { class: "wp-dot", "aria-hidden": "true" }), h("span", { text: `Gravando\u2026 diga s\xF3 \u201C${x.text}\u201D` }));
+        status4.append(h("span", { class: "wp-dot", "aria-hidden": "true" }), h("span", { text: `Gravando\u2026 diga s\xF3 \u201C${x.text}\u201D` }));
         actions.append(h("button", { class: "btn primary block", type: "button", "data-role": "wp-stop", onclick: () => rec && rec.stop() }, icon("stop"), "Parar"));
       } else if (st.status === "processing") {
-        status3.append(h("span", { class: "spinner", "aria-hidden": "true" }), h("span", { text: "Reconhecendo a palavra\u2026" }));
+        status4.append(h("span", { class: "spinner", "aria-hidden": "true" }), h("span", { text: "Reconhecendo a palavra\u2026" }));
       } else {
-        if (error) status3.append(h("div", { class: "wp-result warn", role: "alert", "data-role": "wp-error" }, icon("refresh"), h("span", { text: error })));
-        else if (st.last) status3.append(resultBox(x, st.last));
-        else status3.append(h("span", { class: "small muted", text: "A pr\xF3xima grava\xE7\xE3o avalia s\xF3 esta palavra, n\xE3o a frase." }));
+        if (error) status4.append(h("div", { class: "wp-result warn", role: "alert", "data-role": "wp-error" }, icon("refresh"), h("span", { text: error })));
+        else if (st.last) status4.append(resultBox(x, st.last));
+        else status4.append(h("span", { class: "small muted", text: "A pr\xF3xima grava\xE7\xE3o avalia s\xF3 esta palavra, n\xE3o a frase." }));
         const next = session.next(list, x.key);
         if (st.status === "done" && !error) {
           if (next) actions.append(h("button", { class: "btn primary block", type: "button", "data-role": "wp-next", onclick: () => select(next) }, icon("next"), "Praticar pr\xF3xima palavra"));
@@ -10754,7 +10962,7 @@ ${body.join("\n\n")}
           h("button", { class: "btn small", type: "button", onclick: () => playWord(x.audioText, { rate: 0.7 }) }, icon("slow"), "Devagar"),
           h("button", { class: "btn small", type: "button", onclick: () => playSequence(sentenceClips.length ? sentenceClips : clips, { rate: getRate() }) }, icon("play"), "Na frase")
         ),
-        status3,
+        status4,
         actions
       );
       panel.dataset.status = st.status;
@@ -10822,7 +11030,7 @@ ${body.join("\n\n")}
           if (!out) throw Object.assign(new Error("webspeech"), { code: "webspeech" });
           match = matchIsolatedWord(x.text, out.text);
         } else {
-          match = matchIsolatedWord(x.text, (await transcribe(res.blob, { word: true })).text);
+          match = matchIsolatedWord(x.text, (await transcribe2(res.blob, { word: true })).text);
         }
       } catch (e) {
         if (mine !== token || e.code === "cancelled") return;
@@ -11085,10 +11293,10 @@ ${body.join("\n\n")}
       else if (listenerRes !== void 0) {
         res = listenerRes;
         if (!res) why = "O reconhecimento n\xE3o conseguiu rodar junto com a grava\xE7\xE3o neste aparelho.";
-      } else if (engine === "model") {
+      } else if (engine === "model" || engine === "online") {
         showFb("analysing", h("div", { class: "fb-analysing", role: "status" }, h("span", { class: "spinner", "aria-hidden": "true" }), "Analisando sua grava\xE7\xE3o\u2026"));
         try {
-          res = await transcribe(blob);
+          res = await transcribe2(blob);
         } catch (e) {
           if (!alive || !gate.isCurrent(ticket) || e.code === "cancelled") return;
           return showError(e, blob, analysis);
@@ -11118,10 +11326,10 @@ ${body.join("\n\n")}
           "inconclusive",
           scoreLine(score, inconclusiveHint(evaluation, insufficient)),
           h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
-          scoreDetails(score, { heard: res ? res.text : null, engine, note: evaluation.note })
+          scoreDetails(score, { heard: res ? res.text : null, engine: res && res.engine || engine, note: evaluation.note })
         );
       }
-      if (res && !saved && engine === "model") w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
+      if (res && !saved && (engine === "model" || engine === "online")) w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
     }
     const inconclusiveHint = (evaluation, insufficient) => insufficient ? "Quase n\xE3o captei voz nesta grava\xE7\xE3o. Grave de novo, num lugar silencioso e mais perto do microfone." : `${evaluation.note || "N\xE3o deu para avaliar esta tentativa."} Grave novamente.`;
     function showResult(score, attempt, res, note = "") {
@@ -11133,11 +11341,11 @@ ${body.join("\n\n")}
         scoreLine(score, practiceSummary2(list)),
         wp ? wp.el : h("div", { class: "practice-ok", "data-role": "practice-ok" }, icon("check"), "Nenhuma palavra pendente nesta tentativa."),
         list.length ? null : h("div", { class: "row fb-actions" }, h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente")),
-        scoreDetails(score, { heard: res ? res.text : null, engine, note })
+        scoreDetails(score, { heard: res ? res.text : null, engine: res && res.engine || engine, note })
       );
     }
     function showError(e, blob, analysis) {
-      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.` }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
+      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.`, unavailable: "O reconhecimento online n\xE3o respondeu e o do aparelho n\xE3o est\xE1 instalado. Sua grava\xE7\xE3o est\xE1 salva; tente de novo com internet ou instale o reconhecimento local." }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
       const actions = h("div", { class: "row fb-actions" });
       const help = h("div", { class: "small" });
       if (e.code === "decode" || e.code === "too-long") actions.append(h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente"));
@@ -11232,7 +11440,7 @@ ${body.join("\n\n")}
       if (!rec || !reading || !alive) return;
       const meta = rec.meta || {};
       if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0, integrity: meta.result.integrity || null } });
-      else if (engine === "model" && asrEligible && rec.blob) analyse(rec.blob, meta.analysis);
+      else if ((engine === "model" || engine === "online" && engineInfo.local === "installed") && asrEligible && rec.blob) analyse(rec.blob, meta.analysis);
       else {
         lastBlob = rec.blob;
         lastAnalysis = meta.analysis;
@@ -11322,8 +11530,8 @@ ${body.join("\n\n")}
   }
   async function detectEngine({ ask = false, known = null } = {}) {
     const local = await status();
-    const webspeech = cachedStatus() || (ask || known === "available" ? await status2("en-GB") : null);
-    return { engine: local === "installed" ? "model" : webspeech === "available" ? "webspeech" : null, local, webspeech, why: unsupportedReason() };
+    const webspeech = cachedStatus() || (ask || known === "available" ? await status3("en-GB") : null);
+    return { engine: onlineUsable() ? "online" : local === "installed" ? "model" : webspeech === "available" ? "webspeech" : null, local, webspeech, why: unsupportedReason() };
   }
 
   // app/js/ui/review.js
@@ -11604,6 +11812,7 @@ ${body.join("\n\n")}
       h("p", { class: "small muted", text: "A voz embutida foi gerada offline em ingl\xEAs brit\xE2nico e funciona sem internet. A voz do sistema depende das vozes instaladas no Android." }),
       seg("Velocidade", "rate", [[0.75, "0,75\xD7"], [0.9, "0,9\xD7"], [1, "1\xD7"], [1.15, "1,15\xD7"]]),
       toggle("Tocar \xE1udio automaticamente", "autoplay", "Nos exerc\xEDcios e ao mostrar a resposta."),
+      onlineSupported() ? toggle("Reconhecimento de voz online", "onlineSpeech", "Com internet, usa o reconhecimento do navegador/dispositivo; sua voz poder\xE1 ser enviada a um servi\xE7o externo, como o Google. Desligado ou sem internet: o reconhecimento do aparelho.") : null,
       h("label", { class: "lbl", text: "Voz do sistema (quando usada)" }),
       voiceSel,
       h(
@@ -11642,8 +11851,8 @@ ${body.join("\n\n")}
                 App2.go(location.hash);
               } }, "Remover") : null
             ),
-            h("span", { text: "Reconhecimento online" }),
-            h("span", { text: "nunca usado (enviaria sua voz para fora do aparelho)" })
+            h("span", { text: "Reconhecimento online (navegador)" }),
+            h("span", { text: !onlineSupported() ? "indispon\xEDvel neste navegador" : `${{ true: "permitido", false: "desligado" }[String(s.onlineSpeech)] || "ainda n\xE3o perguntado"}${navigator.onLine === false ? " \xB7 sem internet agora" : ""} (o do aparelho atende sem internet)` })
           );
         });
       });
@@ -11876,6 +12085,13 @@ ${body.join("\n\n")}
     }
   };
   App.asr = { local: localasr_exports };
+  configure2({ getConsent: () => App.state ? App.state.settings.onlineSpeech : void 0, setConsent: (v) => {
+    if (App.state) {
+      App.state.settings.onlineSpeech = v;
+      App.save();
+    }
+  } });
+  App.speech = speech_exports;
   App.voiceEval = evaluateRecording;
   globalThis.DRG_APP = App;
   var TABS = [
@@ -11897,7 +12113,7 @@ ${body.join("\n\n")}
     );
     const view = h("main", { class: `view${nav ? "" : " no-nav"}`, id: "view" });
     root.append(top, view);
-    if (App.pwa) view.append(live(() => updateBanner(App)));
+    if (App.pwa) view.append(live2(() => updateBanner(App)));
     if (nav) {
       const r = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] || "";
       root.append(h(

@@ -62,6 +62,7 @@ async function launch({ mic = 'bm_george-R01-B1-S1.wav', loop = true, sw = false
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${join(FIX, mic)}${loop ? '' : '%noloop'}`, '--autoplay-policy=no-user-gesture-required'],
     viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, permissions: ['microphone'], serviceWorkers: sw ? 'allow' : 'block',
   });
+  await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   if (patch) {
     await ctx.route('**/data/dialogues.js', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: patchedPack('https://gw.test') }));
     await ctx.route('**/index.html', async (r) => { const res = await r.fetch(); r.fulfill({ response: res, body: (await res.text()).replace("connect-src 'self' file: blob: data:;", "connect-src 'self' file: blob: data: https://gw.test;") }); });
@@ -454,6 +455,7 @@ await check('D11', 'Reconhecimento local real: leitura em voz alta de uma fala a
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${wav}%noloop`, '--autoplay-policy=no-user-gesture-required'],
     viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, permissions: ['microphone'], serviceWorkers: 'block',
   });
+  await ctx.addInitScript(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; }); // caminho do aparelho (Moonshine): navegador sem reconhecimento online (motor central: speech.js)
   await ctx.route('**/data/dialogues.js', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: patchedPack('https://gw.test') }));
   page = ctx.pages()[0] || await ctx.newPage();
   page.on('pageerror', (e) => pageErrors.push(e.message));

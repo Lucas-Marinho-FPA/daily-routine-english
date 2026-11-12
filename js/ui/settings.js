@@ -3,6 +3,7 @@ import { h, icon, clear, toast, confirmSheet, fmtDate } from './dom.js';
 import * as player from '../audio/player.js';
 import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import * as recorder from '../audio/recorder.js';
 import * as db from '../store/db.js';
 import { storageReport } from '../store/storage.js';
@@ -67,6 +68,7 @@ export function renderSettings(App) {
     h('p', { class: 'small muted', text: 'A voz embutida foi gerada offline em inglês britânico e funciona sem internet. A voz do sistema depende das vozes instaladas no Android.' }),
     seg('Velocidade', 'rate', [[0.75, '0,75×'], [0.9, '0,9×'], [1, '1×'], [1.15, '1,15×']]),
     toggle('Tocar áudio automaticamente', 'autoplay', 'Nos exercícios e ao mostrar a resposta.'),
+    speech.onlineSupported() ? toggle('Reconhecimento de voz online', 'onlineSpeech', 'Com internet, usa o reconhecimento do navegador/dispositivo; sua voz poderá ser enviada a um serviço externo, como o Google. Desligado ou sem internet: o reconhecimento do aparelho.') : null,
     h('label', { class: 'lbl', text: 'Voz do sistema (quando usada)' }), voiceSel,
     h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn small', onclick: () => player.play({ key: null, text: 'I wake up at five, take a shower and brush my teeth.' }).then((r) => toast(r.ok ? 'Voz do sistema OK' : 'Voz do sistema indisponível')) }, icon('speaker'), 'Testar voz do sistema'),
       h('button', { class: 'btn small', onclick: () => player.play({ key: App.baseContent.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
@@ -87,7 +89,7 @@ export function renderSettings(App) {
           h('span', { text: 'Reconhecimento local (modelo do app)' }), h('span', {},
             { installed: `instalado (${localasr.sizeLabel()}) `, 'not-installed': 'não baixado (opcional, no Speaking Lab)', unsupported: `indisponível: ${localasr.unsupportedReason()}` }[local],
             local === 'installed' ? h('button', { class: 'btn small', onclick: async (e) => { e.currentTarget.disabled = true; await localasr.remove(); toast('Modelo de reconhecimento removido.'); App.go(location.hash); } }, 'Remover') : null),
-          h('span', { text: 'Reconhecimento online' }), h('span', { text: 'nunca usado (enviaria sua voz para fora do aparelho)' }));
+          h('span', { text: 'Reconhecimento online (navegador)' }), h('span', { text: !speech.onlineSupported() ? 'indisponível neste navegador' : `${{ true: 'permitido', false: 'desligado' }[String(s.onlineSpeech)] || 'ainda não perguntado'}${navigator.onLine === false ? ' · sem internet agora' : ''} (o do aparelho atende sem internet)` }));
       });
     });
   });

@@ -8,6 +8,7 @@ import * as player from '../audio/player.js';
 import * as recorder from '../audio/recorder.js';
 import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import { analyseBlob } from '../audio/analysis.js';
 import { practiceSummary, practiceReason, matchIsolatedWord } from '../engine/practice.js';
 import { playWord } from './inlinewords.js';
@@ -151,7 +152,7 @@ export function wordPractice({ list, session, engine, clips, getRate, focusWord,
         if (!out) throw Object.assign(new Error('webspeech'), { code: 'webspeech' });
         match = matchIsolatedWord(x.text, out.text);
       } else {
-        match = matchIsolatedWord(x.text, (await localasr.transcribe(res.blob, { word: true })).text);
+        match = matchIsolatedWord(x.text, (await speech.transcribe(res.blob, { word: true })).text); // motor central
       }
     } catch (e) {
       if (mine !== token || e.code === 'cancelled') return;

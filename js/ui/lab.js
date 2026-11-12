@@ -3,6 +3,7 @@ import { h, icon, clear } from './dom.js';
 import * as player from '../audio/player.js';
 import * as asr from '../audio/asr.js';
 import * as localasr from '../audio/localasr.js';
+import * as speech from '../audio/speech.js';
 import { wordTokens } from '../engine/text.js';
 import { recWidget } from './recwidget.js';
 import { freeAnswerPanel } from './freeanswer.js';
@@ -206,9 +207,9 @@ function renderTarget(App, params) {
     else if (!asrEligible) why = 'Texto longo: a análise por palavra vale para trechos de até 60 palavras. Grave um bloco por vez.';
     else if (insufficient) why = '';
     else if (listenerRes !== undefined) { res = listenerRes; if (!res) why = 'O reconhecimento não conseguiu rodar junto com a gravação neste aparelho.'; }
-    else if (engine === 'model') {
+    else if (engine === 'model' || engine === 'online') {
       showFb('analysing', h('div', { class: 'fb-analysing', role: 'status' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Analisando sua gravação…'));
-      try { res = await localasr.transcribe(blob); } catch (e) {
+      try { res = await speech.transcribe(blob); } catch (e) { // motor central: online desta gravação ou o modelo do aparelho
         if (!alive || !gate.isCurrent(ticket) || e.code === 'cancelled') return;
         return showError(e, blob, analysis);
       }
@@ -233,9 +234,9 @@ function renderTarget(App, params) {
       showFb('inconclusive',
         scoreLine(score, inconclusiveHint(evaluation, insufficient)),
         h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
-        scoreDetails(score, { heard: res ? res.text : null, engine, note: evaluation.note }));
+        scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, note: evaluation.note }));
     }
-    if (res && !saved && engine === 'model') w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
+    if (res && !saved && (engine === 'model' || engine === 'online')) w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
   }
 
   const inconclusiveHint = (evaluation, insufficient) => (insufficient
@@ -250,11 +251,11 @@ function renderTarget(App, params) {
       scoreLine(score, practiceSummary(list)),
       wp ? wp.el : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
       list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
-      scoreDetails(score, { heard: res ? res.text : null, engine, note }));
+      scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, note }));
   }
 
   function showError(e, blob, analysis) {
-    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.` }[e.code] || 'A análise falhou nesta gravação.';
+    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.`, unavailable: 'O reconhecimento online não respondeu e o do aparelho não está instalado. Sua gravação está salva; tente de novo com internet ou instale o reconhecimento local.' }[e.code] || 'A análise falhou nesta gravação.';
     const actions = h('div', { class: 'row fb-actions' });
     const help = h('div', { class: 'small' });
     if (e.code === 'decode' || e.code === 'too-long') actions.append(h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente'));
@@ -328,7 +329,7 @@ function renderTarget(App, params) {
     if (!rec || !reading || !alive) return;
     const meta = rec.meta || {};
     if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0, integrity: meta.result.integrity || null } });
-    else if (engine === 'model' && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
+    else if ((engine === 'model' || (engine === 'online' && engineInfo.local === 'installed')) && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
     else { lastBlob = rec.blob; lastAnalysis = meta.analysis; }
   }
 
@@ -394,5 +395,6 @@ function relevantTips(content, text) {
 export async function detectEngine({ ask = false, known = null } = {}) {
   const local = await localasr.status();
   const webspeech = asr.cachedStatus() || (ask || known === 'available' ? await asr.status('en-GB') : null);
-  return { engine: local === 'installed' ? 'model' : webspeech === 'available' ? 'webspeech' : null, local, webspeech, why: localasr.unsupportedReason() };
+  // online (navegador, motor central) primeiro; sem ele, o modelo do aparelho; por último o modo local do Chrome
+  return { engine: speech.onlineUsable() ? 'online' : local === 'installed' ? 'model' : webspeech === 'available' ? 'webspeech' : null, local, webspeech, why: localasr.unsupportedReason() };
 }
