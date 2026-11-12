@@ -5,6 +5,23 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
+## Seletor exclusivo de reconhecimento de voz (2026-11-12) — commit, push e publicação autorizados pelo PO
+
+- **Feito:** Ajustes → Áudio ganhou o seletor “Reconhecimento de voz”: **Online (navegador)** ou **Moonshine (aparelho)**
+  (`settings.onlineSpeech`, salvo no aparelho). Sem troca automática entre eles: no modo online o Moonshine não é
+  carregado nem oferecido; no modo Moonshine nada mais é consultado — nem o online nem o modo local do Chrome
+  (`SpeechRecognition.processLocally`) — e, sem o modelo instalado, o app pede a instalação. Modo ainda não escolhido
+  mantém o comportamento anterior (pedido de consentimento na primeira gravação). Arquivos: `js/audio/speech.js`
+  (`mode()`, caminhos exclusivos), `js/ui/lab.js` (`detectEngine` por modo), `js/ui/settings.js`.
+- **Preservado (conferido no código):** correção do reconhecimento online (`85df38e`: trilha do gravador, sessões
+  reiniciadas, espera do resultado final até 10 s) e fim automático da fala por silêncio — 1,8 s
+  (`recorder.js`, inalterado) e 3 s em resposta livre/leitura longa (`lab.js`, `session.js`).
+- **Testes (direcionados):** novo `dev/tests/e2e/speech-mode.mjs` 9/9 (inclui M09: modo Moonshine sem modelo → pede
+  instalação, zero consultas `processLocally`, zero escutas online); `speech-hybrid` 15/15; simulação do Pages
+  `run-pages` 37/37 — adaptado ao modo exclusivo, só no teste (reconhecimento simulado como online, rede do navegador
+  religada após T08, T22/T33/T35 no modo Moonshine sem modelo). Build `ad32e4bf5777`.
+- **Pendente:** validação física dos dois modos no Galaxy S25+ (PO).
+
 ## Estado verificado (Git, GitHub e site publicado, 2026-11-11 18:35 UTC)
 
 | Branch | Commit | O que é | Situação |

@@ -23,13 +23,16 @@ const check = async (id, name, fn) => {
 };
 const assert = (cond, msg) => { if (!cond) throw new Error(msg); };
 
-// Reconhecimento de fala simulado (o Chromium headless de Linux não tem backend de fala).
+// Reconhecimento de fala simulado (o Chromium headless de Linux não tem backend de fala), usado como reconhecimento
+// ONLINE (modo online em Ajustes): entrega o texto uma vez por gravação (por trilha de microfone), como o serviço real; as
+// sessões reiniciadas pelo motor central na mesma trilha ficam em silêncio.
 const ASR_MOCK = `
   class FakeSR {
     constructor() { this.processLocally = false; this.lang = 'en-GB'; }
-    start() { setTimeout(() => { const alt = { transcript: window.__asrText || 'I wake up at five a m take a shower and brush my teeth', confidence: 0.86 };
+    start(track) { const seen = (window.__srTracks = window.__srTracks || new WeakSet()); if (track && seen.has(track)) return; if (track) seen.add(track); setTimeout(() => { const alt = { transcript: window.__asrText || 'I wake up at five a m take a shower and brush my teeth', confidence: 0.86 };
       const res = [alt]; this.onresult && this.onresult({ results: [res] }); this.onend && this.onend(); }, 150); }
-    abort() {} stop() {}
+    abort() { setTimeout(() => this.onend && this.onend(), 5); }
+    stop() { setTimeout(() => this.onend && this.onend(), 5); }
   }
   FakeSR.prototype.processLocally = false;
   FakeSR.available = async () => (localStorage.getItem('asrOff') ? 'unavailable' : 'available');
@@ -48,7 +51,7 @@ const AUDIO_PROBE = `
 const server = await serve(SITE, PORT);
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, permissions: ['microphone'], acceptDownloads: true });
-await ctx.addInitScript(() => { setInterval(() => { const A = window.DRG_APP; if (A && A.state && A.state.settings.onlineSpeech === undefined) A.state.settings.onlineSpeech = false; }, 20); }); // o aluno recusou o reconhecimento online (motor central: speech.js): o FakeSR abaixo segue testando o modo local do Chrome
+await ctx.addInitScript(() => { setInterval(() => { const A = window.DRG_APP; if (A && A.state && A.state.settings.onlineSpeech === undefined) A.state.settings.onlineSpeech = true; }, 20); }); // modo online escolhido (Ajustes → Áudio): o FakeSR abaixo faz o papel do reconhecimento online; T22/T33 usam o modo Moonshine
 await ctx.addInitScript(ASR_MOCK);
 await ctx.addInitScript(AUDIO_PROBE);
 const page = await ctx.newPage();
@@ -266,11 +269,15 @@ await check('T08', 'Speaking Lab: gravar, analisar, salvar e recarregar a grava�
   return 'gravação de ~2,5 s salva no IndexedDB e recarregada';
 });
 
-await check('T09', 'Speaking Lab: reconhecimento do Chrome no aparelho (simulado) — consultado só a pedido; gravar avalia sem clique extra', async () => {
+// A partir daqui a rede do navegador volta (o servidor segue desligado; o app vem do cache): no modo online exclusivo,
+// sem internet não há reconhecimento — o reconhecimento online simulado (FakeSR) precisa de navigator.onLine.
+await ctx.setOffline(false);
+
+await check('T09', 'Speaking Lab: modo online (simulado) — sem convite do Moonshine nem consulta do Chrome; gravar avalia sem clique extra', async () => {
   await go('#/lab?sentence=R01-B1-S1');
-  await page.getByRole('button', { name: 'Agora não' }).click(); // convite do modelo local
-  await page.getByRole('button', { name: /Ver se está disponível/ }).click();
   await page.waitForTimeout(400);
+  assert(await page.locator('[data-role=asr-setup]').count() === 0, 'convite do Moonshine apareceu no modo online');
+  assert(await page.getByRole('button', { name: /Ver se está disponível/ }).count() === 0, 'consulta do reconhecimento do Chrome no modo online');
   assert(await page.getByRole('button', { name: /Avaliar minha gravação|Verificar palavras/ }).count() === 0, 'botão manual de avaliação ainda existe');
   await page.locator('.rec-btn').click();
   await page.waitForTimeout(1500);
@@ -379,8 +386,8 @@ await check('T21', 'Inline — gravar com reconhecimento local (simulado): cores
   return { estados: states, nota: score.trim(), praticar: chips, detalhe: detail.slice(0, 90) };
 });
 
-await check('T22', 'Inline — sem reconhecimento no aparelho: palavras cinza (não avaliadas) e sem nota geral', async () => {
-  await page.evaluate(() => { localStorage.setItem('asrOff', '1'); });
+await check('T22', 'Inline — modo Moonshine sem o modelo: palavras cinza (não avaliadas), sem nota geral e pedido de instalação', async () => { try {
+  await page.evaluate(() => { localStorage.setItem('asrOff', '1'); window.DRG_APP.state.settings.onlineSpeech = false; return window.DRG_APP.flush(); }); // modo Moonshine, sem o modelo
   await page.reload(); await page.waitForTimeout(600);
   await go('#/lab?sentence=R01-B1-S1');
   await page.waitForTimeout(800);
@@ -390,11 +397,12 @@ await check('T22', 'Inline — sem reconhecimento no aparelho: palavras cinza (n
   await page.waitForSelector('.w[data-state]', { timeout: 8000 });
   const states = await page.evaluate(() => [...new Set([...document.querySelectorAll('.target-wrap .w')].map((s) => s.dataset.state))]);
   const scores = await page.locator('.score-num').count();
-  const note = await page.locator('[data-role=asr-off]').textContent();
+  // modo Moonshine sem o modelo: a tela pede a instalação (ou, se o aluno adiou, avisa que a análise está desligada)
+  const note = await page.locator('[data-role=asr-off], [data-role=asr-setup]').first().textContent();
   await shot('22-inline-no-asr');
   assert(states.length === 1 && states[0] === 'uncertain', JSON.stringify(states));
   assert(scores === 0, 'nota exibida sem reconhecimento');
-  assert(/Análise automática desligada/.test(note), note);
+  assert(/Análise automática desligada|Baixe o reconhecimento de fala/.test(note), note);
   assert(await page.locator('.pchip').count() === 0, 'lista de prática sem evidência');
   // pergunta: resposta livre — gravar não colore o modelo
   await go('#/lab?q=R01.Q1');
@@ -404,8 +412,8 @@ await check('T22', 'Inline — sem reconhecimento no aparelho: palavras cinza (n
   await page.waitForTimeout(1500);
   const qColored = (await layoutInfo()).colored;
   assert(qColored === 0, 'pergunta foi avaliada automaticamente');
-  await page.evaluate(() => { localStorage.removeItem('asrOff'); });
   return { estados: states, nota: 'nenhuma', aviso: note.slice(0, 80) };
+  } finally { await page.evaluate(() => { localStorage.removeItem('asrOff'); window.DRG_APP.state.settings.onlineSpeech = true; return window.DRG_APP.flush(); }); }
 });
 
 
@@ -683,7 +691,7 @@ await check('T32', 'Excluir gravação: só a do exercício; resultado e pendên
 });
 
 await check('T33', 'Primeira entrada em Falar: convite para instalar aparece; “Agora não” respeitado sem repetir a cada visita', async () => {
-  await page.evaluate(() => { delete window.DRG_APP.state.settings.asrPrompt; return window.DRG_APP.flush(); });
+  await page.evaluate(() => { delete window.DRG_APP.state.settings.asrPrompt; window.DRG_APP.state.settings.onlineSpeech = false; return window.DRG_APP.flush(); }); // modo Moonshine, sem o modelo
   await go('#/lab');
   await page.reload(); await page.waitForTimeout(800);
   const card = await page.locator('[data-role=asr-setup]').textContent();
@@ -695,6 +703,7 @@ await check('T33', 'Primeira entrada em Falar: convite para instalar aparece; �
   await page.reload(); await page.waitForTimeout(800);
   assert(await page.locator('[data-role=asr-setup]').count() === 0, 'convite reapareceu depois de “Agora não”');
   const s = await state();
+  await page.evaluate(() => { window.DRG_APP.state.settings.onlineSpeech = true; return window.DRG_APP.flush(); }); // volta ao modo online
   return { tamanho: card.match(/\d+ MB/)[0], escolha: s.settings.asrPrompt };
 });
 
@@ -741,8 +750,8 @@ async function goToQuestion(qid, hash = '#/session?routine=R01&mode=present') {
   throw new Error(`não cheguei a ${qid}`);
 }
 
-await check('T35', 'Missão com resposta livre sem o modelo: grava, ouve, explica a instalação (tamanho real), nenhuma avaliação inventada; XP e conclusão intactos', async () => {
-  await page.evaluate(() => { delete window.DRG_APP.state.settings.asrPrompt; return window.DRG_APP.flush(); });
+await check('T35', 'Missão com resposta livre sem o modelo: grava, ouve, explica a instalação (tamanho real), nenhuma avaliação inventada; XP e conclusão intactos', async () => { try {
+  await page.evaluate(() => { delete window.DRG_APP.state.settings.asrPrompt; window.DRG_APP.state.settings.onlineSpeech = false; return window.DRG_APP.flush(); }); // modo Moonshine, sem o modelo
   await page.reload(); await page.waitForTimeout(500);
   await goToQuestion('G.Q01');
   const q = await page.locator('.big-en').first().textContent();
@@ -776,6 +785,7 @@ await check('T35', 'Missão com resposta livre sem o modelo: grava, ouve, explic
   const rewarded = ((before.days[today] || {}).rewarded || {})['q:G.Q01:conv'] || 0;
   assert(rewarded < 2 ? after.xp > before.xp : after.xp === before.xp, `XP fora da regra: ${before.xp} → ${after.xp} (recompensas hoje: ${rewarded})`);
   return { pergunta: q, convite: `${sizeMB} MB`, xp: `${before.xp} → ${after.xp} (recompensas anteriores hoje: ${rewarded})` };
+  } finally { await page.evaluate(() => { window.DRG_APP.state.settings.onlineSpeech = true; return window.DRG_APP.flush(); }); }
 });
 
 await check('T36', 'Caso A no app (transcrição real do relato do S25+ injetada como resultado salvo): transcrição intacta, trechos suspeitos em âmbar, legenda e explicação corretas', async () => {

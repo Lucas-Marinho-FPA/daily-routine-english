@@ -117,21 +117,21 @@ await check('H01', 'Primeira gravação com internet: pede o consentimento UMA v
   return { status: r.status, motor: r.asr.engine, ouviu: r.heard, ...sr };
 });
 
-await check('H02', 'Online com falha de rede → Moonshine sobre a MESMA gravação (nada perdido), sem novo pedido de consentimento', async () => {
+await check('H02', 'Modo online com falha de rede → SEM troca para o Moonshine (seletor de Ajustes): inconclusiva, não reprova; sem novo pedido de consentimento', async () => {
   await openPhase1(); await setSR({ mode: 'network' });
   const c0 = await counts();
   const r = await phase1Attempt();
   const c1 = await counts();
   assert(!(await page.locator('[data-role=speech-consent]').count()), 'consentimento perguntado de novo');
-  assert(r.asr.engine === 'local-model' && /network/.test(r.asr.fallbackReason) && r.status === 'passed' && /aparelho \(online: network\)/.test(r.engineLine), JSON.stringify(r));
+  assert(!r.asr.engine && r.status === 'inconclusive' && /online: network/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
   assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 1, `sem captura duplicada: ${JSON.stringify({ c0, c1 })}`);
   return { status: r.status, motor: r.asr.engine, motivo: r.asr.fallbackReason, ouviu: r.heard };
 });
 
-await check('H03', 'Online sem nenhum evento (serviço mudo) → aviso interno em 6 s e Moonshine; a tela não trava', async () => {
+await check('H03', 'Modo online, serviço mudo → aviso interno em 6 s; inconclusiva (sem Moonshine); a tela não trava', async () => {
   await openPhase1(); await setSR({ mode: 'silent' });
   const r = await phase1Attempt({ ms: 6500 });
-  assert(r.asr.engine === 'local-model' && /sem-resposta|sem texto/.test(r.asr.fallbackReason) && r.status === 'passed', JSON.stringify(r));
+  assert(!r.asr.engine && r.status === 'inconclusive' && /sem-resposta|sem texto/.test(await page.textContent('[data-role=feedback]')), JSON.stringify(r));
   return { motor: r.asr.engine, motivo: r.asr.fallbackReason };
 });
 
@@ -151,7 +151,7 @@ await check('H03c', '“no-speech” no começo da gravação: a escuta online r
   return { motor: r.asr.engine, sessões: c1.sr - c0.sr, capturas: c1.gum - c0.gum };
 });
 
-await check('H04', 'Navegador sem internet (navigator.onLine = false) → nenhuma escuta online criada; Moonshine; gravação normal', async () => {
+await check('H04', 'Modo online sem internet (navigator.onLine = false) → nenhuma escuta online; inconclusiva (sem Moonshine); gravação normal', async () => {
   await openPhase1(); await setSR({ mode: 'ok', text: 'different teams' });
   // só o estado “sem internet” do navegador (a decisão do motor); o Moonshine sem rede real é coberto por voice/pwa
   await page.evaluate(() => { Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); });
@@ -159,18 +159,18 @@ await check('H04', 'Navegador sem internet (navigator.onLine = false) → nenhum
   const r = await phase1Attempt();
   const c1 = await counts();
   await page.evaluate(() => { delete navigator.onLine; });
-  assert(c1.sr === c0.sr && r.asr.engine === 'local-model' && r.asr.fallbackReason === 'sem internet' && r.status === 'passed', JSON.stringify({ r, c0, c1 }));
+  assert(c1.sr === c0.sr && !r.asr.engine && r.status === 'inconclusive' && /sem internet/.test(await page.textContent('[data-role=feedback]')), JSON.stringify({ r, c0, c1 }));
   return { motor: r.asr.engine, motivo: r.asr.fallbackReason };
 });
 
-await check('H05', 'Aluno recusou o online (Ajustes) → nenhuma escuta online; Moonshine', async () => {
+await check('H05', 'Modo Moonshine (Ajustes) → nenhuma escuta online; só o Moonshine', async () => {
   await page.evaluate(() => { window.DRG_APP.state.settings.onlineSpeech = false; return window.DRG_APP.flush(); });
   await openPhase1(); await setSR({ mode: 'ok', text: 'different teams' });
   const c0 = await counts();
   const r = await phase1Attempt();
   const c1 = await counts();
   await page.evaluate(() => { window.DRG_APP.state.settings.onlineSpeech = true; return window.DRG_APP.flush(); });
-  assert(c1.sr === c0.sr && r.asr.engine === 'local-model' && /recusado/.test(r.asr.fallbackReason), JSON.stringify({ r, c0, c1 }));
+  assert(c1.sr === c0.sr && r.asr.engine === 'local-model' && !r.asr.fallbackReason, JSON.stringify({ r, c0, c1 }));
   return { motor: r.asr.engine, motivo: r.asr.fallbackReason };
 });
 
@@ -222,7 +222,7 @@ await check('H09', 'Resposta livre (pergunta do Lab): texto online vai à avalia
 await check('H10', 'Ajustes → Áudio: opção do reconhecimento online e diagnóstico atualizado', async () => {
   await page.goto(BASE + '#/settings'); await page.reload(); await page.waitForTimeout(1500);
   const txt = await page.textContent('#view');
-  assert(/Reconhecimento de voz online/.test(txt) && /Reconhecimento online \(navegador\)\s*permitido/.test(txt), txt.match(/Reconhecimento online[^)]*\)[^R]*/)?.[0] || 'sem linha');
+  assert(/Reconhecimento de voz/.test(txt) && /Moonshine \(aparelho\)/.test(txt) && /Reconhecimento de voz \(modo\)\s*online \(navegador\)/.test(txt), txt.match(/Reconhecimento de voz \(modo\)[^·]*/)?.[0] || 'sem linha');
   await page.click('[data-role=speech-log-copy]');
   const rep = await page.evaluate(() => navigator.clipboard.readText());
   assert(/captura: faixa do gravador/.test(rep) && /reconhecimento:start\(\)@/.test(rep) && /gravação:fim@/.test(rep) && /motor: online/.test(rep) && /troca: online: network/.test(rep) && !/different teams/i.test(rep), rep.slice(0, 400));

@@ -1320,9 +1320,9 @@
     });
     return dbPromise;
   }
-  function tx(store2, mode, fn) {
+  function tx(store2, mode2, fn) {
     return openDb().then((db) => new Promise((resolve, reject) => {
-      const t = db.transaction(store2, mode);
+      const t = db.transaction(store2, mode2);
       let out;
       Promise.resolve(fn(t.objectStore(store2))).then((r) => {
         out = r;
@@ -1418,8 +1418,8 @@
     } catch (e) {
     }
   }
-  var txs = (stores, mode, fn) => openDb().then((db) => new Promise((resolve, reject) => {
-    const t = db.transaction(stores, mode);
+  var txs = (stores, mode2, fn) => openDb().then((db) => new Promise((resolve, reject) => {
+    const t = db.transaction(stores, mode2);
     let out;
     let ret;
     try {
@@ -2138,6 +2138,7 @@
     configure: () => configure2,
     engineFor: () => engineFor,
     logReport: () => logReport,
+    mode: () => mode,
     onlineSupported: () => onlineSupported,
     onlineUsable: () => onlineUsable,
     prepareOnline: () => prepareOnline,
@@ -2160,6 +2161,7 @@
   var isOnline = () => !(globalThis.navigator && navigator.onLine === false);
   var onlineSupported = () => !!SR();
   var onlineUsable = () => onlineSupported() && isOnline() && cfg.getConsent() !== false;
+  var mode = () => cfg.getConsent() === true ? "online" : cfg.getConsent() === false ? "local" : void 0;
   var memLog = null;
   function loadLog() {
     if (memLog) return memLog;
@@ -2178,7 +2180,7 @@
     }
   }
   function newEntry(extra = {}) {
-    const e = { at: (/* @__PURE__ */ new Date()).toISOString(), online: isOnline(), consent: cfg.getConsent() === void 0 ? "n\xE3o decidido" : String(cfg.getConsent()), events: [], ...extra };
+    const e = { at: (/* @__PURE__ */ new Date()).toISOString(), online: isOnline(), mode: mode() || "n\xE3o escolhido", events: [], ...extra };
     const log = loadLog();
     log.push(e);
     if (log.length > LOG_MAX) log.splice(0, log.length - LOG_MAX);
@@ -2191,10 +2193,10 @@
       `Registro do reconhecimento de voz \u2014 Daily Routine English`,
       `Navegador: ${nav.userAgent || "?"}`,
       `App instalado: ${globalThis.matchMedia && matchMedia("(display-mode: standalone)").matches ? "sim" : "n\xE3o"}`,
-      `API online: ${onlineSupported() ? "sim" : "n\xE3o"} \xB7 internet agora: ${isOnline() ? "sim" : "n\xE3o"} \xB7 consentimento: ${cfg.getConsent() === void 0 ? "n\xE3o decidido" : cfg.getConsent()}`,
+      `API online: ${onlineSupported() ? "sim" : "n\xE3o"} \xB7 internet agora: ${isOnline() ? "sim" : "n\xE3o"} \xB7 modo: ${mode() || "n\xE3o escolhido"}`,
       ""
     ];
-    const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${e.at} | captura: ${e.capture || "\u2014"} | idioma ${e.lang || "\u2014"} | motor: ${e.engine || "\u2014"}${e.fallbackReason ? ` | troca: ${e.fallbackReason}` : ""}${e.error ? ` | erro online: ${e.error}` : ""}${e.words != null ? ` | palavras online: ${e.words}` : ""}${e.sessions ? ` | sess\xF5es: ${e.sessions}` : ""}
+    const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${e.at} | modo: ${e.mode || "\u2014"} | captura: ${e.capture || "\u2014"} | idioma ${e.lang || "\u2014"} | motor: ${e.engine || "\u2014"}${e.fallbackReason ? ` | troca: ${e.fallbackReason}` : ""}${e.error ? ` | erro online: ${e.error}` : ""}${e.words != null ? ` | palavras online: ${e.words}` : ""}${e.sessions ? ` | sess\xF5es: ${e.sessions}` : ""}
    ${e.events.map((x) => `${x.e}@${x.t}ms`).join(" \u2192 ") || "sem eventos"}`);
     return head.concat(lines.length ? lines : ["(nenhuma tentativa registrada)"]).join("\n");
   }
@@ -2222,11 +2224,11 @@
         { "data-role": "speech-consent" },
         h("h3", { text: "Reconhecimento de voz online" }),
         h("p", { class: "small", text: "Com internet, o app usa o reconhecimento de voz do navegador/dispositivo, que costuma entender melhor. Sua voz poder\xE1 ser enviada a um servi\xE7o externo, como o Google; o aplicativo n\xE3o controla esse processamento." }),
-        h("p", { class: "small muted", text: "Sem internet (ou se voc\xEA preferir), o app usa o reconhecimento do pr\xF3prio aparelho, quando instalado. D\xE1 para mudar depois em Ajustes \u2192 \xC1udio." }),
+        h("p", { class: "small muted", text: "Ou escolha o Moonshine: o reconhecimento do pr\xF3prio aparelho, que funciona sem internet. O app usa s\xF3 o que voc\xEA escolher; d\xE1 para trocar em Ajustes \u2192 \xC1udio." }),
         h(
           "div",
           { class: "row", style: { marginTop: "14px" } },
-          h("button", { class: "btn", type: "button", "data-choice": "local", onclick: () => finish(false) }, "S\xF3 no aparelho"),
+          h("button", { class: "btn", type: "button", "data-choice": "local", onclick: () => finish(false) }, "Moonshine (aparelho)"),
           h("button", { class: "btn primary", type: "button", "data-choice": "online", onclick: () => finish(true) }, "Usar online")
         )
       );
@@ -2391,10 +2393,15 @@
   }
   var engineFor = (blob) => live.has(blob) ? "online" : "local-model";
   async function status2() {
+    if (mode() === "online") return onlineSupported() ? "installed" : "unsupported";
+    if (mode() === "local") return status();
     if (onlineUsable()) return "installed";
     return status();
   }
   async function transcribe2(blob, opts = {}) {
+    const m = mode();
+    if (m === "online") return transcribeOnlineOnly(blob, opts);
+    if (m === "local") return transcribeLocalOnly(blob, opts);
     let fallbackReason = null, entry = null;
     if (!opts.local) {
       const p = live.get(blob);
@@ -2444,6 +2451,52 @@
       saveLog();
     }
     return { ...r, engine: "local-model", lang: "en", status: "ok", fallbackReason };
+  }
+  var unavailable = (msg, reason) => {
+    const e = new Error(msg);
+    e.code = "unavailable";
+    e.fallbackReason = reason;
+    return e;
+  };
+  async function transcribeOnlineOnly(blob, opts) {
+    const p = opts.local ? null : live.get(blob);
+    const r = p ? await p : null;
+    const entry = r && r.entry ? r.entry : newEntry({ capture: "sem escuta online" });
+    if (r && r.text) {
+      entry.engine = "online";
+      saveLog();
+      return {
+        text: r.text,
+        confidence: r.confidence || 0,
+        engine: "online",
+        lang: r.lang,
+        ms: r.ms,
+        secs: null,
+        status: "ok",
+        alternatives: r.alternatives,
+        events: r.events,
+        error: r.error || null
+      };
+    }
+    const reason = opts.local ? "Moonshine desativado (modo online)" : r ? r.error ? `online: ${r.error}` : "online: sem texto" : !onlineSupported() ? "navegador sem reconhecimento online" : !isOnline() ? "sem internet" : "online n\xE3o iniciado";
+    entry.engine = "nenhum";
+    entry.fallbackReason = `${reason} \xB7 sem troca (modo online)`;
+    saveLog();
+    throw unavailable(`Reconhecimento online indispon\xEDvel nesta grava\xE7\xE3o (${reason}). Grave de novo; com o modo online, o Moonshine n\xE3o \xE9 usado.`, reason);
+  }
+  async function transcribeLocalOnly(blob, opts) {
+    const entry = newEntry({ capture: "sem escuta online (modo Moonshine)" });
+    const st = await status().catch(() => "unsupported");
+    if (st !== "installed") {
+      entry.engine = "nenhum";
+      entry.fallbackReason = `Moonshine ${st} \xB7 sem troca (modo Moonshine)`;
+      saveLog();
+      throw unavailable(`O Moonshine n\xE3o est\xE1 instalado neste aparelho (${st}). Instale-o ou escolha o reconhecimento online em Ajustes \u2192 \xC1udio.`, `Moonshine: ${st}`);
+    }
+    const r = await transcribe(blob, opts);
+    entry.engine = "local-model";
+    saveLog();
+    return { ...r, engine: "local-model", lang: "en", status: "ok", fallbackReason: null };
   }
 
   // app/js/engine/characters.js
@@ -5667,17 +5720,17 @@ ${body.join("\n\n")}
     ap.cards[key] = GRADED[result] ? { ...grade(card, GRADED[result], today), unverified: card.unverified || 0, at: now } : { ...card, unverified: (card.unverified || 0) + 1, at: now };
     return ap.cards[key];
   }
-  function buildQueue(cand, ap, mode, { today = dayNumber(), size = 10, rand = Math.random } = {}) {
-    const m = MODES[mode];
+  function buildQueue(cand, ap, mode2, { today = dayNumber(), size = 10, rand = Math.random } = {}) {
+    const m = MODES[mode2];
     if (!m) return [];
-    const pool = mode === "errors" ? cand.keys.filter((k) => ap.cards[k] && ap.cards[k].lastResult === "bad") : cand.keys.filter((k) => m.skills.includes(splitKey(k)[0]));
+    const pool = mode2 === "errors" ? cand.keys.filter((k) => ap.cards[k] && ap.cards[k].lastResult === "bad") : cand.keys.filter((k) => m.skills.includes(splitKey(k)[0]));
     const due = shuffle(pool.filter((k) => ap.cards[k] && ap.cards[k].due <= today), rand);
     const fresh = shuffle(pool.filter((k) => !ap.cards[k]), rand);
     const rest = pool.filter((k) => ap.cards[k] && ap.cards[k].due > today).sort((a, b) => ap.cards[a].due - ap.cards[b].due);
     return [...due, ...fresh, ...rest].slice(0, size);
   }
-  function startSession(ap, mode, keys, now = Date.now()) {
-    ap.session = { mode, keys: keys.slice(), i: 0, results: {}, startedAt: now };
+  function startSession(ap, mode2, keys, now = Date.now()) {
+    ap.session = { mode: mode2, keys: keys.slice(), i: 0, results: {}, startedAt: now };
     return ap.session;
   }
   var sessionOpen = (ap) => !!(ap && ap.session && ap.session.i < ap.session.keys.length);
@@ -5738,19 +5791,19 @@ ${body.join("\n\n")}
     function home(act, cand, ap) {
       const s = practiceSummary(ap, cand);
       const n = (skills) => skills.reduce((t, k) => t + (cand.counts[k] || 0), 0);
-      const start2 = (mode) => {
-        const keys = buildQueue(cand, ap, mode);
+      const start2 = (mode2) => {
+        const keys = buildQueue(cand, ap, mode2);
         if (!keys.length) return;
-        startSession(ap, mode, keys);
+        startSession(ap, mode2, keys);
         saveProgress().then(() => App2.go(href(act.id, "?s=1")));
       };
-      const modeBtn = (mode, count, why) => h(
+      const modeBtn = (mode2, count, why) => h(
         "div",
         { style: { marginTop: "10px" } },
         h(
           "button",
-          { class: "btn block", "data-role": `mode-${mode}`, disabled: !count, onclick: () => start2(mode) },
-          h("span", { class: "grow", style: { textAlign: "left" }, text: MODES[mode].label }),
+          { class: "btn block", "data-role": `mode-${mode2}`, disabled: !count, onclick: () => start2(mode2) },
+          h("span", { class: "grow", style: { textAlign: "left" }, text: MODES[mode2].label }),
           h("span", { class: "small muted", text: count ? `${count}` : "\u2014" })
         ),
         !count && why ? h("p", { class: "tiny muted", style: { margin: "4px 2px 0" }, text: why }) : null
@@ -6062,8 +6115,8 @@ ${body.join("\n\n")}
       const res = Object.values(s.results);
       const count = (k) => res.filter((x) => x === k).length;
       const errs = sessionErrors(s);
-      const again = (mode, keys) => {
-        startSession(ap, mode, keys);
+      const again = (mode2, keys) => {
+        startSession(ap, mode2, keys);
         saveProgress().then(() => alive && (clear(view), runSession(act, cand, ap)));
       };
       view.append(h(
@@ -9824,9 +9877,9 @@ ${body.join("\n\n")}
         const r = pendingSaved;
         pendingSaved = null;
         loaded(r);
-      } else if (status4 !== "installed" && el.dataset.state === "idle" && last) unavailable();
+      } else if (status4 !== "installed" && el.dataset.state === "idle" && last) unavailable2();
     }
-    function unavailable() {
+    function unavailable2() {
       const installed = () => {
         status4 = "installed";
         if (last) analyse(last.blob, last.analysis);
@@ -9836,7 +9889,7 @@ ${body.join("\n\n")}
         return show(
           "setup",
           h("p", { class: "small muted", text: "Sua grava\xE7\xE3o est\xE1 salva. Para receber a transcri\xE7\xE3o e o feedback autom\xE1tico, instale o reconhecimento de fala local." }),
-          asrSetupCard(App2, { onInstalled: installed, onLater: () => unavailable() })
+          asrSetupCard(App2, { onInstalled: installed, onLater: () => unavailable2() })
         );
       }
       if (status4 === "not-installed") return show("unavailable", asrOffNotice(App2, { onInstalled: installed }));
@@ -9845,7 +9898,7 @@ ${body.join("\n\n")}
     async function analyse(blob, analysis, saved = null) {
       const ticket = gate.next();
       last = { blob, analysis };
-      if (!saved && status4 !== "installed") return unavailable();
+      if (!saved && status4 !== "installed") return unavailable2();
       let text = saved ? saved.text : null;
       let integrity = saved ? saved.integrity || null : null;
       if (!saved && !insufficientAudio(analysis)) {
@@ -10105,7 +10158,7 @@ ${body.join("\n\n")}
       if (meta.free) return analyse(rec.blob, meta.analysis || null, { text: meta.free.text, integrity: meta.free.integrity || null });
       if (!rec.blob) return;
       if (status4 === "installed") return analyse(rec.blob, meta.analysis || null);
-      unavailable();
+      unavailable2();
     }
     const hooks = {
       onStart: () => reset(),
@@ -11276,7 +11329,7 @@ ${body.join("\n\n")}
     view.append(h("p", { class: "small muted", text: "Pronunciation Lab (Frases, Blocos): ou\xE7a, grave e compare. Conversation Lab (Perguntas, Drills): responda livremente e receba retorno sobre adequa\xE7\xE3o, gram\xE1tica, naturalidade e confiabilidade da transcri\xE7\xE3o." }));
     const setupSlot = h("div", {});
     view.append(setupSlot);
-    if (state.settings.asrPrompt !== "later") {
+    if (state.settings.asrPrompt !== "later" && mode() !== "online") {
       status().then((st) => {
         if (st !== "not-installed" || !setupSlot.isConnected) return;
         setupSlot.append(asrSetupCard(App2, { onInstalled: () => {
@@ -11532,7 +11585,7 @@ ${body.join("\n\n")}
       );
     }
     function showError(e, blob, analysis) {
-      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.`, unavailable: "O reconhecimento online n\xE3o respondeu e o do aparelho n\xE3o est\xE1 instalado. Sua grava\xE7\xE3o est\xE1 salva; tente de novo com internet ou instale o reconhecimento local." }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
+      const msg = { load: "O reconhecimento n\xE3o carregou neste momento.", timeout: "A an\xE1lise demorou demais e foi interrompida.", decode: "N\xE3o consegui ler esta grava\xE7\xE3o.", "too-long": `Grava\xE7\xE3o longa demais para a an\xE1lise (m\xE1x. ${MAX_SECONDS} s). Grave um trecho menor.`, unavailable: `${e.message} Sua grava\xE7\xE3o est\xE1 salva.` }[e.code] || "A an\xE1lise falhou nesta grava\xE7\xE3o.";
       const actions = h("div", { class: "row fb-actions" });
       const help = h("div", { class: "small" });
       if (e.code === "decode" || e.code === "too-long") actions.append(h("button", { class: "btn small", type: "button", onclick: () => rerecord() }, icon("mic"), "Gravar novamente"));
@@ -11579,7 +11632,7 @@ ${body.join("\n\n")}
       const parts = [];
       if (engineInfo.local === "not-installed") parts.push(asrOffNotice(App2, { onInstalled: installed }));
       else if (engineInfo.why) parts.push(h("p", { class: "small muted", text: `An\xE1lise autom\xE1tica indispon\xEDvel aqui: ${engineInfo.why}.` }));
-      if (!engineInfo.webspeech && !isAndroid()) {
+      if (!engineInfo.webspeech && !isAndroid() && mode() !== "local") {
         parts.push(h("button", { class: "link-btn", type: "button", onclick: (e) => {
           e.currentTarget.disabled = true;
           refresh(true);
@@ -11629,7 +11682,7 @@ ${body.join("\n\n")}
       if (!rec || !reading || !alive) return;
       const meta = rec.meta || {};
       if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0, integrity: meta.result.integrity || null } });
-      else if ((engine === "model" || engine === "online" && engineInfo.local === "installed") && asrEligible && rec.blob) analyse(rec.blob, meta.analysis);
+      else if ((engine === "model" || engine === "online" && !mode() && engineInfo.local === "installed") && asrEligible && rec.blob) analyse(rec.blob, meta.analysis);
       else {
         lastBlob = rec.blob;
         lastAnalysis = meta.analysis;
@@ -11719,6 +11772,9 @@ ${body.join("\n\n")}
   }
   async function detectEngine({ ask = false, known = null } = {}) {
     const local = await status();
+    const m = mode();
+    if (m === "online") return { engine: onlineSupported() ? "online" : null, local, webspeech: null, why: unsupportedReason() };
+    if (m === "local") return { engine: local === "installed" ? "model" : null, local, webspeech: null, why: unsupportedReason() };
     const webspeech = cachedStatus() || (ask || known === "available" ? await status3("en-GB") : null);
     return { engine: onlineUsable() ? "online" : local === "installed" ? "model" : webspeech === "available" ? "webspeech" : null, local, webspeech, why: unsupportedReason() };
   }
@@ -12001,7 +12057,8 @@ ${body.join("\n\n")}
       h("p", { class: "small muted", text: "A voz embutida foi gerada offline em ingl\xEAs brit\xE2nico e funciona sem internet. A voz do sistema depende das vozes instaladas no Android." }),
       seg("Velocidade", "rate", [[0.75, "0,75\xD7"], [0.9, "0,9\xD7"], [1, "1\xD7"], [1.15, "1,15\xD7"]]),
       toggle("Tocar \xE1udio automaticamente", "autoplay", "Nos exerc\xEDcios e ao mostrar a resposta."),
-      onlineSupported() ? toggle("Reconhecimento de voz online", "onlineSpeech", "Com internet, usa o reconhecimento do navegador/dispositivo; sua voz poder\xE1 ser enviada a um servi\xE7o externo, como o Google. Desligado ou sem internet: o reconhecimento do aparelho.") : null,
+      seg("Reconhecimento de voz", "onlineSpeech", [[true, "Online (navegador)"], [false, "Moonshine (aparelho)"]]),
+      h("p", { class: "small muted", "data-role": "speech-mode-note", text: "S\xF3 o escolhido \xE9 usado, sem troca autom\xE1tica. Online: com internet, pelo servi\xE7o do navegador/dispositivo (sua voz poder\xE1 ser enviada a terceiros, como o Google). Moonshine: no pr\xF3prio aparelho, sem internet (precisa estar instalado)." }),
       h("label", { class: "lbl", text: "Voz do sistema (quando usada)" }),
       voiceSel,
       h(
@@ -12049,8 +12106,8 @@ ${body.join("\n\n")}
                 App2.go(location.hash);
               } }, "Remover") : null
             ),
-            h("span", { text: "Reconhecimento online (navegador)" }),
-            h("span", { text: !onlineSupported() ? "indispon\xEDvel neste navegador" : `${{ true: "permitido", false: "desligado" }[String(s.onlineSpeech)] || "ainda n\xE3o perguntado"}${navigator.onLine === false ? " \xB7 sem internet agora" : ""} (o do aparelho atende sem internet)` })
+            h("span", { text: "Reconhecimento de voz (modo)" }),
+            h("span", { "data-role": "speech-mode-diag", text: `${{ true: "online (navegador)", false: "Moonshine (aparelho)" }[String(s.onlineSpeech)] || "ainda n\xE3o escolhido"}${!onlineSupported() ? " \xB7 online indispon\xEDvel neste navegador" : ""}${navigator.onLine === false ? " \xB7 sem internet agora" : ""}` })
           );
         });
       });

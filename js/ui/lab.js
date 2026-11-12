@@ -40,7 +40,7 @@ export function renderLab(App, { params }) {
   // primeira entrada: convite para instalar o reconhecimento local (não baixa nada sem o toque do aluno)
   const setupSlot = h('div', {});
   view.append(setupSlot);
-  if (state.settings.asrPrompt !== 'later') {
+  if (state.settings.asrPrompt !== 'later' && speech.mode() !== 'online') { // no modo online o Moonshine não é usado
     localasr.status().then((st) => {
       if (st !== 'not-installed' || !setupSlot.isConnected) return;
       setupSlot.append(asrSetupCard(App, { onInstalled: () => { setTimeout(() => clear(setupSlot), 2500); }, onLater: () => clear(setupSlot) }));
@@ -255,7 +255,7 @@ function renderTarget(App, params) {
   }
 
   function showError(e, blob, analysis) {
-    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.`, unavailable: 'O reconhecimento online não respondeu e o do aparelho não está instalado. Sua gravação está salva; tente de novo com internet ou instale o reconhecimento local.' }[e.code] || 'A análise falhou nesta gravação.';
+    const msg = { load: 'O reconhecimento não carregou neste momento.', timeout: 'A análise demorou demais e foi interrompida.', decode: 'Não consegui ler esta gravação.', 'too-long': `Gravação longa demais para a análise (máx. ${localasr.MAX_SECONDS} s). Grave um trecho menor.`, unavailable: `${e.message} Sua gravação está salva.` }[e.code] || 'A análise falhou nesta gravação.';
     const actions = h('div', { class: 'row fb-actions' });
     const help = h('div', { class: 'small' });
     if (e.code === 'decode' || e.code === 'too-long') actions.append(h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente'));
@@ -288,7 +288,7 @@ function renderTarget(App, params) {
     const parts = [];
     if (engineInfo.local === 'not-installed') parts.push(asrOffNotice(App, { onInstalled: installed }));
     else if (engineInfo.why) parts.push(h('p', { class: 'small muted', text: `Análise automática indisponível aqui: ${engineInfo.why}.` }));
-    if (!engineInfo.webspeech && !isAndroid()) {
+    if (!engineInfo.webspeech && !isAndroid() && speech.mode() !== 'local') { // modo Moonshine: nenhum outro mecanismo
       // Chrome de computador pode ter reconhecimento no aparelho; a consulta só acontece com este toque
       parts.push(h('button', { class: 'link-btn', type: 'button', onclick: (e) => { e.currentTarget.disabled = true; refresh(true); } }, 'Ver se está disponível (reconhecimento do Chrome)'));
     }
@@ -330,7 +330,7 @@ function renderTarget(App, params) {
     if (!rec || !reading || !alive) return;
     const meta = rec.meta || {};
     if (meta.result && engine) analyse(rec.blob, meta.analysis, { saved: { text: meta.result.text, confidence: 0, integrity: meta.result.integrity || null } });
-    else if ((engine === 'model' || (engine === 'online' && engineInfo.local === 'installed')) && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
+    else if ((engine === 'model' || (engine === 'online' && !speech.mode() && engineInfo.local === 'installed')) && asrEligible && rec.blob) analyse(rec.blob, meta.analysis); // sem áudio (retenção): nada a analisar
     else { lastBlob = rec.blob; lastAnalysis = meta.analysis; }
   }
 
@@ -395,7 +395,11 @@ function relevantTips(content, text) {
  */
 export async function detectEngine({ ask = false, known = null } = {}) {
   const local = await localasr.status();
+  const m = speech.mode(); // modo escolhido em Ajustes → Áudio: só esse mecanismo é usado (nenhum outro é consultado)
+  if (m === 'online') return { engine: speech.onlineSupported() ? 'online' : null, local, webspeech: null, why: localasr.unsupportedReason() };
+  // modo Moonshine: SÓ o Moonshine (sem online e sem o modo local do Chrome); sem ele instalado, a tela pede a instalação
+  if (m === 'local') return { engine: local === 'installed' ? 'model' : null, local, webspeech: null, why: localasr.unsupportedReason() };
+  // modo ainda não escolhido: como antes (online, depois o modelo do aparelho, por último o modo local do Chrome)
   const webspeech = asr.cachedStatus() || (ask || known === 'available' ? await asr.status('en-GB') : null);
-  // online (navegador, motor central) primeiro; sem ele, o modelo do aparelho; por último o modo local do Chrome
   return { engine: speech.onlineUsable() ? 'online' : local === 'installed' ? 'model' : webspeech === 'available' ? 'webspeech' : null, local, webspeech, why: localasr.unsupportedReason() };
 }

@@ -27,6 +27,12 @@ const isOnline = () => !(globalThis.navigator && navigator.onLine === false);
 export const onlineSupported = () => !!SR();
 /** O online pode ser usado agora? (API + internet + o aluno não recusou) */
 export const onlineUsable = () => onlineSupported() && isOnline() && cfg.getConsent() !== false;
+/**
+ * Modo escolhido em Ajustes → Áudio (settings.onlineSpeech): 'online' (só o navegador; o Moonshine fica bloqueado),
+ * 'local' (só o Moonshine; o online fica bloqueado) ou undefined (ainda não escolhido: pergunta na 1ª gravação).
+ * Com um modo escolhido NÃO há troca automática entre os mecanismos.
+ */
+export const mode = () => (cfg.getConsent() === true ? 'online' : cfg.getConsent() === false ? 'local' : undefined);
 
 // ---------- registro de diagnóstico (eventos e tempos de cada tentativa; sem áudio e sem texto) ----------
 let memLog = null;
@@ -38,7 +44,7 @@ function loadLog() {
 }
 function saveLog() { try { localStorage.setItem(LOG_KEY, JSON.stringify(loadLog().slice(-LOG_MAX))); } catch (e) { /* sem armazenamento: fica só na memória */ } }
 function newEntry(extra = {}) {
-  const e = { at: new Date().toISOString(), online: isOnline(), consent: cfg.getConsent() === undefined ? 'não decidido' : String(cfg.getConsent()), events: [], ...extra };
+  const e = { at: new Date().toISOString(), online: isOnline(), mode: mode() || 'não escolhido', events: [], ...extra };
   const log = loadLog(); log.push(e); if (log.length > LOG_MAX) log.splice(0, log.length - LOG_MAX);
   return e;
 }
@@ -48,8 +54,8 @@ export const recentLog = () => loadLog().slice();
 export function logReport() {
   const nav = globalThis.navigator || {};
   const head = [`Registro do reconhecimento de voz — Daily Routine English`, `Navegador: ${nav.userAgent || '?'}`, `App instalado: ${globalThis.matchMedia && matchMedia('(display-mode: standalone)').matches ? 'sim' : 'não'}`,
-    `API online: ${onlineSupported() ? 'sim' : 'não'} · internet agora: ${isOnline() ? 'sim' : 'não'} · consentimento: ${cfg.getConsent() === undefined ? 'não decidido' : cfg.getConsent()}`, ''];
-  const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${e.at} | captura: ${e.capture || '—'} | idioma ${e.lang || '—'} | motor: ${e.engine || '—'}${e.fallbackReason ? ` | troca: ${e.fallbackReason}` : ''}${e.error ? ` | erro online: ${e.error}` : ''}${e.words != null ? ` | palavras online: ${e.words}` : ''}${e.sessions ? ` | sessões: ${e.sessions}` : ''}\n   ${e.events.map((x) => `${x.e}@${x.t}ms`).join(' → ') || 'sem eventos'}`);
+    `API online: ${onlineSupported() ? 'sim' : 'não'} · internet agora: ${isOnline() ? 'sim' : 'não'} · modo: ${mode() || 'não escolhido'}`, ''];
+  const lines = recentLog().reverse().map((e, i) => `#${i + 1} ${e.at} | modo: ${e.mode || '—'} | captura: ${e.capture || '—'} | idioma ${e.lang || '—'} | motor: ${e.engine || '—'}${e.fallbackReason ? ` | troca: ${e.fallbackReason}` : ''}${e.error ? ` | erro online: ${e.error}` : ''}${e.words != null ? ` | palavras online: ${e.words}` : ''}${e.sessions ? ` | sessões: ${e.sessions}` : ''}\n   ${e.events.map((x) => `${x.e}@${x.t}ms`).join(' → ') || 'sem eventos'}`);
   return head.concat(lines.length ? lines : ['(nenhuma tentativa registrada)']).join('\n');
 }
 
@@ -75,9 +81,9 @@ function askConsent() {
     const body = h('div', { 'data-role': 'speech-consent' },
       h('h3', { text: 'Reconhecimento de voz online' }),
       h('p', { class: 'small', text: 'Com internet, o app usa o reconhecimento de voz do navegador/dispositivo, que costuma entender melhor. Sua voz poderá ser enviada a um serviço externo, como o Google; o aplicativo não controla esse processamento.' }),
-      h('p', { class: 'small muted', text: 'Sem internet (ou se você preferir), o app usa o reconhecimento do próprio aparelho, quando instalado. Dá para mudar depois em Ajustes → Áudio.' }),
+      h('p', { class: 'small muted', text: 'Ou escolha o Moonshine: o reconhecimento do próprio aparelho, que funciona sem internet. O app usa só o que você escolher; dá para trocar em Ajustes → Áudio.' }),
       h('div', { class: 'row', style: { marginTop: '14px' } },
-        h('button', { class: 'btn', type: 'button', 'data-choice': 'local', onclick: () => finish(false) }, 'Só no aparelho'),
+        h('button', { class: 'btn', type: 'button', 'data-choice': 'local', onclick: () => finish(false) }, 'Moonshine (aparelho)'),
         h('button', { class: 'btn primary', type: 'button', 'data-choice': 'online', onclick: () => finish(true) }, 'Usar online')));
     s = sheet(body, { label: 'Reconhecimento de voz online', onClose: () => finish(null) });
   });
@@ -177,6 +183,8 @@ export const engineFor = (blob) => (live.has(blob) ? 'online' : 'local-model');
 
 /** Há algum reconhecimento utilizável agora? 'installed' (online usável ou modelo local) ou o estado do local. */
 export async function status() {
+  if (mode() === 'online') return onlineSupported() ? 'installed' : 'unsupported'; // Moonshine bloqueado
+  if (mode() === 'local') return localasr.status();                                // online bloqueado
   if (onlineUsable()) return 'installed';
   return localasr.status();
 }
@@ -187,6 +195,9 @@ export async function status() {
  * Lança { code: 'unavailable', fallbackReason } só quando nenhum dos dois pode atender (nada é decidido em silêncio).
  */
 export async function transcribe(blob, opts = {}) {
+  const m = mode();
+  if (m === 'online') return transcribeOnlineOnly(blob, opts);
+  if (m === 'local') return transcribeLocalOnly(blob, opts);
   let fallbackReason = null, entry = null;
   if (!opts.local) {
     const p = live.get(blob);
@@ -214,4 +225,35 @@ export async function transcribe(blob, opts = {}) {
   const r = await localasr.transcribe(blob, opts);
   if (entry) { entry.engine = 'local-model'; entry.fallbackReason = fallbackReason; saveLog(); }
   return { ...r, engine: 'local-model', lang: 'en', status: 'ok', fallbackReason };
+}
+
+const unavailable = (msg, reason) => { const e = new Error(msg); e.code = 'unavailable'; e.fallbackReason = reason; return e; };
+
+/** Modo “Reconhecimento online”: só o texto online desta gravação. O Moonshine nunca é carregado nem usado. */
+async function transcribeOnlineOnly(blob, opts) {
+  const p = opts.local ? null : live.get(blob);
+  const r = p ? await p : null;
+  const entry = r && r.entry ? r.entry : newEntry({ capture: 'sem escuta online' });
+  if (r && r.text) {
+    entry.engine = 'online'; saveLog();
+    return { text: r.text, confidence: r.confidence || 0, engine: 'online', lang: r.lang, ms: r.ms, secs: null, status: 'ok',
+      alternatives: r.alternatives, events: r.events, error: r.error || null };
+  }
+  const reason = opts.local ? 'Moonshine desativado (modo online)' : r ? (r.error ? `online: ${r.error}` : 'online: sem texto')
+    : !onlineSupported() ? 'navegador sem reconhecimento online' : !isOnline() ? 'sem internet' : 'online não iniciado';
+  entry.engine = 'nenhum'; entry.fallbackReason = `${reason} · sem troca (modo online)`; saveLog();
+  throw unavailable(`Reconhecimento online indisponível nesta gravação (${reason}). Grave de novo; com o modo online, o Moonshine não é usado.`, reason);
+}
+
+/** Modo “Moonshine”: só o modelo do aparelho. Nenhuma escuta online é iniciada (recorder → prepareOnline = false). */
+async function transcribeLocalOnly(blob, opts) {
+  const entry = newEntry({ capture: 'sem escuta online (modo Moonshine)' });
+  const st = await localasr.status().catch(() => 'unsupported');
+  if (st !== 'installed') {
+    entry.engine = 'nenhum'; entry.fallbackReason = `Moonshine ${st} · sem troca (modo Moonshine)`; saveLog();
+    throw unavailable(`O Moonshine não está instalado neste aparelho (${st}). Instale-o ou escolha o reconhecimento online em Ajustes → Áudio.`, `Moonshine: ${st}`);
+  }
+  const r = await localasr.transcribe(blob, opts);
+  entry.engine = 'local-model'; saveLog();
+  return { ...r, engine: 'local-model', lang: 'en', status: 'ok', fallbackReason: null };
 }
