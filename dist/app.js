@@ -3045,9 +3045,9 @@
   }
   function hint(text, level) {
     return text.split(" ").map((w) => {
-      const letters = w.replace(/[^A-Za-zÀ-ÿ]/g, "");
-      if (!letters) return w;
-      const keep = level >= 2 ? Math.ceil(letters.length / 2) : 1;
+      const letters2 = w.replace(/[^A-Za-zÀ-ÿ]/g, "");
+      if (!letters2) return w;
+      const keep = level >= 2 ? Math.ceil(letters2.length / 2) : 1;
       return w.slice(0, keep) + w.slice(keep).replace(/[A-Za-zÀ-ÿ]/g, "_");
     }).join(" ");
   }
@@ -4279,10 +4279,10 @@
     let pos = 0, w = 0;
     for (const s of tokenSpans(text)) {
       if (s.start > pos) segs.push({ text: text.slice(pos, s.start) });
-      const norm2 = wordTokens(s.text).join(" ");
+      const norm3 = wordTokens(s.text).join(" ");
       const before = text.slice(0, s.start).trimEnd();
       const proper = /^[A-Z][a-z]/.test(s.text) && before !== "" && !/[.!?:]$/.test(before);
-      segs.push({ text: s.text, w: w++, norm: norm2, weak: WEAK.has(norm2), proper });
+      segs.push({ text: s.text, w: w++, norm: norm3, weak: WEAK.has(norm3), proper });
       pos = s.end;
     }
     if (pos < text.length) segs.push({ text: text.slice(pos) });
@@ -6899,6 +6899,49 @@ ${body.join("\n\n")}
   }
   var mayHaveLostSpeech = (integ) => !!integ && integ.issues.some((x) => ["possibly-truncated", "lost-part", "low-density", "cut-in-speech"].includes(x.code));
 
+  // app/js/engine/charmarks.js
+  var SUFFIXES = ["ing", "est", "'s", "es", "ed", "er", "ly", "s", "d"];
+  var MIN_STEM = 3;
+  var norm2 = (t) => String(t || "").toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z0-9']/g, "");
+  function lettersOf(display) {
+    const out = [];
+    const s = String(display).replace(/[’`]/g, "'");
+    for (let i = 0; i < s.length; i++) if (/[a-z0-9']/i.test(s[i])) out.push({ ch: s[i].toLowerCase(), at: i });
+    return out;
+  }
+  function splitAt(display, n) {
+    const L = lettersOf(display);
+    const cut = n >= L.length ? display.length : L[n].at;
+    return [{ text: display.slice(0, cut), mark: "good" }, { text: display.slice(cut), mark: "missing" }].filter((x) => x.text);
+  }
+  var commonPrefix = (a, b) => {
+    let i = 0;
+    while (i < a.length && i < b.length && a[i] === b[i]) i++;
+    return i;
+  };
+  function classifyWord(word) {
+    if (!word) return { kind: "missing" };
+    if (word.state === "good") return { kind: "good" };
+    if (word.state !== "needs_practice") return { kind: "uncertain" };
+    const heardRaw = String(word.heard || "").trim();
+    if (!heardRaw) return { kind: "missing" };
+    if (/\s/.test(heardRaw)) return { kind: "uncertain" };
+    const exp = norm2(word.text), heard = norm2(heardRaw);
+    if (!exp || !heard) return { kind: "missing" };
+    if (heard.length >= MIN_STEM && exp.startsWith(heard) && SUFFIXES.includes(exp.slice(heard.length))) return { kind: "suffix", stem: heard.length };
+    if (commonPrefix(exp, heard) >= MIN_STEM) return { kind: "uncertain" };
+    return { kind: "missing" };
+  }
+  function markWord(display, word) {
+    const c = classifyWord(word);
+    if (c.kind === "suffix") {
+      const L = lettersOf(display);
+      if (L.length === norm2(word.text).length) return splitAt(display, c.stem);
+      return [{ text: display, mark: "uncertain" }];
+    }
+    return [{ text: display, mark: c.kind === "good" ? "good" : c.kind === "missing" ? "missing" : "uncertain" }];
+  }
+
   // app/js/engine/dialogue.js
   var THRESHOLD = 80;
   var LISTENS_REQUIRED = 3;
@@ -8014,6 +8057,61 @@ ${body.join("\n\n")}
       h("div", { class: "tiny muted", "data-role": "asr-engine", text: `Correspond\xEAncia entre a transcri\xE7\xE3o e o texto \u2014 n\xE3o \xE9 avalia\xE7\xE3o fon\xE9tica da pron\xFAncia.${engineText((result.evidence || {}).asr || {})}` })
     ];
   }
+  var VX_MARK = { good: "reconhecido", missing: "ausente ou substitu\xEDdo", uncertain: "correspond\xEAncia parcial ou incerta" };
+  var VX_HEAD = { passed: "Aprovado", needs_practice: "Precisa de pr\xE1tica", inconclusive: "Inconclusivo", pending: "Aguardando avalia\xE7\xE3o" };
+  var letters = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9']/g, "");
+  function vocabExpression(en2, words3) {
+    const box2 = h("div", { class: "vx-en en", "data-role": "item-en", lang: "en" });
+    if (!words3 || !words3.length) {
+      box2.textContent = en2;
+      return box2;
+    }
+    let k = 0;
+    String(en2).split(/(\s+)/).forEach((tok) => {
+      if (!tok) return;
+      if (/^\s+$/.test(tok)) {
+        box2.append(document.createTextNode(" "));
+        return;
+      }
+      const w = k < words3.length && letters(tok) && letters(tok) === letters(words3[k].text) ? words3[k++] : null;
+      if (!w) {
+        box2.append(h("span", { class: "vx-w" }, tok));
+        return;
+      }
+      const segs = markWord(tok, w);
+      const label = segs.map((x) => `${x.text}: ${VX_MARK[x.mark]}`).join("; ");
+      box2.append(h(
+        "span",
+        { class: "vx-w", "data-state": w.state, "data-marks": segs.map((x) => x.mark).join(" "), title: label, "aria-label": label },
+        ...segs.map((x) => h("span", { class: `vx-seg vx-${x.mark}`, text: x.text }))
+      ));
+    });
+    return box2;
+  }
+  function vocabListens(n) {
+    const k = Math.min(n, LISTENS_REQUIRED);
+    return h(
+      "div",
+      { class: "vx-listens" },
+      h("div", { class: "vx-dots", "aria-hidden": "true" }, Array.from({ length: LISTENS_REQUIRED }, (_, i) => h("i", { class: i < k ? "on" : "" }))),
+      h("span", { class: "vx-count", "data-role": "listen-count", text: `Audi\xE7\xF5es: ${k}/${LISTENS_REQUIRED}` })
+    );
+  }
+  function vocabResult(result, heard) {
+    const f = result.feedback || {};
+    const cls = result.status === "passed" ? "good" : result.status === "needs_practice" ? "bad" : "mid";
+    const text = heard === null || heard === void 0 ? "" : String(heard).trim();
+    const technical = result.status === "inconclusive" && !text;
+    return h(
+      "div",
+      { class: `vx-result ${cls}`, "data-role": "feedback", "data-status": result.status, role: "status" },
+      h("div", { class: "vx-head" }, icon(result.status === "passed" ? "check" : result.status === "needs_practice" ? "x" : "refresh"), VX_HEAD[result.status] || "Inconclusivo"),
+      text ? h("p", { class: "vx-line" }, h("span", { class: "muted", text: "O app ouviu: " }), h("span", { class: "en", lang: "en", "data-role": "heard", text: `\u201C${text}\u201D` })) : null,
+      f.toPractise && f.toPractise.length ? h("p", { class: "vx-line", "data-role": "to-practise" }, h("span", { class: "muted", text: "Palavras a praticar: " }), h("b", { class: "en", lang: "en", text: f.toPractise.join(", ") })) : null,
+      result.status === "inconclusive" ? h("p", { class: "vx-line", text: technical ? "O reconhecimento n\xE3o devolveu texto nesta tentativa. N\xE3o aprova nem reprova \u2014 isso n\xE3o conta como erro seu. Grave de novo." : `N\xE3o aprova nem reprova: ${f.summary ? f.summary.replace(/\s*$/, "") : "grave de novo."}` }) : null,
+      technical && f.summary ? h("details", { class: "more vx-tech" }, h("summary", { text: "Detalhes t\xE9cnicos" }), h("p", { class: "tiny muted", text: f.summary })) : null
+    );
+  }
   function phaseVocab(App2, { pack, act, p, area, ctx }) {
     const items = itemsOf(pack, act);
     const ids = items.map((x) => x.id);
@@ -8025,45 +8123,35 @@ ${body.join("\n\n")}
       const n = listensOf(p, `vocab:${it.id}`);
       const canSpeak = canSpeakItem(p, it.id);
       const status4 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
-      const listenBtn = h("button", { class: "btn primary", type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
-      const recBtn = h("button", { class: "btn block", type: "button", "data-role": "record-item", disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
+      const listenBtn = h("button", { class: "btn primary vx-listen", type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
+      const recBtn = h("button", { class: "btn block vx-rec", type: "button", "data-role": "record-item", disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
       const fb = h("div", { "data-role": "item-result" });
+      const shown = last && last.id === it.id ? { result: last.result, heard: last.heard } : m.lastAttempt ? { result: { status: m.lastAttempt.status, feedback: m.lastAttempt.feedback }, heard: m.lastAttempt.response } : null;
+      const judged = shown && (shown.result.status === "passed" || shown.result.status === "needs_practice");
+      const words3 = judged && shown.result.feedback && Array.isArray(shown.result.feedback.words) ? shown.result.feedback.words : null;
       clear(area).append(
-        h("p", { class: "small muted", text: `Ou\xE7a cada item ${LISTENS_REQUIRED} vezes at\xE9 o fim; depois, grave voc\xEA dizendo. Aprova\xE7\xE3o: ${THRESHOLD}% de correspond\xEAncia em cada item.` }),
-        itemChips(ids, p, "vocab", (id, i) => String(i + 1), current2, (id) => {
+        h("p", { class: "vx-instruction", "data-role": "vocab-instruction" }, icon("speaker"), h("span", { text: `Ou\xE7a ${LISTENS_REQUIRED} vezes at\xE9 o fim. Depois, grave voc\xEA dizendo.` })),
+        h("div", { class: "vx-chips" }, itemChips(ids, p, "vocab", (id, i) => String(i + 1), current2, (id) => {
           current2 = id;
           last = null;
           draw();
-        }),
+        })),
         h(
           "section",
-          { class: "card", "data-role": "vocab-card", "data-item": it.id, "data-status": m.status },
+          { class: "card vx-card", "data-role": "vocab-card", "data-item": it.id, "data-status": m.status },
           h("div", { class: "eyebrow", text: TYPE_LABEL[it.type] || it.type }),
-          h("div", { class: "big-en en", "data-role": "item-en", text: it.en }),
-          h("div", { class: "small muted", text: `Significado no contexto: ${it.pt}` }),
-          h(
-            "div",
-            { class: "row", style: { marginTop: "10px" } },
-            listenBtn,
-            h("span", { class: "small", "data-role": "listen-count", text: `Audi\xE7\xF5es: ${Math.min(n, LISTENS_REQUIRED)}/${LISTENS_REQUIRED}` })
-          ),
+          vocabExpression(it.en, words3),
+          h("div", { class: "vx-pt", "data-role": "item-pt", text: it.pt }),
+          h("div", { class: "vx-listen-row" }, listenBtn, vocabListens(n)),
           hasAudio(it.audio) ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para este item: a produ\xE7\xE3o oral fica bloqueada." }),
-          h("div", { style: { marginTop: "12px" } }, recBtn),
+          recBtn,
           status4
         ),
         fb
       );
-      if (last && last.id === it.id) fb.append(statusFeedback(last.result, speechDetails(last.result, last.heard)));
-      else if (m.status !== "unseen") fb.append(h("div", { class: `chip ${ITEM_CHIP[m.status]}`, "data-role": "item-status", text: `${ITEM_LABEL[m.status]}${m.bestValidScore !== null ? ` \xB7 melhor ${m.bestValidScore}%` : ""}` }));
-      if (m.status === "passed" || last && last.id === it.id) fb.append(h(
-        "div",
-        { class: "card flat small", "data-role": "item-explanation", style: { marginTop: "8px" } },
-        h("b", { text: it.en }),
-        ` \u2014 ${it.pt}.`,
-        it.sourceLineIds.length ? h("div", { class: "muted", text: `Aparece em ${it.sourceLineIds.length} ${it.sourceLineIds.length === 1 ? "fala" : "falas"} deste di\xE1logo.` }) : null
-      ));
+      if (shown) fb.append(vocabResult(shown.result, shown.heard));
       const next = nextItem(ids, p, "vocab");
-      if (next && next !== it.id && m.status === "passed") fb.append(h("button", { class: "btn primary block", type: "button", "data-role": "next-item", style: { marginTop: "10px" }, onclick: () => {
+      if (next && next !== it.id && m.status === "passed") fb.append(h("button", { class: "btn primary block vx-next", type: "button", "data-role": "next-item", onclick: () => {
         current2 = next;
         last = null;
         draw();
@@ -9590,7 +9678,7 @@ ${body.join("\n\n")}
             reason: ref ? recognitionReason(seg.text.replace(/[.,!?;:]+$/, ""), ref) : `\u201C${seg.text}\u201D n\xE3o parece uma palavra do ingl\xEAs: prov\xE1vel erro do reconhecimento, mas o contexto n\xE3o indica uma palavra prov\xE1vel. Ou\xE7a sua grava\xE7\xE3o; se a palavra estiver clara, est\xE1 tudo certo.`
           });
         } else if (!inActivity) {
-          const e = missingExpected.find((x) => x[0] === l[0] && x !== l && Math.abs(x.length - l.length) <= 2 && levenshtein(skeleton(x), skeleton(l)) <= 1 && levenshtein(x, l) <= 2 && commonPrefix(x, l) < 5);
+          const e = missingExpected.find((x) => x[0] === l[0] && x !== l && Math.abs(x.length - l.length) <= 2 && levenshtein(skeleton(x), skeleton(l)) <= 1 && levenshtein(x, l) <= 2 && commonPrefix2(x, l) < 5);
           if (e) {
             const ref = exampleWord.get(e) || e;
             Object.assign(r, { state: "needs_practice", flag: "confusion", ref, category: "recognition", reason: `O app ouviu \u201C${seg.text}\u201D. Se voc\xEA quis dizer \u201C${ref}\u201D, vale praticar essa palavra; se disse \u201C${seg.text}\u201D, est\xE1 tudo certo.` });
@@ -9713,7 +9801,7 @@ ${body.join("\n\n")}
     const lead = f.strength === "likely" ? "Este trecho provavelmente n\xE3o corresponde ao que voc\xEA quis dizer" : "Este trecho pode n\xE3o corresponder ao que voc\xEA quis dizer";
     return `${lead}: no trecho \u201C${f.context}\u201D o app ouviu \u201C${f.heard}\u201D \u2014 ${why.join(" e ")}. Sugest\xE3o (n\xE3o \xE9 a transcri\xE7\xE3o): \u201C${f.expected}\u201D, como em \u201C${f.ref.text}\u201D. Pode ter sido o reconhecimento ou a pron\xFAncia: ou\xE7a sua grava\xE7\xE3o e a refer\xEAncia. Se voc\xEA disse \u201C${f.heard}\u201D mesmo, ignore esta marca.`;
   }
-  function commonPrefix(a, b) {
+  function commonPrefix2(a, b) {
     let i = 0;
     while (i < a.length && a[i] === b[i]) i++;
     return i;
@@ -9775,8 +9863,8 @@ ${body.join("\n\n")}
   var VERB_LIKE = new Set("sit stand lie put open check use close take have get set drive park brush eat make go do watch play listen read write send start switch turn shut log pick call accept leave arrive see look buy cook wash clean run walk".split(" "));
   for (const k of Object.keys(OBJ_VERBS)) OBJ_VERBS[k] = new Set(OBJ_VERBS[k].split(" "));
   function soundsLike(a, b) {
-    const norm2 = (x2) => x2.toLowerCase().replace(/[^a-z]/g, "").replace(/th/g, "t").replace(/ph/g, "f").replace(/c(?=[aou])/g, "k").replace(/ck/g, "k");
-    const x = norm2(a), y = norm2(b);
+    const norm3 = (x2) => x2.toLowerCase().replace(/[^a-z]/g, "").replace(/th/g, "t").replace(/ph/g, "f").replace(/c(?=[aou])/g, "k").replace(/ck/g, "k");
+    const x = norm3(a), y = norm3(b);
     if (!x || !y || x === y) return false;
     let suf = 0;
     while (suf < Math.min(x.length, y.length) && x[x.length - 1 - suf] === y[y.length - 1 - suf]) suf++;
@@ -10592,8 +10680,8 @@ ${body.join("\n\n")}
       if (!missing.size) return document.createTextNode(model || "");
       const frag = document.createDocumentFragment();
       model.split(/(\s+)/).forEach((w) => {
-        const norm2 = w.toLowerCase().replace(/[^a-z0-9'à-ÿ:]/g, "");
-        frag.append(missing.has(norm2) ? h("span", { class: "miss", text: w }) : document.createTextNode(w));
+        const norm3 = w.toLowerCase().replace(/[^a-z0-9'à-ÿ:]/g, "");
+        frag.append(missing.has(norm3) ? h("span", { class: "miss", text: w }) : document.createTextNode(w));
       });
       return h("span", { class: "diff" }, frag);
     }
@@ -11195,13 +11283,13 @@ ${body.join("\n\n")}
     };
   }
   function dedupeCues(items, keywords) {
-    const norm2 = (t) => t.toLowerCase().replace(/[…."]/g, "").replace(/^i /, "").trim();
-    const kw = keywords.flat().map((k) => norm2(String(k)));
+    const norm3 = (t) => t.toLowerCase().replace(/[…."]/g, "").replace(/^i /, "").trim();
+    const kw = keywords.flat().map((k) => norm3(String(k)));
     const kept = [];
     for (const it of [...items].sort((a, b) => b.en.length - a.en.length)) {
-      const n = norm2(it.en);
+      const n = norm3(it.en);
       if (kw.some((k) => k.includes(n) || n.includes(k) && k.length > 3)) continue;
-      if (kept.some((x) => norm2(x.en).includes(n))) continue;
+      if (kept.some((x) => norm3(x.en).includes(n))) continue;
       kept.push(it);
     }
     return kept;

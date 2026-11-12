@@ -619,3 +619,46 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 :root[data-theme="light"] .ring span { background: var(--surface); }
 :root[data-theme="light"] .btn.primary { box-shadow: 0 4px 12px rgba(255, 122, 26, .22); }
 :root[data-theme="light"] .char-img.char-illus { filter: drop-shadow(0 6px 10px rgba(70, 60, 160, .16)); }
+
+/* ---------- Diálogo · fase 1 (vocabulário): interface remodelada (2026-11-12, primeira versão para avaliação) ----------
+   Só apresentação. Cores por palavra = estado do avaliador: verde reconhecida; vermelho suave a praticar; amarelo não
+   avaliada com segurança. Mais respiro vertical, cartões com mais padding, alvos de toque ≥ 48 px. */
+.vx-instruction { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 18px; padding: 14px 16px; border-radius: var(--radius-md);
+  background: var(--accent-soft); color: var(--ink); font-size: 1.05rem; font-weight: 600; line-height: 1.4; }
+.vx-instruction .icon, .vx-instruction svg { flex: none; color: var(--accent); margin-top: 2px; }
+.vx-chips { margin: 0 0 18px; }
+.vx-chips .chips { gap: 10px; }
+.vx-chips .chip { min-width: 48px; min-height: 48px; justify-content: center; font-size: 1.05rem; font-weight: 700; }
+.vx-card.card { padding: 22px 20px; }
+.vx-en { font-family: var(--font-en); font-size: 2rem; line-height: 1.45; margin: 10px 0 6px; overflow-wrap: anywhere; word-spacing: .12em; }
+/* a palavra continua inteira (sem espaço entre trechos); só o fundo/cor muda por trecho: “team” verde + “s” vermelho */
+.vx-w { display: inline; white-space: nowrap; }
+.vx-seg { padding: 1px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.vx-seg:first-child { padding-left: 4px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.vx-seg:last-child { padding-right: 4px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+.vx-seg.vx-good { background: var(--ok-soft); color: var(--ok); }
+.vx-seg.vx-missing { background: var(--bad-soft); color: var(--bad); }
+.vx-seg.vx-uncertain { background: var(--warn-soft); color: var(--warn); }
+.vx-pt { font-size: 1.1rem; color: var(--muted); line-height: 1.4; margin-bottom: 22px; }
+.vx-listen-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.btn.vx-listen { min-height: 52px; padding: 0 24px; font-size: 1.05rem; }
+.vx-listens { display: flex; align-items: center; gap: 10px; }
+.vx-dots { display: flex; gap: 6px; }
+.vx-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); }
+.vx-dots i.on { background: var(--ok); border-color: var(--ok); }
+.vx-count { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.btn.vx-rec { min-height: 56px; font-size: 1.05rem; }
+.vx-result { margin-top: 20px; padding: 18px 20px; border-radius: var(--radius); background: var(--surface); border-left: 5px solid var(--line); }
+.vx-result.good { border-left-color: var(--ok); background: var(--ok-soft); }
+.vx-result.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.vx-result.mid { border-left-color: var(--warn); background: var(--warn-soft); }
+.vx-head { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; }
+.vx-result.good .vx-head { color: var(--ok); }
+.vx-result.bad .vx-head { color: var(--bad); }
+.vx-result.mid .vx-head { color: var(--warn); }
+.vx-line { margin: 8px 0 0; font-size: 1rem; line-height: 1.45; }
+.vx-line .en { font-size: 1.05rem; }
+.vx-tech { margin-top: 10px; }
+.btn.vx-next { margin-top: 16px; min-height: 52px; }
+.vx-card .wp-status:empty { display: none; }
+.vx-card .wp-status { margin: 14px 0 0; }

@@ -5,6 +5,47 @@ O executor atualiza este topo ao fechar cada entrega; o ChatGPT audita a partir 
 que deixa de valer vai para o histórico abaixo. Estados aqui são verificados na data indicada: confirme no Git antes
 de agir.
 
+## Marcação por trecho na expressão (vocabulário, 2026-11-12) — IMPLEMENTADO para avaliação; SEM commit/push/publicação
+
+- **O quê:** a expressão da fase 1 mostra, dentro de cada palavra, o trecho reconhecido e o que faltou, a partir da
+  transcrição (`js/engine/charmarks.js`, só exibição; usado em `vocabExpression`, `js/ui/dialogue.js`; CSS `.vx-seg`).
+  O avaliador central NÃO mudou: estado, nota, aprovação, progressão e “Palavras a praticar” continuam dele.
+- **Regras (sobre a palavra e o que o avaliador registrou como ouvido no lugar dela):** reconhecida → verde;
+  variantes/contrações aceitas pelo avaliador → verde; nada ouvido no lugar → vermelha; ouvido = começo exato da
+  palavra (≥ 3 letras) e o que falta é só uma terminação conhecida (s, es, ed, d, ing, 's, er, est, ly) → começo verde
+  + só a terminação vermelha (“team|s”, “work|s”); base comum (≥ 3 letras iniciais) sem separação segura
+  (“different” ← “difficult”, “colour” ← “color”, “works” ← “working”, “cities” ← “city”) ou várias palavras no
+  lugar (“I'm” ← “i am”) → amarela; sem correspondência confiável (“teams” ← “dreams”: semelhança só no fim) →
+  vermelha; não avaliada com segurança (átona, nome próprio, corte) → amarela; inconclusivo → sem cores.
+  Correspondência textual, não avaliação fonética; nenhum texto novo para o aluno.
+- **Testes:** novo `dev/tests/unit/charmarks.test.js` 9/9 (pelo avaliador real: palavra correta, plural e terminação
+  verbal omitidos, substituição, ambíguo, ausente, várias palavras, contrações/pontuação/variantes aceitas, átona,
+  inconclusivo/vazio); unitários 263 ok / 1 ignorado; `dialogue` 14/14. Capturas (384×832):
+  `dev/evidence/vocab-redesign/a-acerto-total.png`, `b-omissao-sufixo.png` (+ `b-zoom.png`), `c-substituicao.png`,
+  `d-ambiguo.png`, `exemplos-trecho.png`. Build local `583fa58264f1` (não publicado).
+- **Pendente:** avaliação pedagógica e visual do PO.
+
+## Remodelagem da interface de vocabulário — Diálogo, fase 1 (2026-11-12) — IMPLEMENTADO para avaliação visual; SEM commit/push/publicação
+
+- **Escopo:** só a fase 1 (vocabulário) dos diálogos (`js/ui/dialogue.js`: `phaseVocab` + `vocabExpression`,
+  `vocabListens`, `vocabResult`; CSS com escopo `.vx-*` em `css/app.css`). Outras fases e telas inalteradas, de propósito
+  (avaliar no aparelho antes de replicar). Conteúdo, traduções, critérios, avaliação, gravação, audições, modos e
+  progresso inalterados.
+- **Mudanças:** instrução destacada (“Ouça 3 vezes até o fim. Depois, grave você dizendo.”); sem “Aprovação: 80%…”;
+  itens maiores (48 px) com os mesmos estados; expressão maior com cada palavra colorida pelo estado do avaliador;
+  só a tradução (sem “Significado no contexto”); “Ouvir” maior + três marcas + “Audições: n/3”; botão de gravar maior;
+  resultado enxuto (estado · “O app ouviu” · “Palavras a praticar”; inconclusivo sem texto = mensagem curta de falha
+  técnica, sem culpar o aluno, com “Detalhes técnicos” recolhido); sem percentual, sem textos técnicos, sem o cartão
+  repetido (“Aparece em N falas”). Ao voltar a um item, mostra a última tentativa guardada. “fase concluída” preservado.
+- **Cores = estados que o avaliador já produz:** verde `good`; vermelho suave `needs_practice`; amarelo `uncertain`
+  (não avaliada com segurança: átona, nome próprio, transcrição cortada). Inconclusivo não colore. **Decisão do PO
+  pendente:** o avaliador NÃO distingue “parcial” (“team” por “teams”) de “substituída” (“dreams”): ambas são
+  `needs_practice` (vermelho). Amarelo para variações parciais exigiria uma classificação nova (fora do escopo pedido).
+- **Testes:** `dialogue` 14/14, `voice` 5/5, `speech-online` 13/13; capturas (viewport 384×832, S25+) em
+  `dev/evidence/vocab-redesign/` (inicial, acerto total, parcial, erro, falha técnica, uma palavra, tema claro);
+  sem rolagem horizontal; alvos ≥ 44 px. Build local `a8507a690294` (não publicado).
+- **Pendente:** avaliação visual do PO no aparelho; a imagem de referência citada no pedido não chegou à sessão.
+
 ## Correção definitiva do reconhecimento online (2026-11-12) — IMPLEMENTADO e testado; SEM commit/push/publicação
 
 Pedido do PO: no Galaxy S25+, o reconhecimento online grava mas devolve “sem texto” (inconclusiva) em várias

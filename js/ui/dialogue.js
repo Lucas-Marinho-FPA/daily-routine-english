@@ -14,6 +14,7 @@ import { analyseBlob } from '../audio/analysis.js';
 import * as db from '../store/db.js';
 import { asrSetupCard } from './asrsetup.js';
 import { transcriptIntegrity } from '../engine/integrity.js';
+import { markWord } from '../engine/charmarks.js';
 import {
   PHASES, THRESHOLD, LISTENS_REQUIRED, passMark, STORE_KEY, dialoguePack, activityById, itemsOf, questionsOf,
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
@@ -436,6 +437,54 @@ function speechDetails(result, heard) {
 }
 
 // ---------- Fase 1: vocabulário ----------
+// Interface remodelada (2026-11-12, primeira versão para avaliação visual): só apresentação — conteúdo, critérios,
+// avaliação, gravação, audições e progresso são os de sempre. Cores por trecho (engine/charmarks.js) a partir do estado
+// que o avaliador já produz: verde reconhecido; vermelho suave ausente/substituído (só a terminação, quando o alinhamento
+// é seguro: “team|s”); amarelo correspondência parcial ou incerta. Correspondência textual — não é avaliação fonética.
+const VX_MARK = { good: 'reconhecido', missing: 'ausente ou substituído', uncertain: 'correspondência parcial ou incerta' };
+const VX_HEAD = { passed: 'Aprovado', needs_practice: 'Precisa de prática', inconclusive: 'Inconclusivo', pending: 'Aguardando avaliação' };
+const letters = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9']/g, '');
+
+/** A expressão (texto original do item) com cada palavra marcada pelo estado do avaliador (na ordem das palavras ditas). */
+function vocabExpression(en, words) {
+  const box = h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en' });
+  if (!words || !words.length) { box.textContent = en; return box; }
+  let k = 0;
+  String(en).split(/(\s+)/).forEach((tok) => {
+    if (!tok) return;
+    if (/^\s+$/.test(tok)) { box.append(document.createTextNode(' ')); return; }
+    const w = k < words.length && letters(tok) && letters(tok) === letters(words[k].text) ? words[k++] : null;
+    if (!w) { box.append(h('span', { class: 'vx-w' }, tok)); return; }
+    const segs = markWord(tok, w);
+    const label = segs.map((x) => `${x.text}: ${VX_MARK[x.mark]}`).join('; ');
+    box.append(h('span', { class: 'vx-w', 'data-state': w.state, 'data-marks': segs.map((x) => x.mark).join(' '), title: label, 'aria-label': label },
+      ...segs.map((x) => h('span', { class: `vx-seg vx-${x.mark}`, text: x.text }))));
+  });
+  return box;
+}
+
+/** Progresso das audições: três marcas + “Audições: n/3”. */
+function vocabListens(n) {
+  const k = Math.min(n, LISTENS_REQUIRED);
+  return h('div', { class: 'vx-listens' },
+    h('div', { class: 'vx-dots', 'aria-hidden': 'true' }, Array.from({ length: LISTENS_REQUIRED }, (_, i) => h('i', { class: i < k ? 'on' : '' }))),
+    h('span', { class: 'vx-count', 'data-role': 'listen-count', text: `Audições: ${k}/${LISTENS_REQUIRED}` }));
+}
+
+/** Cartão de resultado enxuto: estado, o que o app ouviu e palavras a praticar (falha técnica: mensagem curta). */
+function vocabResult(result, heard) {
+  const f = result.feedback || {};
+  const cls = result.status === 'passed' ? 'good' : result.status === 'needs_practice' ? 'bad' : 'mid';
+  const text = heard === null || heard === undefined ? '' : String(heard).trim();
+  const technical = result.status === 'inconclusive' && !text;
+  return h('div', { class: `vx-result ${cls}`, 'data-role': 'feedback', 'data-status': result.status, role: 'status' },
+    h('div', { class: 'vx-head' }, icon(result.status === 'passed' ? 'check' : result.status === 'needs_practice' ? 'x' : 'refresh'), VX_HEAD[result.status] || 'Inconclusivo'),
+    text ? h('p', { class: 'vx-line' }, h('span', { class: 'muted', text: 'O app ouviu: ' }), h('span', { class: 'en', lang: 'en', 'data-role': 'heard', text: `“${text}”` })) : null,
+    f.toPractise && f.toPractise.length ? h('p', { class: 'vx-line', 'data-role': 'to-practise' }, h('span', { class: 'muted', text: 'Palavras a praticar: ' }), h('b', { class: 'en', lang: 'en', text: f.toPractise.join(', ') })) : null,
+    result.status === 'inconclusive' ? h('p', { class: 'vx-line', text: technical ? 'O reconhecimento não devolveu texto nesta tentativa. Não aprova nem reprova — isso não conta como erro seu. Grave de novo.' : `Não aprova nem reprova: ${f.summary ? f.summary.replace(/\s*$/, '') : 'grave de novo.'}` }) : null,
+    technical && f.summary ? h('details', { class: 'more vx-tech' }, h('summary', { text: 'Detalhes técnicos' }), h('p', { class: 'tiny muted', text: f.summary })) : null);
+}
+
 function phaseVocab(App, { pack, act, p, area, ctx }) {
   const items = itemsOf(pack, act);
   const ids = items.map((x) => x.id);
@@ -447,27 +496,29 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
     const n = listensOf(p, `vocab:${it.id}`);
     const canSpeak = canSpeakItem(p, it.id);
     const status = h('div', { class: 'wp-status', role: 'status', 'aria-live': 'polite', 'data-role': 'rec-status' });
-    const listenBtn = h('button', { class: 'btn primary', type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
-    const recBtn = h('button', { class: 'btn block', type: 'button', 'data-role': 'record-item', disabled: !canSpeak }, icon('mic'), m.attemptCount ? 'Gravar de novo' : 'Gravar minha pronúncia');
+    const listenBtn = h('button', { class: 'btn primary vx-listen', type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
+    const recBtn = h('button', { class: 'btn block vx-rec', type: 'button', 'data-role': 'record-item', disabled: !canSpeak }, icon('mic'), m.attemptCount ? 'Gravar de novo' : 'Gravar minha pronúncia');
     const fb = h('div', { 'data-role': 'item-result' });
+    // resultado mostrado: a tentativa recém-feita ou, ao voltar ao item, a última tentativa guardada
+    const shown = last && last.id === it.id ? { result: last.result, heard: last.heard }
+      : m.lastAttempt ? { result: { status: m.lastAttempt.status, feedback: m.lastAttempt.feedback }, heard: m.lastAttempt.response } : null;
+    // cores só num resultado avaliado (aprovado / precisa de prática); inconclusivo não colore a expressão
+    const judged = shown && (shown.result.status === 'passed' || shown.result.status === 'needs_practice');
+    const words = judged && shown.result.feedback && Array.isArray(shown.result.feedback.words) ? shown.result.feedback.words : null;
     clear(area).append(
-      h('p', { class: 'small muted', text: `Ouça cada item ${LISTENS_REQUIRED} vezes até o fim; depois, grave você dizendo. Aprovação: ${THRESHOLD}% de correspondência em cada item.` }),
-      itemChips(ids, p, 'vocab', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }),
-      h('section', { class: 'card', 'data-role': 'vocab-card', 'data-item': it.id, 'data-status': m.status },
+      h('p', { class: 'vx-instruction', 'data-role': 'vocab-instruction' }, icon('speaker'), h('span', { text: `Ouça ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.` })),
+      h('div', { class: 'vx-chips' }, itemChips(ids, p, 'vocab', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('section', { class: 'card vx-card', 'data-role': 'vocab-card', 'data-item': it.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: TYPE_LABEL[it.type] || it.type }),
-        h('div', { class: 'big-en en', 'data-role': 'item-en', text: it.en }),
-        h('div', { class: 'small muted', text: `Significado no contexto: ${it.pt}` }),
-        h('div', { class: 'row', style: { marginTop: '10px' } }, listenBtn,
-          h('span', { class: 'small', 'data-role': 'listen-count', text: `Audições: ${Math.min(n, LISTENS_REQUIRED)}/${LISTENS_REQUIRED}` })),
+        vocabExpression(it.en, words),
+        h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }),
+        h('div', { class: 'vx-listen-row' }, listenBtn, vocabListens(n)),
         hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: 'Áudio indisponível para este item: a produção oral fica bloqueada.' }),
-        h('div', { style: { marginTop: '12px' } }, recBtn), status),
+        recBtn, status),
       fb);
-    if (last && last.id === it.id) fb.append(statusFeedback(last.result, speechDetails(last.result, last.heard)));
-    else if (m.status !== 'unseen') fb.append(h('div', { class: `chip ${ITEM_CHIP[m.status]}`, 'data-role': 'item-status', text: `${ITEM_LABEL[m.status]}${m.bestValidScore !== null ? ` · melhor ${m.bestValidScore}%` : ''}` }));
-    if (m.status === 'passed' || (last && last.id === it.id)) fb.append(h('div', { class: 'card flat small', 'data-role': 'item-explanation', style: { marginTop: '8px' } },
-      h('b', { text: it.en }), ` — ${it.pt}.`, it.sourceLineIds.length ? h('div', { class: 'muted', text: `Aparece em ${it.sourceLineIds.length} ${it.sourceLineIds.length === 1 ? 'fala' : 'falas'} deste diálogo.` }) : null));
+    if (shown) fb.append(vocabResult(shown.result, shown.heard));
     const next = nextItem(ids, p, 'vocab');
-    if (next && next !== it.id && (m.status === 'passed')) fb.append(h('button', { class: 'btn primary block', type: 'button', 'data-role': 'next-item', style: { marginTop: '10px' }, onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
+    if (next && next !== it.id && (m.status === 'passed')) fb.append(h('button', { class: 'btn primary block vx-next', type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
     area.append(phaseFooter(pack, act, p, 'vocab'));
     listenBtn.onclick = async () => {
       listenBtn.disabled = true;
