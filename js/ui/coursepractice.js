@@ -209,15 +209,16 @@ export function renderCoursePractice(App, r) {
     const stopRec = () => { if (rec) { rec.cancel(); rec = null; } };
     cleanupEx = () => { stopRec(); if (localasr.busy()) localasr.release(); if (url) URL.revokeObjectURL(url); };
     recBtn.onclick = async () => {
-      if (rec) {
-        const r0 = rec; rec = null; recBtn.classList.remove('on'); status.textContent = 'Analisando…';
-        const { blob } = await r0.stop();
-        analyse(blob);
-        return;
-      }
+      if (rec) { rec.stop(); return; } // o fim é tratado em stopped (vale também para o fim automático de fala)
       player.stopAll();
       try { rec = await recorder.start({ maxMs: localasr.MAX_SECONDS * 1000 }); } catch (e) { status.textContent = e.userMessage || 'Não foi possível gravar.'; return; }
-      recBtn.classList.add('on'); status.textContent = 'Gravando… toque para terminar.'; clear(out);
+      const r0 = rec;
+      r0.stopped.then(({ blob }) => {
+        if (rec !== r0) return; // cancelada (saiu do exercício)
+        rec = null; recBtn.classList.remove('on'); status.textContent = 'Analisando…';
+        analyse(blob);
+      });
+      recBtn.classList.add('on'); status.textContent = 'Gravando… para sozinho quando você terminar (ou toque para terminar).'; clear(out);
     };
     async function analyse(blob) {
       if (url) URL.revokeObjectURL(url);

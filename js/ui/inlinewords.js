@@ -101,12 +101,12 @@ export function scoreLine(score, summary) {
 }
 
 /** “Ver o que o app ouviu”: transcrição, motivo e dimensões da nota — recolhido, para consulta. */
-export function scoreDetails(score, { heard = null, engine = null, note = '' } = {}) {
+export function scoreDetails(score, { heard = null, engine = null, note = '', reason = null } = {}) {
   return h('details', { class: 'more fb-details' },
     h('summary', { text: 'Ver o que o app ouviu' }),
     heard !== null ? h('p', { class: 'small' }, h('span', { class: 'muted', text: 'Transcrição: ' }), h('span', { class: 'en', text: heard ? `“${heard}”` : '(nada reconhecido)' })) : h('p', { class: 'small muted', text: 'Nenhuma transcrição nesta tentativa.' }),
     note ? h('p', { class: 'small muted', text: note }) : null,
     score ? h('ul', { class: 'small dims' }, score.dims.map((d) => h('li', {}, `${d.label} (peso ${Math.round(d.weight * 100)}%): `,
       d.score === null ? h('i', { text: `não avaliado — ${d.note}` }) : h('b', { text: `${d.score}/100` })))) : null,
-    h('p', { class: 'tiny muted', text: `${engine === 'model' || engine === 'local-model' ? 'Reconhecimento local (Moonshine), no aparelho.' : engine === 'webspeech' ? 'Reconhecimento do Chrome, no aparelho.' : engine === 'online' ? 'Reconhecimento online do navegador (a voz pode ter ido ao serviço dele).' : ''} As cores indicam se cada palavra foi reconhecida, não qual som foi dito; sotaque não é erro. Pesos da nota: hipóteses iniciais, não validadas.` }));
+    h('p', { class: 'tiny muted', text: `${engine === 'model' || engine === 'local-model' ? `Reconhecimento local (Moonshine), no aparelho${reason ? ` (${reason})` : ''}.` : engine === 'webspeech' ? 'Reconhecimento do Chrome, no aparelho.' : engine === 'online' ? 'Reconhecimento online do navegador (a voz pode ter ido ao serviço dele).' : ''} As cores indicam se cada palavra foi reconhecida, não qual som foi dito; sotaque não é erro. Pesos da nota: hipóteses iniciais, não validadas.` }));
 }

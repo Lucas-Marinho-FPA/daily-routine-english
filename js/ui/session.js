@@ -548,7 +548,7 @@ export function renderSession(App, { params }) {
     area.append(h('label', { class: 'lbl', style: { marginTop: '12px' }, text: 'Fale e/ou escreva' }));
     // ao parar a gravação, transcrição local + avaliação contextual (não muda XP nem a autoavaliação abaixo)
     freePanel = freeAnswerPanel(App, { question: isQ ? ex.q.q : '', model, alternatives: isQ ? ex.q.altAnswers || [] : [], modelClips, unit: isQ ? 'q' : unit });
-    widget = recWidget(App, { targetId, reference: modelClips, expectedWords: model ? model.split(/\s+/).length : 0, maxMs: unit === 'routine' ? 300000 : 120000, ...freePanel.hooks });
+    widget = recWidget(App, { targetId, reference: modelClips, expectedWords: model ? model.split(/\s+/).length : 0, maxMs: unit === 'routine' ? 300000 : 120000, silenceMs: 3000, ...freePanel.hooks });
     freePanel.attach(widget);
     area.append(widget.el, freePanel.el, h('div', { style: { height: '10px' } }), input);
 

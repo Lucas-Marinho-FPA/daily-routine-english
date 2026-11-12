@@ -121,7 +121,7 @@ const ui = async (file, itemId) => {
   await p.click('[data-role=record-item]');
   await p.waitForSelector('[data-role=stop]');
   await p.waitForTimeout(4500);
-  await p.click('[data-role=stop]');
+  if (await p.locator('[data-role=stop]').count()) await p.click('[data-role=stop]').catch(() => {}); // a captura pode ter encerrado sozinha (fim de fala automático)
   await p.waitForSelector('[data-role=feedback]', { timeout: 120000 });
   const fb = await p.evaluate(() => ({ status: document.querySelector('[data-role=feedback]').dataset.status, heard: (document.querySelector('[data-role=heard]') || {}).textContent || null }));
   await p.screenshot({ path: join(OUT, `V04-${itemId}.png`), fullPage: true });

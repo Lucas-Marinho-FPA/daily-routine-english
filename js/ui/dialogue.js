@@ -409,7 +409,7 @@ async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
     return { result: evaluateSpeech(target, null, { reason: e.userMessage || 'Não foi possível usar o microfone.' }), micError: e.userMessage || 'Microfone indisponível.' };
   }
   return new Promise((resolve) => {
-    clear(statusEl).append(h('span', { class: 'wp-dot', 'aria-hidden': 'true' }), ' Gravando… toque em Parar quando terminar.',
+    clear(statusEl).append(h('span', { class: 'wp-dot', 'aria-hidden': 'true' }), ' Gravando… para sozinho quando você terminar de falar (ou toque em Parar).',
       h('button', { class: 'btn primary block', type: 'button', 'data-role': 'stop', style: { marginTop: '8px' }, onclick: () => session.stop() }, icon('stop'), 'Parar'));
     ctx.cleanups.push(() => session.cancel());
     session.stopped.then(async ({ blob }) => {
@@ -423,12 +423,15 @@ async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
   });
 }
 
+/** Motor que atendeu (e, se houve troca, o motivo) — linha miúda, para diagnóstico. */
+const engineText = (a) => a.engine === 'online' ? ' Reconhecimento online do navegador.' : a.engine === 'local-model' ? ` Reconhecimento do aparelho${a.fallbackReason ? ` (${a.fallbackReason})` : ''}.` : '';
+
 function speechDetails(result, heard) {
   const f = result.feedback || {};
   return [
     heard !== null && heard !== undefined ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'O app ouviu: ' }), h('span', { 'data-role': 'heard', text: `“${heard}”` })) : null,
     f.toPractise && f.toPractise.length ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'Palavras a praticar: ' }), f.toPractise.join(', ')) : null,
-    h('div', { class: 'tiny muted', 'data-role': 'asr-engine', text: `Correspondência entre a transcrição e o texto — não é avaliação fonética da pronúncia.${{ online: ' Reconhecimento online do navegador.', 'local-model': ' Reconhecimento do aparelho.' }[((result.evidence || {}).asr || {}).engine] || ''}` }),
+    h('div', { class: 'tiny muted', 'data-role': 'asr-engine', text: `Correspondência entre a transcrição e o texto — não é avaliação fonética da pronúncia.${engineText((result.evidence || {}).asr || {})}` }),
   ];
 }
 

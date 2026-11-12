@@ -234,7 +234,7 @@ function renderTarget(App, params) {
       showFb('inconclusive',
         scoreLine(score, inconclusiveHint(evaluation, insufficient)),
         h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
-        scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, note: evaluation.note }));
+        scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, reason: res && res.fallbackReason, note: evaluation.note }));
     }
     if (res && !saved && (engine === 'model' || engine === 'online')) w.updateMeta(blob, { result: { text: res.text, at: Date.now(), integrity } });
   }
@@ -251,7 +251,7 @@ function renderTarget(App, params) {
       scoreLine(score, practiceSummary(list)),
       wp ? wp.el : h('div', { class: 'practice-ok', 'data-role': 'practice-ok' }, icon('check'), 'Nenhuma palavra pendente nesta tentativa.'),
       list.length ? null : h('div', { class: 'row fb-actions' }, h('button', { class: 'btn small', type: 'button', onclick: () => rerecord() }, icon('mic'), 'Gravar novamente')),
-      scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, note }));
+      scoreDetails(score, { heard: res ? res.text : null, engine: (res && res.engine) || engine, reason: res && res.fallbackReason, note }));
   }
 
   function showError(e, blob, analysis) {
@@ -303,6 +303,7 @@ function renderTarget(App, params) {
     : null;
   const w = recWidget(App, {
     targetId, reference: clips, expectedWords, referenceSec, maxMs: params.routine ? 300000 : 120000,
+    silenceMs: free || params.routine ? 3000 : undefined, // fim de fala: resposta livre e leitura longa toleram pausas maiores
     onStart: () => {
       resetFeedback();
       if (!reading) return;

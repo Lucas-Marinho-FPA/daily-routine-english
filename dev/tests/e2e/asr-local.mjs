@@ -240,12 +240,16 @@ await check('L13', 'Regravar: a nova tentativa invalida a anterior e reconstrói
 await check('L11', 'Resultado atrasado não sobrescreve: nova gravação iniciada durante a análise cancela a anterior', async () => {
   await go(S1);
   await page.locator('.rec-btn').click();
-  await page.waitForTimeout(7200);
-  await page.locator('.rec-btn').click();
-  await page.waitForSelector('.fb[data-state="analysing"]', { timeout: 5000 });
+  // a 1ª gravação termina sozinha (fim de fala automático) ou com o toque aos 7,2 s, como antes; o teste pega a análise em curso
+  const t0 = Date.now(); let tapped = false;
+  while (!(await page.locator('.fb[data-state="analysing"]').count())) {
+    if (Date.now() - t0 > 15000) throw new Error('a análise da 1ª gravação não apareceu');
+    if (!tapped && Date.now() - t0 >= 7200 && await page.locator('.rec-btn.on').count()) { tapped = true; await page.locator('.rec-btn').click(); }
+    await page.waitForTimeout(50);
+  }
   await page.locator('.rec-btn').click(); // nova gravação durante a análise
   await page.waitForTimeout(2000);
-  await page.locator('.rec-btn').click();
+  if (await page.locator('.rec-btn.on').count()) await page.locator('.rec-btn').click();
   await waitFinal();
   const first = { state: await fbState(), heard: await heardText() };
   await page.waitForTimeout(8000); // tempo de sobra para a análise antiga terminar, se não tivesse sido cancelada

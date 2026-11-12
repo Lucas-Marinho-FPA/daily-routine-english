@@ -57,7 +57,7 @@ export function recWidget(App, opts) {
     if (session || destroyed) return;
     player.stopAll();
     try {
-      session = await recorder.start({ maxMs, onLevel: (v) => { meterFill.style.width = `${Math.round(v * 100)}%`; } });
+      session = await recorder.start({ maxMs, silenceMs: opts.silenceMs, onLevel: (v) => { meterFill.style.width = `${Math.round(v * 100)}%`; } });
     } catch (e) {
       toast(e.userMessage || 'Não foi possível gravar.', 6000);
       return;
@@ -69,7 +69,7 @@ export function recWidget(App, opts) {
     el.classList.add('recording');
     startedAt = Date.now();
     title.textContent = 'Gravando… 0:00';
-    time.textContent = 'Toque no botão para parar';
+    time.textContent = 'Para sozinho quando você terminar de falar — ou toque para parar';
     if (opts.onStart) { try { opts.onStart(); } catch (e) { /* o feedback opcional nunca bloqueia a gravação */ } }
     timer = setInterval(() => { title.textContent = `Gravando… ${clock(Math.round((Date.now() - startedAt) / 1000))}`; }, 250);
     session.stopped.then(onStopped);

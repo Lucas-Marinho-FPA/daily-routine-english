@@ -73,6 +73,10 @@ export function renderSettings(App) {
     h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn small', onclick: () => player.play({ key: null, text: 'I wake up at five, take a shower and brush my teeth.' }).then((r) => toast(r.ok ? 'Voz do sistema OK' : 'Voz do sistema indisponível')) }, icon('speaker'), 'Testar voz do sistema'),
       h('button', { class: 'btn small', onclick: () => player.play({ key: App.baseContent.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
     diag,
+    // registro do motor de fala (eventos e tempos das últimas tentativas; sem áudio e sem texto) — diagnóstico
+    h('button', { class: 'btn small', type: 'button', 'data-role': 'speech-log-copy', style: { marginTop: '10px' }, onclick: async () => {
+      try { await navigator.clipboard.writeText(speech.logReport()); toast('Registro do reconhecimento copiado.'); } catch (e) { toast('Não foi possível copiar automaticamente.'); }
+    } }, 'Copiar registro do reconhecimento'),
     // TEMPORÁRIO: página isolada de diagnóstico do reconhecimento do navegador (speech-recognition-diagnostic.html)
     h('a', { class: 'small', href: 'speech-recognition-diagnostic.html', 'data-role': 'speech-diagnostic-link', style: { display: 'inline-block', marginTop: '10px' }, text: 'Teste de reconhecimento de voz (temporário)' })));
   player.diagnose().then((d) => {

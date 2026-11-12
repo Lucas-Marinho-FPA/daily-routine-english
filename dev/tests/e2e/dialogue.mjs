@@ -99,7 +99,7 @@ async function recordOnce(ms = 1200) {
   await page.click('[data-role=record-item], [data-role=record-line]');
   await page.waitForSelector('[data-role=stop]', { timeout: 8000 });
   await page.waitForTimeout(ms);
-  await page.click('[data-role=stop]');
+  if (await page.locator('[data-role=stop]').count()) await page.click('[data-role=stop]').catch(() => {}); // a captura pode ter encerrado sozinha (fim de fala automático)
   await page.waitForSelector('[data-role=feedback]', { timeout: 120000 });
   return page.getAttribute('[data-role=feedback]', 'data-status');
 }

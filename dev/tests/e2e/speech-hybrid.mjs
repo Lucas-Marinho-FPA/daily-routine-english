@@ -31,17 +31,20 @@ const FAKE_SR = () => {
   const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = (c) => { window.__gum++; return gum(c); };
   class FakeSR {
-    constructor() { window.__srMade.push(this); this.lang = ''; this.continuous = false; this.started = false; this.aborted = false; }
+    constructor() { window.__srMade.push(this); this.lang = ''; this.continuous = null; this.started = false; this.aborted = false; this.arg = undefined; }
     _cfg() { return window.__sr || { mode: 'ok', text: '' }; }
-    start() {
-      this.started = true; const m = this._cfg().mode;
+    start(arg) {
+      this.started = true; this.arg = arg; const c = this._cfg(); const m = c.mode;
       if (m === 'silent') return;
       setTimeout(() => { this.onstart && this.onstart(); this.onaudiostart && this.onaudiostart(); }, 20);
       if (m === 'network') setTimeout(() => { this.onerror && this.onerror({ error: 'network' }); this.onend && this.onend(); }, 60);
+      // 1ª sessão: “no-speech” (aluno ainda não falou) e fim; a sessão reiniciada funciona
+      if (m === 'nospeech-first' && window.__srMade.filter((x) => x.started).length === 1) setTimeout(() => { this.onerror && this.onerror({ error: 'no-speech' }); this.onend && this.onend(); }, 80);
     }
     stop() {
-      const { mode, text } = this._cfg();
-      if (mode === 'ok') setTimeout(() => { const alt = { transcript: text, confidence: 0.92 }; const r = [alt]; r.isFinal = true; this.onresult && this.onresult({ resultIndex: 0, results: [r] }); this.onend && this.onend(); }, 30);
+      const { mode, text, delay } = this._cfg();
+      window.__trackAtStop = this.arg && this.arg.readyState;
+      if (mode === 'ok' || mode === 'slow' || mode === 'nospeech-first') setTimeout(() => { const alt = { transcript: text, confidence: 0.92 }; const r = [alt]; r.isFinal = true; this.onresult && this.onresult({ resultIndex: 0, results: [r] }); this.onend && this.onend(); }, mode === 'slow' ? (delay || 7000) : 30);
       else if (mode !== 'network') setTimeout(() => { this.onend && this.onend(); }, 10);
     }
     abort() { this.aborted = true; setTimeout(() => { this.onend && this.onend(); }, 5); }
@@ -51,7 +54,7 @@ const FAKE_SR = () => {
 
 let server = await serve(SITE, PORT);
 const PROFILE = join(OUT, '.profile'); rmSync(PROFILE, { recursive: true, force: true });
-const ctx = await chromium.launchPersistentContext(PROFILE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', permissions: ['microphone'],
+const ctx = await chromium.launchPersistentContext(PROFILE, { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', permissions: ['microphone', 'clipboard-read', 'clipboard-write'],
   args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${MIC}`] });
 await ctx.addInitScript(FAKE_SR);
 const page = ctx.pages()[0] || await ctx.newPage();
@@ -79,11 +82,25 @@ const phase1Attempt = async ({ consent = null, ms = 3500 } = {}) => {
   if (consent) { await page.waitForSelector('[data-role=speech-consent]', { timeout: 5000 }); await page.click(`[data-role=speech-consent] [data-choice=${consent}]`); }
   await page.waitForSelector('[data-role=stop]', { timeout: 10000 });
   await page.waitForTimeout(ms);
-  await page.click('[data-role=stop]');
+  if (await page.locator('[data-role=stop]').count()) await page.click('[data-role=stop]').catch(() => {}); // a captura pode ter encerrado sozinha (fim de fala automático)
   await page.waitForSelector('[data-role=feedback]', { timeout: 120000 });
   await page.waitForTimeout(300);
   return { ...(await lastAttempt()), heard: await page.textContent('[data-role=heard]').catch(() => null), engineLine: await page.textContent('[data-role=asr-engine]').catch(() => null) };
 };
+
+await check('H00', 'Fechar o pedido de consentimento sem escolher: grava pelo aparelho e NÃO guarda recusa (pergunta de novo)', async () => {
+  await openPhase1();
+  await setSR({ mode: 'ok', text: 'different teams' });
+  await page.click('[data-role=record-item]');
+  await page.waitForSelector('[data-role=speech-consent]');
+  await page.mouse.click(10, 10); // fora da folha
+  await page.waitForSelector('[data-role=stop]', { timeout: 10000 }); await page.waitForTimeout(3500); if (await page.locator('[data-role=stop]').count()) await page.click('[data-role=stop]').catch(() => {});;
+  await page.waitForSelector('[data-role=feedback]', { timeout: 120000 });
+  const saved = await page.evaluate(() => window.DRG_APP.state.settings.onlineSpeech);
+  const a = await lastAttempt();
+  assert(saved === undefined && a.asr.engine === 'local-model', JSON.stringify({ saved, a }));
+  return { consentimento: 'não decidido', motor: a.asr.engine };
+});
 
 await check('H01', 'Primeira gravação com internet: pede o consentimento UMA vez, antes do microfone; aceito → online; resultado vai ao avaliador da fase 1', async () => {
   await openPhase1();
@@ -95,7 +112,9 @@ await check('H01', 'Primeira gravação com internet: pede o consentimento UMA v
   assert(saved === true, `consentimento ${saved}`);
   assert(r.status === 'passed' && r.asr.engine === 'online' && /online do navegador/.test(r.engineLine), JSON.stringify(r));
   assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 1, `uma escuta online e uma captura: ${JSON.stringify({ c0, c1 })}`);
-  return { status: r.status, motor: r.asr.engine, ouviu: r.heard };
+  const sr = await page.evaluate(() => { const x = window.__srMade[window.__srMade.length - 1]; return { track: x.arg instanceof MediaStreamTrack ? x.arg.kind : String(x.arg), continuous: x.continuous, atStop: window.__trackAtStop }; });
+  assert(sr.track === 'audio' && sr.continuous === false && sr.atStop === 'live', `faixa compartilhada / configuração: ${JSON.stringify(sr)}`);
+  return { status: r.status, motor: r.asr.engine, ouviu: r.heard, ...sr };
 });
 
 await check('H02', 'Online com falha de rede → Moonshine sobre a MESMA gravação (nada perdido), sem novo pedido de consentimento', async () => {
@@ -104,7 +123,7 @@ await check('H02', 'Online com falha de rede → Moonshine sobre a MESMA gravaç
   const r = await phase1Attempt();
   const c1 = await counts();
   assert(!(await page.locator('[data-role=speech-consent]').count()), 'consentimento perguntado de novo');
-  assert(r.asr.engine === 'local-model' && /network/.test(r.asr.fallbackReason) && r.status === 'passed', JSON.stringify(r));
+  assert(r.asr.engine === 'local-model' && /network/.test(r.asr.fallbackReason) && r.status === 'passed' && /aparelho \(online: network\)/.test(r.engineLine), JSON.stringify(r));
   assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 1, `sem captura duplicada: ${JSON.stringify({ c0, c1 })}`);
   return { status: r.status, motor: r.asr.engine, motivo: r.asr.fallbackReason, ouviu: r.heard };
 });
@@ -114,6 +133,22 @@ await check('H03', 'Online sem nenhum evento (serviço mudo) → aviso interno e
   const r = await phase1Attempt({ ms: 6500 });
   assert(r.asr.engine === 'local-model' && /sem-resposta|sem texto/.test(r.asr.fallbackReason) && r.status === 'passed', JSON.stringify(r));
   return { motor: r.asr.engine, motivo: r.asr.fallbackReason };
+});
+
+await check('H03b', 'Resultado online demorado (7 s depois de parar): espera o fim natural, NÃO troca para o Moonshine', async () => {
+  await openPhase1(); await setSR({ mode: 'slow', text: 'different teams', delay: 7000 });
+  const r = await phase1Attempt();
+  assert(r.asr.engine === 'online' && r.status === 'passed', JSON.stringify(r));
+  return { motor: r.asr.engine };
+});
+
+await check('H03c', '“no-speech” no começo da gravação: a escuta online recomeça e entrega o texto', async () => {
+  await openPhase1(); await setSR({ mode: 'nospeech-first', text: 'different teams' });
+  const c0 = await counts();
+  const r = await phase1Attempt();
+  const c1 = await counts();
+  assert(r.asr.engine === 'online' && r.status === 'passed' && c1.sr - c0.sr === 2 && c1.gum - c0.gum === 1, JSON.stringify({ r, c0, c1 }));
+  return { motor: r.asr.engine, sessões: c1.sr - c0.sr, capturas: c1.gum - c0.gum };
 });
 
 await check('H04', 'Navegador sem internet (navigator.onLine = false) → nenhuma escuta online criada; Moonshine; gravação normal', async () => {
@@ -159,7 +194,7 @@ await check('H07', 'Cancelar: sair da tela durante a gravação encerra a grava�
 await check('H08', 'Speaking Lab (frase): texto online vai à avaliação por palavra; prática de palavra também pelo motor central', async () => {
   await page.goto(BASE + '#/lab?sentence=R01-B1-S1'); await page.reload(); await page.waitForSelector('.rec-btn');
   await setSR({ mode: 'ok', text: 'I wake up at 5 a.m. take a shower and brush my' }); // depois do recarregamento
-  await page.locator('.rec-btn').click(); await page.waitForTimeout(4000); await page.locator('.rec-btn').click();
+  await page.locator('.rec-btn').click(); await page.waitForTimeout(4000); if (await page.locator('.rec-btn.on').count()) await page.locator('.rec-btn').click(); // pode ter encerrado sozinha
   await page.waitForSelector('.fb[data-state="result"], .fb[data-state="inconclusive"]', { timeout: 60000 });
   const words = await page.$$eval('.target-text .w', (els) => els.map((e) => `${e.textContent}:${e.dataset.state}`));
   const det = await page.textContent('.fb');
@@ -167,7 +202,7 @@ await check('H08', 'Speaking Lab (frase): texto online vai à avaliação por pa
   await setSR({ mode: 'ok', text: 'Teeth.' });
   await page.locator('.pchip', { hasText: 'teeth' }).first().click(); // a palavra a praticar
   await page.getByRole('button', { name: 'Praticar esta palavra' }).first().click();
-  await page.waitForSelector('[data-role=wp-stop]'); await page.waitForTimeout(1200); await page.locator('[data-role=wp-stop]').click();
+  await page.waitForSelector('[data-role=wp-stop]'); await page.waitForTimeout(1200); if (await page.locator('[data-role=wp-stop]').count()) await page.locator('[data-role=wp-stop]').click().catch(() => {});
   await page.waitForSelector('[data-role=wp-result]', { timeout: 30000 });
   const wp = await page.getAttribute('[data-role=wp-result]', 'data-result');
   assert(wp === 'match', `prática de palavra: ${wp}`);
@@ -177,7 +212,7 @@ await check('H08', 'Speaking Lab (frase): texto online vai à avaliação por pa
 await check('H09', 'Resposta livre (pergunta do Lab): texto online vai à avaliação contextual', async () => {
   await page.goto(BASE + '#/lab?q=R01.Q1'); await page.reload(); await page.waitForSelector('.rec-btn');
   await setSR({ mode: 'ok', text: 'I usually wake up at five in the morning' }); // depois do recarregamento
-  await page.locator('.rec-btn').click(); await page.waitForTimeout(4000); await page.locator('.rec-btn').click();
+  await page.locator('.rec-btn').click(); await page.waitForTimeout(4000); if (await page.locator('.rec-btn.on').count()) await page.locator('.rec-btn').click(); // pode ter encerrado sozinha
   await page.waitForSelector('.fa-transcript', { timeout: 60000 });
   const t = await page.textContent('.fa-transcript');
   assert(/I usually wake up at five in the morning/.test(t), t.slice(0, 160));
@@ -188,7 +223,10 @@ await check('H10', 'Ajustes → Áudio: opção do reconhecimento online e diagn
   await page.goto(BASE + '#/settings'); await page.reload(); await page.waitForTimeout(1500);
   const txt = await page.textContent('#view');
   assert(/Reconhecimento de voz online/.test(txt) && /Reconhecimento online \(navegador\)\s*permitido/.test(txt), txt.match(/Reconhecimento online[^)]*\)[^R]*/)?.[0] || 'sem linha');
-  return 'opção + diagnóstico';
+  await page.click('[data-role=speech-log-copy]');
+  const rep = await page.evaluate(() => navigator.clipboard.readText());
+  assert(/captura: faixa do gravador/.test(rep) && /reconhecimento:start\(\)@/.test(rep) && /gravação:fim@/.test(rep) && /motor: online/.test(rep) && /troca: online: network/.test(rep) && !/different teams/i.test(rep), rep.slice(0, 400));
+  return 'opção + diagnóstico + registro (sem texto falado)';
 });
 
 record('H11', 'Sem erros de página', !errors.length, errors.slice(0, 5));
