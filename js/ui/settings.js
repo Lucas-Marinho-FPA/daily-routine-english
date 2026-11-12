@@ -70,7 +70,9 @@ export function renderSettings(App) {
     h('label', { class: 'lbl', text: 'Voz do sistema (quando usada)' }), voiceSel,
     h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn small', onclick: () => player.play({ key: null, text: 'I wake up at five, take a shower and brush my teeth.' }).then((r) => toast(r.ok ? 'Voz do sistema OK' : 'Voz do sistema indisponível')) }, icon('speaker'), 'Testar voz do sistema'),
       h('button', { class: 'btn small', onclick: () => player.play({ key: App.baseContent.sentences['R01-B1-S1'].au, text: '' }).then((r) => toast(r.ok ? 'Áudio embutido OK' : 'Áudio embutido indisponível')) }, icon('speaker'), 'Testar áudio embutido')),
-    diag));
+    diag,
+    // TEMPORÁRIO: página isolada de diagnóstico do reconhecimento do navegador (speech-recognition-diagnostic.html)
+    h('a', { class: 'small', href: 'speech-recognition-diagnostic.html', 'data-role': 'speech-diagnostic-link', style: { display: 'inline-block', marginTop: '10px' }, text: 'Teste de reconhecimento de voz (temporário)' })));
   player.diagnose().then((d) => {
     clear(voiceSel).append(h('option', { value: '', text: 'Automática (en-GB local preferida)' }), ...d.englishVoices.map((v) => h('option', { value: v.uri, selected: v.uri === s.voiceURI, text: `${v.name} (${v.lang}${v.local ? '' : ', online'})` })));
     voiceSel.onchange = () => set('voiceURI', voiceSel.value);

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A2748">
+  <meta name="color-scheme" content="dark light">
+  <!-- Página TEMPORÁRIA de diagnóstico (reconhecimento de fala do navegador). Nenhuma conexão própria (connect-src 'none');
+       o serviço de reconhecimento é do navegador e pode enviar a voz para fora, por fora desta página. Nada é salvo. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Teste de reconhecimento de voz</title>
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    .diag { max-width: 640px; margin: 0 auto; padding: 16px 16px 40px; }
+    .diag h1 { font-size: 1.3rem; margin: 4px 0 12px; }
+    .diag .phrase { font-family: var(--font-en); font-size: 1.35rem; line-height: 1.35; margin: 4px 0 10px; }
+    .diag .big { width: 100%; min-height: 56px; font-size: 1.1rem; }
+    .diag .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .diag select { min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 1rem; }
+    .diag .state { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+    .diag .state i { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+    .diag .state[data-s=listening] i { background: var(--bad); animation: dg-pulse 1s infinite; }
+    .diag .state[data-s=processing] i { background: var(--accent); animation: dg-pulse .6s infinite; }
+    .diag .state[data-s=result] i { background: var(--ok); }
+    .diag .state[data-s=error] { color: var(--bad); } .diag .state[data-s=error] i { background: var(--bad); }
+    @keyframes dg-pulse { 50% { opacity: .25; } }
+    .diag .err { color: var(--bad); font-weight: 600; }
+    .diag .w-ok { color: var(--ok); } .diag .w-sub { color: var(--warn); } .diag .w-miss { color: var(--bad); } .diag .w-extra { color: var(--warn); font-style: italic; }
+    .diag table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .diag td { padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+    .diag td:first-child { color: var(--muted); width: 42%; }
+    .diag #log { font: .78rem/1.4 ui-monospace, monospace; white-space: pre-wrap; max-height: 260px; overflow: auto; background: var(--surface-2); padding: 8px; border-radius: 10px; }
+    .diag [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main class="diag">
+  <p><a href="./" class="small">← Voltar ao Daily Routine English</a></p>
+  <h1>Teste de reconhecimento de voz</h1>
+  <p class="small muted">Página temporária de diagnóstico. Não faz parte das atividades e não altera seu progresso.</p>
+
+  <section class="card notice warn" id="consentBox">
+    <p style="margin:0 0 8px">Este teste utiliza o reconhecimento de voz disponibilizado pelo navegador/dispositivo. Dependendo do aparelho e do serviço utilizado, sua voz poderá ser enviada a terceiros, como o Google. O aplicativo não controla o processamento externo.</p>
+    <p class="small" style="margin:0 0 8px">Esta página não grava, não guarda e não envia áudio por conta própria; nada fica salvo. O resultado é uma comparação de transcrição, não uma nota de pronúncia.</p>
+    <button id="agree" class="btn primary" type="button">Concordo</button>
+    <span id="agreed" class="small" hidden>✓ Concordância registrada (só nesta tela).</span>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div class="small muted">Frase de referência</div>
+    <p class="phrase" lang="en" id="expected">I'm looking for a new washing machine.</p>
+    <div class="row">
+      <button id="listen" class="btn small" type="button">🔊 Ouvir (voz do sistema)</button>
+      <label for="lang" class="small" style="margin-left:auto">Idioma</label>
+      <select id="lang"><option value="en-GB">en-GB</option><option value="en-US">en-US</option></select>
+    </div>
+    <div style="margin-top:12px"><button id="start" class="btn primary big" type="button" disabled>🎤 Iniciar reconhecimento</button></div>
+    <div class="row" style="margin-top:8px">
+      <button id="stop" class="btn" type="button" disabled>■ Parar</button>
+      <span id="state" class="state" data-s="idle" role="status" aria-live="polite"><i></i><span id="stateText">Aguardando</span></span>
+    </div>
+    <p id="interim" class="small muted" lang="en" aria-live="polite" style="min-height:1.4em;margin:8px 0 0"></p>
+    <p id="msg" role="alert" style="margin:4px 0 0"></p>
+  </section>
+
+  <section class="card" id="resultBox" style="margin-top:12px" hidden>
+    <h2 style="margin-top:0">Resultado</h2>
+    <div class="small muted">Texto reconhecido</div>
+    <p class="phrase" lang="en" id="heard"></p>
+    <div class="small muted">Comparação com a frase (<span class="w-ok">reconhecida</span> · <span class="w-sub">substituída</span> · <span class="w-miss">ausente</span> · <span class="w-extra">extra</span>)</div>
+    <p class="phrase" lang="en" id="cmp"></p>
+    <table><tbody id="metrics"></tbody></table>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div class="row"><h2 style="margin:0;flex:1">Diagnóstico</h2><button id="copy" class="btn small" type="button">Copiar diagnóstico</button></div>
+    <table style="margin:8px 0"><tbody id="env"></tbody></table>
+    <div id="log" aria-label="Eventos"></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+// ---------- utilidades ----------
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v); }
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+};
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const START_TIMEOUT_MS = 6000;  // nenhum evento depois de start(): aviso e tela liberada
+const MAX_LISTEN_MS = 30000;    // segurança: encerra uma escuta que não termina
+const t0 = performance.now();
+const now = () => Math.round(performance.now() - t0);
+let consent = false;
+let session = null;             // uma tentativa por vez
+const attempts = [];            // só em memória
+
+// ---------- ambiente ----------
+function browser() {
+  const ua = navigator.userAgent;
+  const name = /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /EdgA?\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome/Chromium' : /Safari/.test(ua) ? 'Safari' : 'desconhecido';
+  const v = ua.match(/SamsungBrowser\/([\d.]+)/) || ua.match(/EdgA?\/([\d.]+)/) || ua.match(/Firefox\/([\d.]+)/) || ua.match(/Chrome\/([\d.]+)/) || ua.match(/Version\/([\d.]+)/);
+  return `${name} ${v ? v[1] : ''}`.trim();
+}
+function os() { const ua = navigator.userAgent; const a = ua.match(/Android ([\d.]+)/); return a ? `Android ${a[1]}` : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : 'desconhecido'; }
+const pwa = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: minimal-ui)').matches || navigator.standalone === true;
+const env = {};
+function readEnv() {
+  Object.assign(env, {
+    'Navegador': browser(), 'Sistema': os(), 'App instalado (PWA)': pwa() ? 'sim' : 'não (aberto no navegador)', 'Origem': location.origin,
+    'Contexto seguro': String(window.isSecureContext), 'SpeechRecognition': String(!!window.SpeechRecognition), 'webkitSpeechRecognition': String(!!window.webkitSpeechRecognition),
+    'Idioma selecionado': $('lang').value, 'Online (navegador)': navigator.onLine ? 'sim' : 'não', 'Conexão (se informada)': (navigator.connection && navigator.connection.effectiveType) || 'não informada',
+  });
+  $('env').replaceChildren(...Object.entries(env).map(([k, v]) => el('tr', {}, el('td', { text: k }), el('td', { text: v }))));
+}
+const log = (m) => { const b = $('log'); b.textContent += `[${(now() / 1000).toFixed(2)} s] ${m}\n`; b.scrollTop = b.scrollHeight; };
+addEventListener('online', () => { log('conectividade: online'); readEnv(); });
+addEventListener('offline', () => { log('conectividade: offline'); readEnv(); });
+$('lang').addEventListener('change', readEnv);
+readEnv();
+if (!SR) { setMsg('Reconhecimento de voz indisponível neste navegador: a API SpeechRecognition não existe aqui.', true); log('API indisponível'); }
+
+// ---------- estado ----------
+const STATES = { idle: 'Aguardando', starting: 'Iniciando…', listening: 'Ouvindo', processing: 'Processando', result: 'Reconhecimento concluído', error: 'Erro' };
+function setState(s, extra = '') { $('state').dataset.s = s; $('stateText').textContent = STATES[s] + (extra ? ` — ${extra}` : ''); }
+function setMsg(m, err = false) { const e = $('msg'); e.className = err ? 'err small' : 'small'; e.textContent = m; }
+function updateButtons() { const busy = !!session; $('start').disabled = !SR || !consent || busy; $('stop').disabled = !busy; $('lang').disabled = busy; }
+updateButtons();
+
+$('agree').addEventListener('click', () => { consent = true; $('agree').hidden = true; $('agreed').hidden = false; log('concordância registrada'); updateButtons(); });
+$('listen').addEventListener('click', () => {
+  if (!('speechSynthesis' in window)) { setMsg('Este aparelho não oferece voz do sistema para ouvir a frase.', true); return; }
+  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance($('expected').textContent); u.lang = $('lang').value; u.rate = 0.9; speechSynthesis.speak(u);
+});
+
+// ---------- classificação do desfecho ----------
+const PERM_HELP = 'Permissão de microfone negada. No Android: Configurações → Apps → Chrome (ou Samsung Internet) → Permissões → Microfone → Permitir; e, no navegador, ⋮ → Configurações → Configurações do site → Microfone → libere este site. Depois feche e abra o app.';
+const ERRORS = {
+  'not-allowed': PERM_HELP,
+  'service-not-allowed': 'O navegador não permitiu usar o serviço de reconhecimento nesta tela (bloqueio do navegador/serviço).',
+  'network': 'Falha de rede informada pelo navegador: o serviço de reconhecimento pode depender de internet.',
+  'no-speech': 'Nenhuma fala detectada.',
+  'audio-capture': 'Microfone indisponível ou em uso por outro app.',
+  'aborted': 'Reconhecimento interrompido.',
+  'language-not-supported': 'Idioma não suportado pelo serviço de reconhecimento.',
+};
+function outcome(s) {
+  if (s.finals.length) return 'concluído';
+  if (s.error === 'not-allowed') return 'permissão negada';
+  if (s.error === 'network') return 'falha de rede';
+  if (s.error === 'sem-resposta') return 'sem resposta do serviço';
+  if (s.error && s.error.startsWith('start-')) return 'falha ao iniciar';
+  if (s.error === 'no-speech' || (s.events.includes('audiostart') && !s.error)) return 'sem resultado';
+  if (s.error) return `erro (${s.error})`;
+  return 'encerramento inesperado';
+}
+
+// ---------- reconhecimento ----------
+$('start').addEventListener('click', () => {
+  if (!SR || !consent || session) return;
+  let r;
+  try { r = new SR(); } catch (e) { setState('error'); setMsg(`Não foi possível criar o reconhecedor (${e.name}).`, true); log(`new SpeechRecognition falhou: ${e.name}`); return; }
+  const s = session = { r, lang: $('lang').value, online: navigator.onLine, pwa: pwa(), t: { call: now() }, events: [], finals: [], alts: [], conf: null, error: null, ended: false };
+  try { r.lang = s.lang; } catch (e) { /* ok */ }
+  try { r.continuous = false; } catch (e) { /* ok */ }
+  try { r.interimResults = true; } catch (e) { /* não suportado */ }
+  try { r.maxAlternatives = 3; } catch (e) { /* não suportado */ }
+  const ev = (n) => { s.events.push(n); log(`evento: ${n}`); };
+  r.onstart = () => { s.t.start = now(); ev('start'); setState('listening'); };
+  r.onaudiostart = () => { s.t.audiostart = now(); ev('audiostart'); };
+  r.onaudioend = () => { s.t.audioend = now(); ev('audioend'); if (session === s && !s.finals.length && !s.error) setState('processing'); };
+  r.onnomatch = () => ev('nomatch');
+  r.onresult = (e) => {
+    if (session !== s) return;
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i];
+      if (res.isFinal) {
+        s.t.final = now(); s.finals.push(res[0].transcript);
+        s.alts = Array.from(res, (a) => ({ text: a.transcript, conf: typeof a.confidence === 'number' ? a.confidence : null }));
+        s.conf = s.alts[0] ? s.alts[0].conf : null;
+        log(`resultado final: ${s.alts.map((a) => `"${a.text}"${a.conf !== null ? ` (conf ${a.conf.toFixed(2)})` : ''}`).join(' | ')}`);
+      } else interim += res[0].transcript;
+    }
+    $('interim').textContent = interim ? `parcial: ${interim}` : '';
+  };
+  r.onerror = (e) => { s.error = e.error || 'desconhecido'; ev(`error:${s.error}`); };
+  r.onend = () => { ev('end'); finish(s); };
+  setState('starting'); setMsg(''); $('interim').textContent = '';
+  try { r.start(); } catch (e) { s.error = `start-${e.name}`; log(`start() falhou: ${e.name}`); finish(s); return; }
+  log(`start: lang=${s.lang} online=${s.online} pwa=${s.pwa}`);
+  updateButtons();
+  s.w1 = setTimeout(() => { if (session === s && !s.t.start && !s.error) { s.error = 'sem-resposta'; log(`nenhum evento em ${START_TIMEOUT_MS / 1000} s`); try { r.abort(); } catch (e) { /* ok */ } finish(s); } }, START_TIMEOUT_MS);
+  s.w2 = setTimeout(() => { if (session === s) { log(`limite de ${MAX_LISTEN_MS / 1000} s`); try { r.stop(); } catch (e) { finish(s); } } }, MAX_LISTEN_MS);
+});
+$('stop').addEventListener('click', () => { if (session) { log('parar (usuário)'); setState('processing'); try { session.r.stop(); } catch (e) { finish(session); } } });
+
+/** Fecha a tentativa uma única vez: nunca deixa a tela presa em “Processando”. */
+function finish(s) {
+  if (s.ended) return; s.ended = true;
+  clearTimeout(s.w1); clearTimeout(s.w2);
+  s.t.end = now(); if (session === s) session = null;
+  $('interim').textContent = '';
+  const text = s.finals.join(' ').trim();
+  s.outcome = outcome(s);
+  if (text) { setState('result'); setMsg(s.error && s.error !== 'no-speech' ? `Aviso do navegador: ${s.error}` : ''); }
+  else {
+    setState('error', s.outcome);
+    setMsg(s.error === 'sem-resposta' ? 'O navegador não respondeu ao pedido de reconhecimento (nenhum evento em 6 s). Tente de novo; se repetir, o serviço pode estar indisponível neste aparelho/contexto.'
+      : s.error && s.error.startsWith('start-') ? `Não foi possível iniciar o reconhecimento (${s.error.slice(6)}).`
+      : ERRORS[s.error] || (s.outcome === 'sem resultado' ? 'O reconhecimento terminou sem devolver texto.' : s.outcome === 'encerramento inesperado' ? 'O reconhecimento encerrou sem ouvir e sem informar erro.' : `Erro informado pelo navegador: ${s.error}.`), true);
+  }
+  s.text = text;
+  attempts.unshift(s);
+  showResult(s); updateButtons();
+}
+
+// ---------- comparação (a mesma do laboratório independente; transcrição, não pronúncia) ----------
+const NUM = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven', 12: 'twelve' };
+const CONTR = { "what's": 'what is', "it's": 'it is', "that's": 'that is', "i'm": 'i am', "don't": 'do not', "doesn't": 'does not', "didn't": 'did not', "can't": 'cannot', "won't": 'will not', "i'd": 'i would', "i'll": 'i will', "you're": 'you are', "we're": 'we are', "they're": 'they are', "isn't": 'is not', "aren't": 'are not', "couldn't": 'could not' };
+function tokens(text) {
+  const out = [];
+  for (const raw of String(text).replace(/[’‘]/g, "'").split(/\s+/)) {
+    const shown = raw.replace(/^[^\w']+|[^\w']+$/g, '');
+    if (!shown) continue;
+    let n = shown.toLowerCase();
+    if (/^\d+$/.test(n) && NUM[n]) n = NUM[n];
+    const parts = (CONTR[n] || n).split(' ');
+    parts.forEach((p, k) => out.push({ n: p.replace(/'/g, ''), shown: k === 0 ? shown : '' }));
+  }
+  return out;
+}
+function align(a, b) {
+  const n = a.length, m = b.length, d = Array.from({ length: n + 1 }, (_, i) => [i, ...Array(m).fill(0)]);
+  for (let j = 0; j <= m; j++) d[0][j] = j;
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1].n === b[j - 1].n ? 0 : 1));
+  const ops = []; let i = n, j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (a[i - 1].n === b[j - 1].n ? 0 : 1)) { ops.unshift({ t: a[i - 1].n === b[j - 1].n ? 'ok' : 'sub', a: a[i - 1], b: b[j - 1] }); i--; j--; }
+    else if (i > 0 && d[i][j] === d[i - 1][j] + 1) { ops.unshift({ t: 'del', a: a[i - 1] }); i--; }
+    else { ops.unshift({ t: 'ins', b: b[j - 1] }); j--; }
+  }
+  return { ops, wer: n ? d[n][m] / n : 0 };
+}
+const pct = (x) => `${Math.round(x * 100)}%`;
+const responseMs = (t) => t.final != null ? t.final - (t.audioend != null && t.audioend <= t.final ? t.audioend : t.call) : null;
+
+function showResult(s) {
+  $('resultBox').hidden = false;
+  $('heard').textContent = s.text || '(nenhum texto)';
+  const cmp = $('cmp'); cmp.replaceChildren();
+  const rows = [];
+  if (s.text) {
+    const { ops, wer } = align(tokens($('expected').textContent), tokens(s.text));
+    for (const o of ops) {
+      if (o.t === 'ins') { cmp.append(el('span', { class: 'w-extra', text: o.b.shown || o.b.n }), ' '); continue; }
+      if (!o.a.shown && o.t === 'ok') continue;
+      cmp.append(el('span', { class: o.t === 'ok' ? 'w-ok' : o.t === 'sub' ? 'w-sub' : 'w-miss', text: o.a.shown || o.a.n }), ' ');
+    }
+    const w = (t, f) => ops.filter((o) => o.t === t).map(f).filter(Boolean).join(', ') || '—';
+    rows.push(['Reconhecidas', w('ok', (o) => o.a.shown)], ['Substituídas', w('sub', (o) => `${o.a.shown || o.a.n} → ${o.b.shown || o.b.n}`)],
+      ['Ausentes', w('del', (o) => o.a.shown || o.a.n)], ['Extras', w('ins', (o) => o.b.shown || o.b.n)], ['WER', pct(wer)]);
+  }
+  const rt = responseMs(s.t);
+  rows.push(['Desfecho', s.outcome], ['Tempo de resposta', rt != null ? `${rt} ms (do fim do áudio ao resultado)` : 'não medido'], ['Idioma', s.lang],
+    ['Confiança do navegador', s.conf !== null ? `${s.conf.toFixed(2)} (dado auxiliar, não é nota de pronúncia)` : 'não informada']);
+  if (s.alts.length > 1) rows.push(['Alternativas', s.alts.map((a) => `${a.text}${a.conf !== null ? ` (${a.conf.toFixed(2)})` : ''}`).join(' | ')]);
+  $('metrics').replaceChildren(...rows.map(([k, v]) => el('tr', {}, el('td', { text: k }), el('td', { text: v }))));
+}
+
+// ---------- relatório ----------
+$('copy').addEventListener('click', async () => {
+  readEnv();
+  const lines = ['Diagnóstico de reconhecimento de voz — Daily Routine English (página temporária)', `Frase: "${$('expected').textContent}"`, ...Object.entries(env).map(([k, v]) => `${k}: ${v}`), '', 'Tentativas (mais recente primeiro):'];
+  for (const s of attempts) {
+    const w = s.text ? pct(align(tokens($('expected').textContent), tokens(s.text)).wer) : '—';
+    lines.push(`- ${s.lang} | desfecho: ${s.outcome} | ouvido: "${s.text}" | WER ${w} | confiança ${s.conf ?? '—'} | erro ${s.error || '—'} | online no início: ${s.online} | PWA: ${s.pwa} | início ${s.t.start != null ? s.t.start - s.t.call + ' ms' : '—'} | resposta ${responseMs(s.t) ?? '—'} ms | fim ${s.t.end - s.t.call} ms | eventos: ${s.events.join(', ') || 'nenhum'}`);
+  }
+  if (!attempts.length) lines.push('- nenhuma tentativa');
+  lines.push('', 'Registro:', $('log').textContent);
+  try { await navigator.clipboard.writeText(lines.join('\n')); log('diagnóstico copiado'); setMsg('Diagnóstico copiado. Cole no ChatGPT.'); }
+  catch (e) { log('cópia automática indisponível'); setMsg('Não foi possível copiar automaticamente: selecione o texto do registro e copie.', true); }
+});
+</script>
+</body>
+</html>
