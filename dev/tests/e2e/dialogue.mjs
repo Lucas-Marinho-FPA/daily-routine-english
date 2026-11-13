@@ -36,6 +36,10 @@ const ITEMS = A.itemIds.map((id) => PACK.items.find((x) => x.id === id));
 const patchedPack = (endpoint) => {
   const p = JSON.parse(JSON.stringify(PACK));
   p.evaluation = { endpoint, timeoutMs: 5000 };
+  // mecanismos das cinco fases (preservados para as atividades fora da navegação): esta suíte os exercita na e01 em
+  // formato clássico e com todas as atividades ativas — só no teste; o app usa o formato em camadas (dialogue-layers.mjs)
+  p.active = null;
+  const a = p.activities.find((x) => x.id === ACT); delete a.format; delete a.unitIds; delete a.sentenceIds; delete a.layerNotes;
   return `window.DRG_DIALOGUES = ${JSON.stringify(p)};`;
 };
 const gwCalls = [];

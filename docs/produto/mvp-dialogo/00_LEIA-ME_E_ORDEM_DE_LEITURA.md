@@ -24,6 +24,8 @@
 6. `docs/06_UX_UI_E_IDENTIDADE_VISUAL.md`
 7. `docs/07_TESTES_ACEITE_E_METRICAS.md`
 8. `docs/08_PLANO_DE_IMPLANTACAO.md`
+9. `09_REORGANIZACAO_EM_QUATRO_ETAPAS_ANALISE.md` — análise e proposta da reorganização em quatro etapas (2026-11-12; decisões pendentes)
+10. `10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md` — documento-fonte aprovado da remodelagem de john-p1-e01 em sete etapas (2026-11-13; implementado, ver `docs/dialogos.md`)
 9. `conteudo/The_Story_of_John/` — sete partes e README editorial.
 
 ## Referências visuais

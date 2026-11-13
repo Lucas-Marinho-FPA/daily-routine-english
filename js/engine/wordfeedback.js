@@ -186,7 +186,7 @@ export function evaluateWords(text, asr, opts = {}) {
   const out = words.map((x, i) => {
     if (matchT.has(i)) return { w: x.w, text: x.text, state: 'good', reason: 'Reconhecida como esperado. Isso indica que a palavra foi entendida (inteligível); não é uma análise fonética dos sons.' };
     const near = (gapHeard.get(i) || []).filter(Boolean);
-    if (x.weak) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Palavra curta e átona: o reconhecedor costuma omiti-la mesmo quando é dita. Não foi avaliada.' };
+    if (x.weak && !opts.judgeWeak) return { w: x.w, text: x.text, state: 'uncertain', reason: 'Palavra curta e átona: o reconhecedor costuma omiti-la mesmo quando é dita. Não foi avaliada.' };
     if (x.proper) return { w: x.w, text: x.text, state: 'uncertain', heard: near.length ? near.join(' ') : undefined, reason: `Nome próprio: o reconhecedor pode não conhecê-lo e escrevê-lo de outro jeito${near.length ? ` (aqui ouviu “${near.join(' ')}”)` : ''}. Não foi avaliado.` };
     if (opts.tailUnreliable && i > lastMatched) return { w: x.w, text: x.text, state: 'uncertain', reason: 'A transcrição pode ter sido cortada no fim: esta palavra não foi avaliada. Grave de novo se quiser conferir.' };
     if (near.length) {

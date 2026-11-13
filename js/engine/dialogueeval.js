@@ -86,7 +86,10 @@ export function evaluateSpeech(target, asr, opts = {}) {
   const inconclusive = (why, extra = {}) => ({ ...base, status: 'inconclusive', score: null,
     feedback: { summary: why, transcriptionReliability: 'insufficient', ...extra }, evidence: { method: 'transcrição local', heard: asr ? asr.text : null } });
   if (!asr) return inconclusive(opts.reason || 'Reconhecimento de fala indisponível: a tentativa não aprova nem reprova.');
-  const ev = evaluateWords(target, asr, { insufficient: !!opts.insufficient, tailUnreliable: !!opts.tailUnreliable });
+  // expressões curtas (≤ 3 palavras, com a opção maxExtra): toda palavra é conteúdo — “for” em “work for” é avaliada
+  // (“work with” não pode aprovar “work for”); nas frases longas as átonas seguem sem avaliação, como sempre
+  const short = opts.maxExtra != null && String(target || '').trim().split(/\s+/).filter(Boolean).length <= 3;
+  const ev = evaluateWords(target, asr, { insufficient: !!opts.insufficient, tailUnreliable: !!opts.tailUnreliable, judgeWeak: short });
   if (!ev.evaluated) return inconclusive(ev.note || 'Transcrição não confiável: grave de novo.');
   const words = ev.words;
   const judged = words.filter((w) => w.state === 'good' || w.state === 'needs_practice');
@@ -97,6 +100,23 @@ export function evaluateSpeech(target, asr, opts = {}) {
   if (cover < 0.6) return inconclusive('A transcrição cobriu pouco do texto (pode ter sido cortada): grave de novo.', { words });
   const good = judged.filter((w) => w.state === 'good').length;
   const score = r100(good / judged.length);
+  // fim não confiável (corte do reconhecedor ou texto online parcial) com palavras do alvo sem avaliação: o trecho ouvido
+  // não prova a frase inteira — não aprova (nem reprova): pede para repetir
+  if (opts.tailUnreliable && meetsThreshold(score) && words.some((w) => w.state === 'uncertain' && /cortada/.test(w.reason || ''))) {
+    return inconclusive('A transcrição terminou antes do fim da frase: não deu para avaliar tudo. Isso não conta como erro seu — grave de novo, até o fim.', { words });
+  }
+  // Moonshine (não informa confiança) em alvo de 1–2 palavras: erra fragmentos curtos mesmo com áudio correto (verificado
+  // em 2026-11-13: “work for” → “Work, so” com 4 vozes sintéticas). Divergência aí não é evidência: não avaliado, repetir.
+  if (opts.maxExtra != null && !meetsThreshold(score) && asr.engine === 'local-model' && words.length <= 2) {
+    return inconclusive(`Não consegui avaliar com segurança: o reconhecimento do aparelho erra com frequência trechos tão curtos (ouviu “${asr.text}”). Isso não conta como erro seu: grave de novo, com calma.`, { words });
+  }
+  // expressões curtas (opção maxExtra): o alvo dito DENTRO de uma fala maior não aprova — “work for” ouvido em “I work
+  // for a company” não é evidência de que o aluno produziu a unidade. Fica inconclusiva (não reprova nem aprova).
+  if (opts.maxExtra != null && meetsThreshold(score) && words.length <= 3) {
+    const heardN = String(asr.text || '').toLowerCase().match(/[a-z0-9']+/g) || [];
+    const extra = heardN.length - words.length; // palavras ouvidas além do tamanho do alvo
+    if (extra > opts.maxExtra) return inconclusive(`O app ouviu mais palavras do que a unidade (“${asr.text}”). Grave de novo dizendo só “${target}”.`, { words });
+  }
   return {
     ...base,
     status: meetsThreshold(score) ? 'passed' : 'needs_practice',

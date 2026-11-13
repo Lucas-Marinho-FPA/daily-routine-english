@@ -19,7 +19,7 @@ import {
   PHASES, THRESHOLD, LISTENS_REQUIRED, passMark, STORE_KEY, dialoguePack, activityById, itemsOf, questionsOf,
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
   mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
-  activityReport, phaseById, pendingAttempts,
+  activityReport, phaseById, pendingAttempts, isLayered, phasesOf, isActive, activeActivities,
 } from '../engine/dialogue.js';
 import { scoreWriting, evaluateSpeech, localTranslation, foldPt, tailMiss, tailCutByDuration, tailCutInconclusive, trimForLine } from '../engine/dialogueeval.js';
 import { loadLexicon } from '../engine/lexicon.js';
@@ -120,19 +120,27 @@ export function dialogueHomeCard(App) {
   if (!pack) return null;
   const info = h('div', { class: 'small', style: { marginTop: '6px' }, 'data-role': 'dialogues-next' });
   loadStore().then(() => {
-    const next = pack.activities.find((a) => activityStatus(pack, a, actProgress(store, a)).state !== 'completed');
-    const done = pack.activities.filter((a) => store.acts[a.id] && store.acts[a.id].completedAt).length;
-    info.append(h('span', { class: 'muted', text: `${done} de ${pack.activities.length} diálogos concluídos` }), next ? ` · Próximo: ${partLabel(pack, next)} — ${next.title}` : '');
+    const acts = activeActivities(pack);
+    const next = acts.find((a) => activityStatus(pack, a, actProgress(store, a)).state !== 'completed');
+    const done = acts.filter((a) => store.acts[a.id] && store.acts[a.id].completedAt).length;
+    info.append(h('span', { class: 'muted', text: `${done} de ${acts.length} ${acts.length === 1 ? 'diálogo concluído' : 'diálogos concluídos'}` }), next ? ` · Próximo: ${partLabel(pack, next)} — ${next.title}` : '');
     const n = pendingTotal();
     if (n) info.append(h('div', { class: 'tiny muted', text: `${n} ${n === 1 ? 'tradução aguarda' : 'traduções aguardam'} avaliação online.` }));
   });
   return h('section', { class: 'card', style: { marginTop: '12px' }, 'data-role': 'dialogues-entry' },
     h('h3', { style: { margin: 0 }, text: pack.title }),
-    h('p', { class: 'small muted', style: { margin: '2px 0 8px' }, text: 'Diálogos em cinco fases: vocabulário, escrita, tradução, compreensão e leitura em voz alta.' }),
+    h('p', { class: 'small muted', style: { margin: '2px 0 8px' }, text: activeActivities(pack).every(isLayered) ? 'Em sete etapas: unidades, frases e o diálogo completo.' : 'Diálogos em etapas, do vocabulário ao diálogo completo.' }),
     info,
     h('a', { class: 'btn block primary', href: '#/dialogues', style: { marginTop: '10px' }, 'data-role': 'open-dialogues' }, icon('chat'), 'Abrir'));
 }
 const partLabel = (pack, act) => `Parte ${act.partN}`;
+/** “n/7 etapas” (em camadas: a etapa 7 conta quando as três partes dela estão concluídas) ou “n/5 fases”. */
+function progressText(act, st) {
+  if (!isLayered(act)) return `${st.done}/${st.total} fases`;
+  const ok = (x) => x.state === 'completed' || x.state === 'not_applicable';
+  const steps = [...new Set(st.phases.map((x) => x.step))];
+  return `${steps.filter((n) => st.phases.filter((x) => x.step === n).every(ok)).length}/${steps.length} etapas`;
+}
 
 // ---------------------------------------------------------------------------------------------------------
 // Lista das partes e diálogos
@@ -148,11 +156,13 @@ export function renderDialogues(App) {
     conn = connectivityBar(() => draw());
     const draw = () => {
       clear(body).append(conn,
-        h('p', { class: 'small muted', text: 'Cada diálogo tem cinco fases em sequência. Cada palavra, frase ou fala precisa de 80% individualmente; a média não compensa um item abaixo do corte.' }));
+        h('p', { class: 'small muted', text: 'Cada diálogo tem etapas em sequência. Cada item precisa de 80% individualmente; a média não compensa um item abaixo do corte.' }));
       for (const part of pack.parts) {
+        const ids = part.activityIds.filter((id) => isActive(pack, activityById(pack, id))); // as demais ficam nos dados, fora da navegação
+        if (!ids.length) continue;
         body.append(h('h2', { text: `Parte ${part.n} — ${part.title}` }));
         const list = h('ol', { class: 'stages', 'data-role': 'part', 'data-part': String(part.n) });
-        for (const id of part.activityIds) {
+        for (const id of ids) {
           const act = activityById(pack, id);
           const st = activityStatus(pack, act, actProgress(store, act));
           list.append(h('li', { class: `stage ${st.state === 'completed' ? 'done' : 'open'}`, 'data-role': 'dialogue', 'data-id': act.id, 'data-state': st.state },
@@ -160,7 +170,7 @@ export function renderDialogues(App) {
               h('span', { class: `stage-mark ${st.state === 'completed' ? 'done' : 'open'}`, 'aria-hidden': 'true' }, st.state === 'completed' ? icon('check') : String(act.order)),
               h('div', { class: 'grow' },
                 h('div', { class: 'stage-title' }, h('b', { text: act.title }), act.kind === 'supplementary' ? h('span', { class: 'small muted', text: ' · complementar' }) : null),
-                h('div', { class: 'small muted', text: `${ACT_LABEL[st.state]} · ${st.done}/${PHASES.length} fases · ${act.lines.length} ${act.lines.length === 1 ? 'fala' : 'falas'}` })),
+                h('div', { class: 'small muted', text: `${ACT_LABEL[st.state]} · ${progressText(act, st)} · ${act.lines.length} ${act.lines.length === 1 ? 'fala' : 'falas'}` })),
               icon('next'))));
         }
         body.append(list);
@@ -178,7 +188,7 @@ function onlineSettings(onChange) {
   const consent = store.consent.online;
   return h('section', { class: 'card', style: { marginTop: '16px' }, 'data-role': 'online-settings' },
     h('h3', { style: { marginTop: 0 }, text: 'Avaliação online das traduções' }),
-    h('p', { class: 'small', text: 'A tradução (fase 3) é corrigida pelo sentido, o que exige um serviço de avaliação na internet. Só o texto da sua resposta, a fala em inglês e o contexto do diálogo são enviados — nunca seu nome, gravações ou outros dados. Sem conexão ou sem autorização, a resposta fica salva aqui e pendente.' }),
+    h('p', { class: 'small', text: 'A tradução é corrigida pelo sentido, o que exige um serviço de avaliação na internet. Só o texto da sua resposta, a fala em inglês e o contexto do diálogo são enviados — nunca seu nome, gravações ou outros dados. Sem conexão ou sem autorização, a resposta fica salva aqui e pendente.' }),
     config.endpoint ? null : h('div', { class: 'notice warn small', 'data-role': 'eval-not-configured', text: 'Serviço de avaliação ainda não configurado nesta versão do aplicativo: as traduções que não forem iguais à referência ficam pendentes.' }),
     h('button', { class: `btn block${consent ? '' : ' primary'}`, type: 'button', 'data-role': 'consent-toggle', style: { marginTop: '10px' },
       onclick: async () => { store.consent = { online: !consent, at: Date.now() }; await save(); onChange && onChange(); } },
@@ -191,7 +201,7 @@ function onlineSettings(onChange) {
 export function renderDialogue(App, { arg, params }) {
   const pack = dialoguePack();
   const act = activityById(pack, arg);
-  if (!act) { App.go('#/dialogues'); return null; }
+  if (!act || !isActive(pack, act)) { App.go('#/dialogues'); return null; } // fora da experiência ativa: preservada nos dados
   const view = App.layout(`${partLabel(pack, act)} · ${act.title}`, { back: '#/dialogues' });
   const body = h('div', { 'data-role': 'dialogue-screen', 'data-id': act.id });
   view.append(body);
@@ -207,23 +217,33 @@ export function renderDialogue(App, { arg, params }) {
           h('div', { class: 'eyebrow', text: `${pack.title} · Parte ${act.partN} · ${act.order}` }),
           h('h2', { style: { margin: '4px 0' }, text: act.title }),
           act.context ? h('p', { class: 'small', style: { margin: '4px 0' }, text: act.context }) : null,
-          h('div', { class: 'row nowrap', style: { marginTop: '8px' } }, h('div', { class: 'grow' }, bar(st.ratio)), h('span', { class: 'small muted', 'data-role': 'phases-done', text: `${st.done}/${PHASES.length} fases` })),
+          h('div', { class: 'row nowrap', style: { marginTop: '8px' } }, h('div', { class: 'grow' }, bar(st.ratio)), h('span', { class: 'small muted', 'data-role': 'phases-done', text: progressText(act, st) })),
           h('div', { class: 'small muted', 'data-role': 'activity-state', 'data-state': st.state, text: ACT_LABEL[st.state] })));
       const problems = contentProblems(pack, act, { hasAudio });
       if (problems.length) body.append(h('div', { class: 'notice warn small', 'data-role': 'content-problems' }, h('b', { text: 'Conteúdo pendente: ' }), problems.map((x) => x.text).join(' ')));
       // fases
-      const list = h('ol', { class: 'stages', 'data-role': 'phases' });
-      for (const s of st.phases) list.append(phaseRow(act, s));
-      body.append(h('h3', { text: 'Fases' }), list);
+      if (isLayered(act)) {
+        // camadas: unidades (1–3) → frases (4–6) → diálogo completo (7)
+        const LAYER_TITLE = { unit: `Camada 1 — Unidades linguísticas (${act.unitIds.length})`, sentence: `Camada 2 — Frases completas (${act.sentenceIds.length})`, dialogue: 'Camada 3 — Diálogo completo' };
+        for (const layer of ['unit', 'sentence', 'dialogue']) {
+          const list = h('ol', { class: 'stages', 'data-role': 'phases', 'data-layer': layer });
+          for (const s of st.phases.filter((x) => x.layer === layer)) list.append(phaseRow(act, s));
+          body.append(h('h3', { text: LAYER_TITLE[layer] }), list);
+        }
+      } else {
+        const list = h('ol', { class: 'stages', 'data-role': 'phases' });
+        for (const s of st.phases) list.append(phaseRow(act, s));
+        body.append(h('h3', { text: 'Fases' }), list);
+      }
       if (st.state === 'completed') body.append(resultCard(pack, act, p));
       // abas: diálogo, vocabulário, gramática (sob demanda)
       const tabs = h('div', { class: 'seg', role: 'tablist', style: { marginTop: '16px' } },
-        ...[['dialogue', 'Diálogo'], ['vocab', 'Vocabulário'], ['grammar', 'Gramática']].map(([id, label]) =>
+        ...[['dialogue', 'Diálogo'], ['vocab', isLayered(act) ? 'Unidades e frases' : 'Vocabulário'], ['grammar', 'Gramática']].map(([id, label]) =>
           h('button', { type: 'button', role: 'tab', 'aria-pressed': String(tab === id), 'data-tab': id, onclick: () => { tab = id; draw(); } }, label)));
       const panel = h('div', { 'data-role': `tab-${tab}`, style: { marginTop: '12px' } });
       body.append(tabs, panel);
       if (tab === 'dialogue') panel.append(dialogueList(pack, act, p));
-      else if (tab === 'vocab') panel.append(vocabList(pack, act, p));
+      else if (tab === 'vocab') panel.append(isLayered(act) ? layerList(pack, act, p) : vocabList(pack, act, p));
       else panel.append(grammarNotes(act));
     };
     draw();
@@ -238,7 +258,7 @@ function phaseRow(act, s) {
   const cls = s.state === 'completed' ? 'done' : locked ? 'locked' : 'open';
   const mark = h('span', { class: `stage-mark ${cls}`, 'aria-hidden': 'true' }, locked ? icon('lock') : s.state === 'completed' ? icon('check') : String(s.n));
   const text = h('div', { class: 'grow' }, h('div', { class: 'stage-title' }, h('b', { text: `${s.n}. ${s.title}` })),
-    h('div', { class: 'small muted', text: locked ? (s.id === 'reading' ? 'Bloqueada — conclua a fase 3 (tradução)' : 'Bloqueada — conclua a fase anterior') : `${STATE_LABEL[s.state]} · ${counter}` }));
+    h('div', { class: 'small muted', text: locked ? (s.id === 'reading' && !isLayered(act) ? 'Bloqueada — conclua a fase 3 (tradução)' : `Bloqueada — conclua ${isLayered(act) ? 'a etapa anterior' : 'a fase anterior'}`) : `${STATE_LABEL[s.state]} · ${counter}` }));
   const attrs = { class: `stage ${cls}`, 'data-role': 'phase', 'data-phase': s.id, 'data-state': s.state };
   if (locked || s.state === 'not_applicable') return h('li', attrs, h('div', { class: 'stage-row', 'aria-disabled': 'true' }, mark, text));
   return h('li', attrs, h('a', { class: 'stage-row', href: `#/dphase/${act.id}?p=${s.id}`, 'aria-label': `${s.title}: ${STATE_LABEL[s.state]}` }, mark, text, icon('next')));
@@ -246,13 +266,14 @@ function phaseRow(act, s) {
 
 /** Falas: personagem, áudio individual e completo; inglês e português só depois das tentativas pertinentes. */
 function dialogueList(pack, act, p) {
-  const showEn = (l) => mastery(p, 'dictation', l.id).attemptCount > 0;
+  const layeredOpen = isLayered(act) && ['completed', 'not_applicable'].includes((phaseStatuses(pack, act, p).find((x) => x.id === 's-listen') || {}).state);
+  const showEn = (l) => layeredOpen || mastery(p, 'dictation', l.id).attemptCount > 0;
   const showPt = (l) => { const m = mastery(p, 'translation', l.id); return m.attemptCount > 0 && m.status !== 'pending_evaluation'; };
   const playing = h('div', { class: 'small muted', 'data-role': 'full-status' });
   const rows = act.lines.map((l) => h('li', { class: 'dlg-line', 'data-line': l.id },
     h('div', { class: 'row nowrap' },
       h('div', { class: 'grow' }, h('div', { class: 'dlg-speaker', text: l.speaker }),
-        showEn(l) ? h('div', { class: 'en dlg-en', text: l.en }) : h('div', { class: 'small muted', text: 'Texto em inglês depois da fase 2 (escrita por escuta).' }),
+        showEn(l) ? h('div', { class: 'en dlg-en', text: l.en }) : h('div', { class: 'small muted', text: isLayered(act) ? 'Texto em inglês depois das etapas de unidades e frases (etapa 6).' : 'Texto em inglês depois da fase 2 (escrita por escuta).' }),
         showPt(l) ? h('div', { class: 'pt small muted dlg-pt', text: l.pt }) : null),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': `Ouvir a fala de ${l.speaker}`, 'data-role': 'line-audio', disabled: !hasAudio(l.audio),
         onclick: () => player.play({ key: l.audio, text: l.en }) }, icon('speaker')))));
@@ -281,10 +302,11 @@ function vocabList(pack, act, p) {
 
 /** Notas de foco linguístico do documento (texto literal; marcação simples removida). */
 function grammarNotes(act) {
-  if (!act.notes.length) return h('p', { class: 'small muted', text: 'Sem notas de gramática nesta atividade.' });
+  const notes = [...(act.layerNotes || []).map((n) => n.text), ...act.notes];
+  if (!notes.length) return h('p', { class: 'small muted', text: 'Sem notas de gramática nesta atividade.' });
   const clean = (s) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
-  return h('div', { class: 'stack' }, act.notes.map((n) => h('section', { class: 'card flat' }, n.split('\n').map((line) => {
-    if (/^###\s/.test(line)) return h('h4', { style: { margin: '0 0 6px' }, text: clean(line.replace(/^###\s+/, '')) });
+  return h('div', { class: 'stack' }, notes.map((n) => h('section', { class: 'card flat' }, n.split('\n').map((line) => {
+    if (/^#{2,3}\s/.test(line)) return h('h4', { style: { margin: '0 0 6px' }, text: clean(line.replace(/^#{2,3}\s+/, '').replace(/^\d+\.\s+/, '')) });
     if (/^\s*-\s/.test(line)) return h('div', { class: 'small', text: `• ${clean(line.replace(/^\s*-\s+/, ''))}` });
     return h('p', { class: 'small', style: { margin: '4px 0' }, text: clean(line) });
   }))));
@@ -292,6 +314,7 @@ function grammarNotes(act) {
 
 function resultCard(pack, act, p) {
   const rep = activityReport(pack, act, p);
+  if (isLayered(act)) return layerResultCard(rep, act);
   const row = (label, list) => (list.length ? h('div', { class: 'small' }, h('b', { text: `${label}: ` }), `${list.filter((x) => x.status === 'passed').length}/${list.length} aprovados`,
     list.some((x) => x.repeated) ? h('span', { class: 'muted', text: ` · ${list.filter((x) => x.repeated).length} precisaram de repetição` }) : null) : null);
   return h('section', { class: 'card', 'data-role': 'activity-result', style: { marginTop: '12px' } },
@@ -302,25 +325,51 @@ function resultCard(pack, act, p) {
     h('p', { class: 'tiny muted', text: 'Os itens continuam voltando na revisão. O resultado é por item; não há pontos nem recompensas.' }));
 }
 
+/** Aba “Unidades e frases” (formato em camadas): conteúdo, origem e situação por etapa. */
+function layerList(pack, act, p) {
+  const row = (it, phases) => h('li', { class: 'row nowrap', 'data-item': it.id },
+    h('div', { class: 'grow' }, h('div', { class: 'en', lang: 'en', text: it.en }), h('div', { class: 'small muted', text: it.pt }),
+      h('div', { class: 'tiny muted', text: it.layer === 'unit' ? it.category : it.origin === 'expansion' ? 'expansão (não é fala dos personagens)' : 'frase do diálogo' })),
+    h('span', { class: 'small', text: phases.map((ph) => (mastery(p, ph, it.id).status === 'passed' ? '✓' : '·')).join(' ') }),
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': `Ouvir “${it.en}”`, disabled: !hasAudio(it.audio), onclick: () => player.play({ key: it.audio, text: it.spoken }) }, icon('speaker')));
+  return h('div', {},
+    h('h4', { text: `Unidades (${act.unitIds.length})` }), h('ul', { class: 'list' }, layerItems(pack, act.unitIds).map((it) => row(it, ['u-write', 'u-speak', 'u-listen']))),
+    h('h4', { text: `Frases (${act.sentenceIds.length})` }), h('ul', { class: 'list' }, layerItems(pack, act.sentenceIds).map((it) => row(it, ['s-write', 's-speak', 's-listen']))),
+    h('p', { class: 'tiny muted', text: '✓ = aprovado na etapa (escrever · falar · ouvir). Traduções autorais e questões ainda não validadas pelo professor.' }));
+}
+
+/** Fechamento (formato em camadas): síntese por etapa, sem pontos nem recompensas. */
+function layerResultCard(rep, act) {
+  const line = (label, list) => (list && list.length ? h('div', { class: 'small' }, h('b', { text: `${label}: ` }), `${list.filter((x) => x.status === 'passed').length}/${list.length} aprovados`,
+    list.some((x) => x.repeated) ? h('span', { class: 'muted', text: ` · ${list.filter((x) => x.repeated).length} precisaram de repetição` }) : null) : null);
+  return h('section', { class: 'card', 'data-role': 'activity-result', style: { marginTop: '12px' } },
+    h('h3', { style: { marginTop: 0 }, text: 'Atividade concluída' }),
+    line('1. Unidades — escrita', rep['u-write']), line('2. Unidades — fala', rep['u-speak']), line('3. Unidades — escuta', rep['u-listen']),
+    line('4. Frases — escrita', rep['s-write']), line('5. Frases — fala', rep['s-speak']), line('6. Frases — escuta', rep['s-listen']),
+    rep.comprehension ? h('div', { class: 'small', 'data-role': 'result-comprehension' }, h('b', { text: '7. Compreensão: ' }), `${rep.comprehension.tally}/${rep.comprehension.total}`) : null,
+    line('7. Leitura em voz alta', rep.reading), line('7. Tradução', rep.translation),
+    h('p', { class: 'tiny muted', text: 'Resultado por item; não há pontos nem recompensas. Transcrição não é avaliação fonética.' }));
+}
+
 // ---------------------------------------------------------------------------------------------------------
 // Fases
 // ---------------------------------------------------------------------------------------------------------
 export function renderPhase(App, { arg, params }) {
   const pack = dialoguePack();
   const act = activityById(pack, arg);
-  const ph = phaseById(params.p);
-  if (!act || !ph) { App.go('#/dialogues'); return null; }
+  const ph = phaseById(params.p, act);
+  if (!act || !ph || !isActive(pack, act)) { App.go('#/dialogues'); return null; }
   const view = App.layout(`${ph.n}. ${ph.short} · ${act.title}`, { back: `#/dialogue/${act.id}`, nav: false });
   const body = h('div', { 'data-role': 'phase-screen', 'data-phase': ph.id, 'data-id': act.id });
   view.append(body);
   const ctx = { alive: true, cleanups: [] };
-  if (ph.id === 'vocab' || ph.id === 'reading') loadLexicon(); // como no Speaking Lab: já no cache offline; distingue palavra inexistente de outra palavra do inglês
+  if (ph.id === 'vocab' || ph.id === 'reading' || ph.mode === 'speak') loadLexicon(); // como no Speaking Lab: já no cache offline; distingue palavra inexistente de outra palavra do inglês
   loadStore().then(() => {
     const p = actProgress(store, act);
     const st = phaseStatuses(pack, act, p).find((x) => x.id === ph.id);
     if (st.state === 'locked') { App.go(`#/dialogue/${act.id}`); return; }
     const area = h('div', {});
-    const R = { vocab: phaseVocab, dictation: phaseDictation, translation: phaseTranslation, listening: phaseListening, reading: phaseReading }[ph.id];
+    const R = layerRenderer(ph.id) || { vocab: phaseVocab, dictation: phaseDictation, translation: phaseTranslation, listening: phaseListening, reading: phaseReading }[ph.id];
     // avaliações recebidas (envio manual ou ao reconectar) redesenham a fase com o resultado
     const conn = connectivityBar(() => { if (ctx.alive) R(App, { pack, act, p, area, ctx }); });
     ctx.cleanups.push(() => conn._cleanup());
@@ -335,7 +384,7 @@ function phaseFooter(pack, act, p, phaseId) {
   const s = phaseStatuses(pack, act, p).find((x) => x.id === phaseId);
   const done = s.state === 'completed';
   return h('div', { class: 'stack', style: { marginTop: '16px' }, 'data-role': 'phase-footer', 'data-state': s.state },
-    done ? h('div', { class: 'notice ok', 'data-role': 'phase-done' }, icon('check'), ` ${phaseById(phaseId).title}: fase concluída.`) : null,
+    done ? h('div', { class: 'notice ok', 'data-role': 'phase-done' }, icon('check'), ` ${phaseById(phaseId, act).title}: ${isLayered(act) ? 'etapa concluída' : 'fase concluída'}.`) : null,
     s.state === 'pending_online' ? h('div', { class: 'notice warn small', 'data-role': 'phase-pending', text: 'Fase aguardando avaliação online das respostas pendentes. Ela será concluída quando todas forem avaliadas.' }) : null,
     h('a', { class: `btn block${done ? ' primary' : ''}`, href: `#/dialogue/${act.id}`, 'data-role': 'back-to-dialogue' }, icon('back'), 'Voltar ao diálogo'));
 }
@@ -378,15 +427,16 @@ async function speechReady(area, App, onReady) {
  * gravação tiver mais voz do que as palavras ouvidas explicam, a tentativa fica inconclusiva (corte do reconhecedor).
  * Exportada para os testes com o reconhecedor real (App.voiceEval).
  */
-export async function evaluateRecording(blob, { target, trim, alive = () => true }) {
+export async function evaluateRecording(blob, { target, trim, alive = () => true, maxExtra = null }) {
   const analysis = await analyseBlob(blob).catch(() => null);
   const insufficient = !analysis || analysis.silent || analysis.speechSec < 0.3;
   const recognise = async (word, local = false) => {
     let asr = null, reason = '';
     try { asr = await asrEngine().transcribe(blob, { word, local }); } catch (e) { reason = `O reconhecimento falhou nesta gravação (${e.message}). Isso não conta como erro seu.`; }
     const integrity = asr && asr.segments ? transcriptIntegrity({ text: asr.text, segments: asr.segments, secs: asr.secs }) : null;
-    const tailUnreliable = !!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part');
-    return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason }) };
+    // fim não confiável: corte detectado no reconhecedor do aparelho ou texto online que veio de resultado parcial
+    const tailUnreliable = (!!integrity && integrity.issues.some((x) => x.code === 'possibly-truncated' || x.code === 'lost-part')) || !!(asr && asr.partial);
+    return { asr, result: evaluateSpeech(target, asr, { insufficient, tailUnreliable, reason, maxExtra }) };
   };
   let pass = await recognise(trim);
   const diag = { trim, engine: pass.asr ? pass.asr.engine || null : null, fallbackReason: pass.asr ? pass.asr.fallbackReason || null : null, firstPass: pass.asr ? pass.asr.text : null, secondPass: null, tailCut: false, voicedSec: analysis && !analysis.online ? analysis.voicedSec : null }; // modo online: sem áudio, sem medida de voz
@@ -404,7 +454,7 @@ export async function evaluateRecording(blob, { target, trim, alive = () => true
 }
 
 /** Grava (até maxMs), transcreve no aparelho e avalia (evaluateRecording). */
-async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
+async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx, maxExtra = null }) {
   let session;
   try { session = await recorder.start({ maxMs }); } catch (e) {
     return { result: evaluateSpeech(target, null, { reason: e.userMessage || 'Não foi possível usar o microfone.' }), micError: e.userMessage || 'Microfone indisponível.' };
@@ -416,7 +466,7 @@ async function recordAndEvaluate({ target, maxMs, trim, statusEl, ctx }) {
     session.stopped.then(async ({ blob }) => {
       if (!ctx.alive) return resolve(null);
       clear(statusEl).append(h('span', { class: 'spinner', 'aria-hidden': 'true' }), ' Reconhecendo no aparelho…');
-      const out = await evaluateRecording(blob, { target, trim, alive: () => ctx.alive });
+      const out = await evaluateRecording(blob, { target, trim, alive: () => ctx.alive, maxExtra });
       if (!ctx.alive) return resolve(null);
       clear(statusEl);
       resolve(out);
@@ -481,20 +531,32 @@ function vocabResult(result, heard) {
     h('div', { class: 'vx-head' }, icon(result.status === 'passed' ? 'check' : result.status === 'needs_practice' ? 'x' : 'refresh'), VX_HEAD[result.status] || 'Inconclusivo'),
     text ? h('p', { class: 'vx-line' }, h('span', { class: 'muted', text: 'O app ouviu: ' }), h('span', { class: 'en', lang: 'en', 'data-role': 'heard', text: `“${text}”` })) : null,
     f.toPractise && f.toPractise.length ? h('p', { class: 'vx-line', 'data-role': 'to-practise' }, h('span', { class: 'muted', text: 'Palavras a praticar: ' }), h('b', { class: 'en', lang: 'en', text: f.toPractise.join(', ') })) : null,
+    result.status === 'needs_practice' ? h('p', { class: 'vx-line muted', 'data-role': 'retry-hint', text: (f.words || []).length <= 2
+      ? 'Em trechos muito curtos o reconhecimento erra com mais frequência. Se você disse certo, grave de novo, sem pressa; isso não conta contra você.'
+      : 'Ouça o modelo de novo e grave outra vez.' }) : null,
     result.status === 'inconclusive' ? h('p', { class: 'vx-line', text: technical ? 'O reconhecimento não devolveu texto nesta tentativa. Não aprova nem reprova — isso não conta como erro seu. Grave de novo.' : `Não aprova nem reprova: ${f.summary ? f.summary.replace(/\s*$/, '') : 'grave de novo.'}` }) : null,
     technical && f.summary ? h('details', { class: 'more vx-tech' }, h('summary', { text: 'Detalhes técnicos' }), h('p', { class: 'tiny muted', text: f.summary })) : null);
 }
 
 function phaseVocab(App, { pack, act, p, area, ctx }) {
-  const items = itemsOf(pack, act);
+  speakPhase(App, { pack, act, p, area, ctx }, { phase: 'vocab', items: itemsOf(pack, act), eyebrow: (it) => TYPE_LABEL[it.type] || it.type,
+    instruction: `Ouça ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.`, empty: 'Esta atividade não tem itens de vocabulário nos documentos.' });
+}
+
+/**
+ * Ouvir 3× e falar (fase 1 clássica; etapas 2 e 5 em camadas): a gravação só é liberada depois de LISTENS_REQUIRED
+ * reproduções concluídas de verdade do modelo (playOnce: interromper, trocar de tela ou tocar outro áudio não conta;
+ * o contador fica salvo por fase e item). Reconhecimento, avaliação e marcação por trecho são os de sempre.
+ */
+function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, instruction, empty, maxMs = () => 8000, trim = () => true, maxExtra = null }) {
   const ids = items.map((x) => x.id);
-  let current = nextItem(ids, p, 'vocab') || ids[0];
+  let current = nextItem(ids, p, phase) || ids[0];
   let last = null;
   const draw = async () => {
     const it = items.find((x) => x.id === current);
-    const m = mastery(p, 'vocab', it.id);
-    const n = listensOf(p, `vocab:${it.id}`);
-    const canSpeak = canSpeakItem(p, it.id);
+    const m = mastery(p, phase, it.id);
+    const n = listensOf(p, `${phase}:${it.id}`);
+    const canSpeak = canSpeakItem(p, it.id, phase);
     const status = h('div', { class: 'wp-status', role: 'status', 'aria-live': 'polite', 'data-role': 'rec-status' });
     const listenBtn = h('button', { class: 'btn primary vx-listen', type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
     const recBtn = h('button', { class: 'btn block vx-rec', type: 'button', 'data-role': 'record-item', disabled: !canSpeak }, icon('mic'), m.attemptCount ? 'Gravar de novo' : 'Gravar minha pronúncia');
@@ -506,34 +568,38 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
     const judged = shown && (shown.result.status === 'passed' || shown.result.status === 'needs_practice');
     const words = judged && shown.result.feedback && Array.isArray(shown.result.feedback.words) ? shown.result.feedback.words : null;
     clear(area).append(
-      h('p', { class: 'vx-instruction', 'data-role': 'vocab-instruction' }, icon('speaker'), h('span', { text: `Ouça ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.` })),
-      h('div', { class: 'vx-chips' }, itemChips(ids, p, 'vocab', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('p', { class: 'vx-instruction', 'data-role': 'vocab-instruction' }, icon('speaker'), h('span', { text: instruction })),
+      h('div', { class: 'vx-chips' }, itemChips(ids, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card vx-card', 'data-role': 'vocab-card', 'data-item': it.id, 'data-status': m.status },
-        h('div', { class: 'eyebrow', text: TYPE_LABEL[it.type] || it.type }),
-        vocabExpression(it.en, words),
+        h('div', { class: 'eyebrow', text: eyebrow(it) }),
+        it.say ? h('div', { class: 'vx-en en', lang: 'en', 'data-role': 'item-pattern', text: it.en }) : vocabExpression(it.en, words),
+        it.say ? h('div', { class: 'vx-say', 'data-role': 'item-say' }, h('span', { class: 'small muted', text: 'Ouça e diga: ' }), vocabExpression(it.say, words),
+          it.sayBasis ? h('div', { class: 'tiny muted', text: `Exemplo da ${it.sayBasis.replace(/:.*$/, '')} do diálogo.` }) : null) : null,
         h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }),
         h('div', { class: 'vx-listen-row' }, listenBtn, vocabListens(n)),
         hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: 'Áudio indisponível para este item: a produção oral fica bloqueada.' }),
+        canSpeak ? null : h('div', { class: 'small muted', 'data-role': 'rec-locked', text: `A gravação é liberada depois de ${LISTENS_REQUIRED} reproduções completas do modelo.` }),
         recBtn, status),
       fb);
     if (shown) fb.append(vocabResult(shown.result, shown.heard));
-    const next = nextItem(ids, p, 'vocab');
+    const next = nextItem(ids, p, phase);
     if (next && next !== it.id && (m.status === 'passed')) fb.append(h('button', { class: 'btn primary block vx-next', type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
-    area.append(phaseFooter(pack, act, p, 'vocab'));
+    area.append(phaseFooter(pack, act, p, phase));
     listenBtn.onclick = async () => {
       listenBtn.disabled = true;
       const r = await playOnce({ key: it.audio, text: it.spoken });
       if (!ctx.alive) return;
-      if (r.completed) { recordListen(p, `vocab:${it.id}`); await save(); }
+      if (r.completed) { recordListen(p, `${phase}:${it.id}`); await save(); }
       draw();
     };
     recBtn.onclick = async () => {
+      if (!canSpeakItem(p, it.id, phase)) return; // bloqueio também na ação (não só no botão)
       if (!(await speechReady(status, App, () => draw()))) return;
       recBtn.disabled = true;
-      const out = await recordAndEvaluate({ target: it.spoken, maxMs: 8000, trim: true, statusEl: status, ctx }); // fase 1: sempre só o trecho com voz
+      const out = await recordAndEvaluate({ target: it.spoken, maxMs: maxMs(it), trim: trim(it), statusEl: status, ctx, maxExtra });
       if (!out || !ctx.alive) return;
       const result = { ...out.result, rubricVersion: 'dre-speech-lexical-1' };
-      addAttempt(p, { attemptId: newAttemptId(), phase: 'vocab', itemId: it.id, inputType: 'speech', response: out.heard, result });
+      addAttempt(p, { attemptId: newAttemptId(), phase, itemId: it.id, inputType: 'speech', response: out.heard, result });
       settleCompletion(pack, act, p);
       await save();
       last = { id: it.id, result, heard: out.heard };
@@ -541,7 +607,7 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
       draw();
     };
   };
-  if (!items.length) { clear(area).append(h('p', { class: 'small muted', text: 'Esta atividade não tem itens de vocabulário nos documentos.' }), phaseFooter(pack, act, p, 'vocab')); return; }
+  if (!items.length) { clear(area).append(h('p', { class: 'small muted', text: empty }), phaseFooter(pack, act, p, phase)); return; }
   draw();
 }
 
@@ -606,6 +672,101 @@ function phaseDictation(App, { pack, act, p, area, ctx }) {
   draw();
 }
 
+// ---------- Formato em camadas: escrever (etapas 1 e 4) e ouvir e escrever (etapas 3 e 6) ----------
+const layerItems = (pack, ids) => ids.map((id) => pack.items.find((x) => x.id === id)).filter(Boolean);
+const LAYER_EYEBROW = (it) => (it.layer === 'unit' ? it.category || 'Unidade' : it.origin === 'expansion' ? 'Frase de expansão (não é fala dos personagens)' : 'Frase do diálogo');
+/** Resultado da escrita (corretor de sempre): estado, a forma de referência e o significado; o que faltou/sobrou. */
+function writingFeedback(result, it, answer) {
+  const f = result.feedback || {};
+  return statusFeedback({ ...result, score: undefined, feedback: { ...f, summary: result.status === 'passed' ? (f.kind === 'variant' ? 'Variante aceita.' : 'Correto.') : f.summary && /vazia/.test(f.summary) ? f.summary : 'Ainda não: compare com a referência e escreva de novo.' } }, [
+    answer ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'Você escreveu: ' }), h('span', { class: 'en', lang: 'en', 'data-role': 'answer-echo', text: `“${answer}”` })) : null,
+    h('div', { class: 'model en', 'data-role': 'reference', lang: 'en' }, h('span', { class: 'small muted', text: 'Referência: ' }), it.en, it.say ? h('span', { class: 'small muted', text: ` (áudio: “${it.say}”)` }) : null),
+    h('div', { class: 'small', 'data-role': 'reference-pt' }, h('span', { class: 'muted', text: 'Significado: ' }), it.pt),
+    f.omissions && f.omissions.length ? h('div', { class: 'small', text: `Faltou: ${f.omissions.join(', ')}` }) : null,
+    f.insertions && f.insertions.length ? h('div', { class: 'small', text: `A mais: ${f.insertions.join(', ')}` }) : null,
+    f.spelling && f.spelling.length ? h('div', { class: 'small', text: `Ortografia: ${f.spelling.join(', ')}` }) : null,
+    f.reordered && f.reordered.length ? h('div', { class: 'small', text: `Fora de ordem: ${f.reordered.join(', ')}` }) : null,
+  ]);
+}
+
+/**
+ * Etapas de escrita. listen = false (1 e 4): inglês e português juntos, o aluno escreve em inglês. listen = true (3 e 6):
+ * ordem embaralhada estável (ids e áudios juntos), o inglês só aparece depois da resposta. Corretor: scoreWriting
+ * (critério de sempre, ≥ 80%), com a forma falada das notações didáticas aceita como variante.
+ */
+function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
+  const items = layerItems(pack, ids);
+  const order = listen ? phaseOrder(p, phase, items.map((x) => x.id)) : items.map((x) => x.id);
+  if (listen) save();
+  let current = nextItem(order, p, phase) || order[0];
+  let last = null;
+  const draw = () => {
+    const it = items.find((x) => x.id === current);
+    const m = mastery(p, phase, it.id);
+    const input = h('textarea', { class: 'field en', rows: it.layer === 'unit' ? 2 : 3, 'data-role': 'answer', autocapitalize: 'off', spellcheck: 'false', lang: 'en',
+      'aria-label': listen ? 'Escreva em inglês o que você ouviu' : 'Escreva em inglês', placeholder: listen ? 'Escreva em inglês o que você ouviu' : 'Escreva em inglês' });
+    const send = h('button', { class: 'btn primary block', type: 'button', 'data-role': 'submit', style: { marginTop: '10px' } }, icon('check'), 'Enviar');
+    const fb = h('div', { 'data-role': 'item-result' });
+    const revealed = !listen || (last && last.id === it.id) || m.status === 'passed';
+    const play = (rate) => player.play({ key: it.audio, text: it.spoken }, rate ? { rate } : undefined);
+    const what = it.layer === 'unit' ? 'a unidade' : 'a frase';
+    clear(area).append(
+      h('p', { class: 'vx-instruction', 'data-role': 'layer-instruction' }, icon(listen ? 'speaker' : 'book'),
+        h('span', { text: listen ? `Ouça e escreva em inglês ${what} que você ouviu. O texto aparece depois do envio.` : `Leia ${what} e o significado. Depois, escreva em inglês.` })),
+      h('div', { class: 'vx-chips' }, itemChips(order, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('section', { class: 'card vx-card', 'data-role': 'layer-card', 'data-item': it.id, 'data-status': m.status, 'data-revealed': String(!!revealed) },
+        h('div', { class: 'eyebrow', text: LAYER_EYEBROW(it) }),
+        revealed ? h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en', text: it.en }) : null,
+        revealed && it.say ? h('div', { class: 'small', 'data-role': 'item-say' }, h('span', { class: 'muted', text: 'Áudio: ' }), h('span', { class: 'en', lang: 'en', text: `“${it.say}”` }),
+          it.sayBasis ? h('span', { class: 'tiny muted', text: ` · exemplo da ${it.sayBasis.replace(/:.*$/, '')} do diálogo` }) : null) : null,
+        revealed ? h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }) : null,
+        h('div', { class: 'row', style: { marginTop: revealed ? '0' : '6px' } },
+          h('button', { class: `btn${listen ? ' primary vx-listen' : ''}`, type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio), onclick: () => play() }, icon('speaker'), listen ? 'Ouvir' : 'Ouvir o modelo'),
+          listen ? h('button', { class: 'btn ghost', type: 'button', disabled: !hasAudio(it.audio), onclick: () => play(0.75) }, icon('slow'), 'Mais devagar') : null),
+        hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: listen ? 'Áudio indisponível para este item: a etapa de escuta fica bloqueada.' : 'Áudio indisponível para este item.' }),
+        h('div', { style: { marginTop: '14px' } }, input), send),
+      fb);
+    if (listen && !hasAudio(it.audio)) { input.disabled = true; send.disabled = true; }
+    if (last && last.id === it.id) fb.append(writingFeedback(last.result, it, last.answer));
+    else if (m.status === 'passed') fb.append(h('div', { class: 'chip ok', 'data-role': 'item-status', text: 'Aprovado' }));
+    const next = nextItem(order.filter((id) => id !== it.id), p, phase);
+    if (next && m.status !== 'unseen') fb.append(h('button', { class: `btn block${m.status === 'passed' ? ' primary' : ''} vx-next`, type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
+    area.append(phaseFooter(pack, act, p, phase));
+    send.onclick = async () => {
+      const answer = input.value.trim();
+      if (!answer) { toast('Escreva em inglês antes de enviar.'); return; }
+      send.disabled = true;
+      // escuta: a resposta esperada é o que se ouve (forma falada); a notação do documento também é aceita
+      const target = listen && it.say ? it.say : it.en;
+      const result = scoreWriting(App.checker, answer, target, [it.en, it.spoken, ...(it.accepted || [])].filter((v) => v && v !== target));
+      addAttempt(p, { attemptId: newAttemptId(), phase, itemId: it.id, inputType: 'text', response: answer, result });
+      settleCompletion(pack, act, p);
+      await save();
+      last = { id: it.id, result, answer };
+      if (ctx.alive) draw();
+    };
+  };
+  if (!items.length) { clear(area).append(h('p', { class: 'small muted', text: 'Esta etapa não tem conteúdo.' }), phaseFooter(pack, act, p, phase)); return; }
+  draw();
+}
+
+/** Etapas em camadas → componente (as da etapa 7 são as fases de sempre). */
+function layerRenderer(phaseId) {
+  const unit = (fn) => (App, c) => fn(App, c, c.act.unitIds);
+  const sent = (fn) => (App, c) => fn(App, c, c.act.sentenceIds);
+  const speak = (ids, c, App, layer) => speakPhase(App, c, { phase: layer === 'unit' ? 'u-speak' : 's-speak', items: layerItems(c.pack, ids), eyebrow: LAYER_EYEBROW,
+    instruction: `Ouça ${layer === 'unit' ? 'cada unidade' : 'cada frase'} ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.`, empty: 'Esta etapa não tem conteúdo.',
+    maxMs: (it) => (it.layer === 'unit' ? 8000 : 15000), trim: (it) => trimForLine(it.spoken), maxExtra: 1 }); // curtas: alvo dentro de fala maior não aprova
+  return {
+    'u-write': unit((App, c, ids) => writePhase(App, c, { phase: 'u-write', ids, listen: false })),
+    'u-speak': unit((App, c, ids) => speak(ids, c, App, 'unit')),
+    'u-listen': unit((App, c, ids) => writePhase(App, c, { phase: 'u-listen', ids, listen: true })),
+    's-write': sent((App, c, ids) => writePhase(App, c, { phase: 's-write', ids, listen: false })),
+    's-speak': sent((App, c, ids) => speak(ids, c, App, 'sentence')),
+    's-listen': sent((App, c, ids) => writePhase(App, c, { phase: 's-listen', ids, listen: true })),
+  }[phaseId] || null;
+}
+
 // ---------- Fase 3: tradução ----------
 function phaseTranslation(App, { pack, act, p, area, ctx }) {
   const ids = act.lines.map((l) => l.id);
@@ -615,21 +776,28 @@ function phaseTranslation(App, { pack, act, p, area, ctx }) {
     const l = act.lines.find((x) => x.id === current);
     const m = mastery(p, 'translation', l.id);
     const { blocker } = remote();
+    // pendente: o campo fecha; sem serviço online, quem marcou “vou revisar” pode enviar outra tradução
+    const locked = m.status === 'pending_evaluation' && !(!remote().config.endpoint && m.lastAttempt && m.lastAttempt.selfCheck && m.lastAttempt.selfCheck.value === 'review');
     const input = h('textarea', { class: 'field', rows: 3, 'data-role': 'answer', 'aria-label': 'Escreva a tradução em português', placeholder: 'Tradução em português' });
     const send = h('button', { class: 'btn primary block', type: 'button', 'data-role': 'submit', style: { marginTop: '10px' } }, icon('check'), 'Enviar tradução');
     const fb = h('div', { 'data-role': 'line-result' });
     clear(area).append(
-      h('p', { class: 'small muted', text: `Traduza cada fala para o português. A correção é pelo sentido (avaliação online); cada fala precisa de ${THRESHOLD}%. A tradução de referência só aparece depois da avaliação.` }),
+      h('p', { class: 'small muted', 'data-role': 'translation-instruction', text: remote().config.endpoint
+        ? `Traduza cada fala para o português. A correção é pelo sentido (avaliação online); cada fala precisa de ${THRESHOLD}%. A tradução de referência só aparece depois da avaliação.`
+        : 'Traduza cada fala para o português. A correção automática pelo sentido depende de um serviço online que ainda não está ativo: depois de enviar, você compara com a tradução de referência. A fala fica pendente de avaliação — não conta como aprovada.' }),
       itemChips(ids, p, 'translation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }),
       h('section', { class: 'card', 'data-role': 'translation-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: l.speaker }),
         h('div', { class: 'row nowrap' }, h('div', { class: 'grow en big-en', 'data-role': 'source', text: l.en }),
           h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Ouvir', disabled: !hasAudio(l.audio), onclick: () => player.play({ key: l.audio, text: l.en }) }, icon('speaker'))),
-        m.status === 'pending_evaluation' ? h('div', { class: 'notice warn small', 'data-role': 'pending-note', text: 'Sua tradução está salva e aguarda avaliação online.' }) : h('div', { style: { marginTop: '10px' } }, input),
-        m.status === 'pending_evaluation' ? null : send),
+        locked ? (remote().config.endpoint ? h('div', { class: 'notice warn small', 'data-role': 'pending-note', text: 'Sua tradução está salva e aguarda avaliação online.' }) : null) : h('div', { style: { marginTop: '10px' } }, input),
+        locked ? null : send),
+        m.status === 'pending_evaluation' && !remote().config.endpoint ? selfCompare(m.lastAttempt, l, () => draw()) : null,
       fb);
-    if (blocker && m.status !== 'passed') fb.append(blockerCard(blocker, () => draw()));
-    const tf = last && last.id === l.id ? translationFeedback(last.result, l) : m.status === 'passed' ? translationFeedback(m.passedAttempt, l) : null;
+    // sem serviço configurado, a instrução já explica a limitação e a comparação mostra a situação (sem avisos repetidos)
+    const noService = !remote().config.endpoint;
+    if (blocker && m.status !== 'passed' && !(noService && blocker.code === 'not-configured')) fb.append(blockerCard(blocker, () => draw()));
+    const tf = last && last.id === l.id && !(noService && m.status === 'pending_evaluation') ? translationFeedback(last.result, l) : m.status === 'passed' ? translationFeedback(m.passedAttempt, l) : null;
     if (tf) fb.append(tf);
     const next = nextItem(ids.filter((id) => id !== l.id), p, 'translation');
     if (next && (m.status !== 'unseen')) fb.append(h('button', { class: 'btn block', type: 'button', 'data-role': 'next-item', style: { marginTop: '10px' }, onclick: () => { current = next; last = null; draw(); } }, 'Próxima fala', icon('next')));
@@ -639,7 +807,9 @@ function phaseTranslation(App, { pack, act, p, area, ctx }) {
       if (!answer) { toast('Escreva a tradução antes de enviar.'); return; }
       send.disabled = true;
       const attemptId = newAttemptId();
-      const local = localTranslation(answer, l);
+      const seen = Object.values(p.attempts).some((a) => a.phase === 'translation' && a.itemId === l.id && a.revealedAt);
+      let local = localTranslation(answer, l);
+      if (seen && local && local.status === 'passed') local = null; // referência já vista: igualdade com ela não é evidência
       addAttempt(p, { attemptId, phase: 'translation', itemId: l.id, inputType: 'text', response: answer, result: local || { status: 'pending', evaluationMode: 'remote_ai' } });
       await save(); // salva ANTES de qualquer envio: a resposta nunca se perde
       if (!local && !remote().blocker) {
@@ -653,6 +823,25 @@ function phaseTranslation(App, { pack, act, p, area, ctx }) {
     };
   };
   draw();
+}
+
+/**
+ * Sem avaliador semântico (serviço online não configurado): mostra a resposta do aluno ao lado da tradução de referência
+ * (autoral, não validada pelo professor) e registra uma autoavaliação. Nada é aprovado: a tentativa continua pendente.
+ */
+function selfCompare(a, l, redraw) {
+  if (!a) return null;
+  if (!a.revealedAt) { a.revealedAt = Date.now(); save(); }
+  const mark = async (v) => { a.selfCheck = { value: v, at: Date.now() }; await save(); redraw(); };
+  return h('section', { class: 'card flat', 'data-role': 'self-compare', style: { marginTop: '10px' } },
+    h('div', { class: 'chip warn', 'data-role': 'pending-status', text: 'Pendente de avaliação · não conta como aprovada' }),
+    h('div', { class: 'small', style: { marginTop: '8px' } }, h('span', { class: 'muted', text: 'Sua tradução: ' }), h('span', { 'data-role': 'my-translation', text: `“${a.response}”` })),
+    h('div', { class: 'small', 'data-role': 'reference' }, h('span', { class: 'muted', text: 'Tradução de referência (autoral): ' }), l.pt),
+    h('p', { class: 'tiny muted', text: 'Compare o sentido, não as palavras: outra forma de dizer a mesma coisa também está certa. Esta comparação não é uma nota.' }),
+    a.selfCheck ? h('div', { class: 'small', 'data-role': 'self-check', 'data-value': a.selfCheck.value, text: a.selfCheck.value === 'ok' ? 'Você marcou: o sentido confere.' : 'Você marcou: vou revisar esta fala.' })
+      : h('div', { class: 'row', 'data-role': 'self-check-actions' },
+        h('button', { class: 'btn small', type: 'button', 'data-role': 'self-ok', onclick: () => mark('ok') }, icon('check'), 'O sentido confere'),
+        h('button', { class: 'btn small ghost', type: 'button', 'data-role': 'self-review', onclick: () => mark('review') }, icon('refresh'), 'Vou revisar')));
 }
 
 function blockerCard(blocker, onChange) {

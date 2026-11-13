@@ -173,7 +173,7 @@ await check('H07', 'Os dois temas no cabeçalho, cartões, botões e navegação
 await check('H08', 'Tema claro nas outras telas (diálogo, fase, Estudar, Curso, Ajustes, Falar): fundo e cartões claros, sem rolagem horizontal', async () => {
   await page.evaluate(async () => { window.DRG_APP.state.settings.theme = 'light'; window.DRG_APP.applySettings(); await window.DRG_APP.flush(); });
   const bad = [];
-  for (const [n, hsh] of [['dialogo', '#/dialogue/john-p1-e01'], ['fase1', '#/dphase/john-p1-e01?p=vocab'], ['estudar', '#/modules'], ['curso', '#/course'], ['ajustes', '#/settings'], ['falar', '#/lab'], ['dialogos', '#/dialogues']]) {
+  for (const [n, hsh] of [['dialogo', '#/dialogue/john-p1-e01'], ['fase1', '#/dphase/john-p1-e01?p=u-write'], ['estudar', '#/modules'], ['curso', '#/course'], ['ajustes', '#/settings'], ['falar', '#/lab'], ['dialogos', '#/dialogues']]) {
     await go(hsh);
     const r = await page.evaluate(() => ({ bg: getComputedStyle(document.body).backgroundColor, card: (() => { const c = document.querySelector('.view .card'); return c ? getComputedStyle(c).backgroundColor : null; })(), ov: document.documentElement.scrollWidth > innerWidth + 1, theme: document.documentElement.dataset.theme }));
     if (r.bg !== 'rgb(241, 240, 251)' || (r.card && !['rgb(255, 255, 255)', 'rgba(0, 0, 0, 0)'].includes(r.card)) || r.ov || r.theme !== 'light') bad.push(`${n}:${JSON.stringify(r)}`);

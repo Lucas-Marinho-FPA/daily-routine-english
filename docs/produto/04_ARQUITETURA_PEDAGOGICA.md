@@ -38,3 +38,13 @@ Vocabulário (3 audições + produção oral) → escuta e escrita → traduçã
 Domínio individual de 80% por item (palavra, frase ou fala); média não compensa. Compreensão: rodada com as questões
 que o diálogo sustenta (10 ou menos), aprovada com ⌈0,8 n⌉; só as erradas voltam. A leitura em voz alta abre com a
 fase 3, independente da compreensão. Transcrição de fala não é avaliação fonética. Regras completas: `docs/dialogos.md`.
+
+## Formato em sete etapas — john-p1-e01 (DEC-021, 13/11/2026)
+Documento-fonte aprovado: `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md`. Três camadas:
+unidades linguísticas (1 escrever com EN+PT → 2 ouvir 3× e falar → 3 ouvir e escrever, embaralhado) → frases completas
+(4–6, mesmo esquema; expansões nunca atribuídas aos personagens) → diálogo (7: escuta global e compreensão → escuta
+acompanhada, leitura e produção oral → tradução → fechamento). As mesmas unidades percorrem 1–3 e as mesmas frases 4–6.
+Critérios vigentes (≥ 80% por item; compreensão ⌈0,8 n⌉), sem percentuais novos. Sem evidência confiável o sistema não
+aprova nem reprova (inconclusivo, repetir); falha do reconhecedor nunca vira erro do aluno. Tradução sem avaliador
+semântico: comparação com a referência, sem aprovação. Só a e01 está ativa; as demais atividades seguem no formato de
+cinco fases, preservadas fora da navegação até a remodelagem, uma por vez.

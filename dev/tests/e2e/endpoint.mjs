@@ -6,6 +6,7 @@
 // REAL: app construído, microfone falso do Chromium tocando o áudio uma vez, gravação, detecção de fala, Moonshine (para
 // conferir que a fala INTEIRA foi gravada) e a tela real da fase 1. SIMULADO: o reconhecimento online (só em E07).
 // Tempos medidos do início da gravação até o fim automático; tolerância para o tempo de partida do microfone falso.
+// etapa 2 do formato em camadas (john-p1-e01, 2026-11-13): unidade U22 “different teams” (mesmo áudio do antigo item v05); etapa 1 semeada como pré-requisito
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
@@ -54,11 +55,11 @@ async function open(wav, init = NO_ONLINE, consent = undefined) {
   await page.evaluate(async (c) => { const A = window.DRG_APP; A.state.welcomed = true; if (c !== undefined) A.state.settings.onlineSpeech = c; await A.chooseCharacter('lucas'); await A.asr.local.install(); await A.flush(); }, consent);
   await page.evaluate(async () => {
     const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-    const st = { v: 1, acts: { 'john-p1-e01': { attempts: {}, listens: { 'vocab:john-p1-e01-v05': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
     await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
   });
-  await page.goto(BASE + '#/dphase/john-p1-e01?p=vocab'); await page.reload(); await page.waitForSelector('[data-role=item-chips]');
-  await page.click('[data-role=item-chips] [data-item="john-p1-e01-v05"]');
+  await page.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await page.reload(); await page.waitForSelector('[data-role=item-chips]');
+  await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]');
   return { ctx, page };
 }
 const attempts = (page) => page.evaluate(async () => {

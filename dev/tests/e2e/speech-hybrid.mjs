@@ -6,6 +6,7 @@
 // telas (diálogos fase 1, Speaking Lab, prática de palavra, resposta livre), consentimento, armazenamento.
 // SIMULADO: o reconhecimento ONLINE do navegador (webkitSpeechRecognition falso: o Chromium de teste não tem serviço
 // de fala) e a falta de internet (navigator.onLine = false via setOffline). Não comprova o serviço real do Android.
+// etapa 2 do formato em camadas (john-p1-e01, 2026-11-13): unidade U22 “different teams” (mesmo áudio do antigo item v05); etapa 1 semeada como pré-requisito
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
@@ -73,12 +74,14 @@ await page.goto(BASE); await page.waitForFunction(() => window.DRG_APP && window
 await page.evaluate(async () => { const A = window.DRG_APP; A.state.welcomed = true; await A.chooseCharacter('lucas'); await A.asr.local.install(); });
 await page.evaluate(async () => { // 3 audições do item “different teams” (libera o botão de gravar da fase 1)
   const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-  const st = { v: 1, acts: { 'john-p1-e01': { attempts: {}, listens: { 'vocab:john-p1-e01-v05': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+  const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
   await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
 });
-const openPhase1 = async () => { await page.goto(BASE + '#/dphase/john-p1-e01?p=vocab'); await page.reload(); await page.waitForSelector('[data-role=item-chips]'); await page.click('[data-role=item-chips] [data-item="john-p1-e01-v05"]'); };
+const openPhase1 = async () => { await page.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await page.reload(); await page.waitForSelector('[data-role=item-chips]'); await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]'); };
 /** Uma tentativa na fase 1 (botão real → gravação real → motor central → avaliador). consent: 'online' | 'local' | null */
 const phase1Attempt = async ({ consent = null, ms = 3500 } = {}) => {
+  // a tela mostra o resultado da última tentativa ao abrir o item (remodelagem de 2026-11-12): só vale o desta gravação
+  await page.evaluate(() => document.querySelectorAll('[data-role=feedback]').forEach((e) => e.remove()));
   await page.click('[data-role=record-item]');
   if (consent) { await page.waitForSelector('[data-role=speech-consent]', { timeout: 5000 }); await page.click(`[data-role=speech-consent] [data-choice=${consent}]`); }
   await page.waitForSelector('[data-role=stop]', { timeout: 10000 });
@@ -111,7 +114,7 @@ await check('H01', 'Primeira gravação com internet: pede o consentimento UMA v
   const c1 = await counts();
   const saved = await page.evaluate(() => window.DRG_APP.state.settings.onlineSpeech);
   assert(saved === true, `consentimento ${saved}`);
-  assert(r.status === 'passed' && r.asr.engine === 'online' && /online do navegador/.test(r.engineLine), JSON.stringify(r));
+  assert(r.status === 'passed' && r.asr.engine === 'online', JSON.stringify(r)); // motor pela evidência da tentativa (a linha técnica saiu do cartão na remodelagem de 2026-11-12)
   assert(c1.sr - c0.sr === 1 && c1.gum - c0.gum === 0, `uma escuta online e NENHUMA captura própria: ${JSON.stringify({ c0, c1 })}`);
   const sr = await page.evaluate(() => { const x = window.__srMade[window.__srMade.length - 1]; return { track: x.arg instanceof MediaStreamTrack ? x.arg.kind : String(x.arg), continuous: x.continuous }; });
   assert(sr.track === 'undefined' && sr.continuous === false, `start() sem faixa / configuração: ${JSON.stringify(sr)}`);

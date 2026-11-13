@@ -29,10 +29,30 @@ export const PHASES = [
   { id: 'listening', n: 4, title: 'Compreensão auditiva', short: 'Compreensão' },
   { id: 'reading', n: 5, title: 'Leitura em voz alta', short: 'Leitura' },
 ];
-export const phaseById = (id) => PHASES.find((p) => p.id === id) || null;
+// Formato em camadas (documento-fonte aprovado de john-p1-e01, 2026-11-13): unidades (1–3) → frases (4–6) → diálogo (7).
+// A etapa 7 reaproveita as fases existentes: escuta global + compreensão, leitura/produção oral e tradução.
+export const LAYER_PHASES = [
+  { id: 'u-write', n: 1, step: 1, layer: 'unit', mode: 'write', title: 'Conhecer e escrever as unidades', short: 'Unidades · escrever' },
+  { id: 'u-speak', n: 2, step: 2, layer: 'unit', mode: 'speak', title: 'Escutar três vezes e falar as unidades', short: 'Unidades · falar' },
+  { id: 'u-listen', n: 3, step: 3, layer: 'unit', mode: 'listen', title: 'Ouvir e escrever as unidades', short: 'Unidades · ouvir' },
+  { id: 's-write', n: 4, step: 4, layer: 'sentence', mode: 'write', title: 'Conhecer e escrever as frases', short: 'Frases · escrever' },
+  { id: 's-speak', n: 5, step: 5, layer: 'sentence', mode: 'speak', title: 'Escutar três vezes e falar as frases', short: 'Frases · falar' },
+  { id: 's-listen', n: 6, step: 6, layer: 'sentence', mode: 'listen', title: 'Listening de frases', short: 'Frases · ouvir' },
+  { id: 'listening', n: '7.1', step: 7, layer: 'dialogue', title: 'Escuta global e compreensão', short: 'Diálogo · compreensão' },
+  { id: 'reading', n: '7.2', step: 7, layer: 'dialogue', title: 'Escuta acompanhada, leitura e produção oral', short: 'Diálogo · leitura' },
+  { id: 'translation', n: '7.3', step: 7, layer: 'dialogue', title: 'Tradução', short: 'Diálogo · tradução' },
+];
+export const isLayered = (act) => !!act && act.format === 'layers-v1';
+export const phasesOf = (act) => (isLayered(act) ? LAYER_PHASES : PHASES);
+export const phaseById = (id, act = null) => phasesOf(act).find((p) => p.id === id) || null;
+/** Atividades na experiência ativa (pack.active, de content/dialogues/rollout.json; null = todas). As demais ficam nos dados. */
+export const isActive = (pack, act) => !!act && (!pack || !Array.isArray(pack.active) || pack.active.includes(act.id));
+export const activeActivities = (pack) => (pack ? pack.activities.filter((a) => isActive(pack, a)) : []);
 
 /** Versões das rubricas e avaliadores locais (gravadas em cada tentativa). */
 export const RUBRICS = {
+  'u-write': 'dre-writing-1', 'u-speak': 'dre-speech-lexical-1', 'u-listen': 'dre-writing-1',
+  's-write': 'dre-writing-1', 's-speak': 'dre-speech-lexical-1', 's-listen': 'dre-writing-1',
   vocab: 'dre-speech-lexical-1',
   dictation: 'dre-writing-1',
   translation: 'dre-translation-semantic-1',
@@ -67,6 +87,8 @@ export function spokenItem(en) {
 export function requiredOf(pack, act, phaseId) {
   switch (phaseId) {
     case 'vocab': return act.itemIds.slice();
+    case 'u-write': case 'u-speak': case 'u-listen': return (act.unitIds || []).slice();
+    case 's-write': case 's-speak': case 's-listen': return (act.sentenceIds || []).slice();
     case 'dictation': case 'translation': case 'reading': return act.lines.map((l) => l.id);
     case 'listening': return (act.questionIds || []).slice();
     default: return [];
@@ -113,7 +135,7 @@ export function recordListen(p, key, now = Date.now()) {
   return p.listens[key];
 }
 export const listensOf = (p, key) => (p && p.listens && p.listens[key]) || 0;
-export const canSpeakItem = (p, itemId) => listensOf(p, `vocab:${itemId}`) >= LISTENS_REQUIRED;
+export const canSpeakItem = (p, itemId, phase = 'vocab') => listensOf(p, `${phase}:${itemId}`) >= LISTENS_REQUIRED;
 export const canAnswerQuestions = (p) => listensOf(p, 'listening') >= LISTENS_REQUIRED;
 
 /**
@@ -253,6 +275,9 @@ export const wrongOf = (round) => (round ? round.results.filter((r) => !r.correc
 /** Fase de que cada fase depende: 1 → 2 → 3 → 4; a leitura em voz alta (5) depende só da tradução (3), não da
  *  compreensão (4) — decisão do PO de 2026-11-11: a fase 5 não pode ficar bloqueada pela fase 4. */
 export const PREREQ = { vocab: null, dictation: 'vocab', translation: 'dictation', listening: 'translation', reading: 'translation' };
+// em camadas: sequência linear 1 → 2 → … → 6 → 7.1 → 7.2 → 7.3
+export const LAYER_PREREQ = { 'u-write': null, 'u-speak': 'u-write', 'u-listen': 'u-speak', 's-write': 'u-listen', 's-speak': 's-write', 's-listen': 's-speak', listening: 's-listen', reading: 'listening', translation: 'reading' };
+const prereqOf = (act) => (isLayered(act) ? LAYER_PREREQ : PREREQ);
 
 /**
  * Situação de cada fase: locked | available | in_progress | pending_online | needs_retry | completed | not_applicable.
@@ -261,8 +286,9 @@ export const PREREQ = { vocab: null, dictation: 'vocab', translation: 'dictation
  */
 export function phaseStatuses(pack, act, p) {
   const out = [];
+  const PRE = prereqOf(act);
   const open = (id) => { // a fase pré-requisito (e a cadeia dela) está concluída?
-    const pre = PREREQ[id];
+    const pre = PRE[id];
     if (!pre) return true;
     const x = out.find((y) => y.id === pre);
     // fase 3 com todas as falas respondidas e só aguardando a avaliação online também abre as fases 4 e 5: elas não
@@ -270,7 +296,7 @@ export function phaseStatuses(pack, act, p) {
     // a atividade só é concluída quando as avaliações pendentes chegam
     return open(pre) && (x.state === 'completed' || x.state === 'not_applicable' || x.state === 'pending_online');
   };
-  for (const ph of PHASES) {
+  for (const ph of phasesOf(act)) {
     const ids = requiredOf(pack, act, ph.id);
     const items = ids.map((id) => (ph.id === 'listening' ? null : mastery(p, ph.id, id))).filter(Boolean);
     const passed = items.filter((m) => m.status === 'passed').length;
@@ -306,7 +332,7 @@ export function activityStatus(pack, act, p) {
   else if (!p || (!p.startedAt && !Object.keys(p.attempts || {}).length)) state = 'not_started';
   else state = 'in_progress';
   const done = phases.filter((x) => x.state === 'completed' || x.state === 'not_applicable').length;
-  return { state, phases, current, done, ratio: done / PHASES.length };
+  return { state, phases, current, done, ratio: done / phases.length, total: phases.length };
 }
 
 /** Item pendente mais relevante da fase (retomada): o primeiro, na ordem da sessão, que ainda não foi aprovado. */
@@ -318,12 +344,13 @@ export function nextItem(order, p, phase) {
   return null;
 }
 
+const SHUFFLED = new Set(['dictation', 'u-listen', 's-listen']); // escuta e escrita: ordem sorteada (ids e áudios juntos)
 /** Ordem embaralhada estável da fase (frases da escrita por escuta): sorteada uma vez e guardada; ids estáveis. */
 export function phaseOrder(p, phase, ids, rand = Math.random) {
   const saved = p.order[phase];
   if (saved && saved.length === ids.length && saved.every((id) => ids.includes(id))) return saved;
   const out = ids.slice();
-  if (phase === 'dictation') for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  if (SHUFFLED.has(phase)) for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
   p.order[phase] = out;
   return out;
 }
@@ -345,6 +372,7 @@ export function activityReport(pack, act, p) {
   return {
     state: st.state, phases: st.phases,
     vocab: items('vocab'), dictation: items('dictation'), translation: items('translation'), reading: items('reading'),
+    ...(isLayered(act) ? Object.fromEntries(LAYER_PHASES.filter((x) => x.mode).map((x) => [x.id, items(x.id)])) : {}),
     comprehension: (() => { const c = comprehension(p); return c ? { firstRound: c.round.correct, tally: c.tally, total: c.total, recovered: c.tally - c.round.correct, stillWrong: c.wrong.length, passed: c.tally >= QUESTIONS_PASS } : null; })(),
     pending: Object.values(p.attempts).filter((a) => a.status === 'pending').length,
     inconclusive: Object.values(p.attempts).filter((a) => a.status === 'inconclusive').length,

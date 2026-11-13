@@ -1,8 +1,31 @@
-# Atividades de diálogo em cinco fases — The Story of John
+# Atividades de diálogo — The Story of John (cinco fases; john-p1-e01 em sete etapas desde 13/11/2026)
 
 Especificação: `docs/produto/mvp-dialogo/` (pacote do Product Owner de 11/11/2026, copiado sem alteração).
 Decisões do PO posteriores à especificação: seção “Decisões do Product Owner (2026-11-11)” abaixo.
 Publicado em 2026-11-11 (`gh-pages` `a6e8bbb`, build `b7dbb3b76936`); detalhes e evidências no `HANDOFF.md`.
+
+## Formato em camadas — john-p1-e01 (2026-11-13) e atividades ativas
+
+Especificação: `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md` (aprovada pelo PO em 2026-11-13).
+
+| Parte | Onde |
+|---|---|
+| Conteúdo (32 unidades U01–U32, 25 frases F01–F25 com origem original/expansão, notas de contraste e gramática), literal do documento, com a linha de origem | `dev/content/dialogues/john-p1-e01-layers.json` |
+| Atividades na experiência ativa (as demais ficam nos dados, fora da navegação) | `dev/content/dialogues/rollout.json` → `pack.active` |
+| Build: unidades e frases no MESMO `items` do pacote (`john-p1-e01-u01…`, `-f01…`; `layer`, `category`, `origin`, `spoken`, `accepted`, `audio`), atividade com `format: 'layers-v1'`, `unitIds`, `sentenceIds`, `layerNotes` | `dev/tools/build-dialogues.mjs` |
+| Etapas e regras (`LAYER_PHASES`, `LAYER_PREREQ`, `phasesOf`, `isActive`, `activeActivities`, `canSpeakItem(p, id, fase)`) | `js/engine/dialogue.js` |
+| Telas: etapas 1 e 4 (`writePhase`, EN + PT), 2 e 5 (`speakPhase`: 3 reproduções completas antes de gravar), 3 e 6 (`writePhase` em escuta: ordem embaralhada estável, inglês oculto até a resposta); etapa 7 = fases de sempre (compreensão, leitura, tradução) | `js/ui/dialogue.js` |
+| Testes | `dev/tests/unit/dialogue-layers.test.js`, `dev/tests/e2e/dialogue-layers.mjs`, `dev/tests/e2e/audio-layers.mjs` (validação dos áudios) |
+
+- **Sequência:** 1 → 2 → 3 (unidades) → 4 → 5 → 6 (frases) → 7.1 escuta global e compreensão → 7.2 escuta acompanhada, leitura e produção oral → 7.3 tradução → fechamento (resumo por etapa). Cada etapa abre quando a anterior está concluída.
+- **Critérios (os já vigentes, sem percentuais novos):** escrita e escuta-escrita com o corretor de sempre (≥ 80% por item; variantes aceitas); fala ≥ 80% por item (reconhecimento + alinhamento); compreensão 8/10; leitura ≥ 80% por fala; tradução pela avaliação semântica online (sem serviço configurado, fica pendente — limitação já existente).
+- **Escuta obrigatória:** etapas 2 e 5 contam só reproduções concluídas de verdade (`playOnce`); o contador fica salvo por etapa e item (`listens['u-speak:<id>']`, `listens['s-speak:<id>']`).
+- **Áudio:** voz padrão do app (`bf_emma`, Kokoro) para unidades e frases — expansões nunca na voz de personagem. Forma falada das notações didáticas: `…` some, `/` vira vírgula (regra do app), `→` vira vírgula e `+` é lido “plus”; a forma falada é aceita como variante na escrita.
+- **Forma falada (fechamento de qualidade, 2026-11-13):** padrões que ficariam truncados/literais usam a realização da fala de referência indicada no documento (`say`/`sayBasis` na fonte: U18 “I'm a project analyst.”, U30 “That sounds interesting.”, U31 “sounds interesting”); a tela mostra o padrão e “Ouça e diga”; na escuta-escrita, a resposta esperada é o que se ouve.
+- **Expressões curtas (≤ 3 palavras, só nas etapas em camadas):** átonas avaliadas (`judgeWeak`) e alvo dentro de fala maior = inconclusivo (`maxExtra: 1`). Demais telas sem mudança.
+- **Confiabilidade (sem evidência, não decide):** confiança online < 0,5 → inconclusivo; texto online que veio de resultado parcial ou corte no reconhecedor do aparelho → palavras finais não avaliadas e nunca aprovação da frase inteira; Moonshine (sem confiança) em alvo de 1–2 palavras → divergência = inconclusivo (“não consegui avaliar”), acerto aprova; transcrição vazia/falha → inconclusivo, sem penalidade.
+- **Tradução sem serviço online:** comparação com a referência depois de enviar + autoavaliação registrada (`selfCheck`); nada é aprovado; referência vista (`revealedAt`) impede aprovação por cópia.
+- **Atividades fora da navegação:** lista, Início e acesso direto mostram só `pack.active`; dados, áudio, questões e progresso das demais continuam intactos. Progresso anterior da e01 (fases antigas) fica guardado, sem crédito automático nas etapas novas; as fases 7.x (mesmos ids das fases de compreensão, leitura e tradução) reaproveitam a evidência já existente.
 
 ## Onde está cada coisa
 

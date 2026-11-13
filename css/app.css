@@ -639,6 +639,8 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .vx-seg.vx-good { background: var(--ok-soft); color: var(--ok); }
 .vx-seg.vx-missing { background: var(--bad-soft); color: var(--bad); }
 .vx-seg.vx-uncertain { background: var(--warn-soft); color: var(--warn); }
+.vx-say { margin: -2px 0 10px; }
+.vx-say .vx-en { font-size: 1.5rem; margin: 2px 0; }
 .vx-pt { font-size: 1.1rem; color: var(--muted); line-height: 1.4; margin-bottom: 22px; }
 .vx-listen-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
 .btn.vx-listen { min-height: 52px; padding: 0 24px; font-size: 1.05rem; }

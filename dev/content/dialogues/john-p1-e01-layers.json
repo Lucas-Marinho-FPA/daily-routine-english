@@ -1,0 +1,538 @@
+{
+ "kind": "daily-routine-english/dialogue-layers",
+ "formato": 1,
+ "activityId": "john-p1-e01",
+ "source": {
+  "file": "docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md",
+  "title": "Documento-fonte pedagógico e de conteúdo — John P1 E01",
+  "approvedBy": "Product Owner — implementação autorizada em 2026-11-13 (“especificação aprovada de conteúdo, pedagogia e funcionamento”)"
+ },
+ "status": "conteúdo aprovado pelo PO para implantação; traduções autorais e questões NÃO validadas pelo professor (documento-fonte, §11)",
+ "steps": [
+  {
+   "n": 1,
+   "layer": "unit",
+   "mode": "write"
+  },
+  {
+   "n": 2,
+   "layer": "unit",
+   "mode": "speak",
+   "listens": 3
+  },
+  {
+   "n": 3,
+   "layer": "unit",
+   "mode": "listen"
+  },
+  {
+   "n": 4,
+   "layer": "sentence",
+   "mode": "write"
+  },
+  {
+   "n": 5,
+   "layer": "sentence",
+   "mode": "speak",
+   "listens": 3
+  },
+  {
+   "n": 6,
+   "layer": "sentence",
+   "mode": "listen"
+  },
+  {
+   "n": 7,
+   "layer": "dialogue",
+   "phases": [
+    "listening",
+    "reading",
+    "translation"
+   ]
+  }
+ ],
+ "units": [
+  {
+   "code": "U01",
+   "en": "remember me",
+   "pt": "lembrar-se de mim",
+   "kind": "chunk comunicativo",
+   "ref": "fala 1",
+   "src": 73
+  },
+  {
+   "code": "U02",
+   "en": "Do you remember…?",
+   "pt": "Você se lembra…?",
+   "kind": "padrão interrogativo",
+   "ref": "fala 1",
+   "src": 74
+  },
+  {
+   "code": "U03",
+   "en": "Of course!",
+   "pt": "Claro! / É claro!",
+   "kind": "expressão comunicativa",
+   "ref": "fala 2",
+   "src": 75
+  },
+  {
+   "code": "U04",
+   "en": "meet someone",
+   "pt": "conhecer/encontrar alguém",
+   "kind": "verbo + objeto",
+   "ref": "fala 2",
+   "src": 76
+  },
+  {
+   "code": "U05",
+   "en": "meet → met",
+   "pt": "conhecer/encontrar → conheceu/encontrou",
+   "kind": "forma irregular no passado",
+   "ref": "fala 2",
+   "src": 77
+  },
+  {
+   "code": "U06",
+   "en": "at university",
+   "pt": "na universidade/na faculdade",
+   "kind": "combinação com preposição",
+   "ref": "fala 2",
+   "src": 78
+  },
+  {
+   "code": "U07",
+   "en": "didn't we?",
+   "pt": "não foi? / não é mesmo?",
+   "kind": "question tag",
+   "ref": "fala 2",
+   "src": 79
+  },
+  {
+   "code": "U08",
+   "en": "That's right.",
+   "pt": "Isso mesmo. / É isso mesmo.",
+   "kind": "confirmação",
+   "ref": "fala 3",
+   "src": 80
+  },
+  {
+   "code": "U09",
+   "en": "What are you doing…?",
+   "pt": "O que você está fazendo…?",
+   "kind": "pergunta no Present Continuous",
+   "ref": "fala 3",
+   "src": 81
+  },
+  {
+   "code": "U10",
+   "en": "these days",
+   "pt": "atualmente / hoje em dia",
+   "kind": "expressão temporal",
+   "ref": "fala 3",
+   "src": 82
+  },
+  {
+   "code": "U11",
+   "en": "work for",
+   "pt": "trabalhar para (empresa/organização)",
+   "kind": "verbo + preposição",
+   "ref": "fala 4",
+   "src": 83
+  },
+  {
+   "code": "U12",
+   "en": "work for a company",
+   "pt": "trabalhar para uma empresa",
+   "kind": "chunk/collocation",
+   "ref": "inventário original; fala 4",
+   "src": 84
+  },
+  {
+   "code": "U13",
+   "en": "technology company",
+   "pt": "empresa de tecnologia",
+   "kind": "collocation nominal",
+   "ref": "fala 4",
+   "src": 85
+  },
+  {
+   "code": "U14",
+   "en": "in Manchester",
+   "pt": "em Manchester",
+   "kind": "localização",
+   "ref": "fala 4",
+   "src": 86
+  },
+  {
+   "code": "U15",
+   "en": "Really?",
+   "pt": "Sério? / É mesmo?",
+   "kind": "reação comunicativa",
+   "ref": "fala 5",
+   "src": 87
+  },
+  {
+   "code": "U16",
+   "en": "What do you do…?",
+   "pt": "O que você faz…? (profissão/função)",
+   "kind": "padrão interrogativo",
+   "ref": "fala 5",
+   "src": 88
+  },
+  {
+   "code": "U17",
+   "en": "What do you do there?",
+   "pt": "O que você faz lá?",
+   "kind": "pergunta sobre função",
+   "ref": "fala 5",
+   "src": 89
+  },
+  {
+   "code": "U18",
+   "en": "I'm a…",
+   "pt": "Eu sou… / Trabalho como…",
+   "kind": "padrão de profissão",
+   "ref": "fala 6",
+   "src": 90,
+   "say": "I'm a project analyst.",
+   "sayBasis": "fala 6: “I'm a project analyst.”"
+  },
+  {
+   "code": "U19",
+   "en": "project analyst",
+   "pt": "analista de projetos",
+   "kind": "chunk profissional",
+   "ref": "fala 6",
+   "src": 91
+  },
+  {
+   "code": "U20",
+   "en": "usually",
+   "pt": "normalmente / geralmente",
+   "kind": "advérbio de frequência",
+   "ref": "fala 6",
+   "src": 92
+  },
+  {
+   "code": "U21",
+   "en": "work with",
+   "pt": "trabalhar com",
+   "kind": "verbo + preposição",
+   "ref": "fala 6",
+   "src": 93
+  },
+  {
+   "code": "U22",
+   "en": "different teams",
+   "pt": "equipes diferentes",
+   "kind": "collocation",
+   "ref": "fala 6",
+   "src": 94
+  },
+  {
+   "code": "U23",
+   "en": "work with different teams",
+   "pt": "trabalhar com equipes diferentes",
+   "kind": "chunk/collocation",
+   "ref": "fala 6",
+   "src": 95
+  },
+  {
+   "code": "U24",
+   "en": "but",
+   "pt": "mas",
+   "kind": "conector de contraste",
+   "ref": "fala 6",
+   "src": 96
+  },
+  {
+   "code": "U25",
+   "en": "this week",
+   "pt": "esta semana",
+   "kind": "expressão temporal",
+   "ref": "fala 6",
+   "src": 97
+  },
+  {
+   "code": "U26",
+   "en": "help someone / help a team",
+   "pt": "ajudar alguém / uma equipe",
+   "kind": "verbo + objeto",
+   "ref": "fala 6",
+   "src": 98
+  },
+  {
+   "code": "U27",
+   "en": "I'm helping…",
+   "pt": "Estou ajudando…",
+   "kind": "padrão no Present Continuous",
+   "ref": "fala 6",
+   "src": 99
+  },
+  {
+   "code": "U28",
+   "en": "sales department",
+   "pt": "departamento de vendas",
+   "kind": "collocation nominal",
+   "ref": "fala 6",
+   "src": 100
+  },
+  {
+   "code": "U29",
+   "en": "help the sales department",
+   "pt": "ajudar o departamento de vendas",
+   "kind": "chunk/collocation",
+   "ref": "fala 6",
+   "src": 101
+  },
+  {
+   "code": "U30",
+   "en": "That sounds…",
+   "pt": "Isso parece…",
+   "kind": "padrão de reação/opinião",
+   "ref": "fala 7",
+   "src": 102,
+   "say": "That sounds interesting.",
+   "sayBasis": "fala 7: “That sounds interesting.”"
+  },
+  {
+   "code": "U31",
+   "en": "sound + adjective",
+   "pt": "parecer + adjetivo",
+   "kind": "padrão lexical/gramatical",
+   "ref": "fala 7",
+   "src": 103,
+   "say": "sounds interesting",
+   "sayBasis": "fala 7: “That sounds interesting.” (sound + adjective)"
+  },
+  {
+   "code": "U32",
+   "en": "interesting",
+   "pt": "interessante",
+   "kind": "adjetivo avaliativo",
+   "ref": "fala 7",
+   "src": 104
+  }
+ ],
+ "sentences": [
+  {
+   "code": "F01",
+   "origin": "dialogue",
+   "en": "Do you remember me?",
+   "pt": "Você se lembra de mim?",
+   "focus": "remember; pergunta",
+   "src": 153
+  },
+  {
+   "code": "F02",
+   "origin": "dialogue",
+   "en": "Of course! We met at university.",
+   "pt": "Claro! Nós nos conhecemos na universidade.",
+   "focus": "Of course; met; at university",
+   "src": 154
+  },
+  {
+   "code": "F03",
+   "origin": "dialogue",
+   "en": "We met at university, didn't we?",
+   "pt": "Nós nos conhecemos na universidade, não foi?",
+   "focus": "passado + question tag",
+   "src": 155
+  },
+  {
+   "code": "F04",
+   "origin": "dialogue",
+   "en": "What are you doing these days?",
+   "pt": "O que você está fazendo atualmente?",
+   "focus": "Present Continuous + expressão temporal",
+   "src": 156
+  },
+  {
+   "code": "F05",
+   "origin": "dialogue",
+   "en": "I'm working for a technology company in Manchester.",
+   "pt": "Estou trabalhando para uma empresa de tecnologia em Manchester.",
+   "focus": "work for; company; localização",
+   "src": 157
+  },
+  {
+   "code": "F06",
+   "origin": "dialogue",
+   "en": "What do you do there?",
+   "pt": "O que você faz lá?",
+   "focus": "pergunta sobre função",
+   "src": 158
+  },
+  {
+   "code": "F07",
+   "origin": "dialogue",
+   "en": "I'm a project analyst.",
+   "pt": "Sou analista de projetos.",
+   "focus": "profissão",
+   "src": 159
+  },
+  {
+   "code": "F08",
+   "origin": "dialogue",
+   "en": "I usually work with different teams.",
+   "pt": "Normalmente trabalho com equipes diferentes.",
+   "focus": "Present Simple; usually; work with",
+   "src": 160
+  },
+  {
+   "code": "F09",
+   "origin": "dialogue",
+   "en": "This week I'm helping the sales department.",
+   "pt": "Esta semana estou ajudando o departamento de vendas.",
+   "focus": "Present Continuous; this week",
+   "src": 161
+  },
+  {
+   "code": "F10",
+   "origin": "dialogue",
+   "en": "That sounds interesting.",
+   "pt": "Isso parece interessante.",
+   "focus": "sound + adjective",
+   "src": 162
+  },
+  {
+   "code": "F11",
+   "origin": "expansion",
+   "en": "I work for a technology company.",
+   "pt": "Trabalho para uma empresa de tecnologia.",
+   "focus": "work for; Present Simple",
+   "src": 163
+  },
+  {
+   "code": "F12",
+   "origin": "expansion",
+   "en": "I work with different people.",
+   "pt": "Trabalho com pessoas diferentes.",
+   "focus": "work with",
+   "src": 164
+  },
+  {
+   "code": "F13",
+   "origin": "expansion",
+   "en": "I usually work with the sales team.",
+   "pt": "Normalmente trabalho com a equipe de vendas.",
+   "focus": "usually + Present Simple",
+   "src": 165
+  },
+  {
+   "code": "F14",
+   "origin": "expansion",
+   "en": "This week I'm working with a different team.",
+   "pt": "Esta semana estou trabalhando com uma equipe diferente.",
+   "focus": "rotina × situação temporária",
+   "src": 166
+  },
+  {
+   "code": "F15",
+   "origin": "expansion",
+   "en": "I'm helping my team this week.",
+   "pt": "Estou ajudando minha equipe esta semana.",
+   "focus": "help + objeto; this week",
+   "src": 167
+  },
+  {
+   "code": "F16",
+   "origin": "expansion",
+   "en": "What do you do at the company?",
+   "pt": "O que você faz na empresa?",
+   "focus": "pergunta sobre função",
+   "src": 168
+  },
+  {
+   "code": "F17",
+   "origin": "expansion",
+   "en": "What are you working on these days?",
+   "pt": "Em que você está trabalhando atualmente?",
+   "focus": "atividade atual",
+   "src": 169
+  },
+  {
+   "code": "F18",
+   "origin": "expansion",
+   "en": "I usually help different teams.",
+   "pt": "Normalmente ajudo equipes diferentes.",
+   "focus": "usually + Present Simple",
+   "src": 170
+  },
+  {
+   "code": "F19",
+   "origin": "expansion",
+   "en": "I'm working with the sales department this week.",
+   "pt": "Estou trabalhando com o departamento de vendas esta semana.",
+   "focus": "work with; this week",
+   "src": 171
+  },
+  {
+   "code": "F20",
+   "origin": "expansion",
+   "en": "That sounds like an interesting job.",
+   "pt": "Isso parece um trabalho interessante.",
+   "focus": "sound + noun phrase",
+   "src": 172
+  },
+  {
+   "code": "F21",
+   "origin": "expansion",
+   "en": "Really? What do you do?",
+   "pt": "Sério? O que você faz?",
+   "focus": "reação + profissão",
+   "src": 173
+  },
+  {
+   "code": "F22",
+   "origin": "expansion",
+   "en": "I met a colleague at university.",
+   "pt": "Conheci um colega na universidade.",
+   "focus": "met; at university",
+   "src": 174
+  },
+  {
+   "code": "F23",
+   "origin": "expansion",
+   "en": "I work for a company in Manchester.",
+   "pt": "Trabalho para uma empresa em Manchester.",
+   "focus": "work for + company + place",
+   "src": 175
+  },
+  {
+   "code": "F24",
+   "origin": "expansion",
+   "en": "We usually work with other departments.",
+   "pt": "Normalmente trabalhamos com outros departamentos.",
+   "focus": "usually; work with",
+   "src": 176
+  },
+  {
+   "code": "F25",
+   "origin": "expansion",
+   "en": "I'm helping another department this week.",
+   "pt": "Estou ajudando outro departamento esta semana.",
+   "focus": "Present Continuous temporário",
+   "src": 177
+  }
+ ],
+ "notes": [
+  {
+   "title": "Contrastes e pontos de ensino indispensáveis",
+   "src": 119,
+   "text": "### Contrastes e pontos de ensino indispensáveis\n\n**work for × work with**\n- `work for a company` = trabalhar para uma empresa (relação com empregador/organização).\n- `work with different teams` = trabalhar com equipes diferentes (colaboração).\n\n**What do you do? × What are you doing?**\n- `What do you do?` pergunta sobre profissão/função ou atividade habitual.\n- `What are you doing?` pergunta sobre atividade em andamento ou período atual.\n- No diálogo, `What are you doing these days?` pergunta sobre a situação atual de John; `What do you do there?` pergunta sobre sua função na empresa.\n\n**Present Simple × Present Continuous**\n- `I usually work with different teams.` — rotina/hábito.\n- `This week I'm helping the sales department.` — situação temporária nesta semana.\n- `usually` e `this week` ajudam a construir o contraste.\n\n**meet → met**\n- `meet` é a forma-base; `met` é o passado simples irregular.\n- `We met at university` relata que eles se conheceram/encontraram no passado.\n\n**Question tag**\n- `We met at university, didn't we?` pede confirmação. Traduzir a função comunicativa, não palavra por palavra.\n\n**sound + adjective**\n- `That sounds interesting.` expressa uma impressão/reação. Ensinar o padrão, não `sound` isoladamente."
+  },
+  {
+   "title": "Gramática contextualizada",
+   "src": 335,
+   "text": "## 6. Gramática contextualizada\n\n### Present Simple — rotina, profissão e hábitos\n- Exemplo: `I usually work with different teams.` — Normalmente trabalho com equipes diferentes.\n- Usar para rotinas, hábitos, profissões e fatos relativamente estáveis.\n- Formas de referência: `I/you/we/they work`; `he/she works`.\n\n### Present Continuous — ação em andamento ou situação temporária\n- Exemplo: `This week I'm helping the sales department.` — Esta semana estou ajudando o departamento de vendas.\n- Usar para ações em andamento e situações temporárias.\n- Formas de referência: `I am working`; `he/she is working`; `we/they are working`.\n\n### Contraste\n`usually` aponta para o padrão habitual; `this week` delimita a situação temporária. O contraste entre as duas orações da fala 6 é o principal foco gramatical do diálogo.\n\n### Past Simple — meet / met\n`meet` é a forma-base; `met` é o passado simples irregular. `We met at university` relata o encontro/conhecimento no passado.\n\n### Question tag — didn't we?\n`We met at university, didn't we?` apresenta uma informação e solicita confirmação. Traduzir a função comunicativa, não palavra por palavra.\n\n### Perguntas sobre profissão e atividade\n`What do you do?` pergunta sobre profissão/função. `What are you doing?` pergunta sobre atividade atual. O contexto e a expressão temporal ajudam a identificar a intenção.\n\n### sound + adjective\n`That sounds interesting.` expressa impressão ou reação. Ensinar o padrão completo."
+  },
+  {
+   "title": "Inglês britânico e tradução",
+   "src": 362,
+   "text": "## 7. Inglês britânico e tradução\n\n- Manter `en-GB` como referência.\n- `at university` é natural no inglês britânico no contexto institucional/estudantil; não inserir artigo automaticamente.\n- `What do you do?`, `work for`, `sales department`, `project analyst`, `these days` e `That sounds interesting` são naturais e não precisam de alteração artificial.\n- Preservar grafia britânica em expansões futuras quando houver variante ortográfica.\n- Traduzir intenção e significado natural para português brasileiro, não palavra por palavra.\n- As traduções autorais e as questões geradas não devem ser rotuladas como validadas pelo professor sem evidência."
+  }
+ ],
+ "spokenNote": "Forma falada (áudio e reconhecimento) separada da notação didática: “…”, “/”, “→” e “+” nunca são verbalizados. Padrões que ficariam truncados ao remover “…” (“I'm a”, “That sounds”) ou que não têm leitura natural (“sound + adjective”) são falados pela realização que está na fala indicada como referência no próprio documento (coluna Referência). Decisão técnica de 2026-11-13 para curadoria do PO; o texto exibido continua o do documento."
+}

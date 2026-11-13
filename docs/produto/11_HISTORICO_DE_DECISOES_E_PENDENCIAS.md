@@ -22,6 +22,9 @@
 | DEC-017 | Fase 5 (leitura em voz alta) independente da fase 4: abre ao concluir a fase 3 (ou com as traduções só aguardando avaliação online) | Aprovada em 11/11/2026 |
 | DEC-018 | Inconsistências de The Story of John corrigidas no conteúdo derivado, com a fonte preservada e o original registrado em cada fala (`dev/content/dialogues/john-corrections.json`) | Aprovada em 11/11/2026 |
 | DEC-019 | Publicação da branch de trabalho do MVP de diálogo no GitHub Pages (integração com `gh-pages` pelo fluxo oficial) | Aprovada em 11/11/2026 |
+| DEC-020 | Reconhecimento de voz: modos exclusivos (online do navegador OU Moonshine), sem troca automática; no online o reconhecedor é o único dono do microfone | Aprovada (12/11) e publicada |
+| DEC-021 | john-p1-e01 em sete etapas (32 unidades, 25 frases, diálogo) pelo documento-fonte aprovado; só ela ativa, as outras 45 atividades preservadas fora da navegação; áudios novos gerados com o Kokoro local | Aprovada (13/11); implementada, não publicada |
+| DEC-022 | Escolhas técnicas da implantação da e01 (forma falada de notações, regras de confiabilidade para alvos curtos, tradução sem avaliador = comparação com a referência sem aprovação) | Implementadas; aguardam validação do PO |
 
 ## Histórico técnico — auditoria somente leitura de 08/11
 `gh-pages` b194cee; `mvp-jornadas` no mesmo SHA; `main` 13de9d2; `remodelagem` 8d5ac0c; `cp-publicacao` b582c29. Workflow Pages 22 sucesso em b194cee. Rebuild de `dev/` idêntico byte a byte ao publicado. Site servido não confirmado diretamente.
@@ -99,3 +102,14 @@ regras e correções de conteúdo: `docs/dialogos.md`.
 - DEC-019: integração e publicação autorizadas para esta entrega.
 
 **Fora destas decisões:** escolha de provedor de IA, contratação de serviços e infraestrutura paga (continuam com o PO).
+
+**Decisões de 12–13/11/2026 (aprovador: Product Owner, salvo indicação):**
+- DEC-020: seletor em Ajustes → Áudio (online do navegador OU Moonshine), sem troca automática; correção da captura
+  (o reconhecimento online é o único dono do microfone; o Chrome Android não aceita `start(track)`). Publicada (`gh-pages`).
+- DEC-021: remodelagem de john-p1-e01 em sete etapas conforme `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md`;
+  só ela na experiência ativa (`dev/content/dialogues/rollout.json`); geração dos áudios faltantes com o Kokoro local.
+- DEC-022 (técnica, pendente de validação do PO): forma falada separada da notação (U18/U30/U31 usam a fala de
+  referência do documento); em alvos de até 3 palavras as átonas são avaliadas e o alvo dentro de fala maior fica
+  inconclusivo; Moonshine divergente em alvo de 1–2 palavras e texto online parcial ficam inconclusivos; tradução sem
+  serviço online = comparação com a referência + autoavaliação, sem aprovação. Detalhes: `docs/dialogos.md`.
+

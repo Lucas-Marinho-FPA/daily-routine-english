@@ -245,7 +245,8 @@ export async function listen({ lang = 'en-GB', maxMs = 180000, silenceMs = 1800,
       const text = finals.map((x) => x.text).join(' ').replace(/\s+/g, ' ').trim();
       const conf = finals.map((x) => x.confidence).filter((c) => c > 0);
       const out = { engine: 'online', lang, text, confidence: conf.length ? conf.reduce((a, b) => a + b, 0) / conf.length : 0,
-        alternatives: finals.length === 1 ? finals[0].alts : [], events: entry.events.map((x) => x.e), error: entry.error || null, ms: at(), entry };
+        alternatives: finals.length === 1 ? finals[0].alts : [], events: entry.events.map((x) => x.e), error: entry.error || null, ms: at(), entry,
+        partial: finals.some((x) => x.interim) }; // parte do texto é resultado parcial (o final não chegou): o fim pode estar incompleto
       entry.words = text ? text.split(/\s+/).length : 0;
       entry.ms = out.ms;
       // análise mínima para as telas (há fala? quanto?): sem áudio, vem dos eventos do reconhecimento
@@ -326,7 +327,7 @@ async function transcribeOnline(blob, opts) {
   if (r.text) {
     entry.delivered = true; entry.events.push({ e: 'transcrição entregue', t: entry.ms }); saveLog();
     return { text: r.text, confidence: r.confidence || 0, engine: 'online', lang: r.lang, ms: r.ms, secs: null, status: 'ok',
-      alternatives: r.alternatives, events: r.events, error: r.error || null };
+      alternatives: r.alternatives, events: r.events, error: r.error || null, partial: !!r.partial };
   }
   const v = verdict(entry);
   const why = r.error ? (ERROR_PT[r.error] || r.error) : v.code === '3' ? 'o reconhecimento não devolveu resultado' : 'nenhum texto reconhecido';

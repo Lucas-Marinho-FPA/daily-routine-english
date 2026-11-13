@@ -11,6 +11,7 @@
 // CONTROLADO: em V03, só o texto devolvido pelo reconhecedor (para reproduzir um corte, que o Moonshine não faz de modo
 // determinístico); o áudio e a análise de voz são reais.
 // Não valida voz humana nem o Galaxy S25+.
+// etapa 2 do formato em camadas (john-p1-e01, 2026-11-13): unidades U22 “different teams” e U10 “these days” (mesmos áudios dos antigos itens v05/v01); etapa 1 semeada
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
@@ -113,10 +114,10 @@ const ui = async (file, itemId) => {
   await p.evaluate(() => window.DRG_APP.asr.local.install());
   await p.evaluate(async (id) => { // 3 audições do item (só libera o botão de gravar)
     const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-    const st = { v: 1, acts: { 'john-p1-e01': { attempts: {}, listens: { [`vocab:${id}`]: 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { [`u-speak:${id}`]: 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
     await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
   }, itemId);
-  await p.goto(BASE + '#/dphase/john-p1-e01?p=vocab'); await p.reload(); await p.waitForTimeout(800);
+  await p.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await p.reload(); await p.waitForTimeout(800);
   await p.click(`[data-role=item-chips] [data-item="${itemId}"]`);
   await p.click('[data-role=record-item]');
   await p.waitForSelector('[data-role=stop]');
@@ -129,8 +130,8 @@ const ui = async (file, itemId) => {
   return fb;
 };
 await check('V04', 'Interface real da fase 1 (microfone falso, Moonshine real): “different teams” e “these days” com pausas entre as palavras — antes vazias/inconclusivas', async () => {
-  const a = await ui('different-teams__pauses', 'john-p1-e01-v05');
-  const b = await ui('these-days__pauses', 'john-p1-e01-v01');
+  const a = await ui('different-teams__pauses', 'john-p1-e01-u22');
+  const b = await ui('these-days__pauses', 'john-p1-e01-u10');
   assert(a.status === 'passed' && b.status === 'passed', JSON.stringify({ a, b }));
   return { 'different teams': `${a.status} ${a.heard}`, 'these days': `${b.status} ${b.heard}` };
 });

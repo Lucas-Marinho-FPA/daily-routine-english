@@ -73,3 +73,12 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
 - [x] Descrições aprovadas dos quatro personagens nos cartões de escolha: publicado (build `bcfa17dbf2ec`).
 - [x] Publicação consolidada (voz + temas + Karla + descrições) — publicado (`gh-pages` `1ba9b34`, workflow nº 29, build `bcfa17dbf2ec`); verificação no `HANDOFF.md`.
 - [ ] Validação no Galaxy S25+ das entregas de 11/11.
+
+## Entregas de 12–13/11/2026 (registro cumulativo)
+- [x] Reconhecimento de voz: seletor exclusivo (online OU Moonshine) e captura exclusiva do reconhecedor no modo online (DEC-020) — publicado (`gh-pages` `cf81d32`, `1635b92`).
+- [x] Vocabulário remodelado e marcação por trecho na expressão — publicado (`gh-pages` `46b7d97`, build `583fa58264f1`), para avaliação.
+- [x] Análise da reorganização em quatro etapas (`docs/produto/mvp-dialogo/09_…`) e extração completa do conteúdo de diálogos (`docs/conteudo-dialogos/`).
+- [x] john-p1-e01 em sete etapas (DEC-021): 32 unidades, 25 frases, diálogo; só ela ativa; 44 áudios gerados e validados; fechamento de qualidade (confiabilidade do reconhecimento, tradução honesta) — **commitado na branch de trabalho em 13/11, não publicado**. Testes: unitários 274/1 ignorado, `dialogue-layers` 15/15, `audio-layers` 61/61, regressões de voz aprovadas.
+- [ ] Validar no Galaxy S25+: e01 em sete etapas, reconhecimento nos dois modos (unidades curtas no Moonshine), escuta humana dos áudios curtos; correções de voz publicadas em 12/11.
+- [ ] Decisões do PO: DEC-022 (formas faladas e regras técnicas), D1–D8 da análise (D3 = avaliação da tradução), autorização de publicação da e01.
+- [ ] Remodelar as próximas atividades de John, uma por vez, no formato em sete etapas (após validação da e01).
