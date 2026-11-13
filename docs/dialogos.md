@@ -25,6 +25,19 @@ Especificação: `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1
 - **Expressões curtas (≤ 3 palavras, só nas etapas em camadas):** átonas avaliadas (`judgeWeak`) e alvo dentro de fala maior = inconclusivo (`maxExtra: 1`). Demais telas sem mudança.
 - **Confiabilidade (sem evidência, não decide):** confiança online < 0,5 → inconclusivo; texto online que veio de resultado parcial ou corte no reconhecedor do aparelho → palavras finais não avaliadas e nunca aprovação da frase inteira; Moonshine (sem confiança) em alvo de 1–2 palavras → divergência = inconclusivo (“não consegui avaliar”), acerto aprova; transcrição vazia/falha → inconclusivo, sem penalidade.
 - **Tradução sem serviço online:** comparação com a referência depois de enviar + autoavaliação registrada (`selfCheck`); nada é aprovado; referência vista (`revealedAt`) impede aprovação por cópia.
+- **Progressão tolerante (validação real no Galaxy S25+, 2026-11-13; DEC-023):** nas etapas 1–6 e na leitura 7.2, depois
+  de `MAX_TRIES` = 3 tentativas sem sucesso o aluno pode **continuar sem concluir** (`skipItem` → `p.skipped[fase][id]`): o
+  item fica **pendente para revisão**, nunca conta como acerto e não volta sozinho (`nextItem(…, { after, skipSkipped })`).
+  A etapa é aprovada por `phaseScore`: todos os itens resolvidos (aprovados ou pendentes), **≥ 80% dos itens avaliados**
+  (evidência mínima) e **acertos ≥ 80% dos avaliados** — avaliados = aprovados + erros de resposta; item só com falha do
+  reconhecedor (`itemOutcome = technical`) fica fora da conta. Etapa aprovada fica registrada (`p.phaseApproved`) e não
+  reabre. Atividades clássicas, 7.1 e 7.3: regra anterior.
+- **Escrita marcada (`js/engine/textdiff.js`):** “Você escreveu” (só o trecho errado em vermelho; palavra a mais riscada)
+  → “Correto” (só o que corrige em verde; palavra que faltou sublinhada), contra a referência aceita mais próxima;
+  maiúsculas e pontuação não marcadas. Só apresentação: aprovação e nota continuam com `scoreWriting`.
+- **Expressão real em primeiro plano (PO, 2026-11-13):** U05 “I met someone.”, U18 “I'm a project analyst.”, U30 “That
+  sounds interesting.”, U31 “sounds interesting” — padrão/notação do documento como complemento (`note`); o texto
+  literal do documento fica em `original`. Elementos separados por “/” ou “→” são gravados com pausa de 1 s (U26).
 - **Atividades fora da navegação:** lista, Início e acesso direto mostram só `pack.active`; dados, áudio, questões e progresso das demais continuam intactos. Progresso anterior da e01 (fases antigas) fica guardado, sem crédito automático nas etapas novas; as fases 7.x (mesmos ids das fases de compreensão, leitura e tradução) reaproveitam a evidência já existente.
 
 ## Onde está cada coisa

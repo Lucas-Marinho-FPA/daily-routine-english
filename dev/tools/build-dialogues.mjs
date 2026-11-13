@@ -56,10 +56,14 @@ for (const f of LAYER_FILES) {
   const mk = (x, layer) => {
     const n = x.code.slice(1);
     const spoken = x.say || layerSpoken(x.en); // realização falada indicada na fonte (padrão que ficaria truncado/literal)
+    // elementos separados (“help someone / help a team”) são gravados com pausa perceptível entre as partes: o texto do
+    // manifesto marca a pausa com “ | ” (tools/gen_audio.py); frases e expressões normais não recebem pausa
+    const parts = /\s(\/|→)\s/.test(x.en) ? x.en.split(/\s*(?:\/|→)\s*/).map(layerSpoken).filter(Boolean) : null;
     return { id: `${act.id}-${layer === 'unit' ? 'u' : 'f'}${n}`, activityId: act.id, layer, type: layer, code: x.code, en: x.en, pt: x.pt,
       category: x.kind || null, origin: x.origin || 'dialogue', focus: x.focus || null, ref: x.ref || null, spoken,
-      accepted: spoken !== x.en ? [spoken] : [], say: x.say || null, sayBasis: x.sayBasis || null, src: { file: L.source.file, line: x.src }, status: L.status,
-      audio: add(spoken, layer === 'unit' ? 'dialogue-unit' : 'dialogue-sentence', DEFAULT_ITEM_VOICE) };
+      accepted: spoken !== x.en ? [spoken] : [], say: x.say || null, sayBasis: x.sayBasis || null, note: x.note || null, original: x.original || null,
+      src: { file: L.source.file, line: x.src }, status: L.status,
+      audio: add(parts && parts.length > 1 ? parts.join(' | ') : spoken, layer === 'unit' ? 'dialogue-unit' : 'dialogue-sentence', DEFAULT_ITEM_VOICE) };
   };
   const units = L.units.map((u) => mk(u, 'unit'));
   const sents = L.sentences.map((x) => mk(x, 'sentence'));

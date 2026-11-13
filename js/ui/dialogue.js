@@ -20,7 +20,9 @@ import {
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
   mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
   activityReport, phaseById, pendingAttempts, isLayered, phasesOf, isActive, activeActivities,
+  MAX_TRIES, isTolerant, failedTries, canSkip, skipItem, isSkipped,
 } from '../engine/dialogue.js';
+import { diffText, closestReference } from '../engine/textdiff.js';
 import { scoreWriting, evaluateSpeech, localTranslation, foldPt, tailMiss, tailCutByDuration, tailCutInconclusive, trimForLine } from '../engine/dialogueeval.js';
 import { loadLexicon } from '../engine/lexicon.js';
 import { evaluationConfig, remoteBlocker, createRemoteEvaluator, processQueue } from '../engine/evalsync.js';
@@ -328,7 +330,8 @@ function resultCard(pack, act, p) {
 /** Aba “Unidades e frases” (formato em camadas): conteúdo, origem e situação por etapa. */
 function layerList(pack, act, p) {
   const row = (it, phases) => h('li', { class: 'row nowrap', 'data-item': it.id },
-    h('div', { class: 'grow' }, h('div', { class: 'en', lang: 'en', text: it.en }), h('div', { class: 'small muted', text: it.pt }),
+    h('div', { class: 'grow' }, h('div', { class: 'en', lang: 'en', text: it.say || it.en }), h('div', { class: 'small muted', text: it.pt }),
+      it.note || it.say ? h('div', { class: 'tiny muted', text: it.note || `Padrão: ${it.en}` }) : null,
       h('div', { class: 'tiny muted', text: it.layer === 'unit' ? it.category : it.origin === 'expansion' ? 'expansão (não é fala dos personagens)' : 'frase do diálogo' })),
     h('span', { class: 'small', text: phases.map((ph) => (mastery(p, ph, it.id).status === 'passed' ? '✓' : '·')).join(' ') }),
     h('button', { class: 'icon-btn', type: 'button', 'aria-label': `Ouvir “${it.en}”`, disabled: !hasAudio(it.audio), onclick: () => player.play({ key: it.audio, text: it.spoken }) }, icon('speaker')));
@@ -341,6 +344,7 @@ function layerList(pack, act, p) {
 /** Fechamento (formato em camadas): síntese por etapa, sem pontos nem recompensas. */
 function layerResultCard(rep, act) {
   const line = (label, list) => (list && list.length ? h('div', { class: 'small' }, h('b', { text: `${label}: ` }), `${list.filter((x) => x.status === 'passed').length}/${list.length} aprovados`,
+    list.some((x) => x.status !== 'passed') ? h('span', { class: 'muted', text: ` · ${list.filter((x) => x.status !== 'passed').length} pendentes para revisão` }) : null,
     list.some((x) => x.repeated) ? h('span', { class: 'muted', text: ` · ${list.filter((x) => x.repeated).length} precisaram de repetição` }) : null) : null);
   return h('section', { class: 'card', 'data-role': 'activity-result', style: { marginTop: '12px' } },
     h('h3', { style: { marginTop: 0 }, text: 'Atividade concluída' }),
@@ -385,16 +389,63 @@ function phaseFooter(pack, act, p, phaseId) {
   const done = s.state === 'completed';
   return h('div', { class: 'stack', style: { marginTop: '16px' }, 'data-role': 'phase-footer', 'data-state': s.state },
     done ? h('div', { class: 'notice ok', 'data-role': 'phase-done' }, icon('check'), ` ${phaseById(phaseId, act).title}: ${isLayered(act) ? 'etapa concluída' : 'fase concluída'}.`) : null,
+    s.score ? phaseScoreNote(s) : null,
     s.state === 'pending_online' ? h('div', { class: 'notice warn small', 'data-role': 'phase-pending', text: 'Fase aguardando avaliação online das respostas pendentes. Ela será concluída quando todas forem avaliadas.' }) : null,
     h('a', { class: `btn block${done ? ' primary' : ''}`, href: `#/dialogue/${act.id}`, 'data-role': 'back-to-dialogue' }, icon('back'), 'Voltar ao diálogo'));
 }
+
+/**
+ * Aproveitamento da etapa tolerante (formato em camadas): só aparece quando há item pendente ou a etapa terminou sem
+ * atingir o mínimo. Separa resposta abaixo do corte de falha do reconhecimento (esta não entra na conta).
+ */
+function phaseScoreNote(s) {
+  const sc = s.score;
+  const pend = sc.error + sc.technical + (sc.total - sc.passed - sc.error - sc.technical);
+  // só quando acrescenta: há item deixado pendente, ou a etapa terminou (aprovada com pendentes, ou abaixo do mínimo)
+  if (!pend || (s.state !== 'completed' && !sc.skipped && sc.unresolved > 0)) return null;
+  const parts = [sc.error ? `${sc.error} com resposta abaixo do corte` : null, sc.technical ? `${sc.technical} com falha do reconhecimento (fora da conta)` : null].filter(Boolean);
+  const head = sc.evaluated ? `Aproveitamento: ${sc.passed} de ${sc.evaluated} ${sc.evaluated === 1 ? 'item avaliado' : 'itens avaliados'} (${sc.ratio}%) · mínimo ${THRESHOLD}%.` : 'Nenhum item avaliado ainda.';
+  let tail = '';
+  if (s.state === 'completed') tail = pend === 1 ? '1 item fica pendente para revisão; você pode refazê-lo quando quiser.' : `${pend} itens ficam pendentes para revisão; você pode refazê-los quando quiser.`;
+  else if (sc.unresolved === 0 && 100 * sc.evaluated < THRESHOLD * sc.total) tail = `Poucos itens puderam ser avaliados (${sc.evaluated} de ${sc.total}). Refaça os pendentes; se o reconhecimento falhar muito, troque o modo em Ajustes → Áudio.`;
+  else if (sc.unresolved === 0) tail = `Abaixo do mínimo: refaça os itens pendentes (borda tracejada).`;
+  else if (sc.skipped) tail = `${sc.skipped} ${sc.skipped === 1 ? 'item deixado' : 'itens deixados'} para depois.`;
+  return h('div', { class: `notice small ${s.state === 'completed' ? 'ok' : 'warn'}`, 'data-role': 'phase-score', 'data-ratio': String(sc.ratio ?? ''), 'data-approved': String(s.state === 'completed') },
+    h('div', { text: head }), parts.length ? h('div', { class: 'muted', text: `Pendentes: ${parts.join(' · ')}.` }) : null, tail ? h('div', { text: tail }) : null);
+}
+
+/**
+ * Tentativas do item na etapa tolerante: “Tentativa n de 3”; depois de 3 sem sucesso, “Continuar sem concluir” (o item
+ * fica pendente para revisão e não conta como acerto; tentar de novo continua possível).
+ */
+function triesBox(act, p, phase, id, onSkip) {
+  if (!isTolerant(act, phase)) return null;
+  const m = mastery(p, phase, id);
+  if (m.status === 'passed' || m.status === 'unseen' || m.status === 'pending_evaluation') return null;
+  const n = failedTries(p, phase, id);
+  if (isSkipped(p, phase, id)) return h('p', { class: 'vx-line muted', 'data-role': 'item-skipped', text: 'Item pendente para revisão (não conta como acerto). Você pode tentar de novo quando quiser.' });
+  if (!canSkip(p, phase, id)) return h('p', { class: 'vx-line muted', 'data-role': 'tries', text: `Tentativa ${n} de ${MAX_TRIES}.` });
+  return h('div', { class: 'vx-skip', 'data-role': 'skip-box' },
+    h('p', { class: 'vx-line muted', 'data-role': 'tries', text: `${n} tentativas sem sucesso. Tente de novo ou siga: o item fica pendente para revisão e não conta como acerto.` }),
+    h('button', { class: 'btn block', type: 'button', 'data-role': 'skip-item', onclick: onSkip }, 'Continuar sem concluir', icon('next')));
+}
+/** Registra o item como pendente e devolve o próximo item ainda não resolvido (nunca o mesmo; null = etapa resolvida). */
+async function skipAndNext(pack, act, p, phase, order, id) {
+  if (!skipItem(p, phase, id)) return id;
+  settleCompletion(pack, act, p);
+  await save();
+  return nextItem(order, p, phase, { after: id, skipSkipped: true });
+}
+/** Próximo item a partir do atual: nas etapas tolerantes, sem voltar aos itens deixados pendentes. */
+const nextAfter = (act, order, p, phase, id) => nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
 
 /** Lista compacta de itens da fase (chips): estado individual de cada item. */
 function itemChips(ids, p, phase, label, current, onPick) {
   return h('div', { class: 'chips', 'data-role': 'item-chips', style: { margin: '8px 0' } }, ids.map((id, i) => {
     const m = mastery(p, phase, id);
-    return h('button', { class: `chip ${ITEM_CHIP[m.status]}`, type: 'button', 'aria-pressed': String(id === current), 'data-item': id, 'data-status': m.status,
-      'aria-label': `${label(id, i)}: ${ITEM_LABEL[m.status]}`, onclick: () => onPick(id) }, label(id, i));
+    const skipped = isSkipped(p, phase, id); // deixado pendente pelo aluno: borda tracejada, sem contar como acerto
+    return h('button', { class: `chip ${ITEM_CHIP[m.status]}${skipped ? ' skipped' : ''}`, type: 'button', 'aria-pressed': String(id === current), 'data-item': id, 'data-status': m.status,
+      'data-skipped': String(skipped), 'aria-label': `${label(id, i)}: ${skipped ? 'Pendente para revisão' : ITEM_LABEL[m.status]}`, onclick: () => onPick(id) }, label(id, i));
   }));
 }
 
@@ -550,7 +601,7 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
  */
 function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, instruction, empty, maxMs = () => 8000, trim = () => true, maxExtra = null }) {
   const ids = items.map((x) => x.id);
-  let current = nextItem(ids, p, phase) || ids[0];
+  let current = nextItem(ids, p, phase, { skipSkipped: isTolerant(act, phase) }) || nextItem(ids, p, phase) || ids[0];
   let last = null;
   const draw = async () => {
     const it = items.find((x) => x.id === current);
@@ -572,18 +623,19 @@ function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, i
       h('div', { class: 'vx-chips' }, itemChips(ids, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card vx-card', 'data-role': 'vocab-card', 'data-item': it.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: eyebrow(it) }),
-        it.say ? h('div', { class: 'vx-en en', lang: 'en', 'data-role': 'item-pattern', text: it.en }) : vocabExpression(it.en, words),
-        it.say ? h('div', { class: 'vx-say', 'data-role': 'item-say' }, h('span', { class: 'small muted', text: 'Ouça e diga: ' }), vocabExpression(it.say, words),
-          it.sayBasis ? h('div', { class: 'tiny muted', text: `Exemplo da ${it.sayBasis.replace(/:.*$/, '')} do diálogo.` }) : null) : null,
+        // a expressão real em primeiro plano; padrão/notação didática só como complemento
+        it.say ? vocabExpression(it.say, words) : vocabExpression(it.en, words),
         h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }),
+        itemNote(it),
         h('div', { class: 'vx-listen-row' }, listenBtn, vocabListens(n)),
         hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: 'Áudio indisponível para este item: a produção oral fica bloqueada.' }),
         canSpeak ? null : h('div', { class: 'small muted', 'data-role': 'rec-locked', text: `A gravação é liberada depois de ${LISTENS_REQUIRED} reproduções completas do modelo.` }),
         recBtn, status),
       fb);
     if (shown) fb.append(vocabResult(shown.result, shown.heard));
-    const next = nextItem(ids, p, phase);
-    if (next && next !== it.id && (m.status === 'passed')) fb.append(h('button', { class: 'btn primary block vx-next', type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
+    fb.append(triesBox(act, p, phase, it.id, async () => { current = (await skipAndNext(pack, act, p, phase, ids, it.id)) || it.id; last = null; if (ctx.alive) draw(); }) || '');
+    const next = nextAfter(act, ids, p, phase, it.id);
+    if (next && (m.status === 'passed' || isSkipped(p, phase, it.id))) fb.append(h('button', { class: 'btn primary block vx-next', type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
     area.append(phaseFooter(pack, act, p, phase));
     listenBtn.onclick = async () => {
       listenBtn.disabled = true;
@@ -675,19 +727,43 @@ function phaseDictation(App, { pack, act, p, area, ctx }) {
 // ---------- Formato em camadas: escrever (etapas 1 e 4) e ouvir e escrever (etapas 3 e 6) ----------
 const layerItems = (pack, ids) => ids.map((id) => pack.items.find((x) => x.id === id)).filter(Boolean);
 const LAYER_EYEBROW = (it) => (it.layer === 'unit' ? it.category || 'Unidade' : it.origin === 'expansion' ? 'Frase de expansão (não é fala dos personagens)' : 'Frase do diálogo');
-/** Resultado da escrita (corretor de sempre): estado, a forma de referência e o significado; o que faltou/sobrou. */
-function writingFeedback(result, it, answer) {
-  const f = result.feedback || {};
-  return statusFeedback({ ...result, score: undefined, feedback: { ...f, summary: result.status === 'passed' ? (f.kind === 'variant' ? 'Variante aceita.' : 'Correto.') : f.summary && /vazia/.test(f.summary) ? f.summary : 'Ainda não: compare com a referência e escreva de novo.' } }, [
-    answer ? h('div', { class: 'small' }, h('span', { class: 'muted', text: 'Você escreveu: ' }), h('span', { class: 'en', lang: 'en', 'data-role': 'answer-echo', text: `“${answer}”` })) : null,
-    h('div', { class: 'model en', 'data-role': 'reference', lang: 'en' }, h('span', { class: 'small muted', text: 'Referência: ' }), it.en, it.say ? h('span', { class: 'small muted', text: ` (áudio: “${it.say}”)` }) : null),
-    h('div', { class: 'small', 'data-role': 'reference-pt' }, h('span', { class: 'muted', text: 'Significado: ' }), it.pt),
-    f.omissions && f.omissions.length ? h('div', { class: 'small', text: `Faltou: ${f.omissions.join(', ')}` }) : null,
-    f.insertions && f.insertions.length ? h('div', { class: 'small', text: `A mais: ${f.insertions.join(', ')}` }) : null,
-    f.spelling && f.spelling.length ? h('div', { class: 'small', text: `Ortografia: ${f.spelling.join(', ')}` }) : null,
-    f.reordered && f.reordered.length ? h('div', { class: 'small', text: `Fora de ordem: ${f.reordered.join(', ')}` }) : null,
-  ]);
+/** Complemento didático do item: padrão/notação do documento (a expressão real fica em primeiro plano). */
+function itemNote(it) {
+  const t = it.note || (it.say ? `Padrão: ${it.en}` : '');
+  return t ? h('div', { class: 'vx-note small muted', 'data-role': 'item-note', text: t }) : null;
 }
+
+/** Texto com a marcação da comparação (textdiff): só o trecho errado/correto ganha cor. */
+const WD_LABEL = { wrong: 'trecho errado', extra: 'palavra a mais', fix: 'forma correta', missing: 'palavra que faltou' };
+function diffLine(segs, role) {
+  return h('span', { class: 'wd en', lang: 'en', 'data-role': role }, segs.map((x) => (x.mark === 'space' ? ' '
+    : x.mark === 'same' ? h('span', { text: x.text }) : h('span', { class: `wd-${x.mark}`, 'data-mark': x.mark, title: WD_LABEL[x.mark], 'aria-label': `${x.text}: ${WD_LABEL[x.mark]}`, text: x.text }))));
+}
+
+/**
+ * Resultado da escrita (corretor de sempre), na ordem: o que o aluno escreveu (trecho errado em vermelho) → a forma
+ * correta (o que corrige em verde) → observação curta só quando acrescenta (ordem das palavras). O significado já está
+ * no cartão; nada de listas repetindo o que a marcação mostra.
+ */
+function writingFeedback(result, it, answer, refs = []) {
+  const f = result.feedback || {};
+  const passed = result.status === 'passed';
+  const ref = closestReference(answer || '', [refs[0] || it.en, ...refs.slice(1)]) || it.en;
+  const d = answer ? diffText(answer, ref) : null;
+  const marked = !!d && d.changed && !(passed && (f.kind === 'exact' || f.kind === 'variant'));
+  const cls = passed ? 'good' : result.status === 'needs_practice' ? 'bad' : 'mid';
+  const head = passed ? (marked ? 'Aprovado — confira o detalhe' : 'Correto') : result.status === 'needs_practice' ? 'Ainda não' : 'Inconclusivo';
+  return h('div', { class: `vx-result ${cls}`, 'data-role': 'feedback', 'data-status': result.status, role: 'status' },
+    h('div', { class: 'vx-head' }, icon(passed ? 'check' : result.status === 'needs_practice' ? 'x' : 'refresh'), head),
+    marked ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'wd-label muted', text: 'Você escreveu' }), diffLine(d.answer, 'answer-echo')) : null,
+    marked || !passed ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'wd-label muted', text: 'Correto' }),
+      d ? diffLine(d.reference, 'reference') : h('span', { class: 'en', lang: 'en', 'data-role': 'reference', text: ref })) : null,
+    !passed && f.reordered && f.reordered.length ? h('p', { class: 'vx-line muted', text: 'Atenção à ordem das palavras.' }) : null,
+    !passed && f.summary && /vazia/.test(f.summary) ? h('p', { class: 'vx-line', text: f.summary }) : null);
+}
+
+/** Alvo da escrita (a expressão exibida em primeiro plano) seguido das variantes aceitas, sem repetição. */
+const targets = (it) => [...new Set([it.say || it.en, it.en, it.spoken, ...(it.accepted || [])].filter(Boolean))];
 
 /**
  * Etapas de escrita. listen = false (1 e 4): inglês e português juntos, o aluno escreve em inglês. listen = true (3 e 6):
@@ -698,7 +774,7 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
   const items = layerItems(pack, ids);
   const order = listen ? phaseOrder(p, phase, items.map((x) => x.id)) : items.map((x) => x.id);
   if (listen) save();
-  let current = nextItem(order, p, phase) || order[0];
+  let current = nextItem(order, p, phase, { skipSkipped: isTolerant(act, phase) }) || nextItem(order, p, phase) || order[0];
   let last = null;
   const draw = () => {
     const it = items.find((x) => x.id === current);
@@ -716,10 +792,9 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
       h('div', { class: 'vx-chips' }, itemChips(order, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card vx-card', 'data-role': 'layer-card', 'data-item': it.id, 'data-status': m.status, 'data-revealed': String(!!revealed) },
         h('div', { class: 'eyebrow', text: LAYER_EYEBROW(it) }),
-        revealed ? h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en', text: it.en }) : null,
-        revealed && it.say ? h('div', { class: 'small', 'data-role': 'item-say' }, h('span', { class: 'muted', text: 'Áudio: ' }), h('span', { class: 'en', lang: 'en', text: `“${it.say}”` }),
-          it.sayBasis ? h('span', { class: 'tiny muted', text: ` · exemplo da ${it.sayBasis.replace(/:.*$/, '')} do diálogo` }) : null) : null,
+        revealed ? h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en', text: it.say || it.en }) : null,
         revealed ? h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }) : null,
+        revealed ? itemNote(it) : null,
         h('div', { class: 'row', style: { marginTop: revealed ? '0' : '6px' } },
           h('button', { class: `btn${listen ? ' primary vx-listen' : ''}`, type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio), onclick: () => play() }, icon('speaker'), listen ? 'Ouvir' : 'Ouvir o modelo'),
           listen ? h('button', { class: 'btn ghost', type: 'button', disabled: !hasAudio(it.audio), onclick: () => play(0.75) }, icon('slow'), 'Mais devagar') : null),
@@ -727,18 +802,19 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
         h('div', { style: { marginTop: '14px' } }, input), send),
       fb);
     if (listen && !hasAudio(it.audio)) { input.disabled = true; send.disabled = true; }
-    if (last && last.id === it.id) fb.append(writingFeedback(last.result, it, last.answer));
+    if (last && last.id === it.id) fb.append(writingFeedback(last.result, it, last.answer, targets(it)));
     else if (m.status === 'passed') fb.append(h('div', { class: 'chip ok', 'data-role': 'item-status', text: 'Aprovado' }));
-    const next = nextItem(order.filter((id) => id !== it.id), p, phase);
+    fb.append(triesBox(act, p, phase, it.id, async () => { current = (await skipAndNext(pack, act, p, phase, order, it.id)) || it.id; last = null; if (ctx.alive) draw(); }) || '');
+    const next = nextAfter(act, order, p, phase, it.id);
     if (next && m.status !== 'unseen') fb.append(h('button', { class: `btn block${m.status === 'passed' ? ' primary' : ''} vx-next`, type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
     area.append(phaseFooter(pack, act, p, phase));
     send.onclick = async () => {
       const answer = input.value.trim();
       if (!answer) { toast('Escreva em inglês antes de enviar.'); return; }
       send.disabled = true;
-      // escuta: a resposta esperada é o que se ouve (forma falada); a notação do documento também é aceita
-      const target = listen && it.say ? it.say : it.en;
-      const result = scoreWriting(App.checker, answer, target, [it.en, it.spoken, ...(it.accepted || [])].filter((v) => v && v !== target));
+      // a resposta esperada é a expressão em primeiro plano (forma falada, quando há); a notação do documento também é aceita
+      const [target, ...variants] = targets(it);
+      const result = scoreWriting(App.checker, answer, target, variants);
       addAttempt(p, { attemptId: newAttemptId(), phase, itemId: it.id, inputType: 'text', response: answer, result });
       settleCompletion(pack, act, p);
       await save();
@@ -975,7 +1051,7 @@ function phaseListening(App, { pack, act, p, area, ctx }) {
 // ---------- Fase 5: leitura em voz alta ----------
 function phaseReading(App, { pack, act, p, area, ctx }) {
   const ids = act.lines.map((l) => l.id);
-  let current = nextItem(ids, p, 'reading') || ids[0];
+  let current = nextItem(ids, p, 'reading', { skipSkipped: isTolerant(act, 'reading') }) || nextItem(ids, p, 'reading') || ids[0];
   let last = null;
   const draw = () => {
     const l = act.lines.find((x) => x.id === current);
@@ -995,7 +1071,8 @@ function phaseReading(App, { pack, act, p, area, ctx }) {
       fb);
     if (last && last.id === l.id) fb.append(statusFeedback(last.result, speechDetails(last.result, last.heard)));
     else if (m.status !== 'unseen') fb.append(h('div', { class: `chip ${ITEM_CHIP[m.status]}`, 'data-role': 'item-status', text: `${ITEM_LABEL[m.status]}${m.bestValidScore !== null ? ` · melhor ${m.bestValidScore}%` : ''}` }));
-    const next = nextItem(ids.filter((id) => id !== l.id), p, 'reading');
+    fb.append(triesBox(act, p, 'reading', l.id, async () => { current = (await skipAndNext(pack, act, p, 'reading', ids, l.id)) || l.id; last = null; if (ctx.alive) draw(); }) || '');
+    const next = nextAfter(act, ids, p, 'reading', l.id);
     if (next && m.status !== 'unseen') fb.append(h('button', { class: `btn block${m.status === 'passed' ? ' primary' : ''}`, type: 'button', 'data-role': 'next-item', style: { marginTop: '10px' }, onclick: () => { current = next; last = null; draw(); } }, 'Próxima fala', icon('next')));
     area.append(phaseFooter(pack, act, p, 'reading'));
     recBtn.onclick = async () => {

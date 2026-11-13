@@ -43,6 +43,12 @@ export const LAYER_PHASES = [
   { id: 'translation', n: '7.3', step: 7, layer: 'dialogue', title: 'Tradução', short: 'Diálogo · tradução' },
 ];
 export const isLayered = (act) => !!act && act.format === 'layers-v1';
+// Progressão tolerante (validação real no Galaxy S25+, decisão do PO de 2026-11-13): nas etapas com itens do formato em
+// camadas (1–6 e a leitura 7.2), um item que não passa em MAX_TRIES tentativas pode ficar PENDENTE (o aluno segue sem
+// concluí-lo); a etapa é aprovada pelo aproveitamento ≥ 80% dos itens efetivamente avaliados (ver phaseScore).
+export const MAX_TRIES = 3;
+export const TOLERANT_PHASES = ['u-write', 'u-speak', 'u-listen', 's-write', 's-speak', 's-listen', 'reading'];
+export const isTolerant = (act, phaseId) => isLayered(act) && TOLERANT_PHASES.includes(phaseId);
 export const phasesOf = (act) => (isLayered(act) ? LAYER_PHASES : PHASES);
 export const phaseById = (id, act = null) => phasesOf(act).find((p) => p.id === id) || null;
 /** Atividades na experiência ativa (pack.active, de content/dialogues/rollout.json; null = todas). As demais ficam nos dados. */
@@ -120,6 +126,8 @@ export function validStore(s) {
 export function actProgress(store, act) {
   const p = store.acts[act.id] || (store.acts[act.id] = { contentVersion: act.contentVersion || null, startedAt: null, completedAt: null, attempts: {}, listens: {}, rounds: [], notes: '', order: {} });
   p.attempts = p.attempts || {}; p.listens = p.listens || {}; p.rounds = p.rounds || []; p.order = p.order || {};
+  p.skipped = p.skipped || {}; // { [fase]: { [itemId]: quando } } — itens deixados pendentes depois de MAX_TRIES tentativas
+  p.phaseApproved = p.phaseApproved || {}; // { [fase]: quando } — etapa aprovada pelo aproveitamento continua aprovada
   return p;
 }
 
@@ -218,6 +226,69 @@ export function mastery(p, phase, itemId) {
 }
 
 // ---------------------------------------------------------------------------------------------------------
+// Itens pendentes e aproveitamento da etapa (formato em camadas)
+// ---------------------------------------------------------------------------------------------------------
+
+/** Tentativas sem sucesso de um item (resposta abaixo do corte ou falha/dúvida do reconhecimento). */
+export const failedTries = (p, phase, itemId) => Object.values((p && p.attempts) || {})
+  .filter((a) => a.phase === phase && a.itemId === itemId && (a.status === 'needs_practice' || a.status === 'inconclusive')).length;
+/** Item deixado pendente pelo aluno (e ainda não aprovado: aprovação posterior prevalece). */
+export const isSkipped = (p, phase, itemId) => !!(p && p.skipped && p.skipped[phase] && p.skipped[phase][itemId]) && mastery(p, phase, itemId).status !== 'passed';
+/** “Continuar sem concluir” só aparece depois de MAX_TRIES tentativas sem sucesso de um item ainda não aprovado. */
+export const canSkip = (p, phase, itemId) => mastery(p, phase, itemId).status !== 'passed' && failedTries(p, phase, itemId) >= MAX_TRIES;
+/** Deixa o item pendente (para revisão). Não é acerto: continua fora dos aprovados. Idempotente. */
+export function skipItem(p, phase, itemId, now = Date.now()) {
+  if (!canSkip(p, phase, itemId)) return false;
+  p.skipped = p.skipped || {};
+  const s = p.skipped[phase] || (p.skipped[phase] = {});
+  if (!s[itemId]) s[itemId] = now;
+  return true;
+}
+
+/**
+ * Resultado de um item para o aproveitamento, separando as três situações:
+ *  passed    — aprovado;
+ *  error     — resposta avaliada abaixo do corte (erro real do aluno);
+ *  technical — só tentativas inconclusivas (falha ou dúvida do reconhecedor): não conta contra o aluno;
+ *  pending   — aguardando avaliação online;  unseen — sem tentativa.
+ */
+export function itemOutcome(p, phase, itemId) {
+  const m = mastery(p, phase, itemId);
+  if (m.status === 'passed') return 'passed';
+  if (m.status === 'pending_evaluation') return 'pending';
+  const list = Object.values((p && p.attempts) || {}).filter((a) => a.phase === phase && a.itemId === itemId);
+  if (list.some((a) => a.status === 'needs_practice')) return 'error';
+  if (list.some((a) => a.status === 'inconclusive')) return 'technical';
+  return 'unseen';
+}
+
+/**
+ * Aproveitamento de uma etapa tolerante. Itens resolvidos = aprovados + pendentes deixados pelo aluno.
+ * Avaliados = aprovados + itens com erro real; item só com falha do reconhecedor fica fora da conta (não penaliza o aluno)
+ * e continua pendente. Aprovação: todos resolvidos, ≥ 80% dos itens avaliados (evidência mínima — sem evidência, não
+ * decide) e acertos ≥ 80% dos avaliados (ex.: 10 itens, 9 aprovados e 1 pendente com erro → 9/10 = 90%, aprovada).
+ * Pendente nunca conta como acerto.
+ */
+export function phaseScore(pack, act, p, phaseId) {
+  const ids = requiredOf(pack, act, phaseId);
+  const out = { total: ids.length, passed: 0, error: 0, technical: 0, skipped: 0, unresolved: 0, evaluated: 0, ratio: null, coverage: 0, approved: false, pendingIds: [] };
+  for (const id of ids) {
+    const o = itemOutcome(p, phaseId, id);
+    if (o === 'passed') { out.passed++; continue; }
+    if (o === 'error') out.error++;
+    if (o === 'technical') out.technical++;
+    out.pendingIds.push(id);
+    if (isSkipped(p, phaseId, id)) out.skipped++; else out.unresolved++;
+  }
+  out.evaluated = out.passed + out.error;
+  out.ratio = out.evaluated ? Math.floor((100 * out.passed) / out.evaluated) : null;
+  out.coverage = out.total ? Math.floor((100 * out.evaluated) / out.total) : 0;
+  out.approved = out.total > 0 && out.unresolved === 0 && out.evaluated > 0
+    && 100 * out.evaluated >= THRESHOLD * out.total && 100 * out.passed >= THRESHOLD * out.evaluated;
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------------------
 // Compreensão (fase 4): rodadas de 10 questões; feedback só depois do envio da rodada
 // ---------------------------------------------------------------------------------------------------------
 
@@ -313,10 +384,12 @@ export function phaseStatuses(pack, act, p) {
       state = unlocked ? 'not_applicable' : 'locked';
       out.push({ ...ph, state, total: 0, passed: 0, pending: 0, failing: 0 });
     } else {
-      const complete = passed === ids.length;
+      const score = isTolerant(act, ph.id) ? phaseScore(pack, act, p, ph.id) : null; // camadas: pendentes + aproveitamento ≥ 80%
+      // etapa aprovada continua aprovada (rever depois um item pendente e errar de novo não reabre a etapa)
+      const complete = passed === ids.length || (!!score && (score.approved || !!(p && p.phaseApproved && p.phaseApproved[ph.id])));
       state = !unlocked ? 'locked' : complete ? 'completed' : pending && !failing && passed + pending === ids.length ? 'pending_online'
-        : failing && touched === ids.length ? 'needs_retry' : touched ? 'in_progress' : 'available';
-      out.push({ ...ph, state, total: ids.length, passed, pending, failing });
+        : (failing && touched === ids.length) || (score && score.unresolved === 0) ? 'needs_retry' : touched ? 'in_progress' : 'available';
+      out.push({ ...ph, state, total: ids.length, passed, pending, failing, ...(score ? { skipped: score.skipped, score } : {}) });
     }
   }
   return out;
@@ -335,11 +408,19 @@ export function activityStatus(pack, act, p) {
   return { state, phases, current, done, ratio: done / phases.length, total: phases.length };
 }
 
-/** Item pendente mais relevante da fase (retomada): o primeiro, na ordem da sessão, que ainda não foi aprovado. */
-export function nextItem(order, p, phase) {
-  for (const id of order) {
-    const m = mastery(p, phase, id);
-    if (m.status !== 'passed') return id;
+/**
+ * Item pendente mais relevante da fase (retomada): o primeiro, na ordem da sessão, que ainda não foi aprovado.
+ * after: começa depois desse item (circular) e nunca o devolve — “Próximo item” não volta ao item atual.
+ * skipSkipped: ignora os itens que o aluno deixou pendentes (não retornam automaticamente).
+ */
+export function nextItem(order, p, phase, { after = null, skipSkipped = false } = {}) {
+  const k = after === null ? -1 : order.indexOf(after);
+  const seq = k < 0 ? order : [...order.slice(k + 1), ...order.slice(0, k)];
+  for (const id of seq) {
+    if (id === after) continue;
+    if (mastery(p, phase, id).status === 'passed') continue;
+    if (skipSkipped && isSkipped(p, phase, id)) continue;
+    return id;
   }
   return null;
 }
@@ -357,6 +438,9 @@ export function phaseOrder(p, phase, ids, rand = Math.random) {
 
 /** Marca a conclusão (só quando todas as fases estão concluídas e nada depende de avaliação pendente). */
 export function settleCompletion(pack, act, p, now = Date.now()) {
+  if (isLayered(act)) for (const id of TOLERANT_PHASES) {
+    if (!(p.phaseApproved && p.phaseApproved[id]) && phaseScore(pack, act, p, id).approved) (p.phaseApproved || (p.phaseApproved = {}))[id] = now;
+  }
   const st = activityStatus(pack, act, p);
   if (st.state === 'completed' && !p.completedAt) p.completedAt = now;
   return st;
@@ -367,7 +451,7 @@ export function activityReport(pack, act, p) {
   const st = activityStatus(pack, act, p);
   const items = (phase) => requiredOf(pack, act, phase).map((id) => {
     const m = mastery(p, phase, id);
-    return { id, status: m.status, best: m.bestValidScore, attempts: m.attemptCount, repeated: m.attemptCount > 1 };
+    return { id, status: m.status, best: m.bestValidScore, attempts: m.attemptCount, repeated: m.attemptCount > 1, skipped: isSkipped(p, phase, id), outcome: itemOutcome(p, phase, id) };
   });
   return {
     state: st.state, phases: st.phases,

@@ -25,6 +25,7 @@
 | DEC-020 | Reconhecimento de voz: modos exclusivos (online do navegador OU Moonshine), sem troca automática; no online o reconhecedor é o único dono do microfone | Aprovada (12/11) e publicada |
 | DEC-021 | john-p1-e01 em sete etapas (32 unidades, 25 frases, diálogo) pelo documento-fonte aprovado; só ela ativa, as outras 45 atividades preservadas fora da navegação; áudios novos gerados com o Kokoro local | Aprovada (13/11); implementada, não publicada |
 | DEC-022 | Escolhas técnicas da implantação da e01 (forma falada de notações, regras de confiabilidade para alvos curtos, tradução sem avaliador = comparação com a referência sem aprovação) | Implementadas; aguardam validação do PO |
+| DEC-023 | Correções da validação real da e01 no Galaxy S25+: 3 tentativas → continuar sem concluir (item pendente, nunca acerto); etapa aprovada com ≥ 80% dos itens avaliados; expressão real em primeiro plano (U05, U18, U30, U31); marcação visual da escrita; pausa entre elementos separados | Pedido do PO (13/11); implementado, testado, commit e publicação autorizados pelo PO; detalhes técnicos (cobertura mínima de 80%, U05 = “I met someone.”, U18/U30) confirmados no pedido de finalização do PO de 13/11 |
 
 ## Histórico técnico — auditoria somente leitura de 08/11
 `gh-pages` b194cee; `mvp-jornadas` no mesmo SHA; `main` 13de9d2; `remodelagem` 8d5ac0c; `cp-publicacao` b582c29. Workflow Pages 22 sucesso em b194cee. Rebuild de `dev/` idêntico byte a byte ao publicado. Site servido não confirmado diretamente.
@@ -112,4 +113,19 @@ regras e correções de conteúdo: `docs/dialogos.md`.
   referência do documento); em alvos de até 3 palavras as átonas são avaliadas e o alvo dentro de fala maior fica
   inconclusivo; Moonshine divergente em alvo de 1–2 palavras e texto online parcial ficam inconclusivos; tradução sem
   serviço online = comparação com a referência + autoavaliação, sem aprovação. Detalhes: `docs/dialogos.md`.
+- Publicação da e01 em sete etapas autorizada pelo PO em 13/11 (`gh-pages` `46b7d97` → `69025de`, build `dcaac9a1ecf7`).
+- DEC-023 (pedido do PO depois do uso real no Galaxy S25+, 13/11). **Contexto:** 31/32 unidades feitas e uma não
+  reconhecida travavam a etapa 2 (o app exigia todos os itens e voltava sempre ao mesmo); U31 mostrava a estrutura
+  (“sound + adjective”) no lugar da expressão; erro de escrita só descrito em texto; “meet → met” ouvido como “meet Matt”.
+  **Decisão do PO:** até 3 tentativas, depois seguir sem concluir; item pendente para revisão, sem contar como acerto e
+  sem retorno automático; aprovação da etapa por aproveitamento ≥ 80% das atividades avaliadas; não penalizar falha do
+  reconhecedor; expressões reais em primeiro plano e padrões como complemento, com tradução natural; marcação
+  vermelho/verde do trecho errado; feedback enxuto; meet/met em exercícios separados e contextualizados; pausas só onde
+  há elementos separados. **Escolhas técnicas do executor (a validar):** falha só do reconhecedor fica fora da conta, mas
+  a etapa exige ≥ 80% dos itens avaliados; 3 tentativas abrem a opção de seguir sem impedir novas tentativas; etapa
+  aprovada não reabre; U05 = “I met someone.” (“met someone” isolado reconhecido em 2 de 4 vozes); U18/U30 seguem a
+  mesma regra de U31 com as traduções do próprio documento; U02/U09/U16/U27 sem mudança (D-007). **Alternativas
+  descartadas:** contar pendente como erro no denominador mesmo quando é falha técnica (penalizaria o aluno pelo
+  reconhecedor); aprovar sem cobertura mínima (aprovaria etapas quase sem evidência). **Impacto:** só a e01 (formato em
+  camadas); atividades clássicas inalteradas; texto do documento preservado em `original`.
 

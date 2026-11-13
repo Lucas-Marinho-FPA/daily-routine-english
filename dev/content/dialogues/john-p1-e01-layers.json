@@ -86,11 +86,17 @@
   },
   {
    "code": "U05",
-   "en": "meet → met",
-   "pt": "conhecer/encontrar → conheceu/encontrou",
+   "en": "I met someone.",
+   "pt": "Conheci/encontrei alguém.",
    "kind": "forma irregular no passado",
    "ref": "fala 2",
-   "src": 77
+   "src": 77,
+   "note": "meet → met: passado irregular de meet (U04).",
+   "original": {
+    "en": "meet → met",
+    "pt": "conhecer/encontrar → conheceu/encontrou"
+   },
+   "change": "Validação real (PO, 2026-11-13): o par “meet → met” num só exercício de fala foi reconhecido como “meet Matt”. Forma contextualizada e natural, separada de U04 “meet someone”. “met someone” sem sujeito foi descartado: reconhecimento local correto em 2 de 4 vozes, contra 4 de 4 com “I met someone.” (teste com áudio sintético)."
   },
   {
    "code": "U06",
@@ -190,13 +196,19 @@
   },
   {
    "code": "U18",
-   "en": "I'm a…",
-   "pt": "Eu sou… / Trabalho como…",
+   "en": "I'm a project analyst.",
+   "pt": "Sou analista de projetos.",
    "kind": "padrão de profissão",
    "ref": "fala 6",
    "src": 90,
-   "say": "I'm a project analyst.",
-   "sayBasis": "fala 6: “I'm a project analyst.”"
+   "note": "Padrão: I'm a… — Eu sou… / Trabalho como…",
+   "original": {
+    "en": "I'm a…",
+    "pt": "Eu sou… / Trabalho como…",
+    "say": "I'm a project analyst.",
+    "sayBasis": "fala 6: “I'm a project analyst.”"
+   },
+   "change": "Validação real no Galaxy S25+ (PO, 2026-11-13): expressão real em primeiro plano; padrão/notação como complemento; tradução natural da expressão. Texto do documento preservado em 'original'. Tradução: a do próprio documento para a fala (F07)."
   },
   {
    "code": "U19",
@@ -288,23 +300,35 @@
   },
   {
    "code": "U30",
-   "en": "That sounds…",
-   "pt": "Isso parece…",
+   "en": "That sounds interesting.",
+   "pt": "Isso parece interessante.",
    "kind": "padrão de reação/opinião",
    "ref": "fala 7",
    "src": 102,
-   "say": "That sounds interesting.",
-   "sayBasis": "fala 7: “That sounds interesting.”"
+   "note": "Padrão: That sounds… — Isso parece…",
+   "original": {
+    "en": "That sounds…",
+    "pt": "Isso parece…",
+    "say": "That sounds interesting.",
+    "sayBasis": "fala 7: “That sounds interesting.”"
+   },
+   "change": "Validação real no Galaxy S25+ (PO, 2026-11-13): expressão real em primeiro plano; padrão/notação como complemento; tradução natural da expressão. Texto do documento preservado em 'original'. Tradução: a do próprio documento para a fala (F10)."
   },
   {
    "code": "U31",
-   "en": "sound + adjective",
-   "pt": "parecer + adjetivo",
+   "en": "sounds interesting",
+   "pt": "Parece interessante.",
    "kind": "padrão lexical/gramatical",
    "ref": "fala 7",
    "src": 103,
-   "say": "sounds interesting",
-   "sayBasis": "fala 7: “That sounds interesting.” (sound + adjective)"
+   "note": "sound + adjective (parecer + adjetivo)",
+   "original": {
+    "en": "sound + adjective",
+    "pt": "parecer + adjetivo",
+    "say": "sounds interesting",
+    "sayBasis": "fala 7: “That sounds interesting.” (sound + adjective)"
+   },
+   "change": "Validação real no Galaxy S25+ (PO, 2026-11-13): expressão real em primeiro plano; padrão/notação como complemento; tradução natural da expressão. Texto do documento preservado em 'original'. Tradução indicada pelo PO."
   },
   {
    "code": "U32",
@@ -534,5 +558,6 @@
    "text": "## 7. Inglês britânico e tradução\n\n- Manter `en-GB` como referência.\n- `at university` é natural no inglês britânico no contexto institucional/estudantil; não inserir artigo automaticamente.\n- `What do you do?`, `work for`, `sales department`, `project analyst`, `these days` e `That sounds interesting` são naturais e não precisam de alteração artificial.\n- Preservar grafia britânica em expansões futuras quando houver variante ortográfica.\n- Traduzir intenção e significado natural para português brasileiro, não palavra por palavra.\n- As traduções autorais e as questões geradas não devem ser rotuladas como validadas pelo professor sem evidência."
   }
  ],
- "spokenNote": "Forma falada (áudio e reconhecimento) separada da notação didática: “…”, “/”, “→” e “+” nunca são verbalizados. Padrões que ficariam truncados ao remover “…” (“I'm a”, “That sounds”) ou que não têm leitura natural (“sound + adjective”) são falados pela realização que está na fala indicada como referência no próprio documento (coluna Referência). Decisão técnica de 2026-11-13 para curadoria do PO; o texto exibido continua o do documento."
+ "spokenNote": "Forma falada (áudio e reconhecimento) separada da notação didática: “…”, “/”, “→” e “+” nunca são verbalizados. Padrões que ficariam truncados ao remover “…” (“I'm a”, “That sounds”) ou que não têm leitura natural (“sound + adjective”) são falados pela realização que está na fala indicada como referência no próprio documento (coluna Referência). Decisão técnica de 2026-11-13 para curadoria do PO; o texto exibido continua o do documento.",
+ "presentationNote": "Desde 2026-11-13 (validação real): unidades mostram a expressão real em primeiro plano e o padrão/notação como complemento ('note'); o texto literal do documento fica em 'original' (U05, U18, U30, U31). Elementos separados por “/” (U26) são gravados com pausa perceptível entre as partes."
 }

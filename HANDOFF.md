@@ -20,16 +20,52 @@ produto: `docs/produto/` (checklist mestre `03_…`, arquitetura pedagógica `04
 | Item | Valor |
 |---|---|
 | Branch de trabalho | `claude/daily-routine-governance-y9rr0b` |
-| Commit desta etapa | o commit logo acima de `46b7d97` (“feat: john-p1-e01 in seven steps…”, 13/11/2026); confira com `git log --oneline -3` |
-| `origin/gh-pages` (publicado) | `46b7d97` — build `583fa58264f1`, https://lucas-marinho-fpa.github.io/daily-routine-english/ |
-| O que está publicado | até o vocabulário remodelado/marcação por trecho (12/11). **A e01 em sete etapas NÃO está publicada** |
-| Build da branch | `dcaac9a1ecf7` (`dist/app.js`, `sw.js`) |
-| Publicação da e01 | **pendente de autorização explícita do PO** (fast-forward de `gh-pages` para o commit da branch) |
+| Último commit da branch | `69025de` (“feat: john-p1-e01 in seven steps…”, 13/11/2026) |
+| `origin/gh-pages` (publicado) | `69025de` — build `dcaac9a1ecf7`, https://lucas-marinho-fpa.github.io/daily-routine-english/ (fast-forward de `46b7d97` autorizado pelo PO em 13/11; workflow “pages build and deployment” nº 36 com sucesso; `sw.js`, `dist/app.js`, `data/*.js` e `index.html` servidos idênticos ao commit) |
+| O que está publicado | a e01 em sete etapas, só ela ativa; as outras 45 atividades preservadas fora da navegação |
+| **Correções da validação real (seção 2A)** | commit logo acima de `69025de` (“fix: e01 real-device validation…”), build `1f0474b1cbd8`; commit, push e publicação **autorizados pelo PO em 13/11** (condicionados aos testes da seção 2A). Resultado da publicação: registrado no commit seguinte, só de documentação |
+| Registro histórico | antes de 13/11 (tarde), `gh-pages` estava em `46b7d97` (build `583fa58264f1`) e a e01 em sete etapas não estava publicada |
 
 Regras: commit/push só com autorização; nunca force push; nunca publicar sem autorização; não usar `main` como origem
 (pode conter `c0cb6c8`, material sem licença). Identidade dos commits: `Lucas-Marinho-FPA <294024809+Lucas-Marinho-FPA@users.noreply.github.com>`.
 
-## 2. O que foi feito nesta etapa (na branch de trabalho, não publicado)
+## 2A. Correções da validação real no Galaxy S25+ (13/11/2026)
+
+Pedido do PO após usar a e01 publicada no aparelho. Tudo nas fontes + build oficial (reproduzido do zero num workdir
+novo: `dist/app.js`, `sw.js`, `data/*.js`, `index.html` e manifesto idênticos). Commit/publicação autorizados pelo PO.
+
+| Problema (aparelho) | Causa | Correção |
+|---|---|---|
+| **Progressão bloqueada:** 31 de 32 unidades feitas, uma não reconhecida; “próximo” voltava sempre a ela | Etapa só concluía com **todos** os itens aprovados (`phaseStatuses`) e `nextItem` devolvia sempre o 1º não aprovado. Reproduzido contra o motor de `69025de`: 31/32 + U05 com 10 tentativas → etapa 2 `needs_retry`, etapa 3 `locked`, próximo = U05 | Etapas 1–6 e leitura 7.2 do formato em camadas: até **3 tentativas**; depois, **“Continuar sem concluir”** (item **pendente para revisão**, nunca acerto; pode refazer quando quiser); “próximo item” e a retomada **não voltam** ao pendente; etapa aprovada com **aproveitamento ≥ 80%** dos itens efetivamente avaliados (9/10 com 1 pendente = 90%, aprova). Distingue **erro de resposta** (conta) de **falha do reconhecedor** (fica fora da conta, sem penalizar) e de **não concluído**. Etapa aprovada continua aprovada. Atividades clássicas (inativas) e 7.1/7.3 sem mudança |
+| U31 mostrava “sound + adjective” / “parecer + adjetivo” | O padrão do documento era o conteúdo principal | U31 = **“sounds interesting” — “Parece interessante.”**; “sound + adjective (parecer + adjetivo)” como complemento. Mesma regra para U18 (“I'm a project analyst.” — “Sou analista de projetos.”) e U30 (“That sounds interesting.” — “Isso parece interessante.”): eram padrões em primeiro plano; traduções = as do próprio documento (F07, F10). Texto literal do documento guardado em `original` |
+| Escrita “saund” × “sound” só com descrição textual | O feedback listava “Ortografia/Faltou/A mais” | Marcação no próprio texto (`js/engine/textdiff.js`): “Você escreveu” com **só o trecho errado em vermelho** → “Correto” com **só o trecho que corrige em verde**; palavra a mais riscada, palavra que faltou sublinhada; maiúsculas/pontuação não marcadas. Etapas 1, 3, 4 e 6 |
+| Feedback repetitivo | Significado repetido, listas duplicando a marcação | Ordem: o que escreveu → correto → nota curta só se acrescenta (ordem das palavras); “Tentativa n de 3”; quadro de aproveitamento só quando há pendente ou a etapa terminou |
+| U05 “meet → met” ouvido como “meet Matt”; áudio sem pausa | Duas palavras curtas e próximas no mesmo exercício | U05 = **“I met someone.” — “Conheci/encontrei alguém.”**, separado de U04 “meet someone”; nota “meet → met”. “met someone” (sem sujeito) foi testado e descartado: Moonshine correto em 2 de 4 vozes (“To match someone.”), contra 4 de 4 com “I met someone.” (áudio sintético) |
+| Pausas | — | Sem setas restantes. U26 (“help someone / help a team”, elementos separados) gravado com **pausa de 1,0 s** (medida 1,14 s); demais frases sem pausa artificial |
+
+- **Arquivos:** `js/engine/dialogue.js`, `js/engine/textdiff.js` (novo), `js/ui/dialogue.js`, `css/app.css`,
+  `dev/content/dialogues/john-p1-e01-layers.json`, `dev/tools/build-dialogues.mjs` (campos `note`/`original`; áudio com
+  pausa para “/”/“→”), `dev/tools/gen_audio.py` (“ | ” = pausa), testes `dev/tests/unit/dialogue-layers.test.js` e
+  `dev/tests/e2e/dialogue-layers.mjs`; gerados `dist/app.js`, `sw.js`, `data/dialogues.js`, `data/audio-index.js`,
+  `dev/content/build/dialogues-audio-manifest.json`; áudios novos `audio/32c7ed10.ogg` (“I met someone.”) e
+  `audio/45b61163.ogg` (U26 com pausa); removidos os 2 órfãos `e38ebf3c` (“meet, met”) e `4410beef` (U26 sem pausa),
+  criados em `69025de` e sem referência. Índice de áudio: 2.244, idêntico ao publicado salvo essas duas trocas.
+- **Correção de artefato de desenvolvimento:** `dev/content/build/audio-durations.json` não tinha as 44 durações geradas em
+  `69025de` (estavam só no índice); sem elas o `gen_audio.py` apagaria essas entradas do índice. Completado com os
+  valores do índice publicado (0 conflitos).
+- **Testes:** unitários **284 ok / 1 ignorado / 0 falhas** (+10); `dialogue-layers` **20/20** (L16–L20 novos; L04/L11/L13
+  atualizados para o conteúdo novo); `audio-layers` 61/61 (avisos de reconhecimento em unidades curtas: “work for”,
+  “didn't we?” — antes já registrados — e “I met someone.” sem aviso); `dialogue` 14/14 (código compartilhado);
+  `speech-online` 13/13; `speech-mode` 9/9 (microfone = áudio da U22, como a asserção exige); `speech-hybrid` 16/16;
+  `pwa` 14/14. Não repetidos: `voice` e `endpoint` (dependem de ~18 MB de gravações de diagnóstico fora do repositório;
+  testam `evaluateRecording`/detecção de fim, que não mudaram). Build reproduzível: saídas idênticas a partir das fontes.
+- **Escolha técnica (DEC-023), incluída pelo PO nos critérios de finalização de 13/11:** item só com falha do reconhecedor fica fora da conta, mas a etapa
+  exige que **≥ 80% dos itens tenham sido avaliados** (sem evidência, não decide). Ex.: 25 frases, 15 aprovadas e 10 só
+  com falha técnica → 100% dos avaliados, mas cobertura 60% → não aprova; a tela orienta refazer os pendentes ou trocar o
+  modo em Ajustes → Áudio. Tentar de novo depois de 3 tentativas continua possível (as 3 abrem a opção de seguir; não
+  proíbem novas tentativas).
+
+## 2. O que foi feito nesta etapa (publicado em `69025de`)
 
 ### 2.1 john-p1-e01 em sete etapas (documento-fonte aprovado em 2026-11-13)
 - **Especificação:** `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1_E01.md` (cópia literal).
@@ -106,12 +142,12 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
 |---|---|
 | **Validado (automatizado, simulado)** | sete etapas e progressão; bloqueio de 3 escutas; retomada; integridade do conteúdo; preservação das 45 atividades; vozes e arquivos de áudio; regras de confiabilidade; tradução honesta; offline (PWA) |
 | **Pendente de decisão do PO / curadoria** | formas faladas (U05, U18, U26, U30, U31); regras técnicas DEC-022; decisões D1–D8 da análise das quatro etapas (D3 = avaliação da tradução); Base: D-003, D-005, D-006 |
-| **Não testado em aparelho físico (Galaxy S25+)** | toda a e01 em sete etapas; reconhecimento real nos dois modos (em especial unidades curtas no Moonshine); naturalidade dos áudios por ouvido humano; vocabulário remodelado e marcação por trecho publicados em `46b7d97`; correção do reconhecimento online publicada em `1635b92` |
+| **Não testado em aparelho físico (Galaxy S25+)** | correções da seção 2A (3 tentativas/continuar/pendente/aproveitamento, marcação da escrita, U05/U18/U30/U31, U26 com pausa); toda a e01 em sete etapas; reconhecimento real nos dois modos (em especial unidades curtas no Moonshine); naturalidade dos áudios por ouvido humano; vocabulário remodelado e marcação por trecho publicados em `46b7d97`; correção do reconhecimento online publicada em `1635b92` |
 
 ## 5. Limitações conhecidas
 1. Transcrição não é avaliação fonética.
-2. Moonshine em alvos de 1–2 palavras: pode nunca aprovar se errar sempre a fala do aluno (a regra impede culpar o
-   aluno, mas não garante aprovação) — risco de travar a etapa 2 nesse modo; precisa de teste no aparelho.
+2. Moonshine em alvos de 1–2 palavras: pode nunca aprovar se errar sempre a fala do aluno. **Desde 2A** isso não trava
+   mais a etapa (3 tentativas → continuar; falha técnica fora da conta), mas o item fica pendente; precisa de teste no aparelho.
 3. Tradução sem avaliação automática enquanto não houver serviço semântico (D3): a etapa 7.3 e a atividade ficam
    “aguardando avaliação”.
 4. Modo online sem áudio da própria voz (o microfone é do reconhecimento).
@@ -121,7 +157,9 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
 7. Traduções autorais e as 403 questões não validadas pelo professor.
 
 ## 6. Decisões do Product Owner pendentes
-- Autorizar a publicação da e01 (commit e push da branch já feitos em 13/11).
+- ~~Autorizar a publicação da e01~~ — publicada em 13/11 (`gh-pages` `69025de`).
+- ~~Autorizar commit, push e publicação das correções da seção 2A~~ — autorizados em 13/11 (resultado no registro do deploy).
+- Confirmar no aparelho as escolhas de DEC-023 (aproveitamento com cobertura mínima; U05/U18/U30/U31; pausa em U26).
 - Validar DEC-022 e as formas faladas; decidir D1–D8 (`09_…ANALISE.md`), em especial D3 (avaliação da tradução: serviço
   online com possível custo ou curadoria de unidades de significado pela Base).
 - Liberar as próximas atividades de John (uma por vez) após validar a e01 no aparelho.
@@ -139,20 +177,26 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
 | D-004 | Vocabulário: 15 diálogos sem itens próprios nos documentos; 89 itens de tabelas sem fala correspondente | `dev/content/dialogues/john-report.json` | Aberta |
 | D-005 | Diálogos em etapas: curadoria do inventário linguístico completo de cada diálogo (a e01 já tem o seu, aprovado em 2026-11-13) e, se escolhida a correção local da tradução (D3-b), unidades de significado e variantes aceitas por fala | `09_…ANALISE.md`; formato `*-layers.json` | Aguarda decisão do PO |
 | D-006 | Validar as 6 falas corrigidas por decisão do PO de 2026-11-11 (o app usa o texto corrigido; `correction` guarda o original) | `john-corrections.json` | Aberta |
+| D-007 | e01: registrar na curadoria as unidades apresentadas como expressão real por decisão do PO de 2026-11-13 (U05 “I met someone.”, U18, U30, U31; original em `original`) e avaliar os demais padrões com “…” (U02 “Do you remember…?”, U09, U16, U27), hoje falados como pergunta/expressão curta natural, sem mudança | `john-p1-e01-layers.json` (`note`, `original`, `change`) | Aberta |
 
 ## 8. Instruções para o próximo chat
 1. Ler `CLAUDE.md`, este arquivo e, conforme a tarefa, `docs/dialogos.md`, `docs/produto/03_…` e `docs/produto/11_…`.
    Conferir `git fetch`, `git status`, `git log --oneline -5` e o remoto (`git ls-remote origin
-   claude/daily-routine-governance-y9rr0b gh-pages`): a branch deve estar no commit desta etapa e `gh-pages` em `46b7d97`.
+   claude/daily-routine-governance-y9rr0b gh-pages`): ambos em `69025de` em 13/11 (as correções da seção 2A podem estar
+   commitadas depois disso, se o PO autorizar; confira).
 2. Workdir de build/testes: `bash dev/setup-workdir.sh ../drg-work` (detalhes em `dev/README.md`); copiar `js/`, `css/`,
    `dev/tools/`, `dev/content/` e `dev/tests/` para o workdir, rodar `node tools/build-app.mjs` e copiar de volta
    `dist/app.js`, `sw.js`, `data/*.js`, `audio/` novos. Áudio: `kokoro-onnx` + modelo Kokoro (fora do repositório).
+   Atenção: copie também `dev/content/build/audio-durations.json` de volta — o `gen_audio.py` reescreve o índice a partir
+   dele. No contêiner da nuvem, use o Playwright pré-instalado (o do `npm ci` não acha o Chromium).
 3. Testes da e01: `node tests/e2e/dialogue-layers.mjs <site> /daily-routine-english/` e `tests/e2e/audio-layers.mjs`;
    unitários `npm test`. Não repetir suítes aprovadas sem motivo técnico.
-4. **Próximo passo:** aguardar o PO — (a) autorização para publicar a e01 (fast-forward de `gh-pages` para o commit da
-   branch, depois conferir o workflow “pages build and deployment” e o `VERSION` do `sw.js` servido); (b) resultado da
-   validação no Galaxy S25+ (roteiro abaixo); (c) decisões de DEC-022 e D1–D8. Depois: remodelar a próxima atividade de
+4. **Próximo passo:** aguardar o PO — (a) autorização para commitar/publicar as correções da seção 2A (publicar = fast-forward
+   de `gh-pages`, conferir o workflow e o `VERSION` do `sw.js` servido = `1f0474b1cbd8`); (b) continuação da validação no
+   Galaxy S25+ (roteiro abaixo); (c) decisões de DEC-022, DEC-023 e D1–D8. Depois: remodelar a próxima atividade de
    John, uma por vez, no mesmo formato (`*-layers.json` + `rollout.json`).
 5. Roteiro do aparelho: (a) Ajustes → Áudio, modo Online, “Testar reconhecimento”; (b) e01 etapas 1→7 completas;
-   (c) etapa 2 com “work for”, “didn't we?”, “but” e “I'm a project analyst.” nos dois modos; (d) ouvir os áudios das
-   unidades curtas; (e) “Copiar registro do reconhecimento” e enviar ao chat.
+   (c) etapa 2 com “work for”, “didn't we?”, “but”, “I met someone.” e “I'm a project analyst.” nos dois modos;
+   (d) num item que não reconhece: 3 tentativas → “Continuar sem concluir” → seguir sem voltar a ele → aproveitamento ao
+   final; (e) escrever com um erro de letra e ver a marcação vermelho/verde; (f) ouvir U26 (pausa) e as unidades curtas;
+   (g) “Copiar registro do reconhecimento” e enviar ao chat.

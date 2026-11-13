@@ -127,8 +127,8 @@ await check('L04', 'Etapa 1 (unidades — escrever): EN + PT juntos; errado → 
   const bad = await writeAnswer('hello world');
   const ref = await textOf('[data-role=reference]');
   const ok = await writeAnswer(UNITS[0].en);
-  await page.click(`[data-role=item-chips] [data-item="${ACT}-u05"]`); await page.waitForSelector(`[data-role=layer-card][data-item="${ACT}-u05"]`);
-  const variant = await writeAnswer('meet, met');
+  await page.click(`[data-role=item-chips] [data-item="${ACT}-u26"]`); await page.waitForSelector(`[data-role=layer-card][data-item="${ACT}-u26"]`);
+  const variant = await writeAnswer('help someone, help a team'); // forma falada da notação “/” aceita
   await shot('04-etapa1');
   assert(ids.join() === A.unitIds.join(), 'unidades da etapa 1 ≠ inventário');
   assert(shownEn === UNITS[0].en && shownPt === UNITS[0].pt, `${shownEn} / ${shownPt}`);
@@ -243,18 +243,19 @@ await check('L09', 'Retomada e preservação: progresso salvo por etapa; tentati
 const unitByCode = (c) => UNITS.find((x) => x.code === c);
 async function openItem(phase, id) { await go(`#/dphase/${ACT}?p=${phase}`); await page.waitForSelector('[data-role=item-chips]'); await page.click(`[data-role=item-chips] [data-item="${id}"]`); await page.waitForSelector(`[data-item="${id}"][data-role$=card]`); }
 
-await check('L11', 'Notação × fala: “sound + adjective” aparece como padrão e o aluno ouve/diz “sounds interesting” (fala 7); nada de notação verbalizada', async () => {
+await check('L11', 'U31: a expressão real “sounds interesting” em primeiro plano, tradução natural, “sound + adjective” só como complemento; o aluno ouve exatamente isso; nada de notação verbalizada', async () => {
   const u = unitByCode('U31');
   await openItem('u-speak', u.id);
-  const pattern = await textOf('[data-role=item-pattern]');
-  const say = await textOf('[data-role=item-say]');
+  const main = await textOf('[data-role=vocab-card] [data-role=item-en]');
+  const pt = await textOf('[data-role=vocab-card] [data-role=item-pt]');
+  const note = await textOf('[data-role=vocab-card] [data-role=item-note]');
   const r0 = audioReqs.length; await page.click('[data-role=listen-item]'); await page.waitForTimeout(900);
   const played = [...new Set(audioReqs.slice(r0))];
   await shot('11-notacao');
-  assert(pattern === 'sound + adjective' && /Ouça e diga:\s*sounds interesting/.test(say) && /fala 7/.test(say), `${pattern} | ${say}`);
+  assert(main === 'sounds interesting' && pt === 'Parece interessante.' && /sound \+ adjective/.test(note), `${main} | ${pt} | ${note}`);
   assert(played.length === 1 && played[0] === u.audio && u.spoken === 'sounds interesting', `${played} ${u.audio} ${u.spoken}`);
   assert(UNITS.every((x) => !/[→+/…]|\bplus\b/.test(x.spoken)), 'notação na forma falada');
-  return { exibido: pattern, falado: u.spoken, audio: u.audio };
+  return { exibido: main, traducao: pt, complemento: note, falado: u.spoken, audio: u.audio };
 });
 
 await check('L12', 'Feedback da fala (U11 “work for”): acerto só com evidência; erro marca o trecho e orienta; alvo dentro de fala maior e transcrição vazia ficam inconclusivos; “work with” não aprova “work for”', async () => {
@@ -279,15 +280,14 @@ await check('L12', 'Feedback da fala (U11 “work for”): acerto só com evidê
   return out;
 });
 
-await check('L13', 'Ouvir e escrever com forma falada: quem ouve “sounds interesting” e escreve isso é aprovado; a notação do documento também é aceita', async () => {
+await check('L13', 'Ouvir e escrever: quem ouve “sounds interesting” e escreve isso é aprovado; depois do envio aparece a expressão (e o padrão como complemento)', async () => {
   const u = unitByCode('U31');
   await openItem('u-listen', u.id);
   const a = await writeAnswer('sounds interesting');
-  const say = await textOf('[data-role=item-say]');
-  await openItem('u-listen', u.id);
-  const b = await writeAnswer('sound + adjective');
-  assert(a === 'passed' && b === 'passed' && /sounds interesting/.test(say), `${a} ${b} ${say}`);
-  return { ouvido: a, notacao: b };
+  const shown = await textOf('[data-role=layer-card] [data-role=item-en]');
+  const note = await textOf('[data-role=layer-card] [data-role=item-note]');
+  assert(a === 'passed' && shown === 'sounds interesting' && /sound \+ adjective/.test(note), `${a} ${shown} ${note}`);
+  return { ouvido: a, exibido: shown, complemento: note };
 });
 
 await check('L14', 'Tradução 7.3 sem avaliador online: limitação explícita; após enviar, compara com a referência e registra autoavaliação; nada é aprovado; cópia da referência depois de vista não aprova', async () => {
@@ -340,6 +340,136 @@ await check('L15', 'Sem evidência confiável não decide: Moonshine divergente 
   assert(part !== 'passed' && part !== 'needs_practice' || !/different|teams/.test(partPractise), `${part} ${partPractise}`);
   assert(!/different|teams/.test(partPractise), `parcial culpou o aluno: ${partPractise}`);
   return { moonshineDivergente: div, moonshineCerto: ok, onlineParcial: part, praticar: partPractise || '—' };
+});
+
+
+// ---------- correções da validação real no Galaxy S25+ (2026-11-13) ----------
+/** Zera o progresso da e01 (mantém as outras atividades) e semeia etapas aprovadas + tentativas sem sucesso/pendentes. */
+const resetE01 = (passedEntries = [], failing = [], skipped = []) => page.evaluate(async ({ ACT, passedEntries, failing, skipped }) => {
+  const db = await new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => res(r.result); });
+  const cur = await new Promise((res) => { const t = db.transaction('kv').objectStore('kv').get('dialogues'); t.onsuccess = () => res(t.result); });
+  const p = cur.acts[ACT] = { contentVersion: null, startedAt: 1, completedAt: null, attempts: {}, listens: {}, rounds: [], notes: '', order: {}, skipped: {} };
+  let n = 0; const now = Date.now() - 100000;
+  const att = (phase, id, status) => { const attemptId = `att-seed-${n++}`; p.attempts[attemptId] = { attemptId, phase, itemId: id, inputType: 'text', response: 'seed', status, score: status === 'passed' ? 100 : status === 'needs_practice' ? 40 : null, threshold: 80, feedback: { summary: 'semeado pelo teste' }, evidence: null, evaluationMode: 'local_deterministic', rubricVersion: 'seed', evaluatorVersion: 'seed', createdAt: now + n, evaluatedAt: now + n, syncStatus: 'local', tries: 0, nextTryAt: 0, lastError: null }; };
+  for (const [phase, ids] of passedEntries) for (const id of ids) att(phase, id, 'passed');
+  for (const [phase, id, status, k] of failing) for (let i = 0; i < k; i++) att(phase, id, status);
+  for (const [phase, id] of skipped) (p.skipped[phase] || (p.skipped[phase] = {}))[id] = now;
+  await new Promise((res) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(cur, 'dialogues'); t.oncomplete = res; });
+}, { ACT, passedEntries, failing, skipped });
+const phaseStates = async () => { await go(`#/dialogue/${ACT}`); await page.waitForSelector('[data-role=phase]'); return Object.fromEntries(await page.$$eval('[data-role=phase]', (l) => l.map((x) => [x.dataset.phase, x.dataset.state]))); };
+
+await check('L16', 'Bloqueio do aparelho reproduzido e corrigido (etapa 2): 31/32 aprovados e U05 sem reconhecimento; “Tentativa n de 3”; “Continuar sem concluir” só após a 3ª; item fica pendente; etapa aprovada (31/32 = 96%) e etapa 3 liberada', async () => {
+  const stuck = `${ACT}-u05`;
+  await resetE01([['u-write', A.unitIds], ['u-speak', A.unitIds.filter((x) => x !== stuck)]]); await reload();
+  await openItem('u-speak', stuck);
+  for (let i = 0; i < 3; i++) await listenOnce();
+  const out = { tentativas: [] };
+  await setHeard('meet Matt');
+  for (let i = 0; i < 3; i++) {
+    out.tentativas.push(await recordOnce());
+    out.tentativas.push((await textOf('[data-role=tries]')).trim());
+    if (i < 2) assert(!(await page.locator('[data-role=skip-item]').count()), `“continuar” antes da 3ª tentativa (${i + 1})`);
+  }
+  out.antes = (await phaseStates())['u-speak'];
+  await openItem('u-speak', stuck);
+  await shot('16a-tres-tentativas');
+  assert(await page.locator('[data-role=skip-item]').count() === 1, 'sem “Continuar sem concluir” depois de 3 tentativas');
+  await page.click('[data-role=skip-item]'); await page.waitForTimeout(400);
+  out.pendente = (await textOf('[data-role=item-skipped]')).trim();
+  out.chip = await page.getAttribute(`[data-role=item-chips] [data-item="${stuck}"]`, 'data-skipped');
+  out.rodape = (await textOf('[data-role=phase-score]')).replace(/\s+/g, ' ');
+  await shot('16b-pendente');
+  const st = await phaseStates(); out.depois = st['u-speak']; out.etapa3 = st['u-listen'];
+  const s = await store(); const m = Object.values(s.acts[ACT].attempts).filter((a) => a.phase === 'u-speak' && a.itemId === stuck);
+  assert(out.antes === 'needs_retry' && out.depois === 'completed' && out.etapa3 === 'available', JSON.stringify(out));
+  assert(out.chip === 'true' && /pendente/i.test(out.pendente) && /31 de 31|96%|31 de 32/.test(out.rodape) && !m.some((a) => a.status === 'passed'), JSON.stringify(out));
+  assert(s.acts[ACT].skipped['u-speak'][stuck] > 0, 'pendente não registrado');
+  return out;
+});
+
+await check('L17', 'Não volta sozinho ao pendente: com 2 itens restantes, pular o 1º leva ao 2º; “Próximo item” nunca devolve o pendente; ao final, a etapa fecha com o aproveitamento', async () => {
+  const [a, b] = [`${ACT}-u07`, `${ACT}-u11`];
+  await resetE01([['u-write', A.unitIds], ['u-speak', A.unitIds.filter((x) => x !== a && x !== b)]], [['u-speak', a, 'inconclusive', 3]]); await reload();
+  await openItem('u-speak', a);
+  await page.click('[data-role=skip-item]'); await page.waitForTimeout(400);
+  const now1 = await page.getAttribute('[data-role=vocab-card]', 'data-item');
+  for (let i = 0; i < 3; i++) await listenOnce();
+  await setHeard('work for'); const ok = await recordOnce();
+  const nextBtn = await page.locator('[data-role=next-item]').count();
+  const st = await phaseStates();
+  await go(`#/dphase/${ACT}?p=u-speak`); await page.waitForSelector('[data-role=vocab-card]');
+  const rodape = (await textOf('[data-role=phase-score]')).replace(/\s+/g, ' ');
+  assert(now1 === b, `depois de pular ${a} foi para ${now1}`);
+  assert(ok === 'passed' && nextBtn === 0, `aprovado=${ok}, próximo=${nextBtn} (não pode voltar ao pendente)`);
+  assert(st['u-speak'] === 'completed' && /falha do reconhecimento/.test(rodape), `${st['u-speak']} | ${rodape}`);
+  return { depoisDePular: now1, segundo: ok, botaoProximo: nextBtn, etapa: st['u-speak'], rodape };
+});
+
+await check('L18', 'Aproveitamento por etapa (frases, 25 itens): 23/25 = 92% aprova; 20/25 = 80% aprova; 19/25 = 76% não aprova e mantém a etapa seguinte bloqueada', async () => {
+  const S = A.sentenceIds; const prev = [['u-write', A.unitIds], ['u-speak', A.unitIds], ['u-listen', A.unitIds]];
+  const scen = async (n) => {
+    const rest = S.slice(n);
+    await resetE01([...prev, ['s-write', S.slice(0, n)]], rest.map((id) => ['s-write', id, 'needs_practice', 3]), rest.map((id) => ['s-write', id])); await reload();
+    const st = await phaseStates();
+    await go(`#/dphase/${ACT}?p=s-write`); await page.waitForSelector('[data-role=layer-card]');
+    const ratio = await page.getAttribute('[data-role=phase-score]', 'data-ratio');
+    return { etapa4: st['s-write'], etapa5: st['s-speak'], ratio };
+  };
+  const r = { acima: await scen(23), exato: await scen(20) };
+  r.abaixo = await scen(19); await shot('18-abaixo-de-80');
+  assert(r.acima.etapa4 === 'completed' && r.acima.ratio === '92' && r.acima.etapa5 === 'available', JSON.stringify(r.acima));
+  assert(r.exato.etapa4 === 'completed' && r.exato.ratio === '80', JSON.stringify(r.exato));
+  assert(r.abaixo.etapa4 === 'needs_retry' && r.abaixo.ratio === '76' && r.abaixo.etapa5 === 'locked', JSON.stringify(r.abaixo));
+  return r;
+});
+
+await check('L19', 'Escrita com marcação visual: “saunds interesting” × “sounds interesting” marca só o “a” (vermelho) e o “o” (verde); sem listas repetidas nem significado duplicado; aprovado sem marcas quando exato', async () => {
+  await resetE01(); await reload();
+  await openItem('u-write', `${ACT}-u31`);
+  const st = await writeAnswer('saunds interesting'); // o caso do aparelho (“saund” × “sound”), na expressão atual da U31
+  const wrong = await page.$$eval('[data-role=answer-echo] [data-mark]', (l) => l.map((x) => `${x.dataset.mark}:${x.textContent}`));
+  const fix = await page.$$eval('[data-role=reference] [data-mark]', (l) => l.map((x) => `${x.dataset.mark}:${x.textContent}`));
+  const fbText = (await textOf('[data-role=feedback]')).replace(/\s+/g, ' ');
+  const colors = await page.evaluate(() => ['.wd-wrong', '.wd-fix'].map((s) => getComputedStyle(document.querySelector(s)).color));
+  await shot('19-escrita-marcada');
+  const tries = (await textOf('[data-role=tries]')).trim();
+  const ok = await writeAnswer('sounds interesting');
+  const okMarks = await page.locator('[data-role=feedback] [data-mark]').count();
+  assert(wrong.join() === 'wrong:a' && fix.join() === 'fix:o', `${st} ${wrong} ${fix}`);
+  assert(!/Significado|Ortografia:|Faltou:|A mais:/.test(fbText) && /Você escreveu/.test(fbText) && /Correto/.test(fbText), fbText);
+  assert(colors[0] !== colors[1], `cores iguais ${colors}`);
+  assert(ok === 'passed' && okMarks === 0, `${ok} ${okMarks}`);
+  assert(st === 'passed' || /Tentativa 1 de 3/.test(tries), `${st} ${tries}`); // 1 letra em 17: o corretor pode aprovar (≥ 80%) — a marcação aparece do mesmo jeito
+  return { status: st, voceEscreveu: wrong, correto: fix, cores: colors, feedback: fbText, depois: ok };
+});
+
+await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar, segue para a próxima fala; U05 “I met someone.” e U04 “meet someone” em exercícios separados; U26 toca o áudio com pausa', async () => {
+  const qids = A.questionIds;
+  await resetE01(['u-write', 'u-speak', 'u-listen'].map((ph) => [ph, A.unitIds]).concat(['s-write', 's-speak', 's-listen'].map((ph) => [ph, A.sentenceIds])), [['reading', A.lines[0].id, 'needs_practice', 3]]);
+  await page.evaluate(async ({ ACT, qids }) => {
+    const db = await new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => res(r.result); });
+    const cur = await new Promise((res) => { const t = db.transaction('kv').objectStore('kv').get('dialogues'); t.onsuccess = () => res(t.result); });
+    const p = cur.acts[ACT]; p.listens.listening = 3;
+    p.rounds.push({ id: 'round-seed', kind: 'full', submittedAt: Date.now(), total: qids.length, correct: qids.length, results: qids.map((q) => ({ questionId: q, chosen: 'x', correct: true })), passed: true, passMark: 8, rubricVersion: 'seed' });
+    await new Promise((res) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(cur, 'dialogues'); t.oncomplete = res; });
+  }, { ACT, qids }); await reload();
+  await go(`#/dphase/${ACT}?p=reading`); await page.waitForSelector('[data-role=reading-card]');
+  const first = await page.getAttribute('[data-role=reading-card]', 'data-line');
+  await page.click(`[data-role=item-chips] [data-item="${A.lines[0].id}"]`); await page.waitForTimeout(300);
+  const canSkip = await page.locator('[data-role=skip-item]').count();
+  await page.click('[data-role=skip-item]'); await page.waitForTimeout(400);
+  const after = await page.getAttribute('[data-role=reading-card]', 'data-line');
+  await shot('20-leitura-pendente');
+  const u04 = unitByCode('U04'), u05 = unitByCode('U05'), u26 = unitByCode('U26');
+  await openItem('u-speak', u26.id);
+  const r0 = audioReqs.length; await page.click('[data-role=listen-item]'); await page.waitForTimeout(900);
+  const played = [...new Set(audioReqs.slice(r0))];
+  const dur = await page.evaluate((k) => window.DRG_AUDIO.files[k], u26.audio);
+  assert(canSkip === 1 && after === A.lines[1].id, `continuar=${canSkip}, depois=${after}`);
+  assert(first === A.lines[1].id || first === A.lines[0].id, first);
+  assert(u04.en === 'meet someone' && u05.en === 'I met someone.' && u05.spoken === 'I met someone.', `${u04.en} | ${u05.en}`);
+  assert(played[0] === u26.audio && dur > 3, `${played} ${dur}`);
+  return { leituraDepoisDeContinuar: after, U04: u04.en, U05: `${u05.en} — ${u05.pt}`, U26audio: `${u26.audio} (${dur}s)` };
 });
 
 record('L10', 'Sem erros de página e sem requisições externas', !pageErrors.length && !external.length, { erros: pageErrors.slice(0, 3), externas: external.slice(0, 3) });

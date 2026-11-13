@@ -17,9 +17,13 @@ import subprocess
 import sys
 import tempfile
 
+import numpy as np
+
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 NUM = {0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine",
        10: "ten", 11: "eleven", 12: "twelve", 15: "fifteen", 20: "twenty", 30: "thirty", 45: "forty-five", 50: "fifty"}
+
+PAUSE_SEC = 1.0  # pausa entre elementos separados (“a | b”); orientação do PO: perceptível, cerca de 1 a 1,5 s
 
 # Pronúncias forçadas (IPA no formato do Kokoro) para nomes próprios e homógrafos.
 OVERRIDES = [
@@ -101,9 +105,16 @@ def main():
         todo = todo[: args.limit]
     print(f"{len(manifest)} no manifesto, {len(todo)} a gerar", flush=True)
     for n, m in enumerate(todo, 1):
-        spoken = normalise(m["text"])
-        phonemes = to_phonemes(kokoro, spoken)
-        samples, sr = kokoro.create(phonemes, voice=m.get("voice") or args.voice, speed=1.0, lang="en-gb", is_phonemes=True)
+        # “ | ” no texto do manifesto = elementos separados, cada um sintetizado e unidos por PAUSE_SEC de silêncio
+        # (ex.: “help someone | help a team”); texto sem a marca é gerado como sempre
+        chunks = []
+        for part in [p for p in m["text"].split(" | ") if p.strip()]:
+            phonemes = to_phonemes(kokoro, normalise(part))
+            s_, sr = kokoro.create(phonemes, voice=m.get("voice") or args.voice, speed=1.0, lang="en-gb", is_phonemes=True)
+            if chunks:
+                chunks.append(np.zeros(int(sr * PAUSE_SEC), dtype=s_.dtype))
+            chunks.append(s_)
+        samples = np.concatenate(chunks)
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             sf.write(tmp.name, samples, sr)
             wav = tmp.name

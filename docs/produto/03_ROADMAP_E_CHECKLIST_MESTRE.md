@@ -79,6 +79,9 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
 - [x] Vocabulário remodelado e marcação por trecho na expressão — publicado (`gh-pages` `46b7d97`, build `583fa58264f1`), para avaliação.
 - [x] Análise da reorganização em quatro etapas (`docs/produto/mvp-dialogo/09_…`) e extração completa do conteúdo de diálogos (`docs/conteudo-dialogos/`).
 - [x] john-p1-e01 em sete etapas (DEC-021): 32 unidades, 25 frases, diálogo; só ela ativa; 44 áudios gerados e validados; fechamento de qualidade (confiabilidade do reconhecimento, tradução honesta) — **commitado na branch de trabalho em 13/11, não publicado**. Testes: unitários 274/1 ignorado, `dialogue-layers` 15/15, `audio-layers` 61/61, regressões de voz aprovadas.
-- [ ] Validar no Galaxy S25+: e01 em sete etapas, reconhecimento nos dois modos (unidades curtas no Moonshine), escuta humana dos áudios curtos; correções de voz publicadas em 12/11.
+- [x] Publicação da e01 em sete etapas autorizada e feita (13/11): `gh-pages` `69025de`, build `dcaac9a1ecf7`, workflow nº 36.
+- [~] Validar no Galaxy S25+: e01 em sete etapas, reconhecimento nos dois modos (unidades curtas no Moonshine), escuta humana dos áudios curtos; correções de voz publicadas em 12/11. Validação iniciada em 13/11: bloqueio de progressão, U31, marcação da escrita e meet/met apontados pelo PO.
+  - [x] Correções da validação real (DEC-023): 3 tentativas → continuar sem concluir, item pendente, aproveitamento ≥ 80%, marcação vermelho/verde na escrita, feedback enxuto, U05/U18/U30/U31, U26 com pausa — implementadas e testadas (unitários 284/1 ignorado, `dialogue-layers` 20/20, `audio-layers` 61/61, regressões de voz e PWA). Commit e publicação autorizados pelo PO (13/11); verificação do deploy no `HANDOFF.md`.
+  - [ ] Nova rodada de validação no aparelho com as correções.
 - [ ] Decisões do PO: DEC-022 (formas faladas e regras técnicas), D1–D8 da análise (D3 = avaliação da tradução), autorização de publicação da e01.
 - [ ] Remodelar as próximas atividades de John, uma por vez, no formato em sete etapas (após validação da e01).

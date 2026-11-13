@@ -661,6 +661,18 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .vx-line { margin: 8px 0 0; font-size: 1rem; line-height: 1.45; }
 .vx-line .en { font-size: 1.05rem; }
 .vx-tech { margin-top: 10px; }
+/* validação real (2026-11-13): complemento didático, itens pendentes e marcação da escrita (só o trecho errado/correto) */
+.vx-note { margin: -14px 0 20px; }
+.vx-skip { margin-top: 14px; }
+.vx-skip .btn { margin-top: 8px; }
+.chip.skipped { border: 2px dashed var(--warn); }
+.wd-row { display: flex; flex-direction: column; gap: 2px; }
+.wd-label { font-size: .85rem; }
+.wd { font-family: var(--font-en); font-size: 1.35rem; line-height: 1.5; overflow-wrap: anywhere; }
+.wd-wrong, .wd-extra { background: var(--bad-soft); color: var(--bad); font-weight: 800; border-radius: 4px; padding: 0 1px; }
+.wd-extra { text-decoration: line-through; text-decoration-thickness: 2px; }
+.wd-fix, .wd-missing { background: var(--ok-soft); color: var(--ok); font-weight: 800; border-radius: 4px; padding: 0 1px; }
+.wd-missing { text-decoration: underline; text-underline-offset: 4px; }
 .btn.vx-next { margin-top: 16px; min-height: 52px; }
 .vx-card .wp-status:empty { display: none; }
 .vx-card .wp-status { margin: 14px 0 0; }
