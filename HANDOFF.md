@@ -20,10 +20,10 @@ produto: `docs/produto/` (checklist mestre `03_…`, arquitetura pedagógica `04
 | Item | Valor |
 |---|---|
 | Branch de trabalho | `claude/daily-routine-governance-y9rr0b` |
-| Último commit da branch | `69025de` (“feat: john-p1-e01 in seven steps…”, 13/11/2026) |
-| `origin/gh-pages` (publicado) | `69025de` — build `dcaac9a1ecf7`, https://lucas-marinho-fpa.github.io/daily-routine-english/ (fast-forward de `46b7d97` autorizado pelo PO em 13/11; workflow “pages build and deployment” nº 36 com sucesso; `sw.js`, `dist/app.js`, `data/*.js` e `index.html` servidos idênticos ao commit) |
+| Commit das correções (2A) | `7cf3a3c` (“fix: e01 real-device validation…”, 13/11/2026); este registro de publicação é o commit seguinte, só de documentação |
+| `origin/gh-pages` (publicado) | `7cf3a3c` — build **`1f0474b1cbd8`**, workflow “pages build and deployment” nº 37 com sucesso; `sw.js`, `dist/app.js`, `data/*.js`, `index.html`, `css/app.css` e `js/engine/textdiff.js` servidos idênticos ao commit; site real: só a e01 listada, U31 “sounds interesting — Parece interessante.”, U05 “I met someone.”. Depois, `gh-pages` avança para o commit de documentação (mesmo build). Antes: `69025de` — build `dcaac9a1ecf7`, https://lucas-marinho-fpa.github.io/daily-routine-english/ (fast-forward de `46b7d97` autorizado pelo PO em 13/11; workflow “pages build and deployment” nº 36 com sucesso; `sw.js`, `dist/app.js`, `data/*.js` e `index.html` servidos idênticos ao commit) |
 | O que está publicado | a e01 em sete etapas, só ela ativa; as outras 45 atividades preservadas fora da navegação |
-| **Correções da validação real (seção 2A)** | commit logo acima de `69025de` (“fix: e01 real-device validation…”), build `1f0474b1cbd8`; commit, push e publicação **autorizados pelo PO em 13/11** (condicionados aos testes da seção 2A). Resultado da publicação: registrado no commit seguinte, só de documentação |
+| **Correções da validação real (seção 2A)** | **publicadas em 13/11** (`7cf3a3c`, build `1f0474b1cbd8`), com autorização do PO condicionada aos testes, todos aprovados no build reproduzido do zero |
 | Registro histórico | antes de 13/11 (tarde), `gh-pages` estava em `46b7d97` (build `583fa58264f1`) e a e01 em sete etapas não estava publicada |
 
 Regras: commit/push só com autorização; nunca force push; nunca publicar sem autorização; não usar `main` como origem
@@ -191,9 +191,8 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
    dele. No contêiner da nuvem, use o Playwright pré-instalado (o do `npm ci` não acha o Chromium).
 3. Testes da e01: `node tests/e2e/dialogue-layers.mjs <site> /daily-routine-english/` e `tests/e2e/audio-layers.mjs`;
    unitários `npm test`. Não repetir suítes aprovadas sem motivo técnico.
-4. **Próximo passo:** aguardar o PO — (a) autorização para commitar/publicar as correções da seção 2A (publicar = fast-forward
-   de `gh-pages`, conferir o workflow e o `VERSION` do `sw.js` servido = `1f0474b1cbd8`); (b) continuação da validação no
-   Galaxy S25+ (roteiro abaixo); (c) decisões de DEC-022, DEC-023 e D1–D8. Depois: remodelar a próxima atividade de
+4. **Próximo passo:** nova rodada de validação no Galaxy S25+ com as correções publicadas (roteiro abaixo; no aparelho,
+   fechar e reabrir o app até o build `1f0474b1cbd8`); depois, decisões de DEC-022, DEC-023 e D1–D8. Depois: remodelar a próxima atividade de
    John, uma por vez, no mesmo formato (`*-layers.json` + `rollout.json`).
 5. Roteiro do aparelho: (a) Ajustes → Áudio, modo Online, “Testar reconhecimento”; (b) e01 etapas 1→7 completas;
    (c) etapa 2 com “work for”, “didn't we?”, “but”, “I met someone.” e “I'm a project analyst.” nos dois modos;
