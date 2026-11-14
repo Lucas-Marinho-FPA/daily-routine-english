@@ -84,8 +84,8 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
   - [x] Correções da validação real (DEC-023): 3 tentativas → continuar sem concluir, item pendente, aproveitamento ≥ 80%, marcação vermelho/verde na escrita, feedback enxuto, U05/U18/U30/U31, U26 com pausa — implementadas e testadas (unitários 284/1 ignorado, `dialogue-layers` 20/20, `audio-layers` 61/61, regressões de voz e PWA). Publicado em 13/11: `7cf3a3c`, build `1f0474b1cbd8`, workflow nº 37 com sucesso, arquivos servidos idênticos ao commit.
   - [ ] Nova rodada de validação no aparelho com as correções.
 - [x] Experimentos de qualidade do Kokoro (14/11): pacote de amostras WAV/OGG entregue ao PO (fora do repositório).
-- [x] Reticências na preparação do TTS (DEC-024): 95 áudios regenerados (Daily Routine + John), mesmas chaves; U26 sem silêncio fixo — commit/publicação autorizados (14/11).
-- [x] Faixa horizontal de números nas etapas dos diálogos (DEC-024) — commit/publicação autorizados (14/11).
+- [x] Reticências na preparação do TTS (DEC-024): 95 áudios regenerados (Daily Routine + John), mesmas chaves; U26 sem silêncio fixo — publicado (`8ec5795`, build `c3c3a4d174ca`, workflow nº 39).
+- [x] Faixa horizontal de números nas etapas dos diálogos (DEC-024) — publicado (`8ec5795`).
 - [ ] Escuta no Galaxy S25+ das reticências (pacote antes × depois) e da U26; uso da faixa de números.
 - [ ] Decisões do PO: DEC-022 (formas faladas e regras técnicas), D1–D8 da análise (D3 = avaliação da tradução), autorização de publicação da e01.
 - [ ] Remodelar as próximas atividades de John, uma por vez, no formato em sete etapas (após validação da e01).
