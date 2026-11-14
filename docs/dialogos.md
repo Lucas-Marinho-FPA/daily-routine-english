@@ -37,7 +37,12 @@ Especificação: `docs/produto/mvp-dialogo/10_DOCUMENTO_FONTE_PEDAGOGICO_JOHN_P1
   maiúsculas e pontuação não marcadas. Só apresentação: aprovação e nota continuam com `scoreWriting`.
 - **Expressão real em primeiro plano (PO, 2026-11-13):** U05 “I met someone.”, U18 “I'm a project analyst.”, U30 “That
   sounds interesting.”, U31 “sounds interesting” — padrão/notação do documento como complemento (`note`); o texto
-  literal do documento fica em `original`. Elementos separados por “/” ou “→” são gravados com pausa de 1 s (U26).
+  literal do documento fica em `original`. Elementos separados por “/” ou “→” são gravados com reticências entre as partes
+  (U26, desde 14/11; a pausa fixa de 1 s de 13/11 saiu — sem silêncio fixo, decisão do PO).
+- **Reticências no TTS (14/11, DEC-024):** frases longas com fronteira natural têm o áudio gerado a partir de
+  `dev/content/tts/tts-prep.json` (mesma chave de áudio; registro em `dev/content/build/tts-ledger.json`).
+- **Faixa de números:** os itens de cada etapa ficam numa faixa horizontal de uma linha (desliza; toque seleciona; o
+  selecionado é centralizado; posição guardada por etapa).
 - **Atividades fora da navegação:** lista, Início e acesso direto mostram só `pack.active`; dados, áudio, questões e progresso das demais continuam intactos. Progresso anterior da e01 (fases antigas) fica guardado, sem crédito automático nas etapas novas; as fases 7.x (mesmos ids das fases de compreensão, leitura e tradução) reaproveitam a evidência já existente.
 
 ## Onde está cada coisa

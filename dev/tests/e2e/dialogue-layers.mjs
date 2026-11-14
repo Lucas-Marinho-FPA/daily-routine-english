@@ -443,7 +443,7 @@ await check('L19', 'Escrita com marcação visual: “saunds interesting” × �
   return { status: st, voceEscreveu: wrong, correto: fix, cores: colors, feedback: fbText, depois: ok };
 });
 
-await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar, segue para a próxima fala; U05 “I met someone.” e U04 “meet someone” em exercícios separados; U26 toca o áudio com pausa', async () => {
+await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar, segue para a próxima fala; U05 “I met someone.” e U04 “meet someone” em exercícios separados; U26 toca o próprio áudio (reticências entre as partes, sem silêncio fixo)', async () => {
   const qids = A.questionIds;
   await resetE01(['u-write', 'u-speak', 'u-listen'].map((ph) => [ph, A.unitIds]).concat(['s-write', 's-speak', 's-listen'].map((ph) => [ph, A.sentenceIds])), [['reading', A.lines[0].id, 'needs_practice', 3]]);
   await page.evaluate(async ({ ACT, qids }) => {
@@ -468,8 +468,47 @@ await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar,
   assert(canSkip === 1 && after === A.lines[1].id, `continuar=${canSkip}, depois=${after}`);
   assert(first === A.lines[1].id || first === A.lines[0].id, first);
   assert(u04.en === 'meet someone' && u05.en === 'I met someone.' && u05.spoken === 'I met someone.', `${u04.en} | ${u05.en}`);
-  assert(played[0] === u26.audio && dur > 3, `${played} ${dur}`);
+  const man = JSON.parse(readFileSync(join(ROOT, 'content/build/dialogues-audio-manifest.json'), 'utf8'));
+  assert(played[0] === u26.audio && dur > 1 && (man.find((m) => m.key === u26.audio) || {}).text === 'help someone... help a team', `${played} ${dur}`);
   return { leituraDepoisDeContinuar: after, U04: u04.en, U05: `${u05.en} — ${u05.pt}`, U26audio: `${u26.audio} (${dur}s)` };
+});
+
+
+await check('L21', 'Faixa horizontal de números (etapa 2, 32 unidades, viewport Android): uma linha; arrastar com o dedo rola a faixa sem trocar de item nem de tela; tocar num número atualiza só o conteúdo e o centraliza; posição mantida ao redesenhar', async () => {
+  await resetE01([['u-write', A.unitIds]]); await reload();
+  await go(`#/dphase/${ACT}?p=u-speak`); await page.waitForSelector('[data-role=vocab-card]');
+  const url0 = page.url();
+  const geo = () => page.evaluate(() => { const s = document.querySelector('[data-role=item-chips]'); const r = s.getBoundingClientRect(); const sel = s.querySelector('[aria-pressed="true"]').getBoundingClientRect();
+    return { rows: new Set([...s.children].map((c) => Math.round(c.getBoundingClientRect().top))).size, sw: s.scrollWidth, cw: s.clientWidth, left: Math.round(s.scrollLeft), pageW: document.documentElement.scrollWidth, vw: innerWidth,
+      selOff: Math.round((sel.left + sel.width / 2) - (r.left + r.width / 2)), selVisible: sel.left >= r.left - 1 && sel.right <= r.right + 1, item: document.querySelector('[data-role=vocab-card]').dataset.item }; });
+  const g0 = await geo();
+  // arraste horizontal REAL (gesto de toque sintetizado pelo Chromium) sobre a faixa
+  const box = await page.locator('[data-role=item-chips]').boundingBox();
+  const cdp = await ctx.newCDPSession(page);
+  // (o synthesizeScrollGesture de toque não rola no Chromium sem tela; a sequência real tocar → mover → soltar, sim)
+  const pt = { x: Math.round(box.x + box.width * 0.8), y: Math.round(box.y + box.height / 2) };
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [pt] });
+  for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pt.x - i * 25, y: pt.y }] }); await page.waitForTimeout(16); }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForTimeout(500);
+  const g1 = await geo();
+  // tocar no número 20 (precisa estar à vista depois do arraste ou ser alcançado arrastando mais)
+  const target = `${ACT}-u20`;
+  await page.locator(`[data-role=item-chips] [data-item="${target}"]`).tap();
+  await page.waitForSelector(`[data-role=vocab-card][data-item="${target}"]`); await page.waitForTimeout(700);
+  const g2 = await geo();
+  await page.click('[data-role=listen-item]'); await page.waitForTimeout(1200); // outro redesenho (contador de audições)
+  const g3 = await geo();
+  await page.locator(`[data-role=item-chips] [data-item="${ACT}-u32"]`).tap(); await page.waitForTimeout(700);
+  const g4 = await geo();
+  await shot('21-faixa-numeros');
+  assert(g0.rows === 1 && g0.sw > g0.cw && g0.pageW <= g0.vw, `faixa: ${JSON.stringify(g0)}`);
+  assert(g1.left > g0.left + 100 && g1.item === g0.item, `arraste: ${JSON.stringify([g0, g1])}`);
+  assert(g2.item === target && Math.abs(g2.selOff) <= 30 && g2.selVisible, `toque/centralização: ${JSON.stringify(g2)}`);
+  assert(Math.abs(g3.left - g2.left) <= 2 && g3.selVisible, `posição mantida no redesenho: ${JSON.stringify([g2, g3])}`);
+  assert(g4.item === `${ACT}-u32` && g4.selVisible && g4.left === g4.sw - g4.cw, `último número: ${JSON.stringify(g4)}`);
+  assert(page.url() === url0, `trocou de tela: ${page.url()}`);
+  return { linhas: g0.rows, larguraFaixa: `${g0.sw}/${g0.cw}px`, depoisDoArraste: g1.left, item20Centralizado: g2.selOff, mantidaNoRedesenho: [g2.left, g3.left], ultimo: g4.left };
 });
 
 record('L10', 'Sem erros de página e sem requisições externas', !pageErrors.length && !external.length, { erros: pageErrors.slice(0, 3), externas: external.slice(0, 3) });

@@ -20,7 +20,7 @@ no pré-cache do app (o service worker só lista os arquivos do app).
 | `tools/build-app.mjs` | build completo: conteúdo, personagens, jornadas, léxico, `dist/app.js`, `sw.js` |
 | `tools/build-content.mjs` · `build-characters.mjs` · `build-journeys.mjs` · `build-dialogues.mjs` | builds parciais (chamados pelo build-app); `build-dialogues` aceita `DRG_EVAL_ENDPOINT=https://…` (endereço do gateway) |
 | `tools/lukinhas-source.mjs` | **gerador do pacote do Lukinhas** (confere os dez textos caractere por caractere) |
-| `tools/gen_audio.py` · `qa_audio.py` | áudio britânico offline (Kokoro) e conferência de pronúncia |
+| `tools/gen_audio.py` · `qa_audio.py` | áudio britânico offline (Kokoro) e conferência de pronúncia; aplica `content/tts/tts-prep.json` (reticências só no áudio, mesma chave) e registra em `content/build/tts-ledger.json` |
 | `tools/qr.mjs` · `screenshots.mjs` · `sw.template.js` · `extract_word.py` | QR da página de instalação, capturas do manifesto, modelo do service worker, extração do Word |
 | `tests/unit/` | testes unitários (`node --test`), inclui `lukinhas.test.js` |
 | `tests/e2e/` | testes E2E Chromium: `run`, `run-pages`, `asr-local`, `storage`, `wordpractice`, `characters`, `journey`, `mvp`, `pwa`, `lukinhas`, `update-transition`, `dialogue` (atividades de diálogo em cinco fases), `course` (Curso — Atividades; `DRG_COURSE_FILE=<arquivo fora do repositório>` usa a atividade real, senão conteúdo sintético) |

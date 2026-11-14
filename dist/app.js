@@ -8273,14 +8273,16 @@ ${body.join("\n\n")}
     return nextItem(order, p, phase, { after: id, skipSkipped: true });
   }
   var nextAfter = (act, order, p, phase, id) => nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
+  var stripPos = /* @__PURE__ */ new Map();
   function itemChips(ids, p, phase, label, current2, onPick) {
-    return h("div", { class: "chips", "data-role": "item-chips", style: { margin: "8px 0" } }, ids.map((id, i) => {
+    const strip = h("div", { class: "chips scroll num-strip", "data-role": "item-chips", role: "group", "aria-label": "Itens da etapa" }, ids.map((id, i) => {
       const m = mastery2(p, phase, id);
       const skipped = isSkipped(p, phase, id);
       return h("button", {
         class: `chip ${ITEM_CHIP[m.status]}${skipped ? " skipped" : ""}`,
         type: "button",
         "aria-pressed": String(id === current2),
+        "aria-current": id === current2 ? "true" : null,
         "data-item": id,
         "data-status": m.status,
         "data-skipped": String(skipped),
@@ -8288,6 +8290,20 @@ ${body.join("\n\n")}
         onclick: () => onPick(id)
       }, label(id, i));
     }));
+    strip.addEventListener("scroll", () => {
+      stripPos.set(phase, strip.scrollLeft);
+    }, { passive: true });
+    requestAnimationFrame(() => {
+      if (!strip.isConnected) return;
+      const had = stripPos.has(phase);
+      strip.scrollLeft = stripPos.get(phase) || 0;
+      const sel = strip.querySelector('[aria-pressed="true"]');
+      if (!sel) return;
+      const max = strip.scrollWidth - strip.clientWidth;
+      const left = Math.max(0, Math.min(max, sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2));
+      if (Math.abs(left - strip.scrollLeft) > 1) strip.scrollTo({ left, behavior: had ? "smooth" : "auto" });
+    });
+    return strip;
   }
   function statusFeedback(result, extra = []) {
     const cls = result.status === "passed" ? "good" : result.status === "needs_practice" ? "bad" : "mid";
@@ -8550,11 +8566,11 @@ ${body.join("\n\n")}
       const fb = h("div", { "data-role": "line-result" });
       clear(area).append(
         h("p", { class: "small muted", text: `Ou\xE7a a fala em ingl\xEAs e escreva-a. Cada frase precisa de ${THRESHOLD}% de correspond\xEAncia. A frase s\xF3 aparece depois do envio.` }),
-        itemChips(order, p, "dictation", (id, i) => String(i + 1), current2, (id) => {
+        h("div", { class: "dlg-strip" }, itemChips(order, p, "dictation", (id, i) => String(i + 1), current2, (id) => {
           current2 = id;
           last = null;
           draw();
-        }),
+        })),
         h(
           "section",
           { class: "card", "data-role": "dictation-card", "data-line": l.id, "data-status": m.status },
@@ -8779,11 +8795,11 @@ ${body.join("\n\n")}
       const fb = h("div", { "data-role": "line-result" });
       clear(area).append(
         h("p", { class: "small muted", "data-role": "translation-instruction", text: remote().config.endpoint ? `Traduza cada fala para o portugu\xEAs. A corre\xE7\xE3o \xE9 pelo sentido (avalia\xE7\xE3o online); cada fala precisa de ${THRESHOLD}%. A tradu\xE7\xE3o de refer\xEAncia s\xF3 aparece depois da avalia\xE7\xE3o.` : "Traduza cada fala para o portugu\xEAs. A corre\xE7\xE3o autom\xE1tica pelo sentido depende de um servi\xE7o online que ainda n\xE3o est\xE1 ativo: depois de enviar, voc\xEA compara com a tradu\xE7\xE3o de refer\xEAncia. A fala fica pendente de avalia\xE7\xE3o \u2014 n\xE3o conta como aprovada." }),
-        itemChips(ids, p, "translation", (id, i) => String(i + 1), current2, (id) => {
+        h("div", { class: "dlg-strip" }, itemChips(ids, p, "translation", (id, i) => String(i + 1), current2, (id) => {
           current2 = id;
           last = null;
           draw();
-        }),
+        })),
         h(
           "section",
           { class: "card", "data-role": "translation-card", "data-line": l.id, "data-status": m.status },
@@ -9064,11 +9080,11 @@ ${body.join("\n\n")}
       const fb = h("div", { "data-role": "line-result" });
       clear(area).append(
         h("p", { class: "small muted", text: `Leia cada fala em voz alta. Aprova\xE7\xE3o: ${THRESHOLD}% de correspond\xEAncia confi\xE1vel por fala. Transcri\xE7\xE3o duvidosa n\xE3o reprova: fica inconclusiva.` }),
-        itemChips(ids, p, "reading", (id, i) => String(i + 1), current2, (id) => {
+        h("div", { class: "dlg-strip" }, itemChips(ids, p, "reading", (id, i) => String(i + 1), current2, (id) => {
           current2 = id;
           last = null;
           draw();
-        }),
+        })),
         h(
           "section",
           { class: "card", "data-role": "reading-card", "data-line": l.id, "data-status": m.status },

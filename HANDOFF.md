@@ -24,10 +24,45 @@ produto: `docs/produto/` (checklist mestre `03_…`, arquitetura pedagógica `04
 | `origin/gh-pages` (publicado) | `7cf3a3c` — build **`1f0474b1cbd8`**, workflow “pages build and deployment” nº 37 com sucesso; `sw.js`, `dist/app.js`, `data/*.js`, `index.html`, `css/app.css` e `js/engine/textdiff.js` servidos idênticos ao commit; site real: só a e01 listada, U31 “sounds interesting — Parece interessante.”, U05 “I met someone.”. Depois, `gh-pages` avança para o commit de documentação (mesmo build). Antes: `69025de` — build `dcaac9a1ecf7`, https://lucas-marinho-fpa.github.io/daily-routine-english/ (fast-forward de `46b7d97` autorizado pelo PO em 13/11; workflow “pages build and deployment” nº 36 com sucesso; `sw.js`, `dist/app.js`, `data/*.js` e `index.html` servidos idênticos ao commit) |
 | O que está publicado | a e01 em sete etapas, só ela ativa; as outras 45 atividades preservadas fora da navegação |
 | **Correções da validação real (seção 2A)** | **publicadas em 13/11** (`7cf3a3c`, build `1f0474b1cbd8`), com autorização do PO condicionada aos testes, todos aprovados no build reproduzido do zero |
+| **Reticências no TTS + faixa de números (seção 2B, 14/11)** | commit logo acima de `72908ec` (“feat: TTS ellipses…”), build `c3c3a4d174ca`; commit, push e publicação **autorizados expressamente pelo PO em 14/11**. Resultado do deploy: registrado no commit seguinte, só de documentação |
 | Registro histórico | antes de 13/11 (tarde), `gh-pages` estava em `46b7d97` (build `583fa58264f1`) e a e01 em sete etapas não estava publicada |
 
 Regras: commit/push só com autorização; nunca force push; nunca publicar sem autorização; não usar `main` como origem
 (pode conter `c0cb6c8`, material sem licença). Identidade dos commits: `Lucas-Marinho-FPA <294024809+Lucas-Marinho-FPA@users.noreply.github.com>`.
+
+## 2B. Reticências no áudio e faixa horizontal de números (14/11/2026 — commit e publicação autorizados pelo PO)
+
+Pedido do PO depois dos experimentos de qualidade do Kokoro (pacote de amostras entregue no chat em 14/11).
+
+- **Escopo do áudio (decidido pelo PO):** Daily Routine (Lucas, Karla, Lukinhas) + The Story of John; Conversation
+  Practice fora (nenhuma chave compartilhada).
+- **Como:** `dev/content/tts/tts-prep.json` (95 frases: texto original → texto para o TTS com reticências). A **chave do
+  áudio continua a do texto original** (IDs, referências e impressões digitais de Lucas/Karla intactos); só o arquivo é
+  regenerado. `tools/gen_audio.py` aplica a preparação e registra em `dev/content/build/tts-ledger.json` (chave → texto,
+  texto falado, voz); arquivo cujo texto falado mudou é regenerado (também se a preparação for desfeita).
+- **Critério:** trechos de 10+ palavras, fronteira entre orações/blocos verbais (antes de while/until/because/before/
+  hoping… ou do “and” que liga orações/verbos); nunca ao lado de pontuação, dentro de sujeito composto, phrasal verb,
+  horário ou coordenação de substantivos. Proposta por regra (109) e revisada frase a frase (14 descartadas, 11
+  corrigidas) → 95. Vírgulas e palavras idênticas ao original (teste). Sem silêncio fixo, sem mudar velocidade nem vozes.
+- **U26:** o silêncio fixo de 1 s (13/11) saiu; áudio “help someone... help a team” (nova chave `c4ab4f3d`; `45b61163` removido).
+- **Números:** 609 frases candidatas (8+ palavras) avaliadas; **95 áudios regenerados** (58 Lucas/Karla bf_emma, 35
+  Lukinhas bm_lewis, 1 John bm_george, 1 narrador bm_fable) + 1 novo (U26) − 1 removido; 2.244 arquivos; alterados =
+  exatamente as 95 chaves do registro; nenhum da Conversation Practice. Originais preservados no Git (`72908ec`).
+- **Verificação objetiva (não substitui a escuta):** transcrição pelo Moonshine antes × depois: média 96,0% × 95,8%
+  (9 melhores, 9 piores — quase tudo formatação como “9:30pm”); palavras a mais/trocadas 61 → 44; pausas criadas pelas
+  reticências: mediana 410 ms, máx. 720 ms; duração +3% (mediana). **U26:** as reticências não abriram pausa clara entre as
+  duas partes e o reconhecedor ouviu “help someone **to** help a team” → escuta humana.
+- **Faixa de números (slider):** os chips numerados das etapas (e01: 1–6, 7.2, 7.3; e o ditado clássico) viraram uma
+  **faixa horizontal de uma linha** (padrão `.chips.scroll` do Curso/Lab): desliza com o dedo, toque seleciona e só o
+  conteúdo da etapa é redesenhado (mesma rota), o número selecionado vai para o centro com rolagem suave, a posição da
+  faixa é guardada por etapa e restaurada a cada redesenho; bordas com esmaecimento. `js/ui/dialogue.js` (`itemChips`),
+  `css/app.css` (`.num-strip`, `.dlg-strip`).
+- **Testes:** unitários 287 ok / 1 ignorado (+3 em `tts-prep.test.js`); `dialogue-layers` 21/21 (L21 novo: uma linha,
+  arraste real por eventos de toque, toque no 20 centralizado, posição mantida, último número, sem troca de tela);
+  `audio-layers` 61/61 (avisos antigos: “work for”, “didn't we?”); `dialogue` 14/14; `speech-online` 13/13; `speech-mode`
+  9/9; `speech-hybrid` 16/16; `pwa` 14/14; `theme` 10/10. Build `c3c3a4d174ca` reproduzido do zero: idêntico. Não
+  repetidos: jornadas/Lukinhas/Curso (conteúdo e chaves inalterados; só o som de 95 arquivos mudou, coberto pelos
+  unitários de integridade e pela comparação antes × depois).
 
 ## 2A. Correções da validação real no Galaxy S25+ (13/11/2026)
 
@@ -177,6 +212,7 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
 | D-004 | Vocabulário: 15 diálogos sem itens próprios nos documentos; 89 itens de tabelas sem fala correspondente | `dev/content/dialogues/john-report.json` | Aberta |
 | D-005 | Diálogos em etapas: curadoria do inventário linguístico completo de cada diálogo (a e01 já tem o seu, aprovado em 2026-11-13) e, se escolhida a correção local da tradução (D3-b), unidades de significado e variantes aceitas por fala | `09_…ANALISE.md`; formato `*-layers.json` | Aguarda decisão do PO |
 | D-006 | Validar as 6 falas corrigidas por decisão do PO de 2026-11-11 (o app usa o texto corrigido; `correction` guarda o original) | `john-corrections.json` | Aberta |
+| D-008 | Áudio: curadoria das reticências do TTS (`dev/content/tts/tts-prep.json`, 95 frases) — confirmar os pontos de separação escolhidos pelo executor | `tts-prep.json` | Aberta |
 | D-007 | e01: registrar na curadoria as unidades apresentadas como expressão real por decisão do PO de 2026-11-13 (U05 “I met someone.”, U18, U30, U31; original em `original`) e avaliar os demais padrões com “…” (U02 “Do you remember…?”, U09, U16, U27), hoje falados como pergunta/expressão curta natural, sem mudança | `john-p1-e01-layers.json` (`note`, `original`, `change`) | Aberta |
 
 ## 8. Instruções para o próximo chat

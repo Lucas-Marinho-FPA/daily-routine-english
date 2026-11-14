@@ -440,13 +440,32 @@ async function skipAndNext(pack, act, p, phase, order, id) {
 const nextAfter = (act, order, p, phase, id) => nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
 
 /** Lista compacta de itens da fase (chips): estado individual de cada item. */
+/**
+ * Faixa horizontal de números (2026-11-14): uma única linha que desliza com o dedo; tocar num número seleciona o item e
+ * só o conteúdo da fase é redesenhado (mesma tela). A posição da faixa é guardada por fase e restaurada a cada
+ * redesenho, e o número selecionado é trazido para o centro com rolagem suave — sem saltos nem perda da posição.
+ * Reaproveita o padrão .chips.scroll (Curso e Lab).
+ */
+const stripPos = new Map();
 function itemChips(ids, p, phase, label, current, onPick) {
-  return h('div', { class: 'chips', 'data-role': 'item-chips', style: { margin: '8px 0' } }, ids.map((id, i) => {
+  const strip = h('div', { class: 'chips scroll num-strip', 'data-role': 'item-chips', role: 'group', 'aria-label': 'Itens da etapa' }, ids.map((id, i) => {
     const m = mastery(p, phase, id);
     const skipped = isSkipped(p, phase, id); // deixado pendente pelo aluno: borda tracejada, sem contar como acerto
-    return h('button', { class: `chip ${ITEM_CHIP[m.status]}${skipped ? ' skipped' : ''}`, type: 'button', 'aria-pressed': String(id === current), 'data-item': id, 'data-status': m.status,
+    return h('button', { class: `chip ${ITEM_CHIP[m.status]}${skipped ? ' skipped' : ''}`, type: 'button', 'aria-pressed': String(id === current), 'aria-current': id === current ? 'true' : null, 'data-item': id, 'data-status': m.status,
       'data-skipped': String(skipped), 'aria-label': `${label(id, i)}: ${skipped ? 'Pendente para revisão' : ITEM_LABEL[m.status]}`, onclick: () => onPick(id) }, label(id, i));
   }));
+  strip.addEventListener('scroll', () => { stripPos.set(phase, strip.scrollLeft); }, { passive: true });
+  requestAnimationFrame(() => {
+    if (!strip.isConnected) return;
+    const had = stripPos.has(phase);
+    strip.scrollLeft = stripPos.get(phase) || 0; // onde o aluno deixou a faixa
+    const sel = strip.querySelector('[aria-pressed="true"]');
+    if (!sel) return;
+    const max = strip.scrollWidth - strip.clientWidth;
+    const left = Math.max(0, Math.min(max, sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2));
+    if (Math.abs(left - strip.scrollLeft) > 1) strip.scrollTo({ left, behavior: had ? 'smooth' : 'auto' });
+  });
+  return strip;
 }
 
 function statusFeedback(result, extra = []) {
@@ -682,7 +701,7 @@ function phaseDictation(App, { pack, act, p, area, ctx }) {
     const fb = h('div', { 'data-role': 'line-result' });
     clear(area).append(
       h('p', { class: 'small muted', text: `Ouça a fala em inglês e escreva-a. Cada frase precisa de ${THRESHOLD}% de correspondência. A frase só aparece depois do envio.` }),
-      itemChips(order, p, 'dictation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }),
+      h('div', { class: 'dlg-strip' }, itemChips(order, p, 'dictation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card', 'data-role': 'dictation-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: `Fala de ${l.speaker}` }),
         h('div', { class: 'small', 'data-role': 'hint' }, h('b', { text: 'Pista em português: ' }),
@@ -861,7 +880,7 @@ function phaseTranslation(App, { pack, act, p, area, ctx }) {
       h('p', { class: 'small muted', 'data-role': 'translation-instruction', text: remote().config.endpoint
         ? `Traduza cada fala para o português. A correção é pelo sentido (avaliação online); cada fala precisa de ${THRESHOLD}%. A tradução de referência só aparece depois da avaliação.`
         : 'Traduza cada fala para o português. A correção automática pelo sentido depende de um serviço online que ainda não está ativo: depois de enviar, você compara com a tradução de referência. A fala fica pendente de avaliação — não conta como aprovada.' }),
-      itemChips(ids, p, 'translation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }),
+      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'translation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card', 'data-role': 'translation-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: l.speaker }),
         h('div', { class: 'row nowrap' }, h('div', { class: 'grow en big-en', 'data-role': 'source', text: l.en }),
@@ -1061,7 +1080,7 @@ function phaseReading(App, { pack, act, p, area, ctx }) {
     const fb = h('div', { 'data-role': 'line-result' });
     clear(area).append(
       h('p', { class: 'small muted', text: `Leia cada fala em voz alta. Aprovação: ${THRESHOLD}% de correspondência confiável por fala. Transcrição duvidosa não reprova: fica inconclusiva.` }),
-      itemChips(ids, p, 'reading', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }),
+      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'reading', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
       h('section', { class: 'card', 'data-role': 'reading-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: l.speaker }),
         h('div', { class: 'big-en en', 'data-role': 'target', text: l.en }),

@@ -17,13 +17,9 @@ import subprocess
 import sys
 import tempfile
 
-import numpy as np
-
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 NUM = {0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine",
        10: "ten", 11: "eleven", 12: "twelve", 15: "fifteen", 20: "twenty", 30: "thirty", 45: "forty-five", 50: "fifty"}
-
-PAUSE_SEC = 1.0  # pausa entre elementos separados (“a | b”); orientação do PO: perceptível, cerca de 1 a 1,5 s
 
 # Pronúncias forçadas (IPA no formato do Kokoro) para nomes próprios e homógrafos.
 OVERRIDES = [
@@ -100,21 +96,27 @@ def main():
     index_path = os.path.join(ROOT, "content/build/audio-durations.json")
     durations = json.load(open(index_path)) if os.path.exists(index_path) else {}
 
-    todo = [m for m in manifest if not os.path.exists(os.path.join(outdir, m["key"] + ".ogg"))]
+    # Preparação para o TTS (content/tts/tts-prep.json, decisão do PO de 2026-11-14): reticências em pontos naturais.
+    # A chave continua a do texto original (IDs e referências do app não mudam); só o arquivo é gerado a partir do texto
+    # preparado. O registro (content/build/tts-ledger.json: chave → texto falado) diz com que texto cada arquivo foi
+    # gerado; arquivo cujo texto falado mudou é regenerado (também ao voltar ao texto original).
+    prep_path = os.path.join(ROOT, "content/tts/tts-prep.json")
+    prep = {e["text"]: e["tts"] for e in json.load(open(prep_path, encoding="utf-8"))["entries"]} if os.path.exists(prep_path) else {}
+    ledger_path = os.path.join(ROOT, "content/build/tts-ledger.json")
+    ledger = json.load(open(ledger_path, encoding="utf-8")) if os.path.exists(ledger_path) else {}
+    spoken_of = lambda m: prep.get(m["text"], m["text"])
+    def stale(m):
+        if not os.path.exists(os.path.join(outdir, m["key"] + ".ogg")):
+            return True
+        return ledger.get(m["key"], {}).get("tts", m["text"]) != spoken_of(m)
+    todo = [m for m in manifest if stale(m)]
     if args.limit:
         todo = todo[: args.limit]
     print(f"{len(manifest)} no manifesto, {len(todo)} a gerar", flush=True)
     for n, m in enumerate(todo, 1):
-        # “ | ” no texto do manifesto = elementos separados, cada um sintetizado e unidos por PAUSE_SEC de silêncio
-        # (ex.: “help someone | help a team”); texto sem a marca é gerado como sempre
-        chunks = []
-        for part in [p for p in m["text"].split(" | ") if p.strip()]:
-            phonemes = to_phonemes(kokoro, normalise(part))
-            s_, sr = kokoro.create(phonemes, voice=m.get("voice") or args.voice, speed=1.0, lang="en-gb", is_phonemes=True)
-            if chunks:
-                chunks.append(np.zeros(int(sr * PAUSE_SEC), dtype=s_.dtype))
-            chunks.append(s_)
-        samples = np.concatenate(chunks)
+        spoken = normalise(spoken_of(m))
+        phonemes = to_phonemes(kokoro, spoken)
+        samples, sr = kokoro.create(phonemes, voice=m.get("voice") or args.voice, speed=1.0, lang="en-gb", is_phonemes=True)
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             sf.write(tmp.name, samples, sr)
             wav = tmp.name
@@ -123,11 +125,18 @@ def main():
                         "-c:a", "libopus", "-b:a", "32k", "-ac", "1", target], check=True)
         os.unlink(wav)
         durations[m["key"]] = round(len(samples) / sr + 0.15, 2)
+        if spoken_of(m) != m["text"]:
+            ledger[m["key"]] = {"text": m["text"], "tts": spoken_of(m), "voice": m.get("voice") or args.voice}
+        else:
+            ledger.pop(m["key"], None)
         if n % 25 == 0 or n == len(todo):
             json.dump(durations, open(index_path, "w"))
+            json.dump(ledger, open(ledger_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1, sort_keys=True)
             print(f"{n}/{len(todo)}", flush=True)
 
     keys = {m["key"] for m in manifest}
+    ledger = {k: v for k, v in ledger.items() if k in keys}
+    json.dump(ledger, open(ledger_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1, sort_keys=True)
     present = {k: v for k, v in durations.items() if k in keys and os.path.exists(os.path.join(outdir, k + ".ogg"))}
     with open(os.path.join(ROOT, "app/data/audio-index.js"), "w") as f:
         f.write("// GERADO por tools/gen_audio.py — chave → duração (s). Voz: Kokoro " + args.voice + " (Apache-2.0).\n")

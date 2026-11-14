@@ -673,6 +673,13 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .wd-extra { text-decoration: line-through; text-decoration-thickness: 2px; }
 .wd-fix, .wd-missing { background: var(--ok-soft); color: var(--ok); font-weight: 800; border-radius: 4px; padding: 0 1px; }
 .wd-missing { text-decoration: underline; text-underline-offset: 4px; }
+/* faixa horizontal de números (itens da etapa): uma linha, desliza com o dedo, o selecionado vai para o centro */
+.num-strip.chips { gap: 10px; margin: 0; padding: 4px 16px 8px; scroll-snap-type: x proximity; scroll-padding-inline: 16px;
+  overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
+.num-strip::-webkit-scrollbar { display: none; }
+.num-strip .chip { flex: none; scroll-snap-align: center; min-width: 48px; min-height: 48px; justify-content: center; font-size: 1.05rem; font-weight: 700; }
+.vx-chips, .dlg-strip { margin: 0 -16px 18px; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); }
 .btn.vx-next { margin-top: 16px; min-height: 52px; }
 .vx-card .wp-status:empty { display: none; }
 .vx-card .wp-status { margin: 14px 0 0; }

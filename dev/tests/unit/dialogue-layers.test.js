@@ -301,7 +301,7 @@ test('escrita marcada: “saund” × “sound” marca só a × o; palavra a ma
   assert.equal(closestReference('sounds intresting', ['sound + adjective', 'sounds interesting']), 'sounds interesting');
 });
 
-test('conteúdo (validação real): U31 “sounds interesting” com tradução natural e o padrão como complemento; U05 sem par isolado; U26 com pausa', () => {
+test('conteúdo (validação real): U31 “sounds interesting” com tradução natural e o padrão como complemento; U05 sem par isolado; U26 com reticências (sem silêncio fixo)', () => {
   const by = (c) => LAYER.find((x) => x.code === c);
   assert.equal(by('U31').en, 'sounds interesting'); assert.equal(by('U31').pt, 'Parece interessante.');
   assert.match(by('U31').note, /sound \+ adjective/); assert.equal(by('U31').original.en, 'sound + adjective');
@@ -310,7 +310,7 @@ test('conteúdo (validação real): U31 “sounds interesting” com tradução 
   assert.ok(LAYER.every((x) => !/→/.test(x.en)), 'nenhum par com seta num mesmo exercício');
   assert.equal(by('U30').en, 'That sounds interesting.'); assert.equal(by('U30').pt, 'Isso parece interessante.');
   assert.equal(by('U26').spoken, 'help someone, help a team'); // reconhecimento e escrita como antes
-  assert.notEqual(by('U26').audio, '4410beef'); // áudio novo com pausa entre as partes
+  assert.ok(!['4410beef', '45b61163'].includes(by('U26').audio)); // nem a vírgula artificial nem o silêncio fixo de 1 s (2026-11-14)
   // o restante das unidades e todas as frases continuam literalmente iguais ao documento
   const changed = SRC.units.filter((u) => u.original).map((u) => u.code);
   assert.deepEqual(changed, ['U05', 'U18', 'U30', 'U31']);
