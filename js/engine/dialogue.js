@@ -16,7 +16,9 @@
 //  • versões de rubrica/avaliador ficam gravadas em cada tentativa (mudar a rubrica não reescreve o passado).
 
 export const THRESHOLD = 80;
-export const LISTENS_REQUIRED = 3;
+export const LISTENS_REQUIRED = 3; // escuta global do diálogo (7.1) antes das questões
+export const LISTENS_TO_SPEAK = 1; // ajuste 03/04 (PO, 2026-11-14): uma reprodução completa antes da 1ª gravação; depois, livre
+export const LISTENS_TO_WRITE = 1; // ajuste 01: uma reprodução completa do modelo antes de enviar a escrita
 export const QUESTIONS_TOTAL = 10; // rodada padrão
 export const QUESTIONS_PASS = 8; // corte da rodada padrão (8/10 = 80%)
 /** Corte proporcional de uma rodada com n questões: o menor número de acertos que atinge 80% (10 → 8; 9 → 8; 7 → 6; 5 → 4; 3 → 3). */
@@ -143,7 +145,8 @@ export function recordListen(p, key, now = Date.now()) {
   return p.listens[key];
 }
 export const listensOf = (p, key) => (p && p.listens && p.listens[key]) || 0;
-export const canSpeakItem = (p, itemId, phase = 'vocab') => listensOf(p, `${phase}:${itemId}`) >= LISTENS_REQUIRED;
+export const canSpeakItem = (p, itemId, phase = 'vocab') => listensOf(p, `${phase}:${itemId}`) >= LISTENS_TO_SPEAK;
+export const canWriteItem = (p, itemId, phase) => listensOf(p, `${phase}:${itemId}`) >= LISTENS_TO_WRITE;
 export const canAnswerQuestions = (p) => listensOf(p, 'listening') >= LISTENS_REQUIRED;
 
 /**
@@ -435,6 +438,16 @@ export function phaseOrder(p, phase, ids, rand = Math.random) {
   p.order[phase] = out;
   return out;
 }
+
+/**
+ * Bloqueio por item nas etapas tolerantes (ajuste 09): acessíveis os itens já resolvidos (aprovados ou deixados
+ * pendentes) e o primeiro ainda não resolvido, na ordem da etapa; os seguintes ficam bloqueados. Outras fases: tudo livre.
+ */
+export function frontierIndex(order, p, phase) {
+  const i = order.findIndex((id) => mastery(p, phase, id).status !== 'passed' && !isSkipped(p, phase, id));
+  return i < 0 ? order.length - 1 : i;
+}
+export const itemAccessible = (act, order, p, phase, id) => !isTolerant(act, phase) || order.indexOf(id) <= frontierIndex(order, p, phase);
 
 /** Marca a conclusão (só quando todas as fases estão concluídas e nada depende de avaliação pendente). */
 export function settleCompletion(pack, act, p, now = Date.now()) {

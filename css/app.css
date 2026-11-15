@@ -673,13 +673,27 @@ select.field option { background: var(--surface-solid); color: var(--ink); }
 .wd-extra { text-decoration: line-through; text-decoration-thickness: 2px; }
 .wd-fix, .wd-missing { background: var(--ok-soft); color: var(--ok); font-weight: 800; border-radius: 4px; padding: 0 1px; }
 .wd-missing { text-decoration: underline; text-underline-offset: 4px; }
-/* faixa horizontal de números (itens da etapa): uma linha, desliza com o dedo, o selecionado vai para o centro */
-.num-strip.chips { gap: 10px; margin: 0; padding: 4px 16px 8px; scroll-snap-type: x proximity; scroll-padding-inline: 16px;
-  overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
-.num-strip::-webkit-scrollbar { display: none; }
-.num-strip .chip { flex: none; scroll-snap-align: center; min-width: 48px; min-height: 48px; justify-content: center; font-size: 1.05rem; font-weight: 700; }
-.vx-chips, .dlg-strip { margin: 0 -16px 18px; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); }
+/* slider de itens (ajuste 09): 5 círculos — ativo no centro (48 px, o tamanho de sempre), vizinhos 40 px, extremos 32 px;
+   resolvidos em verde; bloqueados escuros/transparentes, número discreto e cadeado em marca-d'água no centro do círculo */
+.vx-chips, .dlg-strip { margin: 0 0 18px; }
+.num-slider { touch-action: pan-y; user-select: none; -webkit-user-select: none; padding: 4px 0 2px; overflow: hidden; }
+.ns-row { display: flex; align-items: center; justify-content: center; gap: 14px; transition: transform .18s ease-out; }
+.ns-b { position: relative; flex: none; display: grid; place-items: center; border-radius: 50%; padding: 0; font-weight: 800;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); transition: width .18s, height .18s, font-size .18s; }
+.ns-d0 { width: 48px; height: 48px; font-size: 1.15rem; }
+.ns-d1 { width: 40px; height: 40px; font-size: 1rem; }
+.ns-d2 { width: 32px; height: 32px; font-size: .85rem; }
+.ns-empty { visibility: hidden; }
+.ns-current { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+.ns-passed { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.ns-skipped { background: var(--warn-soft); border: 2px dashed var(--warn); color: var(--warn); }
+.ns-retry { background: var(--bad-soft); border-color: transparent; color: var(--bad); }
+.ns-locked { background: transparent; color: color-mix(in srgb, var(--ink) 55%, transparent); border-color: color-mix(in srgb, var(--line) 80%, transparent); }
+.ns-n { position: relative; z-index: 1; line-height: 1; }
+.ns-lock { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; pointer-events: none; opacity: .5; }
+.ns-lock svg { width: 58%; height: 58%; }
+.ns-total { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 6px; }
+.wd-xmiss { color: var(--bad); font-weight: 800; letter-spacing: .02em; background: var(--bad-soft); border-radius: 4px; padding: 0 2px; font-family: var(--font-ui, inherit); }
 .btn.vx-next { margin-top: 16px; min-height: 52px; }
 .vx-card .wp-status:empty { display: none; }
 .vx-card .wp-status { margin: 14px 0 0; }

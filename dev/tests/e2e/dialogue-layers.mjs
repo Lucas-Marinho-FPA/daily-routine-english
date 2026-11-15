@@ -61,10 +61,11 @@ const seed = (entries, extra = {}) => page.evaluate(async ({ entries, extra, ACT
   await new Promise((res) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(cur, 'dialogues'); t.oncomplete = res; });
 }, { entries, extra, ACT });
 
+/** Uma reprodução completa do modelo (o botão volta a ficar ativo quando a reprodução termina e a tela é redesenhada). */
 async function listenOnce() {
-  const before = await textOf('[data-role=listen-count]');
+  await page.evaluate(() => { const b = document.querySelector('[data-role=listen-item]'); b.dataset.waiting = '1'; });
   await page.click('[data-role=listen-item]');
-  await page.waitForFunction((b) => document.querySelector('[data-role=listen-count]')?.textContent !== b, before, { timeout: 20000 });
+  await page.waitForFunction(() => { const b = document.querySelector('[data-role=listen-item]'); return b && !b.dataset.waiting && !b.disabled; }, null, { timeout: 20000 });
 }
 async function recordOnce(ms = 1200) {
   await page.evaluate(() => document.querySelectorAll('[data-role=feedback]').forEach((e) => e.remove()));
@@ -75,8 +76,14 @@ async function recordOnce(ms = 1200) {
   await page.waitForSelector('[data-role=feedback]', { timeout: 30000 });
   return page.getAttribute('[data-role=feedback]', 'data-status');
 }
-const chipIds = () => page.$$eval('[data-role=item-chips] [data-item]', (b) => b.map((x) => x.dataset.item));
-const writeAnswer = async (text) => { await page.evaluate(() => document.querySelectorAll('[data-role=feedback]').forEach((e) => e.remove())); await page.fill('[data-role=answer]', text); await page.click('[data-role=submit]'); await page.waitForSelector('[data-role=feedback]'); return page.getAttribute('[data-role=feedback]', 'data-status'); };
+const chipIds = async () => { // ordem completa da etapa atual (o slider mostra só 5 números): a sorteada e salva, ou a do conteúdo
+  const phase = new URL(page.url()).hash.match(/p=([\w-]+)/)[1];
+  const st = await store(); const o = st && st.acts[ACT] && (st.acts[ACT].order || {})[phase];
+  return o || (phase[0] === 'u' ? A.unitIds : phase[0] === 's' ? A.sentenceIds : A.lines.map((l) => l.id));
+};
+const writeAnswer = async (text) => { // ajuste 01: com áudio-modelo, ouvir até o fim antes de enviar
+  if ((await page.getAttribute('[data-role=submit]', 'data-locked')) === 'true') await listenOnce();
+  await page.evaluate(() => document.querySelectorAll('[data-role=feedback]').forEach((e) => e.remove())); await page.fill('[data-role=answer]', text); await page.click('[data-role=submit]'); await page.waitForSelector('[data-role=feedback]'); return page.getAttribute('[data-role=feedback]', 'data-status'); };
 
 // ---------- início ----------
 await page.goto(BASE); await page.waitForSelector('#app');
@@ -125,42 +132,43 @@ await check('L04', 'Etapa 1 (unidades — escrever): EN + PT juntos; errado → 
   const ids = await chipIds();
   const shownEn = await textOf('[data-role=item-en]'), shownPt = await textOf('[data-role=item-pt]');
   const bad = await writeAnswer('hello world');
-  const ref = await textOf('[data-role=reference]');
+  const ref = await page.locator('[data-role=feedback] [data-role=reference]').count(); // ajuste 06: sem a resposta-modelo
   const ok = await writeAnswer(UNITS[0].en);
-  await page.click(`[data-role=item-chips] [data-item="${ACT}-u26"]`); await page.waitForSelector(`[data-role=layer-card][data-item="${ACT}-u26"]`);
+  await openItem('u-write', `${ACT}-u26`);
   const variant = await writeAnswer('help someone, help a team'); // forma falada da notação “/” aceita
   await shot('04-etapa1');
   assert(ids.join() === A.unitIds.join(), 'unidades da etapa 1 ≠ inventário');
   assert(shownEn === UNITS[0].en && shownPt === UNITS[0].pt, `${shownEn} / ${shownPt}`);
-  assert(bad === 'needs_practice' && ref.includes(UNITS[0].en) && ok === 'passed' && variant === 'passed', `${bad} ${ok} ${variant}`);
+  assert(bad === 'needs_practice' && ref === 0 && ok === 'passed' && variant === 'passed', `${bad} ${ref} ${ok} ${variant}`);
   return { unidades: ids.length, errado: bad, certo: ok, notacao: variant };
 });
 
-await check('L05', 'Etapa 2 (unidades — falar): gravação bloqueada até 3 reproduções COMPLETAS; reprodução interrompida não conta; depois grava e avalia; contador retomado após recarregar', async () => {
+await check('L05', 'Etapa 2 (ajustes 03/04): gravar só depois de UMA reprodução completa (interrompida não conta); depois, ouvir e gravar livremente; destaque alterna Ouvir → Gravar → Ouvir; escuta salva após recarregar', async () => {
   await seed([['u-write', A.unitIds]]); await reload(); // pré-requisito: etapa 1 semeada
   await go(`#/dphase/${ACT}?p=u-speak`); await page.waitForSelector('[data-role=vocab-card]');
-  const ids = await chipIds();
   const it = UNITS[0];
-  const lock0 = await page.locator('[data-role=record-item]').isDisabled();
-  // reprodução interrompida: começa e é parada antes do fim — não conta
+  const emph = async () => ({ ouvir: await page.getAttribute('[data-role=listen-item]', 'data-emph'), gravar: await page.getAttribute('[data-role=record-item]', 'data-emph') });
+  const e0 = await emph(); const lock0 = await page.locator('[data-role=record-item]').isDisabled();
+  const counter = await page.locator('[data-role=listen-count]').count(); // sem contador de 3 audições
   await page.click('[data-role=listen-item]'); await page.waitForTimeout(250);
-  await page.evaluate(() => { location.hash = '#/'; }); await page.waitForTimeout(400); // sair da tela no meio da reprodução: não conta
+  await page.evaluate(() => { location.hash = '#/'; }); await page.waitForTimeout(400); // sair no meio da reprodução: não conta
   await go(`#/dphase/${ACT}?p=u-speak`); await page.waitForSelector('[data-role=vocab-card]');
-  const afterStop = await textOf('[data-role=listen-count]');
+  const lockStop = await page.locator('[data-role=record-item]').isDisabled();
   const reqBefore = audioReqs.length;
-  await listenOnce(); const lock1 = await page.locator('[data-role=record-item]').isDisabled();
-  await listenOnce(); const lock2 = await page.locator('[data-role=record-item]').isDisabled();
-  await reload(); const resumed = await textOf('[data-role=listen-count]');
-  await listenOnce(); const lock3 = await page.locator('[data-role=record-item]').isDisabled();
+  await listenOnce(); const lock1 = await page.locator('[data-role=record-item]').isDisabled(); const e1 = await emph();
+  await reload(); const lockReload = await page.locator('[data-role=record-item]').isDisabled();
   const played = [...new Set(audioReqs.slice(reqBefore))];
   await setHeard('remember me');
-  const st = await recordOnce();
+  const st = await recordOnce(); const e2 = await emph(); const lockAfter = await page.locator('[data-role=record-item]').isDisabled();
+  await listenOnce(); const e3 = await emph();
+  for (let i = 0; i < 4; i++) await listenOnce(); // ouvir quantas vezes quiser
+  const st2 = await recordOnce();
   await shot('05-etapa2');
-  assert(ids.join() === A.unitIds.join(), 'unidades da etapa 2 ≠ etapa 1');
-  assert(lock0 && /0\/3/.test(afterStop) && lock1 && lock2 && /2\/3/.test(resumed) && !lock3, JSON.stringify({ lock0, afterStop, lock1, lock2, resumed, lock3 }));
+  assert(lock0 && e0.ouvir === 'true' && e0.gravar === 'false' && counter === 0, JSON.stringify({ lock0, e0, counter }));
+  assert(lockStop && !lock1 && !lockReload && e1.gravar === 'true' && e1.ouvir === 'false', JSON.stringify({ lockStop, lock1, lockReload, e1 }));
+  assert(st === 'passed' && e2.ouvir === 'true' && e2.gravar === 'false' && !lockAfter && e3.gravar === 'true' && st2 === 'passed', JSON.stringify({ st, e2, lockAfter, e3, st2 }));
   assert(played.length === 1 && played[0] === it.audio, `áudio tocado ${played} ≠ ${it.audio}`);
-  assert(st === 'passed', st);
-  return { bloqueio: [lock0, lock1, lock2, lock3], interrompida: afterStop, retomada: resumed, audio: it.audio, resultado: st };
+  return { antes: e0, depoisDeOuvir: e1, depoisDeGravar: e2, ouviuDeNovo: e3, interrompidaLibera: !lockStop, resultado: [st, st2] };
 });
 
 await check('L06', 'Etapa 3 (unidades — ouvir e escrever): as 32, ordem embaralhada e estável após recarregar, inglês oculto antes da resposta, áudio do próprio item', async () => {
@@ -188,14 +196,14 @@ await check('L07', 'Etapas 4–6 (frases): as mesmas 25 frases nas três; expans
   await seed([['u-listen', A.unitIds]]); await reload();
   await go(`#/dphase/${ACT}?p=s-write`); await page.waitForSelector('[data-role=layer-card]');
   const w = await chipIds();
-  await page.click(`[data-role=item-chips] [data-item="${ACT}-f11"]`); await page.waitForSelector(`[data-role=layer-card][data-item="${ACT}-f11"]`);
-  const eyebrowExp = await textOf('[data-role=layer-card] .eyebrow');
+  await openItem('s-write', `${ACT}-f11`);
+  const eyebrowExp = await page.locator('[data-role=layer-card] .eyebrow').count(); // ajuste 02: sem classificação interna
   const st4 = await writeAnswer(item(`${ACT}-f11`).en);
   await seed([['s-write', A.sentenceIds]]); await reload();
   await go(`#/dphase/${ACT}?p=s-speak`); await page.waitForSelector('[data-role=vocab-card]');
   const sp = await chipIds();
   const lock0 = await page.locator('[data-role=record-item]').isDisabled();
-  await listenOnce(); await listenOnce(); const lock2 = await page.locator('[data-role=record-item]').isDisabled();
+  const lock2 = lock0;
   await listenOnce(); const lock3 = await page.locator('[data-role=record-item]').isDisabled();
   await setHeard(item(sp[0]).spoken.replace(/[?.!,]/g, ''));
   const st5 = await recordOnce(1500);
@@ -208,10 +216,10 @@ await check('L07', 'Etapas 4–6 (frases): as mesmas 25 frases nas três; expans
   const st6 = await writeAnswer(item(cur).en);
   await shot('07-etapa6');
   assert(w.join() === A.sentenceIds.join() && sp.join() === A.sentenceIds.join() && [...ls].sort().join() === [...A.sentenceIds].sort().join() && ls.join() !== A.sentenceIds.join(), 'conjuntos/ordem');
-  assert(/expansão/i.test(eyebrowExp) && st4 === 'passed', `${eyebrowExp} ${st4}`);
+  assert(eyebrowExp === 0 && st4 === 'passed', `${eyebrowExp} ${st4}`);
   assert(lock0 && lock2 && !lock3 && st5 === 'passed', JSON.stringify({ lock0, lock2, lock3, st5 }));
   assert(enBefore === 0 && st6 === 'passed', `${enBefore} ${st6}`);
-  return { frases: 25, expansao: eyebrowExp, etapa5: st5, etapa6: st6 };
+  return { frases: 25, rotuloInterno: eyebrowExp, etapa5: st5, etapa6: st6 };
 });
 
 await check('L08', 'Etapa 7: 7.1 abre após a etapa 6; diálogo completo na ordem, com personagens e áudio de cada fala; 7.2 e 7.3 em sequência; inglês das falas liberado após a etapa 6', async () => {
@@ -234,14 +242,32 @@ await check('L09', 'Retomada e preservação: progresso salvo por etapa; tentati
   const old = Object.values(p.attempts).find((a) => a.phase === 'vocab' && a.itemId === 'john-p1-e01-v05');
   const byPhase = Object.values(p.attempts).reduce((m, a) => (m[a.phase] = (m[a.phase] || 0) + 1, m), {});
   assert(old && s.acts['john-p1-e02'] && s.acts['john-p1-e02'].notes === 'nota antiga' && s.acts['john-p1-e02'].attempts['att-old-e02'], 'progresso anterior perdido');
-  assert(p.listens[`u-speak:${UNITS[0].id}`] === 3 && p.order['u-listen'] && p.order['s-listen'], 'escutas/ordem não salvas');
+  assert(p.listens[`u-speak:${UNITS[0].id}`] >= 1 && p.order['u-listen'] && p.order['s-listen'], 'escutas/ordem não salvas');
   assert(PACK.activities.length === 46 && PACK.questions.length === 403 && PACK.active.join() === ACT, 'pacote');
   return { tentativasPorEtapa: byPhase, escutasSalvas: p.listens[`u-speak:${UNITS[0].id}`], atividades: PACK.activities.length };
 });
 
 // ---------- fechamento de qualidade (2026-11-13) ----------
 const unitByCode = (c) => UNITS.find((x) => x.code === c);
-async function openItem(phase, id) { await go(`#/dphase/${ACT}?p=${phase}`); await page.waitForSelector('[data-role=item-chips]'); await page.click(`[data-role=item-chips] [data-item="${id}"]`); await page.waitForSelector(`[data-item="${id}"][data-role$=card]`); }
+async function openItem(phase, id) {
+  // slider de 5 números com bloqueio por item (ajuste 09): para abrir um item adiante, os anteriores da etapa precisam estar
+  // resolvidos — o teste os semeia como aprovados e depois coloca o item no centro pelo próprio slider
+  await go(`#/dphase/${ACT}?p=${phase}`); await page.waitForSelector('[data-role=item-chips]');
+  const order = await page.evaluate(({ ACT, phase }) => new Promise((res) => { const r = indexedDB.open('drg'); r.onsuccess = () => { const t = r.result.transaction('kv').objectStore('kv').get('dialogues'); t.onsuccess = () => res(((t.result.acts[ACT] || {}).order || {})[phase] || null); }; }), { ACT, phase });
+  const ids = order || (phase[0] === 'u' ? A.unitIds : phase[0] === 's' ? A.sentenceIds : A.lines.map((l) => l.id));
+  const before = ids.slice(0, ids.indexOf(id));
+  const st = await store(); const p = st.acts[ACT];
+  const done = (x) => Object.values(p.attempts).some((a) => a.phase === phase && a.itemId === x && a.status === 'passed') || ((p.skipped || {})[phase] || {})[x];
+  const missing = before.filter((x) => !done(x));
+  if (missing.length) { await seed([[phase, missing]]); await reload(); await go(`#/dphase/${ACT}?p=${phase}`); await page.waitForSelector('[data-role=item-chips]'); }
+  for (let k = 0; k < 40 && (await page.getAttribute('[data-role=item-chips] [aria-current=true]', 'data-item')) !== id; k++) {
+    const cur = await page.getAttribute('[data-role=item-chips] [aria-current=true]', 'data-item');
+    const dir = ids.indexOf(id) > ids.indexOf(cur) ? 1 : -1;
+    const sel = await page.$$eval('[data-role=item-chips] [data-item]', (b, d) => { const xs = b.map((x) => x.dataset.item); const c = b.findIndex((x) => x.getAttribute('aria-current') === 'true'); return xs[c + d] || null; }, dir);
+    await page.click(`[data-role=item-chips] [data-item="${sel}"]`); await page.waitForTimeout(80);
+  }
+  await page.waitForSelector(`[data-role$=card][data-item="${id}"], [data-role$=card][data-line="${id}"]`);
+}
 
 await check('L11', 'U31: a expressão real “sounds interesting” em primeiro plano, tradução natural, “sound + adjective” só como complemento; o aluno ouve exatamente isso; nada de notação verbalizada', async () => {
   const u = unitByCode('U31');
@@ -303,7 +329,7 @@ await check('L14', 'Tradução 7.3 sem avaliador online: limitação explícita;
   await seed([['reading', A.lines.map((l) => l.id)]]); await reload();
   const L = A.lines[6];
   await go(`#/dphase/${ACT}?p=translation`); await page.waitForSelector('[data-role=translation-card]');
-  await page.click(`[data-role=item-chips] [data-item="${L.id}"]`); await page.waitForSelector(`[data-role=translation-card][data-line="${L.id}"]`);
+  await openItem('translation', L.id);
   const instr = await textOf('[data-role=translation-instruction]');
   await page.fill('[data-role=answer]', 'Parece legal.'); await page.click('[data-role=submit]');
   await page.waitForSelector('[data-role=self-compare]');
@@ -423,24 +449,33 @@ await check('L18', 'Aproveitamento por etapa (frases, 25 itens): 23/25 = 92% apr
   return r;
 });
 
-await check('L19', 'Escrita com marcação visual: “saunds interesting” × “sounds interesting” marca só o “a” (vermelho) e o “o” (verde); sem listas repetidas nem significado duplicado; aprovado sem marcas quando exato', async () => {
-  await resetE01(); await reload();
-  await openItem('u-write', `${ACT}-u31`);
-  const st = await writeAnswer('saunds interesting'); // o caso do aparelho (“saund” × “sound”), na expressão atual da U31
-  const wrong = await page.$$eval('[data-role=answer-echo] [data-mark]', (l) => l.map((x) => `${x.dataset.mark}:${x.textContent}`));
-  const fix = await page.$$eval('[data-role=reference] [data-mark]', (l) => l.map((x) => `${x.dataset.mark}:${x.textContent}`));
+await check('L19', 'Escrita (ajustes 01/05/06/07): no Listening, tradução visível e inglês oculto; enviar sem ouvir até o fim mostra a orientação; erro marcado sem revelar a resposta (X por letra que falta, letra a mais em vermelho); frase completa só no acerto integral', async () => {
+  await resetE01(['u-write', 'u-speak', 'u-listen', 's-write', 's-speak'].map((ph) => [ph, ph[0] === 'u' ? A.unitIds : A.sentenceIds])); await reload();
+  const F14 = `${ACT}-f14`; // “This week I'm working with a different team.”
+  await openItem('s-listen', F14);
+  const ptBefore = await textOf('[data-role=layer-card] [data-role=item-pt]');
+  const enBefore = await page.locator('[data-role=layer-card] [data-role=item-en]').count();
+  await page.fill('[data-role=answer]', 'This week I\'m working different teams'); await page.click('[data-role=submit]'); await page.waitForTimeout(300);
+  const msg = (await textOf('[data-role=listen-first]')).trim(); const noFb = await page.locator('[data-role=feedback]').count();
+  const typed = await page.inputValue('[data-role=answer]');
+  await listenOnce();
+  const kept = await page.inputValue('[data-role=answer]');
+  await page.click('[data-role=submit]'); await page.waitForSelector('[data-role=feedback]');
+  const st = await page.getAttribute('[data-role=feedback]', 'data-status');
+  const echo = await textOf('[data-role=answer-echo]');
+  const marks = await page.$$eval('[data-role=answer-echo] [data-mark]', (l) => l.map((x) => `${x.dataset.mark}:${x.textContent}`));
   const fbText = (await textOf('[data-role=feedback]')).replace(/\s+/g, ' ');
-  const colors = await page.evaluate(() => ['.wd-wrong', '.wd-fix'].map((s) => getComputedStyle(document.querySelector(s)).color));
-  await shot('19-escrita-marcada');
-  const tries = (await textOf('[data-role=tries]')).trim();
-  const ok = await writeAnswer('sounds interesting');
-  const okMarks = await page.locator('[data-role=feedback] [data-mark]').count();
-  assert(wrong.join() === 'wrong:a' && fix.join() === 'fix:o', `${st} ${wrong} ${fix}`);
-  assert(!/Significado|Ortografia:|Faltou:|A mais:/.test(fbText) && /Você escreveu/.test(fbText) && /Correto/.test(fbText), fbText);
-  assert(colors[0] !== colors[1], `cores iguais ${colors}`);
-  assert(ok === 'passed' && okMarks === 0, `${ok} ${okMarks}`);
-  assert(st === 'passed' || /Tentativa 1 de 3/.test(tries), `${st} ${tries}`); // 1 letra em 17: o corretor pode aprovar (≥ 80%) — a marcação aparece do mesmo jeito
-  return { status: st, voceEscreveu: wrong, correto: fix, cores: colors, feedback: fbText, depois: ok };
+  const enAfterErr = await page.locator('[data-role=layer-card] [data-role=item-en]').count();
+  const color = await page.evaluate(() => [getComputedStyle(document.querySelector('[data-mark=missing]')).color, getComputedStyle(document.querySelector('[data-mark=extra]')).color]);
+  await shot('19-escrita-mascara');
+  const ok = await writeAnswer("This week I'm working with a different team.");
+  const enAfterOk = await textOf('[data-role=layer-card] [data-role=item-en]');
+  assert(/Esta semana/.test(ptBefore) && enBefore === 0, `antes: ${ptBefore} / ${enBefore}`);
+  assert(msg === 'Escute a frase com atenção antes de enviar. Ela será trabalhada novamente na próxima etapa de Listening.' && noFb === 0 && kept === typed, `${msg} ${noFb} ${kept}`);
+  assert(echo === "This week I'm working XXXX X different teams" && marks.join() === 'missing:XXXX,missing:X,extra:s', `${echo} | ${marks}`);
+  assert(!/with a different team/.test(fbText) && enAfterErr === 0 && color[0] === color[1], `revelou: ${fbText} / ${enAfterErr} / ${color}`);
+  assert(ok === 'passed' && enAfterOk === "This week I'm working with a different team.", `${ok} ${enAfterOk}`);
+  return { orientacao: msg, escreveu: echo, marcas: marks, status: st, depoisDoAcerto: enAfterOk };
 });
 
 await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar, segue para a próxima fala; U05 “I met someone.” e U04 “meet someone” em exercícios separados; U26 toca o próprio áudio (reticências entre as partes, sem silêncio fixo)', async () => {
@@ -455,7 +490,7 @@ await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar,
   }, { ACT, qids }); await reload();
   await go(`#/dphase/${ACT}?p=reading`); await page.waitForSelector('[data-role=reading-card]');
   const first = await page.getAttribute('[data-role=reading-card]', 'data-line');
-  await page.click(`[data-role=item-chips] [data-item="${A.lines[0].id}"]`); await page.waitForTimeout(300);
+  await openItem('reading', A.lines[0].id); await page.waitForTimeout(300);
   const canSkip = await page.locator('[data-role=skip-item]').count();
   await page.click('[data-role=skip-item]'); await page.waitForTimeout(400);
   const after = await page.getAttribute('[data-role=reading-card]', 'data-line');
@@ -474,41 +509,43 @@ await check('L20', 'Leitura 7.2 (fala): mesma regra — 3 tentativas, continuar,
 });
 
 
-await check('L21', 'Faixa horizontal de números (etapa 2, 32 unidades, viewport Android): uma linha; arrastar com o dedo rola a faixa sem trocar de item nem de tela; tocar num número atualiza só o conteúdo e o centraliza; posição mantida ao redesenhar', async () => {
-  await resetE01([['u-write', A.unitIds]]); await reload();
+await check('L21', 'Slider de 5 números (ajuste 09, viewport Android): ativo no centro e laranja (48 px), 2 anteriores verdes menores, 2 seguintes bloqueados com cadeado centrado; arrastar troca o ativo (até o último liberado) e reorganiza; bloqueado não abre; extensão total visível; sem troca de tela', async () => {
+  await resetE01([['u-write', A.unitIds], ['u-speak', A.unitIds.slice(0, 5)]]); await reload();
   await go(`#/dphase/${ACT}?p=u-speak`); await page.waitForSelector('[data-role=vocab-card]');
   const url0 = page.url();
-  const geo = () => page.evaluate(() => { const s = document.querySelector('[data-role=item-chips]'); const r = s.getBoundingClientRect(); const sel = s.querySelector('[aria-pressed="true"]').getBoundingClientRect();
-    return { rows: new Set([...s.children].map((c) => Math.round(c.getBoundingClientRect().top))).size, sw: s.scrollWidth, cw: s.clientWidth, left: Math.round(s.scrollLeft), pageW: document.documentElement.scrollWidth, vw: innerWidth,
-      selOff: Math.round((sel.left + sel.width / 2) - (r.left + r.width / 2)), selVisible: sel.left >= r.left - 1 && sel.right <= r.right + 1, item: document.querySelector('[data-role=vocab-card]').dataset.item }; });
-  const g0 = await geo();
-  // arraste horizontal REAL (gesto de toque sintetizado pelo Chromium) sobre a faixa
+  const geo = () => page.evaluate(() => {
+    const bs = [...document.querySelectorAll('[data-role=item-chips] .ns-b')];
+    const vis = bs.filter((b) => !b.classList.contains('ns-empty'));
+    const sz = (b) => Math.round(b.getBoundingClientRect().width);
+    const cur = document.querySelector('[data-role=item-chips] [aria-current=true]'); const r = cur.getBoundingClientRect();
+    const locks = vis.filter((b) => b.dataset.locked === 'true').map((b) => { const c = b.getBoundingClientRect(), l = b.querySelector('.ns-lock svg').getBoundingClientRect(); return Math.round(Math.abs((l.left + l.width / 2) - (c.left + c.width / 2)) + Math.abs((l.top + l.height / 2) - (c.top + c.height / 2))); });
+    return { n: vis.length, nums: vis.map((b) => b.textContent.trim()), sizes: bs.map(sz), cls: vis.map((b) => b.className.match(/ns-(current|passed|locked|open|retry|skipped)/)[1]),
+      centre: Math.round((r.left + r.width / 2) - innerWidth / 2), bg: getComputedStyle(cur).backgroundColor, locks, total: document.querySelector('[data-role=item-total]').textContent,
+      item: document.querySelector('[data-role=vocab-card]').dataset.item, pageW: document.documentElement.scrollWidth };
+  });
+  const g0 = await geo(); // ativo = 6 (5 aprovados): 4, 5 verdes · 6 · 7, 8 bloqueados
+  // toque num bloqueado: não abre
+  const tapAt = async (sel) => { const bb = await page.locator(sel).first().boundingBox(); await page.touchscreen.tap(bb.x + bb.width / 2, bb.y + bb.height / 2); await page.waitForTimeout(400); };
+  await tapAt('[data-role=item-chips] [data-locked=true]');
+  const gLocked = await geo();
+  // arraste real para a direita (volta 2 itens)
   const box = await page.locator('[data-role=item-chips]').boundingBox();
   const cdp = await ctx.newCDPSession(page);
-  // (o synthesizeScrollGesture de toque não rola no Chromium sem tela; a sequência real tocar → mover → soltar, sim)
-  const pt = { x: Math.round(box.x + box.width * 0.8), y: Math.round(box.y + box.height / 2) };
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [pt] });
-  for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pt.x - i * 25, y: pt.y }] }); await page.waitForTimeout(16); }
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await page.waitForTimeout(500);
-  const g1 = await geo();
-  // tocar no número 20 (precisa estar à vista depois do arraste ou ser alcançado arrastando mais)
-  const target = `${ACT}-u20`;
-  await page.locator(`[data-role=item-chips] [data-item="${target}"]`).tap();
-  await page.waitForSelector(`[data-role=vocab-card][data-item="${target}"]`); await page.waitForTimeout(700);
-  const g2 = await geo();
-  await page.click('[data-role=listen-item]'); await page.waitForTimeout(1200); // outro redesenho (contador de audições)
-  const g3 = await geo();
-  await page.locator(`[data-role=item-chips] [data-item="${ACT}-u32"]`).tap(); await page.waitForTimeout(700);
-  const g4 = await geo();
-  await shot('21-faixa-numeros');
-  assert(g0.rows === 1 && g0.sw > g0.cw && g0.pageW <= g0.vw, `faixa: ${JSON.stringify(g0)}`);
-  assert(g1.left > g0.left + 100 && g1.item === g0.item, `arraste: ${JSON.stringify([g0, g1])}`);
-  assert(g2.item === target && Math.abs(g2.selOff) <= 30 && g2.selVisible, `toque/centralização: ${JSON.stringify(g2)}`);
-  assert(Math.abs(g3.left - g2.left) <= 2 && g3.selVisible, `posição mantida no redesenho: ${JSON.stringify([g2, g3])}`);
-  assert(g4.item === `${ACT}-u32` && g4.selVisible && g4.left === g4.sw - g4.cw, `último número: ${JSON.stringify(g4)}`);
-  assert(page.url() === url0, `trocou de tela: ${page.url()}`);
-  return { linhas: g0.rows, larguraFaixa: `${g0.sw}/${g0.cw}px`, depoisDoArraste: g1.left, item20Centralizado: g2.selOff, mantidaNoRedesenho: [g2.left, g3.left], ultimo: g4.left };
+  const drag = async (dx) => { const pt = { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + 24) }; await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [pt] });
+    for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pt.x + (dx * i) / 10, y: pt.y }] }); await page.waitForTimeout(16); }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(500); };
+  await drag(115); const g1 = await geo();
+  await drag(-240); const g2 = await geo(); // para a esquerda: avança, mas só até o último liberado (6)
+  await tapAt('[data-role=item-chips] .ns-passed'); const g3 = await geo();
+  await shot('21-slider');
+  assert(g0.n === 5 && g0.nums.join() === '4,5,6,7,8' && g0.cls.join() === 'passed,passed,current,locked,locked' && g0.item === `${ACT}-u06`, JSON.stringify(g0));
+  assert(g0.sizes[2] === 48 && g0.sizes[1] === 40 && g0.sizes[3] === 40 && g0.sizes[0] === 32 && g0.sizes[4] === 32 && Math.abs(g0.centre) <= 1, `tamanhos/centro ${JSON.stringify(g0)}`);
+  assert(/rgb\(255, 176, 97\)|rgb\(176, 77, 5\)/.test(g0.bg) && g0.locks.every((d) => d <= 2) && g0.total === '6 de 32' && g0.pageW <= 384, `cor/cadeado/total ${JSON.stringify(g0)}`);
+  assert(gLocked.item === g0.item, 'bloqueado abriu');
+  assert(g1.item === `${ACT}-u04` && g1.nums.join() === '2,3,4,5,6' && Math.abs(g1.centre) <= 1, `arraste p/ direita ${JSON.stringify(g1)}`);
+  assert(g2.item === `${ACT}-u06` && g2.cls[2] === 'current' && g2.cls[3] === 'locked', `arraste p/ esquerda ${JSON.stringify(g2)}`);
+  assert(g3.item === `${ACT}-u04` && page.url() === url0, `toque/tela ${JSON.stringify(g3)} ${page.url()}`);
+  return { inicio: `${g0.nums.join(' ')} (${g0.cls.join(',')})`, tamanhos: g0.sizes, total: g0.total, arrasteDireita: g1.item, arrasteEsquerda: g2.item, cadeadoCentrado: g0.locks };
 });
 
 record('L10', 'Sem erros de página e sem requisições externas', !pageErrors.length && !external.length, { erros: pageErrors.slice(0, 3), externas: external.slice(0, 3) });

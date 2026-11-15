@@ -85,10 +85,10 @@ test('fases em sequência; fase sem itens no conteúdo = não aplicável (lacuna
   assert.deepEqual(PHASES.map((x) => x.id), ['vocab', 'dictation', 'translation', 'listening', 'reading']);
 });
 
-test('três audições concluídas liberam a produção oral (fase 1) e as questões (fase 4)', () => {
+test('uma audição concluída libera a produção oral (ajuste 03, 2026-11-14); três liberam as questões (fase 4)', () => {
   const p = fresh();
   assert.equal(LISTENS_REQUIRED, 3);
-  for (let i = 1; i <= 2; i++) { recordListen(p, 'vocab:t-v1'); assert.equal(canSpeakItem(p, 't-v1'), false); }
+  assert.equal(canSpeakItem(p, 't-v1'), false);
   recordListen(p, 'vocab:t-v1');
   assert.equal(canSpeakItem(p, 't-v1'), true);
   assert.equal(canSpeakItem(p, 't-v2'), false, 'contagem por item');

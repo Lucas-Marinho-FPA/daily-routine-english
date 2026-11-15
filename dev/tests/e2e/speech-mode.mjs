@@ -53,12 +53,12 @@ const lastAttempt = () => page.evaluate(async () => {
 async function attempt({ sr = { mode: 'ok' }, offline = false } = {}) {
   await page.evaluate(async () => {
     const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, skipped: { 'u-speak': Object.fromEntries(Array.from({ length: 21 }, (_, i) => ['john-p1-e01-u' + String(i + 1).padStart(2, '0'), 1])) }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
     await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
   });
   await page.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await page.reload(); await page.waitForSelector('[data-role=item-chips]');
   await page.evaluate(({ sr, offline }) => { window.__sr = sr; if (offline) Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); }, { sr, offline });
-  await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]');
+  await page.waitForSelector('[data-role=vocab-card][data-item="john-p1-e01-u22"]') /* slider com bloqueio por item (2026-11-14): as 21 anteriores semeadas como deixadas para depois, U22 é o item atual */;
   await page.click('[data-role=record-item]');
   await page.waitForSelector('[data-role=stop]', { timeout: 10000 }); await page.waitForTimeout(3500);
   if (await page.locator('[data-role=stop]').count()) await page.click('[data-role=stop]').catch(() => {});

@@ -20,9 +20,9 @@ import {
   requiredOf, contentProblems, emptyStore, validStore, actProgress, newAttemptId, recordListen, listensOf, canSpeakItem, addAttempt,
   mastery, gradeRound, addRound, listeningNext, comprehension, questionMastered, phaseStatuses, activityStatus, nextItem, phaseOrder, settleCompletion,
   activityReport, phaseById, pendingAttempts, isLayered, phasesOf, isActive, activeActivities,
-  MAX_TRIES, isTolerant, failedTries, canSkip, skipItem, isSkipped,
+  MAX_TRIES, isTolerant, failedTries, canSkip, skipItem, isSkipped, canWriteItem, frontierIndex,
 } from '../engine/dialogue.js';
-import { diffText, closestReference } from '../engine/textdiff.js';
+import { closestReference, maskedAnswer, integralMatch } from '../engine/textdiff.js';
 import { scoreWriting, evaluateSpeech, localTranslation, foldPt, tailMiss, tailCutByDuration, tailCutInconclusive, trimForLine } from '../engine/dialogueeval.js';
 import { loadLexicon } from '../engine/lexicon.js';
 import { evaluationConfig, remoteBlocker, createRemoteEvaluator, processQueue } from '../engine/evalsync.js';
@@ -49,7 +49,6 @@ const STATE_LABEL = {
 };
 const ACT_LABEL = { not_started: 'Não iniciada', in_progress: 'Em andamento', waiting_for_online_evaluation: 'Aguardando avaliação online', completed: 'Concluída', blocked_by_content: 'Conteúdo pendente' };
 const ITEM_LABEL = { unseen: 'Não praticado', passed: 'Aprovado', needs_practice: 'Precisa de prática', inconclusive: 'Inconclusivo', pending_evaluation: 'Aguardando avaliação' };
-const TYPE_LABEL = { word: 'Palavra', phrasal_verb: 'Phrasal verb', collocation: 'Collocation', chunk: 'Expressão (chunk)', expression: 'Expressão', pattern: 'Padrão' };
 const ITEM_CHIP = { passed: 'ok', needs_practice: 'bad', inconclusive: 'warn', pending_evaluation: 'warn', unseen: '' };
 
 const online = () => navigator.onLine !== false;
@@ -60,8 +59,8 @@ const hasAudio = (key) => player.hasEmbedded(key);
 // ---------------------------------------------------------------------------------------------------------
 // Áudio: uma audição só conta quando a reprodução termina de verdade (parar, trocar de tela ou tocar outro áudio não conta)
 // ---------------------------------------------------------------------------------------------------------
-async function playOnce(clip) {
-  const pr = player.play(clip);
+async function playOnce(clip, rate = null) {
+  const pr = player.play(clip, rate ? { rate } : undefined);
   const g = player.generation(); // a geração desta reprodução (play() troca a geração antes do 1º await)
   const r = await pr;
   return { completed: !!r.ok && player.generation() === g && r.reason !== 'cancel', via: r.via || null, ok: !!r.ok };
@@ -331,8 +330,7 @@ function resultCard(pack, act, p) {
 function layerList(pack, act, p) {
   const row = (it, phases) => h('li', { class: 'row nowrap', 'data-item': it.id },
     h('div', { class: 'grow' }, h('div', { class: 'en', lang: 'en', text: it.say || it.en }), h('div', { class: 'small muted', text: it.pt }),
-      it.note || it.say ? h('div', { class: 'tiny muted', text: it.note || `Padrão: ${it.en}` }) : null,
-      h('div', { class: 'tiny muted', text: it.layer === 'unit' ? it.category : it.origin === 'expansion' ? 'expansão (não é fala dos personagens)' : 'frase do diálogo' })),
+      it.note || it.say ? h('div', { class: 'tiny muted', text: it.note || `Padrão: ${it.en}` }) : null),
     h('span', { class: 'small', text: phases.map((ph) => (mastery(p, ph, it.id).status === 'passed' ? '✓' : '·')).join(' ') }),
     h('button', { class: 'icon-btn', type: 'button', 'aria-label': `Ouvir “${it.en}”`, disabled: !hasAudio(it.audio), onclick: () => player.play({ key: it.audio, text: it.spoken }) }, icon('speaker')));
   return h('div', {},
@@ -437,35 +435,58 @@ async function skipAndNext(pack, act, p, phase, order, id) {
   return nextItem(order, p, phase, { after: id, skipSkipped: true });
 }
 /** Próximo item a partir do atual: nas etapas tolerantes, sem voltar aos itens deixados pendentes. */
-const nextAfter = (act, order, p, phase, id) => nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
+const nextAfter = (act, order, p, phase, id) => {
+  const nx = nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
+  return nx && (!isTolerant(act, phase) || order.indexOf(nx) <= frontierIndex(order, p, phase)) ? nx : null; // nunca um item bloqueado
+};
 
 /** Lista compacta de itens da fase (chips): estado individual de cada item. */
 /**
- * Faixa horizontal de números (2026-11-14): uma única linha que desliza com o dedo; tocar num número seleciona o item e
- * só o conteúdo da fase é redesenhado (mesma tela). A posição da faixa é guardada por fase e restaurada a cada
- * redesenho, e o número selecionado é trazido para o centro com rolagem suave — sem saltos nem perda da posição.
- * Reaproveita o padrão .chips.scroll (Curso e Lab).
+ * Slider de itens (ajuste 09, PO 2026-11-14): cinco números — o ativo no centro (laranja, tamanho de sempre), dois de cada
+ * lado progressivamente menores; anteriores resolvidos em verde; nas etapas tolerantes, os itens depois do primeiro ainda
+ * não resolvido ficam BLOQUEADOS (cadeado em marca-d'água no centro do círculo; tocar não abre). Arrastar para o lado troca
+ * o item ativo (até o último liberado) e a faixa se reorganiza com ele no centro; tocar num número liberado também.
+ * Só o conteúdo da etapa é redesenhado (mesma tela). Abaixo, a extensão total (“4 de 25”).
  */
-const stripPos = new Map();
-function itemChips(ids, p, phase, label, current, onPick) {
-  const strip = h('div', { class: 'chips scroll num-strip', 'data-role': 'item-chips', role: 'group', 'aria-label': 'Itens da etapa' }, ids.map((id, i) => {
-    const m = mastery(p, phase, id);
-    const skipped = isSkipped(p, phase, id); // deixado pendente pelo aluno: borda tracejada, sem contar como acerto
-    return h('button', { class: `chip ${ITEM_CHIP[m.status]}${skipped ? ' skipped' : ''}`, type: 'button', 'aria-pressed': String(id === current), 'aria-current': id === current ? 'true' : null, 'data-item': id, 'data-status': m.status,
-      'data-skipped': String(skipped), 'aria-label': `${label(id, i)}: ${skipped ? 'Pendente para revisão' : ITEM_LABEL[m.status]}`, onclick: () => onPick(id) }, label(id, i));
-  }));
-  strip.addEventListener('scroll', () => { stripPos.set(phase, strip.scrollLeft); }, { passive: true });
-  requestAnimationFrame(() => {
-    if (!strip.isConnected) return;
-    const had = stripPos.has(phase);
-    strip.scrollLeft = stripPos.get(phase) || 0; // onde o aluno deixou a faixa
-    const sel = strip.querySelector('[aria-pressed="true"]');
-    if (!sel) return;
-    const max = strip.scrollWidth - strip.clientWidth;
-    const left = Math.max(0, Math.min(max, sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2));
-    if (Math.abs(left - strip.scrollLeft) > 1) strip.scrollTo({ left, behavior: had ? 'smooth' : 'auto' });
+const NS_STEP = 56; // deslocamento (px) que corresponde a um item no arraste
+function itemChips(ids, p, phase, label, current, onPick, act = null) {
+  const k = Math.max(0, ids.indexOf(current));
+  const front = act && isTolerant(act, phase) ? frontierIndex(ids, p, phase) : ids.length - 1;
+  const goTo = (i) => { const t = Math.max(0, Math.min(front, i)); if (t !== k) onPick(ids[t]); };
+  const slot = (off) => {
+    const i = k + off;
+    if (i < 0 || i >= ids.length) return h('span', { class: `ns-b ns-d${Math.abs(off)} ns-empty`, 'aria-hidden': 'true' });
+    const id = ids[i]; const m = mastery(p, phase, id); const skipped = isSkipped(p, phase, id); const locked = i > front;
+    const st = off === 0 ? 'current' : locked ? 'locked' : m.status === 'passed' ? 'passed' : skipped ? 'skipped' : m.status === 'unseen' ? 'open' : 'retry';
+    const what = locked ? 'bloqueado' : skipped ? 'pendente para revisão' : ITEM_LABEL[m.status];
+    return h('button', { class: `ns-b ns-d${Math.abs(off)} ns-${st}`, type: 'button', 'data-item': id, 'data-status': m.status, 'data-skipped': String(skipped), 'data-locked': String(locked),
+      'aria-pressed': String(off === 0), 'aria-current': off === 0 ? 'true' : null, 'aria-disabled': locked ? 'true' : null, 'aria-label': `${label(id, i)}: ${what}`,
+      onclick: () => { if (locked) { toast('Conclua o item atual para liberar os próximos.'); return; } goTo(i); } },
+      h('span', { class: 'ns-n', text: label(id, i) }), locked ? h('span', { class: 'ns-lock', 'aria-hidden': 'true' }, icon('lock')) : null);
+  };
+  const row = h('div', { class: 'ns-row' }, [-2, -1, 0, 1, 2].map(slot));
+  const wrap = h('div', { class: 'num-slider', 'data-role': 'item-chips', role: 'group', 'aria-label': `Item ${k + 1} de ${ids.length}` }, row,
+    h('div', { class: 'ns-total', 'data-role': 'item-total', text: `${k + 1} de ${ids.length}` }));
+  // arraste: a faixa acompanha o dedo; ao soltar, o ativo avança/volta tantos itens quanto o deslocamento
+  let x0 = null, dx = 0, moving = false;
+  wrap.addEventListener('pointerdown', (e) => { x0 = e.clientX; dx = 0; moving = false; });
+  wrap.addEventListener('pointermove', (e) => {
+    if (x0 === null) return;
+    dx = e.clientX - x0;
+    if (!moving && Math.abs(dx) > 8) { moving = true; row.style.transition = 'none'; try { wrap.setPointerCapture(e.pointerId); } catch (err) { /* ok */ } }
+    if (moving) row.style.transform = `translateX(${dx}px)`;
   });
-  return strip;
+  const end = () => {
+    if (x0 === null) return;
+    x0 = null;
+    if (!moving) return;
+    row.style.transition = ''; row.style.transform = '';
+    const steps = Math.round(-dx / NS_STEP) || (Math.abs(dx) > 24 ? -Math.sign(dx) : 0);
+    wrap.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true }); // o arraste não vira toque
+    if (steps) { if (k + steps > front) toast('Conclua o item atual para liberar os próximos.'); goTo(k + steps); }
+  };
+  wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
+  return wrap;
 }
 
 function statusFeedback(result, extra = []) {
@@ -583,14 +604,6 @@ function vocabExpression(en, words) {
   return box;
 }
 
-/** Progresso das audições: três marcas + “Audições: n/3”. */
-function vocabListens(n) {
-  const k = Math.min(n, LISTENS_REQUIRED);
-  return h('div', { class: 'vx-listens' },
-    h('div', { class: 'vx-dots', 'aria-hidden': 'true' }, Array.from({ length: LISTENS_REQUIRED }, (_, i) => h('i', { class: i < k ? 'on' : '' }))),
-    h('span', { class: 'vx-count', 'data-role': 'listen-count', text: `Audições: ${k}/${LISTENS_REQUIRED}` }));
-}
-
 /** Cartão de resultado enxuto: estado, o que o app ouviu e palavras a praticar (falha técnica: mensagem curta). */
 function vocabResult(result, heard) {
   const f = result.feedback || {};
@@ -609,8 +622,8 @@ function vocabResult(result, heard) {
 }
 
 function phaseVocab(App, { pack, act, p, area, ctx }) {
-  speakPhase(App, { pack, act, p, area, ctx }, { phase: 'vocab', items: itemsOf(pack, act), eyebrow: (it) => TYPE_LABEL[it.type] || it.type,
-    instruction: `Ouça ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.`, empty: 'Esta atividade não tem itens de vocabulário nos documentos.' });
+  speakPhase(App, { pack, act, p, area, ctx }, { phase: 'vocab', items: itemsOf(pack, act),
+    instruction: 'Ouça o modelo e grave você dizendo. Pode ouvir quantas vezes quiser.', empty: 'Esta atividade não tem itens de vocabulário nos documentos.' });
 }
 
 /**
@@ -618,18 +631,21 @@ function phaseVocab(App, { pack, act, p, area, ctx }) {
  * reproduções concluídas de verdade do modelo (playOnce: interromper, trocar de tela ou tocar outro áudio não conta;
  * o contador fica salvo por fase e item). Reconhecimento, avaliação e marcação por trecho são os de sempre.
  */
-function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, instruction, empty, maxMs = () => 8000, trim = () => true, maxExtra = null }) {
+function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, instruction, empty, maxMs = () => 8000, trim = () => true, maxExtra = null }) {
   const ids = items.map((x) => x.id);
   let current = nextItem(ids, p, phase, { skipSkipped: isTolerant(act, phase) }) || nextItem(ids, p, phase) || ids[0];
   let last = null;
+  const lastAct = new Map(); // ajuste 04: última ação no item ('listen' | 'record') — decide qual botão fica em destaque
   const draw = async () => {
     const it = items.find((x) => x.id === current);
     const m = mastery(p, phase, it.id);
     const n = listensOf(p, `${phase}:${it.id}`);
-    const canSpeak = canSpeakItem(p, it.id, phase);
+    const canSpeak = canSpeakItem(p, it.id, phase); // uma reprodução completa antes da 1ª gravação; depois, livre
+    // destaque: antes da 1ª escuta, Ouvir; depois de ouvir, Gravar; depois de gravar, Ouvir (Gravar continua disponível)
+    const emph = !n ? 'listen' : (lastAct.get(it.id) || (m.attemptCount ? 'record' : 'listen')) === 'listen' ? 'record' : 'listen';
     const status = h('div', { class: 'wp-status', role: 'status', 'aria-live': 'polite', 'data-role': 'rec-status' });
-    const listenBtn = h('button', { class: 'btn primary vx-listen', type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
-    const recBtn = h('button', { class: 'btn block vx-rec', type: 'button', 'data-role': 'record-item', disabled: !canSpeak }, icon('mic'), m.attemptCount ? 'Gravar de novo' : 'Gravar minha pronúncia');
+    const listenBtn = h('button', { class: `btn vx-listen${emph === 'listen' ? ' primary' : ''}`, type: 'button', 'data-role': 'listen-item', 'data-emph': String(emph === 'listen'), disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
+    const recBtn = h('button', { class: `btn block vx-rec${emph === 'record' ? ' primary' : ''}`, type: 'button', 'data-role': 'record-item', 'data-emph': String(emph === 'record'), disabled: !canSpeak }, icon('mic'), m.attemptCount ? 'Gravar de novo' : 'Gravar minha pronúncia');
     const fb = h('div', { 'data-role': 'item-result' });
     // resultado mostrado: a tentativa recém-feita ou, ao voltar ao item, a última tentativa guardada
     const shown = last && last.id === it.id ? { result: last.result, heard: last.heard }
@@ -639,16 +655,15 @@ function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, i
     const words = judged && shown.result.feedback && Array.isArray(shown.result.feedback.words) ? shown.result.feedback.words : null;
     clear(area).append(
       h('p', { class: 'vx-instruction', 'data-role': 'vocab-instruction' }, icon('speaker'), h('span', { text: instruction })),
-      h('div', { class: 'vx-chips' }, itemChips(ids, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('div', { class: 'vx-chips' }, itemChips(ids, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }, act)),
+      // cartão enxuto (ajustes 02/08): só a expressão em inglês e a tradução (+ complemento didático da unidade, se houver)
       h('section', { class: 'card vx-card', 'data-role': 'vocab-card', 'data-item': it.id, 'data-status': m.status },
-        h('div', { class: 'eyebrow', text: eyebrow(it) }),
-        // a expressão real em primeiro plano; padrão/notação didática só como complemento
         it.say ? vocabExpression(it.say, words) : vocabExpression(it.en, words),
         h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }),
         itemNote(it),
-        h('div', { class: 'vx-listen-row' }, listenBtn, vocabListens(n)),
+        h('div', { class: 'vx-listen-row' }, listenBtn),
         hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: 'Áudio indisponível para este item: a produção oral fica bloqueada.' }),
-        canSpeak ? null : h('div', { class: 'small muted', 'data-role': 'rec-locked', text: `A gravação é liberada depois de ${LISTENS_REQUIRED} reproduções completas do modelo.` }),
+        canSpeak ? null : h('div', { class: 'small muted', 'data-role': 'rec-locked', text: 'Ouça o modelo até o fim antes de gravar.' }),
         recBtn, status),
       fb);
     if (shown) fb.append(vocabResult(shown.result, shown.heard));
@@ -660,7 +675,7 @@ function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, i
       listenBtn.disabled = true;
       const r = await playOnce({ key: it.audio, text: it.spoken });
       if (!ctx.alive) return;
-      if (r.completed) { recordListen(p, `${phase}:${it.id}`); await save(); }
+      if (r.completed) { recordListen(p, `${phase}:${it.id}`); lastAct.set(it.id, 'listen'); await save(); }
       draw();
     };
     recBtn.onclick = async () => {
@@ -674,6 +689,7 @@ function speakPhase(App, { pack, act, p, area, ctx }, { phase, items, eyebrow, i
       settleCompletion(pack, act, p);
       await save();
       last = { id: it.id, result, heard: out.heard };
+      lastAct.set(it.id, 'record');
       if (out.micError) toast(out.micError, 6000);
       draw();
     };
@@ -701,7 +717,7 @@ function phaseDictation(App, { pack, act, p, area, ctx }) {
     const fb = h('div', { 'data-role': 'line-result' });
     clear(area).append(
       h('p', { class: 'small muted', text: `Ouça a fala em inglês e escreva-a. Cada frase precisa de ${THRESHOLD}% de correspondência. A frase só aparece depois do envio.` }),
-      h('div', { class: 'dlg-strip' }, itemChips(order, p, 'dictation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('div', { class: 'dlg-strip' }, itemChips(order, p, 'dictation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }, act)),
       h('section', { class: 'card', 'data-role': 'dictation-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: `Fala de ${l.speaker}` }),
         h('div', { class: 'small', 'data-role': 'hint' }, h('b', { text: 'Pista em português: ' }),
@@ -745,49 +761,51 @@ function phaseDictation(App, { pack, act, p, area, ctx }) {
 
 // ---------- Formato em camadas: escrever (etapas 1 e 4) e ouvir e escrever (etapas 3 e 6) ----------
 const layerItems = (pack, ids) => ids.map((id) => pack.items.find((x) => x.id === id)).filter(Boolean);
-const LAYER_EYEBROW = (it) => (it.layer === 'unit' ? it.category || 'Unidade' : it.origin === 'expansion' ? 'Frase de expansão (não é fala dos personagens)' : 'Frase do diálogo');
 /** Complemento didático do item: padrão/notação do documento (a expressão real fica em primeiro plano). */
 function itemNote(it) {
   const t = it.note || (it.say ? `Padrão: ${it.en}` : '');
   return t ? h('div', { class: 'vx-note small muted', 'data-role': 'item-note', text: t }) : null;
 }
 
-/** Texto com a marcação da comparação (textdiff): só o trecho errado/correto ganha cor. */
-const WD_LABEL = { wrong: 'trecho errado', extra: 'palavra a mais', fix: 'forma correta', missing: 'palavra que faltou' };
-function diffLine(segs, role) {
-  return h('span', { class: 'wd en', lang: 'en', 'data-role': role }, segs.map((x) => (x.mark === 'space' ? ' '
-    : x.mark === 'same' ? h('span', { text: x.text }) : h('span', { class: `wd-${x.mark}`, 'data-mark': x.mark, title: WD_LABEL[x.mark], 'aria-label': `${x.text}: ${WD_LABEL[x.mark]}`, text: x.text }))));
-}
-
 /**
- * Resultado da escrita (corretor de sempre), na ordem: o que o aluno escreveu (trecho errado em vermelho) → a forma
- * correta (o que corrige em verde) → observação curta só quando acrescenta (ordem das palavras). O significado já está
- * no cartão; nada de listas repetindo o que a marcação mostra.
+ * Resultado da escrita (ajustes 06/07, PO 2026-11-14): a resposta-modelo NÃO aparece enquanto houver erro. O aluno vê
+ * o que escreveu com as marcas (letra a mais/trocada em vermelho no lugar; letra ou palavra que falta = X vermelho por
+ * letra, sem revelar a grafia). A frase completa só aparece no acerto integral (aí o cartão também mostra o inglês).
  */
 function writingFeedback(result, it, answer, refs = []) {
   const f = result.feedback || {};
   const passed = result.status === 'passed';
-  const ref = closestReference(answer || '', [refs[0] || it.en, ...refs.slice(1)]) || it.en;
-  const d = answer ? diffText(answer, ref) : null;
-  const marked = !!d && d.changed && !(passed && (f.kind === 'exact' || f.kind === 'variant'));
+  const ref = closestReference(answer || '', refs.length ? refs : [it.en]) || it.en;
+  const integral = !!answer && refs.some((r) => integralMatch(answer, r));
+  const masked = answer && !integral ? maskedAnswer(answer, ref) : null;
   const cls = passed ? 'good' : result.status === 'needs_practice' ? 'bad' : 'mid';
-  const head = passed ? (marked ? 'Aprovado — confira o detalhe' : 'Correto') : result.status === 'needs_practice' ? 'Ainda não' : 'Inconclusivo';
-  return h('div', { class: `vx-result ${cls}`, 'data-role': 'feedback', 'data-status': result.status, role: 'status' },
+  const head = integral ? 'Correto' : passed ? 'Quase: corrija o que está marcado' : result.status === 'needs_practice' ? 'Ainda não' : 'Inconclusivo';
+  return h('div', { class: `vx-result ${cls}`, 'data-role': 'feedback', 'data-status': result.status, 'data-integral': String(integral), role: 'status' },
     h('div', { class: 'vx-head' }, icon(passed ? 'check' : result.status === 'needs_practice' ? 'x' : 'refresh'), head),
-    marked ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'wd-label muted', text: 'Você escreveu' }), diffLine(d.answer, 'answer-echo')) : null,
-    marked || !passed ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'wd-label muted', text: 'Correto' }),
-      d ? diffLine(d.reference, 'reference') : h('span', { class: 'en', lang: 'en', 'data-role': 'reference', text: ref })) : null,
+    masked ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'wd-label muted', text: 'Você escreveu' }), maskLine(masked)) : null,
+    integral ? h('p', { class: 'vx-line wd-row' }, h('span', { class: 'en', lang: 'en', 'data-role': 'reference', text: refs[0] || it.en })) : null,
+    masked && masked.some((x) => x.mark === 'missing') ? h('p', { class: 'vx-line muted small', text: 'Cada X é uma letra que falta.' }) : null,
     !passed && f.reordered && f.reordered.length ? h('p', { class: 'vx-line muted', text: 'Atenção à ordem das palavras.' }) : null,
     !passed && f.summary && /vazia/.test(f.summary) ? h('p', { class: 'vx-line', text: f.summary }) : null);
+}
+const MK_LABEL = { extra: 'letra a mais ou trocada', missing: 'letras que faltam' };
+function maskLine(segs) {
+  return h('span', { class: 'wd en', lang: 'en', 'data-role': 'answer-echo' }, segs.map((x) => (x.mark === 'space' ? ' '
+    : x.mark === 'same' ? h('span', { text: x.text }) : h('span', { class: `wd-${x.mark === 'extra' ? 'wrong' : 'xmiss'}`, 'data-mark': x.mark, 'aria-label': `${x.text.length} ${MK_LABEL[x.mark]}`, text: x.text }))));
 }
 
 /** Alvo da escrita (a expressão exibida em primeiro plano) seguido das variantes aceitas, sem repetição. */
 const targets = (it) => [...new Set([it.say || it.en, it.en, it.spoken, ...(it.accepted || [])].filter(Boolean))];
+/** Acerto integral já registrado no item (só então a escuta mostra o inglês). */
+const integralDone = (p, phase, it) => Object.values(p.attempts).some((a) => a.phase === phase && a.itemId === it.id && a.status === 'passed' && targets(it).some((r) => integralMatch(a.response || '', r)));
+const LISTEN_FIRST = 'Escute a frase com atenção antes de enviar. Ela será trabalhada novamente na próxima etapa de Listening.';
 
 /**
- * Etapas de escrita. listen = false (1 e 4): inglês e português juntos, o aluno escreve em inglês. listen = true (3 e 6):
- * ordem embaralhada estável (ids e áudios juntos), o inglês só aparece depois da resposta. Corretor: scoreWriting
- * (critério de sempre, ≥ 80%), com a forma falada das notações didáticas aceita como variante.
+ * Etapas de escrita. listen = false (1 e 4): inglês e português juntos (apresentação), o aluno escreve em inglês.
+ * listen = true (3 e 6, o Listening inicial): ordem embaralhada estável; a tradução aparece desde o início como apoio
+ * (ajuste 05; ela sai na camada do diálogo — 7.1 sem texto, 7.2/7.3 só inglês); o inglês só depois do acerto integral.
+ * Ajuste 01: com áudio-modelo, uma reprodução COMPLETA (contada no fim real) libera o envio. Corretor: scoreWriting
+ * (critério de sempre, ≥ 80%).
  */
 function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
   const items = layerItems(pack, ids);
@@ -800,25 +818,25 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
     const m = mastery(p, phase, it.id);
     const input = h('textarea', { class: 'field en', rows: it.layer === 'unit' ? 2 : 3, 'data-role': 'answer', autocapitalize: 'off', spellcheck: 'false', lang: 'en',
       'aria-label': listen ? 'Escreva em inglês o que você ouviu' : 'Escreva em inglês', placeholder: listen ? 'Escreva em inglês o que você ouviu' : 'Escreva em inglês' });
-    const send = h('button', { class: 'btn primary block', type: 'button', 'data-role': 'submit', style: { marginTop: '10px' } }, icon('check'), 'Enviar');
+    const mustListen = hasAudio(it.audio) && !canWriteItem(p, it.id, phase);
+    const send = h('button', { class: `btn block${mustListen ? '' : ' primary'}`, type: 'button', 'data-role': 'submit', 'data-locked': String(mustListen), style: { marginTop: '10px' } }, icon('check'), 'Enviar');
     const fb = h('div', { 'data-role': 'item-result' });
-    const revealed = !listen || (last && last.id === it.id) || m.status === 'passed';
-    const play = (rate) => player.play({ key: it.audio, text: it.spoken }, rate ? { rate } : undefined);
+    const showEn = !listen || integralDone(p, phase, it);
+    const listenMsg = h('div', { class: 'notice warn small', 'data-role': 'listen-first', role: 'status', hidden: true, text: LISTEN_FIRST });
+    const listenBtn = h('button', { class: `btn vx-listen${mustListen ? ' primary' : ''}`, type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio) }, icon('speaker'), 'Ouvir');
+    const slowBtn = listen ? h('button', { class: 'btn ghost', type: 'button', 'data-role': 'listen-slow', disabled: !hasAudio(it.audio) }, icon('slow'), 'Mais devagar') : null;
     const what = it.layer === 'unit' ? 'a unidade' : 'a frase';
     clear(area).append(
       h('p', { class: 'vx-instruction', 'data-role': 'layer-instruction' }, icon(listen ? 'speaker' : 'book'),
-        h('span', { text: listen ? `Ouça e escreva em inglês ${what} que você ouviu. O texto aparece depois do envio.` : `Leia ${what} e o significado. Depois, escreva em inglês.` })),
-      h('div', { class: 'vx-chips' }, itemChips(order, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
-      h('section', { class: 'card vx-card', 'data-role': 'layer-card', 'data-item': it.id, 'data-status': m.status, 'data-revealed': String(!!revealed) },
-        h('div', { class: 'eyebrow', text: LAYER_EYEBROW(it) }),
-        revealed ? h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en', text: it.say || it.en }) : null,
-        revealed ? h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }) : null,
-        revealed ? itemNote(it) : null,
-        h('div', { class: 'row', style: { marginTop: revealed ? '0' : '6px' } },
-          h('button', { class: `btn${listen ? ' primary vx-listen' : ''}`, type: 'button', 'data-role': 'listen-item', disabled: !hasAudio(it.audio), onclick: () => play() }, icon('speaker'), listen ? 'Ouvir' : 'Ouvir o modelo'),
-          listen ? h('button', { class: 'btn ghost', type: 'button', disabled: !hasAudio(it.audio), onclick: () => play(0.75) }, icon('slow'), 'Mais devagar') : null),
+        h('span', { text: listen ? `Ouça e escreva em inglês ${what} que você ouviu.` : `Ouça ${what}, leia e escreva em inglês.` })),
+      h('div', { class: 'vx-chips' }, itemChips(order, p, phase, (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }, act)),
+      h('section', { class: 'card vx-card', 'data-role': 'layer-card', 'data-item': it.id, 'data-status': m.status, 'data-revealed': String(showEn) },
+        showEn ? h('div', { class: 'vx-en en', 'data-role': 'item-en', lang: 'en', text: it.say || it.en }) : null,
+        h('div', { class: 'vx-pt', 'data-role': 'item-pt', text: it.pt }),
+        showEn ? itemNote(it) : null,
+        h('div', { class: 'row', style: { marginTop: '0' } }, listenBtn, slowBtn),
         hasAudio(it.audio) ? null : h('div', { class: 'notice warn small', 'data-role': 'audio-missing', text: listen ? 'Áudio indisponível para este item: a etapa de escuta fica bloqueada.' : 'Áudio indisponível para este item.' }),
-        h('div', { style: { marginTop: '14px' } }, input), send),
+        h('div', { style: { marginTop: '14px' } }, input), listenMsg, send),
       fb);
     if (listen && !hasAudio(it.audio)) { input.disabled = true; send.disabled = true; }
     if (last && last.id === it.id) fb.append(writingFeedback(last.result, it, last.answer, targets(it)));
@@ -827,8 +845,21 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
     const next = nextAfter(act, order, p, phase, it.id);
     if (next && m.status !== 'unseen') fb.append(h('button', { class: `btn block${m.status === 'passed' ? ' primary' : ''} vx-next`, type: 'button', 'data-role': 'next-item', onclick: () => { current = next; last = null; draw(); } }, 'Próximo item', icon('next')));
     area.append(phaseFooter(pack, act, p, phase));
+    // escuta completa registrada pelo fim REAL da reprodução (playOnce), não pelo clique; o texto digitado é preservado
+    const listenNow = async (rate) => {
+      const typed = input.value;
+      listenBtn.disabled = true; if (slowBtn) slowBtn.disabled = true;
+      const r = await playOnce({ key: it.audio, text: it.spoken }, rate);
+      if (!ctx.alive) return;
+      if (r.completed) { recordListen(p, `${phase}:${it.id}`); await save(); }
+      const keepLast = last; draw(); last = keepLast;
+      const inp = area.querySelector('[data-role=answer]'); if (inp) inp.value = typed;
+    };
+    listenBtn.onclick = () => listenNow();
+    if (slowBtn) slowBtn.onclick = () => listenNow(0.75);
     send.onclick = async () => {
       const answer = input.value.trim();
+      if (hasAudio(it.audio) && !canWriteItem(p, it.id, phase)) { listenMsg.hidden = false; toast(LISTEN_FIRST, 5000); return; }
       if (!answer) { toast('Escreva em inglês antes de enviar.'); return; }
       send.disabled = true;
       // a resposta esperada é a expressão em primeiro plano (forma falada, quando há); a notação do documento também é aceita
@@ -849,8 +880,8 @@ function writePhase(App, { pack, act, p, area, ctx }, { phase, ids, listen }) {
 function layerRenderer(phaseId) {
   const unit = (fn) => (App, c) => fn(App, c, c.act.unitIds);
   const sent = (fn) => (App, c) => fn(App, c, c.act.sentenceIds);
-  const speak = (ids, c, App, layer) => speakPhase(App, c, { phase: layer === 'unit' ? 'u-speak' : 's-speak', items: layerItems(c.pack, ids), eyebrow: LAYER_EYEBROW,
-    instruction: `Ouça ${layer === 'unit' ? 'cada unidade' : 'cada frase'} ${LISTENS_REQUIRED} vezes até o fim. Depois, grave você dizendo.`, empty: 'Esta etapa não tem conteúdo.',
+  const speak = (ids, c, App, layer) => speakPhase(App, c, { phase: layer === 'unit' ? 'u-speak' : 's-speak', items: layerItems(c.pack, ids),
+    instruction: `Ouça ${layer === 'unit' ? 'a unidade' : 'a frase'} e grave você dizendo. Pode ouvir quantas vezes quiser.`, empty: 'Esta etapa não tem conteúdo.',
     maxMs: (it) => (it.layer === 'unit' ? 8000 : 15000), trim: (it) => trimForLine(it.spoken), maxExtra: 1 }); // curtas: alvo dentro de fala maior não aprova
   return {
     'u-write': unit((App, c, ids) => writePhase(App, c, { phase: 'u-write', ids, listen: false })),
@@ -880,7 +911,7 @@ function phaseTranslation(App, { pack, act, p, area, ctx }) {
       h('p', { class: 'small muted', 'data-role': 'translation-instruction', text: remote().config.endpoint
         ? `Traduza cada fala para o português. A correção é pelo sentido (avaliação online); cada fala precisa de ${THRESHOLD}%. A tradução de referência só aparece depois da avaliação.`
         : 'Traduza cada fala para o português. A correção automática pelo sentido depende de um serviço online que ainda não está ativo: depois de enviar, você compara com a tradução de referência. A fala fica pendente de avaliação — não conta como aprovada.' }),
-      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'translation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'translation', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }, act)),
       h('section', { class: 'card', 'data-role': 'translation-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: l.speaker }),
         h('div', { class: 'row nowrap' }, h('div', { class: 'grow en big-en', 'data-role': 'source', text: l.en }),
@@ -1080,7 +1111,7 @@ function phaseReading(App, { pack, act, p, area, ctx }) {
     const fb = h('div', { 'data-role': 'line-result' });
     clear(area).append(
       h('p', { class: 'small muted', text: `Leia cada fala em voz alta. Aprovação: ${THRESHOLD}% de correspondência confiável por fala. Transcrição duvidosa não reprova: fica inconclusiva.` }),
-      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'reading', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); })),
+      h('div', { class: 'dlg-strip' }, itemChips(ids, p, 'reading', (id, i) => String(i + 1), current, (id) => { current = id; last = null; draw(); }, act)),
       h('section', { class: 'card', 'data-role': 'reading-card', 'data-line': l.id, 'data-status': m.status },
         h('div', { class: 'eyebrow', text: l.speaker }),
         h('div', { class: 'big-en en', 'data-role': 'target', text: l.en }),

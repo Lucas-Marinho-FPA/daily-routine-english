@@ -25,10 +25,30 @@ produto: `docs/produto/` (checklist mestre `03_…`, arquitetura pedagógica `04
 | O que está publicado | a e01 em sete etapas, só ela ativa; as outras 45 atividades preservadas fora da navegação |
 | **Correções da validação real (seção 2A)** | **publicadas em 13/11** (`7cf3a3c`, build `1f0474b1cbd8`), com autorização do PO condicionada aos testes, todos aprovados no build reproduzido do zero |
 | **Reticências no TTS + faixa de números (seção 2B, 14/11)** | **publicadas em 14/11** — commit `8ec5795` (autorização expressa do PO), `gh-pages` avançado de `72908ec` (fast-forward, sem merge/force), workflow “pages build and deployment” nº 39 com sucesso, build servido **`c3c3a4d174ca`**; `sw.js`, `dist/app.js`, `data/*.js`, `index.html`, `css/app.css`, `manifest.webmanifest` e os **2.244 áudios** servidos idênticos ao commit. Depois, `gh-pages` avança para o commit de documentação (mesmo build) |
+| **10 ajustes de UX e áudio (seção 2C, 14/11)** | commit logo acima de `747eab7` (“feat: UX adjustments 01-09…”), build `ce3c58919042`; commit, push e publicação **autorizados expressamente pelo PO em 15/11**; 01–09 concluídos; 10 diagnosticado (decisão do PO). Resultado do deploy: registrado no commit seguinte, só de documentação |
 | Registro histórico | antes de 13/11 (tarde), `gh-pages` estava em `46b7d97` (build `583fa58264f1`) e a e01 em sete etapas não estava publicada |
 
 Regras: commit/push só com autorização; nunca force push; nunca publicar sem autorização; não usar `main` como origem
 (pode conter `c0cb6c8`, material sem licença). Identidade dos commits: `Lucas-Marinho-FPA <294024809+Lucas-Marinho-FPA@users.noreply.github.com>`.
+
+## 2C. Dez ajustes de UX e áudio (14/11/2026 — publicação autorizada pelo PO em 15/11)
+
+| # | Ajuste | Situação | Onde |
+|---|---|---|---|
+| 01 | Escuta obrigatória na escrita: com áudio-modelo, 1 reprodução COMPLETA (fim real, `playOnce`) libera o envio; antes, a mensagem pedida; o texto digitado é preservado | concluído | `writePhase`; `canWriteItem`, `LISTENS_TO_WRITE` |
+| 02 | Sem classificações internas nas telas (categoria, “frase de expansão”, “não é fala dos personagens”, tipo do item); metadados preservados no pacote | concluído | `speakPhase`, `writePhase`, aba de unidades |
+| 03 | Reprodução livre: sem mínimo de 3 audições e sem contador; a gravação não depende de quantidade | concluído | `canSpeakItem` (`LISTENS_TO_SPEAK = 1`); a escuta global 7.1 (3× antes das questões) não mudou |
+| 04 | Destaque alterna: antes da 1ª escuta Ouvir; após ouvir, Gravar; após gravar, Ouvir (Gravar segue disponível); 1 escuta completa obrigatória antes da 1ª gravação | concluído | `speakPhase` (`data-emph`) |
+| 05 | Listening inicial (etapas 3 e 6) mostra a tradução desde o início; o inglês aparece só no acerto integral. Retirada pela progressão já existente: na camada do diálogo, 7.1 sem texto, 7.2 e 7.3 só inglês (sem níveis novos) | concluído — **interpretação a validar** | `writePhase` |
+| 06 | Sem resposta-modelo enquanto houver erro; frase completa só no acerto integral | concluído | `writingFeedback` |
+| 07 | Marcas: letra que falta = X vermelho por letra (bloco por palavra: “with a” → XXXX X), letra a mais/trocada em vermelho no lugar, palavras certas normais; grafia nunca revelada | concluído | `maskedAnswer`, `integralMatch` (`js/engine/textdiff.js`) |
+| 08 | Cartões de apresentação só com inglês + português (+ complemento didático das unidades U05/U18/U30/U31); instruções curtas | concluído | `speakPhase`, `writePhase` |
+| 09 | Slider de 5 números: ativo no centro, laranja, 48 px; vizinhos 40 px e 32 px; resolvidos verdes; seguintes ao 1º não resolvido BLOQUEADOS (cadeado centrado em marca-d'água; tocar não abre); arrastar troca o ativo até o último liberado; “n de N” | concluído | `itemChips`, `frontierIndex`/`itemAccessible`; CSS `.num-slider`/`.ns-*` |
+| 10 | Naturalidade dos áudios | **diagnosticado, não executado** (depende de decisão do PO) | ver abaixo |
+
+- **Item 10 — diagnóstico:** diálogos (John/Rick) e frases usam o mesmo modelo (Kokoro int8), a mesma velocidade (1.0) e a mesma conversão (Opus 32k). A diferença é a **voz**: as frases usam bf_emma, que no mesmo texto fala ~17% mais rápido (5,4 × 4,6 sílabas/s) e quase sem pausas internas (3% × 13%). Velocidade natural de outras vozes britânicas: bf_isabella 5,5 · bf_alice 5,1 · bm_daniel 5,1 · bf_lily 4,8 · bm_fable 4,1. **Plano:** (a) o PO ouve o pacote de amostras (`item10-amostras.zip`, entregue no chat: F02/F05/F08/F09 na fala de referência, em bf_emma e em 3 alternativas); (b) escolhida a voz, trocar `DEFAULT_ITEM_VOICE` em `tools/build-dialogues.mjs` (e, se for o caso, a voz padrão do `gen_audio.py` para Lucas/Karla) e regenerar só as chaves afetadas; (c) se quiser também mais nitidez de consoantes: modelo fp32 + Opus 64 kbit/s (dobra o acervo de 21 MB) — decisões estruturais, por isso não executadas. Nenhuma dependência nova é necessária.
+- **Testes:** unitários 290 ok / 1 ignorado (+3: escuta para escrever, bloqueio por item, máscara de correção); `dialogue-layers` 21/21 (L05, L19 e L21 reescritos para as regras novas; `openItem`/`chipIds` agora chegam ao item pelo slider); `dialogue` 14/14; `speech-online` 13/13; `speech-mode` 9/9; `speech-hybrid` 16/16; `pwa` 14/14; `theme` 10/10. Suítes de reconhecimento ajustadas só na preparação (as 21 unidades anteriores à U22 semeadas como “deixadas para depois”, porque a U22 agora fica bloqueada até elas serem resolvidas). Conteúdo e áudio inalterados.
+- **Riscos:** (1) o bloqueio por item é novo: o aluno não pode mais pular para um item adiante sem resolver os anteriores (pode deixá-los pendentes após 3 tentativas); (2) item aprovado com ≥ 80% mas não integral continua aprovado (critério de domínio intacto), porém o inglês não é revelado — o aluno vê só as marcas; (3) apóstrofo faltando conta como letra (“IXm”).
 
 ## 2B. Reticências no áudio e faixa horizontal de números (14/11/2026 — commit e publicação autorizados pelo PO)
 
@@ -227,9 +247,8 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
    dele. No contêiner da nuvem, use o Playwright pré-instalado (o do `npm ci` não acha o Chromium).
 3. Testes da e01: `node tests/e2e/dialogue-layers.mjs <site> /daily-routine-english/` e `tests/e2e/audio-layers.mjs`;
    unitários `npm test`. Não repetir suítes aprovadas sem motivo técnico.
-4. **Próximo passo:** escuta no Galaxy S25+ das reticências e da U26 (pacote antes × depois entregue no chat em 14/11) e
-   uso da faixa de números — no aparelho, fechar e reabrir o app até o build `c3c3a4d174ca`; depois, decisões de DEC-022,
-   DEC-023, DEC-024 (D-008) e D1–D8. Depois: remodelar a próxima atividade de
+4. **Próximo passo:** o PO valida os ajustes 01–09 (seção 2C; publicação só com autorização) e escolhe a voz do item 10
+   (pacote `item10-amostras.zip`); escuta das reticências e da U26; decisões de DEC-022, DEC-023, DEC-024 (D-008) e D1–D8. Depois: remodelar a próxima atividade de
    John, uma por vez, no mesmo formato (`*-layers.json` + `rollout.json`).
 5. Roteiro do aparelho: (a) Ajustes → Áudio, modo Online, “Testar reconhecimento”; (b) e01 etapas 1→7 completas;
    (c) etapa 2 com “work for”, “didn't we?”, “but”, “I met someone.” e “I'm a project analyst.” nos dois modos;

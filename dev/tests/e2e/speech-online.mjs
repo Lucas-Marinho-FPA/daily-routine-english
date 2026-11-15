@@ -107,11 +107,11 @@ await check('O02', 'Resposta livre (Speaking Lab, pergunta): fim por silêncio d
 await check('O03', 'Diálogo — fase 1 (vocabulário): mesma tentativa online; o app ouviu o item', async () => {
   await page.evaluate(async () => {
     const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+    const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, skipped: { 'u-speak': Object.fromEntries(Array.from({ length: 21 }, (_, i) => ['john-p1-e01-u' + String(i + 1).padStart(2, '0'), 1])) }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
     await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
   });
   await fresh('#/dphase/john-p1-e01?p=u-speak'); await page.waitForSelector('[data-role=item-chips]');
-  await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]');
+  await page.waitForSelector('[data-role=vocab-card][data-item="john-p1-e01-u22"]') /* slider com bloqueio por item (2026-11-14): as 21 anteriores semeadas como deixadas para depois, U22 é o item atual */;
   const en = (await page.locator('[data-role=item-en]').textContent()).trim();
   await script({ kind: 'speak', text: en, utterances: 1 });
   const c0 = await counters();

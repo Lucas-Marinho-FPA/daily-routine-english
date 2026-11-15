@@ -6,9 +6,9 @@ import { readFileSync } from 'node:fs';
 import {
   LAYER_PHASES, LAYER_PREREQ, PHASES, phasesOf, phaseById, isLayered, isActive, activeActivities, requiredOf, phaseStatuses, activityStatus,
   actProgress, emptyStore, addAttempt, recordListen, canSpeakItem, phaseOrder, activityReport, LISTENS_REQUIRED,
-  mastery, MAX_TRIES, failedTries, canSkip, skipItem, isSkipped, itemOutcome, phaseScore, nextItem, settleCompletion, isTolerant,
+  mastery, canWriteItem, frontierIndex, itemAccessible, MAX_TRIES, failedTries, canSkip, skipItem, isSkipped, itemOutcome, phaseScore, nextItem, settleCompletion, isTolerant,
 } from '../../app/js/engine/dialogue.js';
-import { diffText, closestReference } from '../../app/js/engine/textdiff.js';
+import { diffText, closestReference, maskedAnswer, integralMatch } from '../../app/js/engine/textdiff.js';
 
 const PACK = JSON.parse(readFileSync(new URL('../../app/data/dialogues.js', import.meta.url), 'utf8').replace(/^[\s\S]*?window\.DRG_DIALOGUES = /, '').replace(/;\s*$/, ''));
 const SRC = JSON.parse(readFileSync(new URL('../../content/dialogues/john-p1-e01-layers.json', import.meta.url), 'utf8'));
@@ -83,11 +83,10 @@ test('progressão: cada etapa abre só com a anterior concluída; 7.1 → 7.2 �
   assert.equal(rep['s-listen'].filter((x) => x.status === 'passed').length, 25);
 });
 
-test('três reproduções completas por etapa: a escuta da etapa 2 não libera a etapa 5 nem a fase antiga', () => {
+test('ajustes 03/04: UMA reprodução completa libera a gravação (sem mínimo de 3, sem máximo); contagem por etapa e item', () => {
   const p = actProgress(emptyStore(), E01);
   const u = E01.unitIds[0], s = E01.sentenceIds[0];
-  for (let i = 0; i < LISTENS_REQUIRED - 1; i++) recordListen(p, `u-speak:${u}`);
-  assert.equal(canSpeakItem(p, u, 'u-speak'), false);
+  assert.equal(canSpeakItem(p, u, 'u-speak'), false); // nunca gravar antes de ouvir o modelo até o fim
   recordListen(p, `u-speak:${u}`);
   assert.equal(canSpeakItem(p, u, 'u-speak'), true);
   assert.equal(canSpeakItem(p, u, 'vocab'), false);
@@ -314,4 +313,37 @@ test('conteúdo (validação real): U31 “sounds interesting” com tradução 
   // o restante das unidades e todas as frases continuam literalmente iguais ao documento
   const changed = SRC.units.filter((u) => u.original).map((u) => u.code);
   assert.deepEqual(changed, ['U05', 'U18', 'U30', 'U31']);
+});
+
+// ---------- ajustes de UX (PO, 2026-11-14) ----------
+test('ajuste 01: escrita só é enviada depois de uma reprodução completa do modelo, por etapa e item', () => {
+  const p = actProgress(emptyStore(), E01); const u = E01.unitIds[0];
+  assert.equal(canWriteItem(p, u, 'u-write'), false);
+  recordListen(p, `u-write:${u}`);
+  assert.equal(canWriteItem(p, u, 'u-write'), true);
+  assert.equal(canWriteItem(p, u, 'u-listen'), false);
+});
+
+test('ajuste 09: bloqueio por item nas etapas tolerantes — resolvidos e o primeiro não resolvido abertos; os seguintes, bloqueados', () => {
+  const p = actProgress(emptyStore(), E01); const ids = E01.unitIds;
+  assert.equal(frontierIndex(ids, p, 'u-write'), 0);
+  assert.ok(itemAccessible(E01, ids, p, 'u-write', ids[0]) && !itemAccessible(E01, ids, p, 'u-write', ids[1]));
+  pass(p, 'u-write', ids[0], 1); pass(p, 'u-write', ids[1], 2);
+  assert.equal(frontierIndex(ids, p, 'u-write'), 2);
+  for (let k = 0; k < 3; k++) fail(p, 'u-write', ids[2], 'needs_practice', 30 + k);
+  assert.ok(!itemAccessible(E01, ids, p, 'u-write', ids[3])); // errar não libera o próximo
+  skipItem(p, 'u-write', ids[2]);
+  assert.ok(itemAccessible(E01, ids, p, 'u-write', ids[3]) && !itemAccessible(E01, ids, p, 'u-write', ids[4])); // deixar pendente, sim
+  assert.ok(itemAccessible(E01, ids, p, 'listening', 'qualquer')); // fases sem bloqueio por item continuam livres
+});
+
+test('ajustes 06/07: correção sem revelar a resposta — X por letra que falta (bloco por palavra), letra a mais em vermelho no lugar', () => {
+  const show = (a, b) => maskedAnswer(a, b).map((x) => (x.mark === 'extra' ? `[${x.text}]` : x.mark === 'missing' ? `{${x.text}}` : x.text)).join('');
+  assert.equal(show("This week I'm working different teams", "This week I'm working with a different team."), "This week I'm working {XXXX} {X} different team[s]");
+  assert.equal(show('saunds interesting', 'sounds interesting'), 's[a]unds interesting');
+  assert.equal(show('remeber me', 'remember me'), 'reme{X}ber me');
+  assert.equal(show('I work for a company', 'I work with a company'), 'I work [for] {XXXX} a company');
+  const all = maskedAnswer('I work different teams', 'I work with different teams.');
+  assert.ok(!all.some((x) => /with/i.test(x.text)), 'a grafia da palavra que falta nunca aparece');
+  assert.ok(integralMatch('sounds interesting.', 'Sounds interesting') && !integralMatch('sound interesting', 'sounds interesting'));
 });

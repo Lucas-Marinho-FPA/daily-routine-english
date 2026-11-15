@@ -6947,6 +6947,8 @@ ${body.join("\n\n")}
   // app/js/engine/dialogue.js
   var THRESHOLD = 80;
   var LISTENS_REQUIRED = 3;
+  var LISTENS_TO_SPEAK = 1;
+  var LISTENS_TO_WRITE = 1;
   var QUESTIONS_TOTAL = 10;
   var QUESTIONS_PASS = 8;
   var passMark = (n) => Math.ceil(n * THRESHOLD / 100 - 1e-9);
@@ -7056,7 +7058,8 @@ ${body.join("\n\n")}
     return p.listens[key];
   }
   var listensOf = (p, key) => p && p.listens && p.listens[key] || 0;
-  var canSpeakItem = (p, itemId, phase = "vocab") => listensOf(p, `${phase}:${itemId}`) >= LISTENS_REQUIRED;
+  var canSpeakItem = (p, itemId, phase = "vocab") => listensOf(p, `${phase}:${itemId}`) >= LISTENS_TO_SPEAK;
+  var canWriteItem = (p, itemId, phase) => listensOf(p, `${phase}:${itemId}`) >= LISTENS_TO_WRITE;
   var canAnswerQuestions = (p) => listensOf(p, "listening") >= LISTENS_REQUIRED;
   function addAttempt(p, { attemptId, phase, itemId, inputType, response, result, now = Date.now() }) {
     if (p.attempts[attemptId]) return p.attempts[attemptId];
@@ -7295,6 +7298,10 @@ ${body.join("\n\n")}
     p.order[phase] = out;
     return out;
   }
+  function frontierIndex(order, p, phase) {
+    const i = order.findIndex((id) => mastery2(p, phase, id).status !== "passed" && !isSkipped(p, phase, id));
+    return i < 0 ? order.length - 1 : i;
+  }
   function settleCompletion(pack, act, p, now = Date.now()) {
     if (isLayered(act)) for (const id of TOLERANT_PHASES) {
       if (!(p.phaseApproved && p.phaseApproved[id]) && phaseScore(pack, act, p, id).approved) (p.phaseApproved || (p.phaseApproved = {}))[id] = now;
@@ -7371,70 +7378,73 @@ ${body.join("\n\n")}
     }
     return ops.reverse();
   }
-  function charMarks(a, b) {
-    const x = a.toLowerCase(), y = b.toLowerCase();
-    const L = Array.from({ length: x.length + 1 }, () => Array(y.length + 1).fill(0));
-    for (let i2 = x.length - 1; i2 >= 0; i2--) for (let j2 = y.length - 1; j2 >= 0; j2--) {
-      L[i2][j2] = x[i2] === y[j2] ? L[i2 + 1][j2 + 1] + 1 : Math.max(L[i2 + 1][j2], L[i2][j2 + 1]);
-    }
-    const ma = Array(x.length).fill(false), mb2 = Array(y.length).fill(false);
-    let i = 0, j = 0;
-    while (i < x.length && j < y.length) {
-      if (x[i] === y[j]) {
-        ma[i] = mb2[j] = true;
-        i++;
-        j++;
-      } else if (L[i + 1][j] >= L[i][j + 1]) i++;
-      else j++;
-    }
-    const punct = (ch) => !/[a-z0-9']/i.test(ch);
-    const segs = (word, keep, bad) => {
-      const out = [];
-      for (let k = 0; k < word.length; k++) {
-        const mark = keep[k] || punct(word[k]) ? "same" : bad;
-        if (out.length && out[out.length - 1].mark === mark) out[out.length - 1].text += word[k];
-        else out.push({ text: word[k], mark });
-      }
-      return out;
-    };
-    return { a: segs(a, ma, "wrong"), b: segs(b, mb2, "fix") };
-  }
-  function diffText(answer, reference) {
-    const ops = alignWords(tokens(answer), tokens(reference));
-    const A = [], B = [];
-    const push = (arr, segs) => {
-      if (arr.length) arr.push({ text: " ", mark: "space" });
-      arr.push(...segs);
-    };
-    let changed = false;
-    for (const op of ops) {
-      if (op.a !== null && op.b !== null) {
-        if (norm3(op.a) === norm3(op.b)) {
-          push(A, [{ text: op.a, mark: "same" }]);
-          push(B, [{ text: op.b, mark: "same" }]);
-          continue;
-        }
-        const cm = charMarks(op.a, op.b);
-        push(A, cm.a);
-        push(B, cm.b);
-        changed = true;
-      } else if (op.a !== null) {
-        if (norm3(op.a)) {
-          push(A, [{ text: op.a, mark: "extra" }]);
-          changed = true;
-        } else push(A, [{ text: op.a, mark: "same" }]);
-      } else if (norm3(op.b)) {
-        push(B, [{ text: op.b, mark: "missing" }]);
-        changed = true;
-      } else push(B, [{ text: op.b, mark: "same" }]);
-    }
-    return { answer: A, reference: B, changed };
-  }
   function closestReference(answer, refs) {
     const list = refs.filter(Boolean);
     const dist = (r) => lev(tokens(answer).map(norm3).join(" "), tokens(r).map(norm3).join(" "));
     return list.reduce((best, r) => best === null || dist(r) < dist(best) ? r : best, null);
   }
+  function maskedAnswer(answer, reference) {
+    const ops = alignWords(tokens(answer), tokens(reference));
+    const out = [];
+    const push = (segs) => {
+      if (out.length) out.push({ text: " ", mark: "space" });
+      for (const s of segs) {
+        const l = out[out.length - 1];
+        if (l && l.mark === s.mark && s.mark !== "space") l.text += s.text;
+        else out.push({ ...s });
+      }
+    };
+    const xs = (w) => "X".repeat(norm3(w).length || 1);
+    for (let k = 0; k + 1 < ops.length; k++) {
+      if (ops[k].a === null && ops[k + 1].b === null) {
+        const t = ops[k];
+        ops[k] = ops[k + 1];
+        ops[k + 1] = t;
+      }
+    }
+    for (const op of ops) {
+      if (op.a !== null && op.b !== null) {
+        if (norm3(op.a) === norm3(op.b)) {
+          push([{ text: op.a, mark: "same" }]);
+          continue;
+        }
+        push(charMask(op.a, op.b));
+      } else if (op.a !== null) push([{ text: op.a, mark: norm3(op.a) ? "extra" : "same" }]);
+      else if (norm3(op.b)) push([{ text: xs(op.b), mark: "missing" }]);
+    }
+    return out;
+  }
+  function charMask(a, b) {
+    const punct = (ch) => !/[a-z0-9']/i.test(ch);
+    const x = [...a], y = [...b].filter((ch) => !punct(ch));
+    const X = x.map((c) => c.toLowerCase()), Y = y.map((c) => c.toLowerCase());
+    const d = Array.from({ length: x.length + 1 }, (_, i2) => [i2, ...Array(y.length).fill(0)]);
+    for (let j2 = 1; j2 <= y.length; j2++) d[0][j2] = j2;
+    for (let i2 = 1; i2 <= x.length; i2++) for (let j2 = 1; j2 <= y.length; j2++) {
+      const sub = punct(x[i2 - 1]) ? 1 : X[i2 - 1] === Y[j2 - 1] ? 0 : 1;
+      d[i2][j2] = Math.min(d[i2 - 1][j2] + (punct(x[i2 - 1]) ? 0 : 1), d[i2][j2 - 1] + 1, d[i2 - 1][j2 - 1] + sub);
+    }
+    const segs = [];
+    let i = x.length, j = y.length;
+    while (i > 0 || j > 0) {
+      if (i > 0 && punct(x[i - 1]) && d[i][j] === d[i - 1][j]) {
+        segs.push({ text: x[i - 1], mark: "same" });
+        i--;
+      } else if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (X[i - 1] === Y[j - 1] ? 0 : 1)) {
+        segs.push({ text: x[i - 1], mark: X[i - 1] === Y[j - 1] ? "same" : "extra" });
+        i--;
+        j--;
+      } else if (i > 0 && d[i][j] === d[i - 1][j] + 1) {
+        segs.push({ text: x[i - 1], mark: "extra" });
+        i--;
+      } else {
+        segs.push({ text: "X", mark: "missing" });
+        j--;
+      }
+    }
+    return segs.reverse();
+  }
+  var integralMatch = (answer, reference) => maskedAnswer(answer, reference).every((s) => s.mark === "same" || s.mark === "space");
 
   // app/js/engine/dialogueeval.js
   var r100 = (x) => Math.max(0, Math.min(100, Math.round(x * 100)));
@@ -7774,13 +7784,12 @@ ${body.join("\n\n")}
   };
   var ACT_LABEL = { not_started: "N\xE3o iniciada", in_progress: "Em andamento", waiting_for_online_evaluation: "Aguardando avalia\xE7\xE3o online", completed: "Conclu\xEDda", blocked_by_content: "Conte\xFAdo pendente" };
   var ITEM_LABEL = { unseen: "N\xE3o praticado", passed: "Aprovado", needs_practice: "Precisa de pr\xE1tica", inconclusive: "Inconclusivo", pending_evaluation: "Aguardando avalia\xE7\xE3o" };
-  var TYPE_LABEL = { word: "Palavra", phrasal_verb: "Phrasal verb", collocation: "Collocation", chunk: "Express\xE3o (chunk)", expression: "Express\xE3o", pattern: "Padr\xE3o" };
   var ITEM_CHIP = { passed: "ok", needs_practice: "bad", inconclusive: "warn", pending_evaluation: "warn", unseen: "" };
   var online = () => navigator.onLine !== false;
   var asrEngine = () => globalThis.__DRG_TEST_ASR || speech_exports;
   var hasAudio = (key) => hasEmbedded(key);
-  async function playOnce(clip) {
-    const pr = play(clip);
+  async function playOnce(clip, rate = null) {
+    const pr = play(clip, rate ? { rate } : void 0);
     const g = generation();
     const r = await pr;
     return { completed: !!r.ok && generation() === g && r.reason !== "cancel", via: r.via || null, ok: !!r.ok };
@@ -8139,8 +8148,7 @@ ${body.join("\n\n")}
         { class: "grow" },
         h("div", { class: "en", lang: "en", text: it.say || it.en }),
         h("div", { class: "small muted", text: it.pt }),
-        it.note || it.say ? h("div", { class: "tiny muted", text: it.note || `Padr\xE3o: ${it.en}` }) : null,
-        h("div", { class: "tiny muted", text: it.layer === "unit" ? it.category : it.origin === "expansion" ? "expans\xE3o (n\xE3o \xE9 fala dos personagens)" : "frase do di\xE1logo" })
+        it.note || it.say ? h("div", { class: "tiny muted", text: it.note || `Padr\xE3o: ${it.en}` }) : null
       ),
       h("span", { class: "small", text: phases.map((ph) => mastery2(p, ph, it.id).status === "passed" ? "\u2713" : "\xB7").join(" ") }),
       h("button", { class: "icon-btn", type: "button", "aria-label": `Ouvir \u201C${it.en}\u201D`, disabled: !hasAudio(it.audio), onclick: () => play({ key: it.audio, text: it.spoken }) }, icon("speaker"))
@@ -8272,38 +8280,97 @@ ${body.join("\n\n")}
     await save();
     return nextItem(order, p, phase, { after: id, skipSkipped: true });
   }
-  var nextAfter = (act, order, p, phase, id) => nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
-  var stripPos = /* @__PURE__ */ new Map();
-  function itemChips(ids, p, phase, label, current2, onPick) {
-    const strip = h("div", { class: "chips scroll num-strip", "data-role": "item-chips", role: "group", "aria-label": "Itens da etapa" }, ids.map((id, i) => {
+  var nextAfter = (act, order, p, phase, id) => {
+    const nx = nextItem(order, p, phase, { after: id, skipSkipped: isTolerant(act, phase) });
+    return nx && (!isTolerant(act, phase) || order.indexOf(nx) <= frontierIndex(order, p, phase)) ? nx : null;
+  };
+  var NS_STEP = 56;
+  function itemChips(ids, p, phase, label, current2, onPick, act = null) {
+    const k = Math.max(0, ids.indexOf(current2));
+    const front = act && isTolerant(act, phase) ? frontierIndex(ids, p, phase) : ids.length - 1;
+    const goTo = (i) => {
+      const t = Math.max(0, Math.min(front, i));
+      if (t !== k) onPick(ids[t]);
+    };
+    const slot = (off) => {
+      const i = k + off;
+      if (i < 0 || i >= ids.length) return h("span", { class: `ns-b ns-d${Math.abs(off)} ns-empty`, "aria-hidden": "true" });
+      const id = ids[i];
       const m = mastery2(p, phase, id);
       const skipped = isSkipped(p, phase, id);
-      return h("button", {
-        class: `chip ${ITEM_CHIP[m.status]}${skipped ? " skipped" : ""}`,
-        type: "button",
-        "aria-pressed": String(id === current2),
-        "aria-current": id === current2 ? "true" : null,
-        "data-item": id,
-        "data-status": m.status,
-        "data-skipped": String(skipped),
-        "aria-label": `${label(id, i)}: ${skipped ? "Pendente para revis\xE3o" : ITEM_LABEL[m.status]}`,
-        onclick: () => onPick(id)
-      }, label(id, i));
-    }));
-    strip.addEventListener("scroll", () => {
-      stripPos.set(phase, strip.scrollLeft);
-    }, { passive: true });
-    requestAnimationFrame(() => {
-      if (!strip.isConnected) return;
-      const had = stripPos.has(phase);
-      strip.scrollLeft = stripPos.get(phase) || 0;
-      const sel = strip.querySelector('[aria-pressed="true"]');
-      if (!sel) return;
-      const max = strip.scrollWidth - strip.clientWidth;
-      const left = Math.max(0, Math.min(max, sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2));
-      if (Math.abs(left - strip.scrollLeft) > 1) strip.scrollTo({ left, behavior: had ? "smooth" : "auto" });
+      const locked = i > front;
+      const st = off === 0 ? "current" : locked ? "locked" : m.status === "passed" ? "passed" : skipped ? "skipped" : m.status === "unseen" ? "open" : "retry";
+      const what = locked ? "bloqueado" : skipped ? "pendente para revis\xE3o" : ITEM_LABEL[m.status];
+      return h(
+        "button",
+        {
+          class: `ns-b ns-d${Math.abs(off)} ns-${st}`,
+          type: "button",
+          "data-item": id,
+          "data-status": m.status,
+          "data-skipped": String(skipped),
+          "data-locked": String(locked),
+          "aria-pressed": String(off === 0),
+          "aria-current": off === 0 ? "true" : null,
+          "aria-disabled": locked ? "true" : null,
+          "aria-label": `${label(id, i)}: ${what}`,
+          onclick: () => {
+            if (locked) {
+              toast("Conclua o item atual para liberar os pr\xF3ximos.");
+              return;
+            }
+            goTo(i);
+          }
+        },
+        h("span", { class: "ns-n", text: label(id, i) }),
+        locked ? h("span", { class: "ns-lock", "aria-hidden": "true" }, icon("lock")) : null
+      );
+    };
+    const row = h("div", { class: "ns-row" }, [-2, -1, 0, 1, 2].map(slot));
+    const wrap = h(
+      "div",
+      { class: "num-slider", "data-role": "item-chips", role: "group", "aria-label": `Item ${k + 1} de ${ids.length}` },
+      row,
+      h("div", { class: "ns-total", "data-role": "item-total", text: `${k + 1} de ${ids.length}` })
+    );
+    let x0 = null, dx = 0, moving = false;
+    wrap.addEventListener("pointerdown", (e) => {
+      x0 = e.clientX;
+      dx = 0;
+      moving = false;
     });
-    return strip;
+    wrap.addEventListener("pointermove", (e) => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      if (!moving && Math.abs(dx) > 8) {
+        moving = true;
+        row.style.transition = "none";
+        try {
+          wrap.setPointerCapture(e.pointerId);
+        } catch (err) {
+        }
+      }
+      if (moving) row.style.transform = `translateX(${dx}px)`;
+    });
+    const end = () => {
+      if (x0 === null) return;
+      x0 = null;
+      if (!moving) return;
+      row.style.transition = "";
+      row.style.transform = "";
+      const steps = Math.round(-dx / NS_STEP) || (Math.abs(dx) > 24 ? -Math.sign(dx) : 0);
+      wrap.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      }, { capture: true, once: true });
+      if (steps) {
+        if (k + steps > front) toast("Conclua o item atual para liberar os pr\xF3ximos.");
+        goTo(k + steps);
+      }
+    };
+    wrap.addEventListener("pointerup", end);
+    wrap.addEventListener("pointercancel", end);
+    return wrap;
   }
   function statusFeedback(result, extra = []) {
     const cls = result.status === "passed" ? "good" : result.status === "needs_practice" ? "bad" : "mid";
@@ -8429,15 +8496,6 @@ ${body.join("\n\n")}
     });
     return box2;
   }
-  function vocabListens(n) {
-    const k = Math.min(n, LISTENS_REQUIRED);
-    return h(
-      "div",
-      { class: "vx-listens" },
-      h("div", { class: "vx-dots", "aria-hidden": "true" }, Array.from({ length: LISTENS_REQUIRED }, (_, i) => h("i", { class: i < k ? "on" : "" }))),
-      h("span", { class: "vx-count", "data-role": "listen-count", text: `Audi\xE7\xF5es: ${k}/${LISTENS_REQUIRED}` })
-    );
-  }
   function vocabResult(result, heard) {
     const f = result.feedback || {};
     const cls = result.status === "passed" ? "good" : result.status === "needs_practice" ? "bad" : "mid";
@@ -8458,23 +8516,24 @@ ${body.join("\n\n")}
     speakPhase(App2, { pack, act, p, area, ctx }, {
       phase: "vocab",
       items: itemsOf(pack, act),
-      eyebrow: (it) => TYPE_LABEL[it.type] || it.type,
-      instruction: `Ou\xE7a ${LISTENS_REQUIRED} vezes at\xE9 o fim. Depois, grave voc\xEA dizendo.`,
+      instruction: "Ou\xE7a o modelo e grave voc\xEA dizendo. Pode ouvir quantas vezes quiser.",
       empty: "Esta atividade n\xE3o tem itens de vocabul\xE1rio nos documentos."
     });
   }
-  function speakPhase(App2, { pack, act, p, area, ctx }, { phase, items, eyebrow, instruction, empty, maxMs = () => 8e3, trim = () => true, maxExtra = null }) {
+  function speakPhase(App2, { pack, act, p, area, ctx }, { phase, items, instruction, empty, maxMs = () => 8e3, trim = () => true, maxExtra = null }) {
     const ids = items.map((x) => x.id);
     let current2 = nextItem(ids, p, phase, { skipSkipped: isTolerant(act, phase) }) || nextItem(ids, p, phase) || ids[0];
     let last = null;
+    const lastAct = /* @__PURE__ */ new Map();
     const draw = async () => {
       const it = items.find((x) => x.id === current2);
       const m = mastery2(p, phase, it.id);
       const n = listensOf(p, `${phase}:${it.id}`);
       const canSpeak = canSpeakItem(p, it.id, phase);
+      const emph = !n ? "listen" : (lastAct.get(it.id) || (m.attemptCount ? "record" : "listen")) === "listen" ? "record" : "listen";
       const status4 = h("div", { class: "wp-status", role: "status", "aria-live": "polite", "data-role": "rec-status" });
-      const listenBtn = h("button", { class: "btn primary vx-listen", type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
-      const recBtn = h("button", { class: "btn block vx-rec", type: "button", "data-role": "record-item", disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
+      const listenBtn = h("button", { class: `btn vx-listen${emph === "listen" ? " primary" : ""}`, type: "button", "data-role": "listen-item", "data-emph": String(emph === "listen"), disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
+      const recBtn = h("button", { class: `btn block vx-rec${emph === "record" ? " primary" : ""}`, type: "button", "data-role": "record-item", "data-emph": String(emph === "record"), disabled: !canSpeak }, icon("mic"), m.attemptCount ? "Gravar de novo" : "Gravar minha pron\xFAncia");
       const fb = h("div", { "data-role": "item-result" });
       const shown = last && last.id === it.id ? { result: last.result, heard: last.heard } : m.lastAttempt ? { result: { status: m.lastAttempt.status, feedback: m.lastAttempt.feedback }, heard: m.lastAttempt.response } : null;
       const judged = shown && (shown.result.status === "passed" || shown.result.status === "needs_practice");
@@ -8485,18 +8544,17 @@ ${body.join("\n\n")}
           current2 = id;
           last = null;
           draw();
-        })),
+        }, act)),
+        // cartão enxuto (ajustes 02/08): só a expressão em inglês e a tradução (+ complemento didático da unidade, se houver)
         h(
           "section",
           { class: "card vx-card", "data-role": "vocab-card", "data-item": it.id, "data-status": m.status },
-          h("div", { class: "eyebrow", text: eyebrow(it) }),
-          // a expressão real em primeiro plano; padrão/notação didática só como complemento
           it.say ? vocabExpression(it.say, words3) : vocabExpression(it.en, words3),
           h("div", { class: "vx-pt", "data-role": "item-pt", text: it.pt }),
           itemNote(it),
-          h("div", { class: "vx-listen-row" }, listenBtn, vocabListens(n)),
+          h("div", { class: "vx-listen-row" }, listenBtn),
           hasAudio(it.audio) ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: "\xC1udio indispon\xEDvel para este item: a produ\xE7\xE3o oral fica bloqueada." }),
-          canSpeak ? null : h("div", { class: "small muted", "data-role": "rec-locked", text: `A grava\xE7\xE3o \xE9 liberada depois de ${LISTENS_REQUIRED} reprodu\xE7\xF5es completas do modelo.` }),
+          canSpeak ? null : h("div", { class: "small muted", "data-role": "rec-locked", text: "Ou\xE7a o modelo at\xE9 o fim antes de gravar." }),
           recBtn,
           status4
         ),
@@ -8521,6 +8579,7 @@ ${body.join("\n\n")}
         if (!ctx.alive) return;
         if (r.completed) {
           recordListen(p, `${phase}:${it.id}`);
+          lastAct.set(it.id, "listen");
           await save();
         }
         draw();
@@ -8536,6 +8595,7 @@ ${body.join("\n\n")}
         settleCompletion(pack, act, p);
         await save();
         last = { id: it.id, result, heard: out.heard };
+        lastAct.set(it.id, "record");
         if (out.micError) toast(out.micError, 6e3);
         draw();
       };
@@ -8570,7 +8630,7 @@ ${body.join("\n\n")}
           current2 = id;
           last = null;
           draw();
-        })),
+        }, act)),
         h(
           "section",
           { class: "card", "data-role": "dictation-card", "data-line": l.id, "data-status": m.status },
@@ -8631,39 +8691,36 @@ ${body.join("\n\n")}
     draw();
   }
   var layerItems = (pack, ids) => ids.map((id) => pack.items.find((x) => x.id === id)).filter(Boolean);
-  var LAYER_EYEBROW = (it) => it.layer === "unit" ? it.category || "Unidade" : it.origin === "expansion" ? "Frase de expans\xE3o (n\xE3o \xE9 fala dos personagens)" : "Frase do di\xE1logo";
   function itemNote(it) {
     const t = it.note || (it.say ? `Padr\xE3o: ${it.en}` : "");
     return t ? h("div", { class: "vx-note small muted", "data-role": "item-note", text: t }) : null;
   }
-  var WD_LABEL = { wrong: "trecho errado", extra: "palavra a mais", fix: "forma correta", missing: "palavra que faltou" };
-  function diffLine(segs, role) {
-    return h("span", { class: "wd en", lang: "en", "data-role": role }, segs.map((x) => x.mark === "space" ? " " : x.mark === "same" ? h("span", { text: x.text }) : h("span", { class: `wd-${x.mark}`, "data-mark": x.mark, title: WD_LABEL[x.mark], "aria-label": `${x.text}: ${WD_LABEL[x.mark]}`, text: x.text })));
-  }
   function writingFeedback(result, it, answer, refs = []) {
     const f = result.feedback || {};
     const passed = result.status === "passed";
-    const ref = closestReference(answer || "", [refs[0] || it.en, ...refs.slice(1)]) || it.en;
-    const d = answer ? diffText(answer, ref) : null;
-    const marked = !!d && d.changed && !(passed && (f.kind === "exact" || f.kind === "variant"));
+    const ref = closestReference(answer || "", refs.length ? refs : [it.en]) || it.en;
+    const integral = !!answer && refs.some((r) => integralMatch(answer, r));
+    const masked = answer && !integral ? maskedAnswer(answer, ref) : null;
     const cls = passed ? "good" : result.status === "needs_practice" ? "bad" : "mid";
-    const head = passed ? marked ? "Aprovado \u2014 confira o detalhe" : "Correto" : result.status === "needs_practice" ? "Ainda n\xE3o" : "Inconclusivo";
+    const head = integral ? "Correto" : passed ? "Quase: corrija o que est\xE1 marcado" : result.status === "needs_practice" ? "Ainda n\xE3o" : "Inconclusivo";
     return h(
       "div",
-      { class: `vx-result ${cls}`, "data-role": "feedback", "data-status": result.status, role: "status" },
+      { class: `vx-result ${cls}`, "data-role": "feedback", "data-status": result.status, "data-integral": String(integral), role: "status" },
       h("div", { class: "vx-head" }, icon(passed ? "check" : result.status === "needs_practice" ? "x" : "refresh"), head),
-      marked ? h("p", { class: "vx-line wd-row" }, h("span", { class: "wd-label muted", text: "Voc\xEA escreveu" }), diffLine(d.answer, "answer-echo")) : null,
-      marked || !passed ? h(
-        "p",
-        { class: "vx-line wd-row" },
-        h("span", { class: "wd-label muted", text: "Correto" }),
-        d ? diffLine(d.reference, "reference") : h("span", { class: "en", lang: "en", "data-role": "reference", text: ref })
-      ) : null,
+      masked ? h("p", { class: "vx-line wd-row" }, h("span", { class: "wd-label muted", text: "Voc\xEA escreveu" }), maskLine(masked)) : null,
+      integral ? h("p", { class: "vx-line wd-row" }, h("span", { class: "en", lang: "en", "data-role": "reference", text: refs[0] || it.en })) : null,
+      masked && masked.some((x) => x.mark === "missing") ? h("p", { class: "vx-line muted small", text: "Cada X \xE9 uma letra que falta." }) : null,
       !passed && f.reordered && f.reordered.length ? h("p", { class: "vx-line muted", text: "Aten\xE7\xE3o \xE0 ordem das palavras." }) : null,
       !passed && f.summary && /vazia/.test(f.summary) ? h("p", { class: "vx-line", text: f.summary }) : null
     );
   }
+  var MK_LABEL = { extra: "letra a mais ou trocada", missing: "letras que faltam" };
+  function maskLine(segs) {
+    return h("span", { class: "wd en", lang: "en", "data-role": "answer-echo" }, segs.map((x) => x.mark === "space" ? " " : x.mark === "same" ? h("span", { text: x.text }) : h("span", { class: `wd-${x.mark === "extra" ? "wrong" : "xmiss"}`, "data-mark": x.mark, "aria-label": `${x.text.length} ${MK_LABEL[x.mark]}`, text: x.text })));
+  }
   var targets = (it) => [...new Set([it.say || it.en, it.en, it.spoken, ...it.accepted || []].filter(Boolean))];
+  var integralDone = (p, phase, it) => Object.values(p.attempts).some((a) => a.phase === phase && a.itemId === it.id && a.status === "passed" && targets(it).some((r) => integralMatch(a.response || "", r)));
+  var LISTEN_FIRST = "Escute a frase com aten\xE7\xE3o antes de enviar. Ela ser\xE1 trabalhada novamente na pr\xF3xima etapa de Listening.";
   function writePhase(App2, { pack, act, p, area, ctx }, { phase, ids, listen: listen3 }) {
     const items = layerItems(pack, ids);
     const order = listen3 ? phaseOrder(p, phase, items.map((x) => x.id)) : items.map((x) => x.id);
@@ -8683,38 +8740,36 @@ ${body.join("\n\n")}
         "aria-label": listen3 ? "Escreva em ingl\xEAs o que voc\xEA ouviu" : "Escreva em ingl\xEAs",
         placeholder: listen3 ? "Escreva em ingl\xEAs o que voc\xEA ouviu" : "Escreva em ingl\xEAs"
       });
-      const send = h("button", { class: "btn primary block", type: "button", "data-role": "submit", style: { marginTop: "10px" } }, icon("check"), "Enviar");
+      const mustListen = hasAudio(it.audio) && !canWriteItem(p, it.id, phase);
+      const send = h("button", { class: `btn block${mustListen ? "" : " primary"}`, type: "button", "data-role": "submit", "data-locked": String(mustListen), style: { marginTop: "10px" } }, icon("check"), "Enviar");
       const fb = h("div", { "data-role": "item-result" });
-      const revealed = !listen3 || last && last.id === it.id || m.status === "passed";
-      const play3 = (rate) => play({ key: it.audio, text: it.spoken }, rate ? { rate } : void 0);
+      const showEn = !listen3 || integralDone(p, phase, it);
+      const listenMsg = h("div", { class: "notice warn small", "data-role": "listen-first", role: "status", hidden: true, text: LISTEN_FIRST });
+      const listenBtn = h("button", { class: `btn vx-listen${mustListen ? " primary" : ""}`, type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio) }, icon("speaker"), "Ouvir");
+      const slowBtn = listen3 ? h("button", { class: "btn ghost", type: "button", "data-role": "listen-slow", disabled: !hasAudio(it.audio) }, icon("slow"), "Mais devagar") : null;
       const what = it.layer === "unit" ? "a unidade" : "a frase";
       clear(area).append(
         h(
           "p",
           { class: "vx-instruction", "data-role": "layer-instruction" },
           icon(listen3 ? "speaker" : "book"),
-          h("span", { text: listen3 ? `Ou\xE7a e escreva em ingl\xEAs ${what} que voc\xEA ouviu. O texto aparece depois do envio.` : `Leia ${what} e o significado. Depois, escreva em ingl\xEAs.` })
+          h("span", { text: listen3 ? `Ou\xE7a e escreva em ingl\xEAs ${what} que voc\xEA ouviu.` : `Ou\xE7a ${what}, leia e escreva em ingl\xEAs.` })
         ),
         h("div", { class: "vx-chips" }, itemChips(order, p, phase, (id, i) => String(i + 1), current2, (id) => {
           current2 = id;
           last = null;
           draw();
-        })),
+        }, act)),
         h(
           "section",
-          { class: "card vx-card", "data-role": "layer-card", "data-item": it.id, "data-status": m.status, "data-revealed": String(!!revealed) },
-          h("div", { class: "eyebrow", text: LAYER_EYEBROW(it) }),
-          revealed ? h("div", { class: "vx-en en", "data-role": "item-en", lang: "en", text: it.say || it.en }) : null,
-          revealed ? h("div", { class: "vx-pt", "data-role": "item-pt", text: it.pt }) : null,
-          revealed ? itemNote(it) : null,
-          h(
-            "div",
-            { class: "row", style: { marginTop: revealed ? "0" : "6px" } },
-            h("button", { class: `btn${listen3 ? " primary vx-listen" : ""}`, type: "button", "data-role": "listen-item", disabled: !hasAudio(it.audio), onclick: () => play3() }, icon("speaker"), listen3 ? "Ouvir" : "Ouvir o modelo"),
-            listen3 ? h("button", { class: "btn ghost", type: "button", disabled: !hasAudio(it.audio), onclick: () => play3(0.75) }, icon("slow"), "Mais devagar") : null
-          ),
+          { class: "card vx-card", "data-role": "layer-card", "data-item": it.id, "data-status": m.status, "data-revealed": String(showEn) },
+          showEn ? h("div", { class: "vx-en en", "data-role": "item-en", lang: "en", text: it.say || it.en }) : null,
+          h("div", { class: "vx-pt", "data-role": "item-pt", text: it.pt }),
+          showEn ? itemNote(it) : null,
+          h("div", { class: "row", style: { marginTop: "0" } }, listenBtn, slowBtn),
           hasAudio(it.audio) ? null : h("div", { class: "notice warn small", "data-role": "audio-missing", text: listen3 ? "\xC1udio indispon\xEDvel para este item: a etapa de escuta fica bloqueada." : "\xC1udio indispon\xEDvel para este item." }),
           h("div", { style: { marginTop: "14px" } }, input),
+          listenMsg,
           send
         ),
         fb
@@ -8737,8 +8792,31 @@ ${body.join("\n\n")}
         draw();
       } }, "Pr\xF3ximo item", icon("next")));
       area.append(phaseFooter(pack, act, p, phase));
+      const listenNow = async (rate) => {
+        const typed = input.value;
+        listenBtn.disabled = true;
+        if (slowBtn) slowBtn.disabled = true;
+        const r = await playOnce({ key: it.audio, text: it.spoken }, rate);
+        if (!ctx.alive) return;
+        if (r.completed) {
+          recordListen(p, `${phase}:${it.id}`);
+          await save();
+        }
+        const keepLast = last;
+        draw();
+        last = keepLast;
+        const inp = area.querySelector("[data-role=answer]");
+        if (inp) inp.value = typed;
+      };
+      listenBtn.onclick = () => listenNow();
+      if (slowBtn) slowBtn.onclick = () => listenNow(0.75);
       send.onclick = async () => {
         const answer = input.value.trim();
+        if (hasAudio(it.audio) && !canWriteItem(p, it.id, phase)) {
+          listenMsg.hidden = false;
+          toast(LISTEN_FIRST, 5e3);
+          return;
+        }
         if (!answer) {
           toast("Escreva em ingl\xEAs antes de enviar.");
           return;
@@ -8765,8 +8843,7 @@ ${body.join("\n\n")}
     const speak2 = (ids, c, App2, layer) => speakPhase(App2, c, {
       phase: layer === "unit" ? "u-speak" : "s-speak",
       items: layerItems(c.pack, ids),
-      eyebrow: LAYER_EYEBROW,
-      instruction: `Ou\xE7a ${layer === "unit" ? "cada unidade" : "cada frase"} ${LISTENS_REQUIRED} vezes at\xE9 o fim. Depois, grave voc\xEA dizendo.`,
+      instruction: `Ou\xE7a ${layer === "unit" ? "a unidade" : "a frase"} e grave voc\xEA dizendo. Pode ouvir quantas vezes quiser.`,
       empty: "Esta etapa n\xE3o tem conte\xFAdo.",
       maxMs: (it) => it.layer === "unit" ? 8e3 : 15e3,
       trim: (it) => trimForLine(it.spoken),
@@ -8799,7 +8876,7 @@ ${body.join("\n\n")}
           current2 = id;
           last = null;
           draw();
-        })),
+        }, act)),
         h(
           "section",
           { class: "card", "data-role": "translation-card", "data-line": l.id, "data-status": m.status },
@@ -9084,7 +9161,7 @@ ${body.join("\n\n")}
           current2 = id;
           last = null;
           draw();
-        })),
+        }, act)),
         h(
           "section",
           { class: "card", "data-role": "reading-card", "data-line": l.id, "data-status": m.status },

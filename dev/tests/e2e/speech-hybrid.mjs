@@ -74,10 +74,14 @@ await page.goto(BASE); await page.waitForFunction(() => window.DRG_APP && window
 await page.evaluate(async () => { const A = window.DRG_APP; A.state.welcomed = true; await A.chooseCharacter('lucas'); await A.asr.local.install(); });
 await page.evaluate(async () => { // 3 audições do item “different teams” (libera o botão de gravar da fase 1)
   const db = await new Promise((r) => { const q = indexedDB.open('drg'); q.onsuccess = () => r(q.result); });
-  const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
+  const st = { v: 1, acts: { 'john-p1-e01': { attempts: Object.fromEntries(Array.from({ length: 32 }, (_, i) => { const id = 'john-p1-e01-u' + String(i + 1).padStart(2, '0'); return ['seed-' + id, { attemptId: 'seed-' + id, phase: 'u-write', itemId: id, status: 'passed', score: 100, createdAt: 1 }]; })), listens: { 'u-speak:john-p1-e01-u22': 3 }, skipped: { 'u-speak': Object.fromEntries(Array.from({ length: 21 }, (_, i) => ['john-p1-e01-u' + String(i + 1).padStart(2, '0'), 1])) }, rounds: [], notes: '', order: {}, startedAt: 1 } }, consent: { online: false, at: null } };
   await new Promise((r) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(st, 'dialogues'); t.oncomplete = r; });
 });
-const openPhase1 = async () => { await page.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await page.reload(); await page.waitForSelector('[data-role=item-chips]'); await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]'); };
+const openPhase1 = async () => { // slider com bloqueio por item (2026-11-14): U22 é o 1º não resolvido; depois de aprovada, volta-se a ela pelo slider
+  await page.goto(BASE + '#/dphase/john-p1-e01?p=u-speak'); await page.reload(); await page.waitForSelector('[data-role=item-chips]');
+  if (!(await page.locator('[data-role=vocab-card][data-item="john-p1-e01-u22"]').count())) await page.click('[data-role=item-chips] [data-item="john-p1-e01-u22"]');
+  await page.waitForSelector('[data-role=vocab-card][data-item="john-p1-e01-u22"]');
+};
 /** Uma tentativa na fase 1 (botão real → gravação real → motor central → avaliador). consent: 'online' | 'local' | null */
 const phase1Attempt = async ({ consent = null, ms = 3500 } = {}) => {
   // a tela mostra o resultado da última tentativa ao abrir o item (remodelagem de 2026-11-12): só vale o desta gravação

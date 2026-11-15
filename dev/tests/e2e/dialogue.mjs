@@ -91,12 +91,23 @@ const store = () => page.evaluate(async () => {
 });
 const textOf = (sel) => page.locator(sel).first().textContent();
 
-async function listenItem(n = 3) {
+/** n reproduções completas do modelo (o botão volta a ficar ativo quando a reprodução termina e a tela é redesenhada). */
+async function listenItem(n = 1) {
   for (let k = 0; k < n; k++) {
-    const before = await textOf('[data-role=listen-count]');
+    await page.evaluate(() => { document.querySelector('[data-role=listen-item]').dataset.waiting = '1'; });
     await page.click('[data-role=listen-item]');
-    await page.waitForFunction((b) => document.querySelector('[data-role=listen-count]')?.textContent !== b, before, { timeout: 20000 });
+    await page.waitForFunction(() => { const b = document.querySelector('[data-role=listen-item]'); return b && !b.dataset.waiting && !b.disabled; }, null, { timeout: 20000 });
   }
+}
+/** Slider de 5 números (2026-11-14): leva o item ao centro tocando nos vizinhos (fases clássicas não têm bloqueio por item). */
+async function pickItem(id) {
+  for (let k = 0; k < 60; k++) {
+    if (await page.locator(`[data-role=item-chips] [aria-current=true][data-item="${id}"]`).count()) return;
+    if (await page.locator(`[data-role=item-chips] [data-item="${id}"]`).count()) { await page.click(`[data-role=item-chips] [data-item="${id}"]`); continue; }
+    const vis = await page.$$eval('[data-role=item-chips] [data-item]', (b) => b.map((x) => x.dataset.item));
+    await page.click(`[data-role=item-chips] [data-item="${k < 30 ? vis[vis.length - 1] : vis[0]}"]`);
+  }
+  throw new Error(`item ${id} não alcançado pelo slider`);
 }
 async function recordOnce(ms = 1200) {
   await page.evaluate(() => document.querySelectorAll('[data-role=feedback]').forEach((e) => e.remove())); // só vale o resultado desta gravação
@@ -139,7 +150,7 @@ await check('D02', 'Tela do diálogo: inglês e tradução ocultos antes das fas
   return states.join();
 });
 
-await check('D03', 'Fase 1: gravação só depois de 3 audições COMPLETAS; audição interrompida não conta', async () => {
+await check('D03', 'Fase 1 (ajuste 03, 2026-11-14): gravação só depois de UMA audição COMPLETA; audição interrompida não conta', async () => {
   await go(`#/dphase/${ACT}?p=vocab`);
   await page.waitForSelector('[data-role=vocab-card]');
   assert(await page.locator('[data-role=record-item]').isDisabled(), 'gravação liberada antes das audições');
@@ -148,12 +159,10 @@ await check('D03', 'Fase 1: gravação só depois de 3 audições COMPLETAS; aud
   await go(`#/dialogue/${ACT}`); // sai no meio: player.stopAll()
   await go(`#/dphase/${ACT}?p=vocab`);
   await page.waitForSelector('[data-role=vocab-card]');
-  assert((await textOf('[data-role=listen-count]')).includes('0/3'), `contou audição interrompida: ${await textOf('[data-role=listen-count]')}`);
-  await listenItem(2);
-  assert(await page.locator('[data-role=record-item]').isDisabled(), 'liberou com 2');
+  assert(await page.locator('[data-role=record-item]').isDisabled(), 'contou audição interrompida');
   await listenItem(1);
-  assert(!(await page.locator('[data-role=record-item]').isDisabled()), 'não liberou com 3');
-  return await textOf('[data-role=listen-count]');
+  assert(!(await page.locator('[data-role=record-item]').isDisabled()), 'não liberou com 1 audição completa');
+  return 'interrompida não conta; 1 completa libera';
 });
 
 await check('D04', 'Fase 1: item abaixo de 80% fica para prática; inconclusivo não aprova nem reprova; ≥ 80% aprova; média não compensa', async () => {
@@ -171,9 +180,9 @@ await check('D04', 'Fase 1: item abaixo de 80% fica para prática; inconclusivo 
   assert(st === 'passed', `correto → ${st}`);
   // demais itens: todos aprovados, menos um que fica abaixo do corte (a fase não conclui)
   for (const it of ITEMS.slice(1)) {
-    await page.click(`[data-role=item-chips] [data-item="${it.id}"]`);
+    await pickItem(it.id);
     await page.waitForSelector(`[data-role=vocab-card][data-item="${it.id}"]`);
-    await listenItem(3);
+    await listenItem(1);
     await setHeard(it.id === ITEMS[ITEMS.length - 1].id ? 'what' : it.spoken.replace(/[?.!]/g, ''));
     await recordOnce();
   }
@@ -205,7 +214,7 @@ await check('D05', 'Fase 2: frase oculta antes do envio; pista sem a tradução 
       await page.waitForSelector('[data-role=feedback]');
       assert(await page.getAttribute('[data-role=feedback]', 'data-status') === 'needs_practice', 'metade da frase aprovou');
       assert((await textOf('[data-role=reference]')).includes(l.en), 'referência depois do envio');
-      await page.click(`[data-role=item-chips] [data-item="${l.id}"]`);
+      await pickItem(l.id);
       assert(!(await textOf('[data-role=dictation-card]')).includes(l.en), 'nova tentativa sem a referência na tela');
     }
     const ans = l.en.replace(/\bI'm\b/, 'I am').replace(/\bthat's\b/i, 'that is');
@@ -272,7 +281,7 @@ await check('D06', 'Fase 3: autorização; offline fica pendente e sobrevive ao 
   const before = gwCalls.length;
   for (const l of A.lines) {
     if (l.id === pend[0].itemId) continue;
-    await page.click(`[data-role=item-chips] [data-item="${l.id}"]`);
+    await pickItem(l.id);
     await page.waitForSelector(`[data-role=translation-card][data-line="${l.id}"]`);
     const local = l.id === A.lines[1].id;
     await page.fill('[data-role=answer]', local ? l.pt : `${l.pt} (paráfrase)`);
@@ -360,7 +369,7 @@ await check('D08', 'Fase 5: inconclusivo não reprova; retomada após fechar no 
   const resumed = await page.getAttribute('[data-role=reading-card]', 'data-line');
   assert(resumed === A.lines[1].id, `retomou em ${resumed}`);
   for (const l of A.lines.slice(1)) {
-    await page.click(`[data-role=item-chips] [data-item="${l.id}"]`);
+    await pickItem(l.id);
     await page.waitForSelector(`[data-role=reading-card][data-line="${l.id}"]`);
     await setHeard(l.en);
     st = await recordOnce();
@@ -391,7 +400,7 @@ await check('D10', 'Microfone bloqueado: tentativa inconclusiva com orientação
   // fase 1 da atividade 2: libera a gravação do 1º item e tenta gravar
   await page.waitForSelector('[data-role=vocab-card]');
   await page.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('negado', 'NotAllowedError'); }; });
-  await listenItem(3);
+  await listenItem(1);
   await page.click('[data-role=record-item]');
   await page.waitForSelector('[data-role=feedback]');
   const st = await page.getAttribute('[data-role=feedback]', 'data-status');
@@ -467,7 +476,7 @@ await check('D11', 'Reconhecimento local real: leitura em voz alta de uma fala a
   await page.waitForTimeout(500);
   await page.evaluate(() => window.DRG_APP.asr.local.install());
   await go(`#/dphase/${ACT}?p=reading`);
-  await page.click(`[data-role=item-chips] [data-item="${line.id}"]`);
+  await pickItem(line.id);
   await page.waitForSelector(`[data-role=reading-card][data-line="${line.id}"]`);
   const st = await recordOnce(4000);
   const heard = await textOf('[data-role=heard]').catch(() => '');
