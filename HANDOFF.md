@@ -25,7 +25,7 @@ produto: `docs/produto/` (checklist mestre `03_…`, arquitetura pedagógica `04
 | O que está publicado | a e01 em sete etapas, só ela ativa; as outras 45 atividades preservadas fora da navegação |
 | **Correções da validação real (seção 2A)** | **publicadas em 13/11** (`7cf3a3c`, build `1f0474b1cbd8`), com autorização do PO condicionada aos testes, todos aprovados no build reproduzido do zero |
 | **Reticências no TTS + faixa de números (seção 2B, 14/11)** | **publicadas em 14/11** — commit `8ec5795` (autorização expressa do PO), `gh-pages` avançado de `72908ec` (fast-forward, sem merge/force), workflow “pages build and deployment” nº 39 com sucesso, build servido **`c3c3a4d174ca`**; `sw.js`, `dist/app.js`, `data/*.js`, `index.html`, `css/app.css`, `manifest.webmanifest` e os **2.244 áudios** servidos idênticos ao commit. Depois, `gh-pages` avança para o commit de documentação (mesmo build) |
-| **10 ajustes de UX e áudio (seção 2C, 14/11)** | commit logo acima de `747eab7` (“feat: UX adjustments 01-09…”), build `ce3c58919042`; commit, push e publicação **autorizados expressamente pelo PO em 15/11**; 01–09 concluídos; 10 diagnosticado (decisão do PO). Resultado do deploy: registrado no commit seguinte, só de documentação |
+| **10 ajustes de UX e áudio (seção 2C)** | **publicados em 15/11** — commit `8909c47` (autorização expressa do PO), `gh-pages` avançado de `747eab7` (fast-forward, sem merge/force), workflow nº 41 com sucesso, build servido **`ce3c58919042`**; `sw.js`, `dist/app.js`, `data/*.js`, `index.html`, `css/app.css` e `manifest.webmanifest` servidos idênticos ao commit. 01–09 concluídos; 10 diagnosticado, aguardando a escolha da voz pelo PO. Depois, `gh-pages` avança para o commit de documentação (mesmo build) |
 | Registro histórico | antes de 13/11 (tarde), `gh-pages` estava em `46b7d97` (build `583fa58264f1`) e a e01 em sete etapas não estava publicada |
 
 Regras: commit/push só com autorização; nunca force push; nunca publicar sem autorização; não usar `main` como origem
@@ -247,8 +247,9 @@ storage, asr-local, run-pages, wordpractice, coursepractice) não foram repetido
    dele. No contêiner da nuvem, use o Playwright pré-instalado (o do `npm ci` não acha o Chromium).
 3. Testes da e01: `node tests/e2e/dialogue-layers.mjs <site> /daily-routine-english/` e `tests/e2e/audio-layers.mjs`;
    unitários `npm test`. Não repetir suítes aprovadas sem motivo técnico.
-4. **Próximo passo:** o PO valida os ajustes 01–09 (seção 2C; publicação só com autorização) e escolhe a voz do item 10
-   (pacote `item10-amostras.zip`); escuta das reticências e da U26; decisões de DEC-022, DEC-023, DEC-024 (D-008) e D1–D8. Depois: remodelar a próxima atividade de
+4. **Próximo passo:** o PO valida no Galaxy S25+ os ajustes 01–09 publicados (fechar e reabrir o app até o build
+   `ce3c58919042`) e escolhe a voz do item 10 (pacote `item10-amostras.zip`); escuta das reticências e da U26; decisões de
+   DEC-022, DEC-023, DEC-024 (D-008) e D1–D8. Melhorias estruturais e ajustes adicionais de áudio ficam para depois (PO, 15/11). Depois: remodelar a próxima atividade de
    John, uma por vez, no mesmo formato (`*-layers.json` + `rollout.json`).
 5. Roteiro do aparelho: (a) Ajustes → Áudio, modo Online, “Testar reconhecimento”; (b) e01 etapas 1→7 completas;
    (c) etapa 2 com “work for”, “didn't we?”, “but”, “I met someone.” e “I'm a project analyst.” nos dois modos;

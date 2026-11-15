@@ -87,7 +87,7 @@ Checklist cumulativo: não apagar concluídos; reabrir apenas por regressão ou 
 - [x] Reticências na preparação do TTS (DEC-024): 95 áudios regenerados (Daily Routine + John), mesmas chaves; U26 sem silêncio fixo — publicado (`8ec5795`, build `c3c3a4d174ca`, workflow nº 39).
 - [x] Faixa horizontal de números nas etapas dos diálogos (DEC-024) — publicado (`8ec5795`).
 - [ ] Escuta no Galaxy S25+ das reticências (pacote antes × depois) e da U26; uso da faixa de números.
-- [x] Dez ajustes de UX e áudio (14/11): 01 escuta antes de enviar a escrita · 02 sem classificações internas · 03 reprodução livre · 04 destaque Ouvir/Gravar · 05 tradução no Listening inicial · 06 sem revelar a resposta · 07 marcas X/vermelho · 08 cartões enxutos · 09 slider de 5 números com bloqueio — implementados e testados; commit e publicação autorizados pelo PO em 15/11 (ver `HANDOFF.md` 2C).
+- [x] Dez ajustes de UX e áudio (14/11): 01 escuta antes de enviar a escrita · 02 sem classificações internas · 03 reprodução livre · 04 destaque Ouvir/Gravar · 05 tradução no Listening inicial · 06 sem revelar a resposta · 07 marcas X/vermelho · 08 cartões enxutos · 09 slider de 5 números com bloqueio — implementados, testados e **publicados em 15/11** (`8909c47`, build `ce3c58919042`, workflow nº 41; ver `HANDOFF.md` 2C).
 - [ ] Item 10 (naturalidade): diagnóstico feito (voz bf_emma ~17% mais rápida e sem pausas); aguarda escolha da voz pelo PO.
 - [ ] Validar 01–09 no Galaxy S25+ (toque e arraste do slider, cadeado, marcas, tradução no Listening).
 - [ ] Decisões do PO: DEC-022 (formas faladas e regras técnicas), D1–D8 da análise (D3 = avaliação da tradução), autorização de publicação da e01.
